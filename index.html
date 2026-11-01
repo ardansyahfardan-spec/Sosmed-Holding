@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghoustory Control Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050505',
+                        darkCard: '#121212',
+                        ghoulRed: '#B91C1C',
+                        ghoulRedHover: '#991B1B'
+                    },
+                    fontFamily: {
+                        mystery: ['Cinzel', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; overflow: hidden; }
+        .neon-red { box-shadow: 0 0 15px rgba(185, 28, 28, 0.5); }
+        .glass-panel { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(10px); border: 1px solid #333; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B91C1C; }
+        
+        /* Animasi Teleprompter */
+        @keyframes scrollUp {
+            from { transform: translateY(100vh); }
+            to { transform: translateY(-100%); }
+        }
+        .teleprompter-run {
+            animation: scrollUp 60s linear infinite; 
+        }
+
+        /* Transisi Halaman */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .page-active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animasi Loading Bar */
+        @keyframes fillLoading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .animate-loading-bar {
+            animation: fillLoading 2s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
+
+    <!-- ============================================== -->
+    <!-- LOADING SCREEN HOROR -->
+    <!-- ============================================== -->
+    <div id="loading-screen" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center transition-opacity duration-700">
+        <!-- Logo Berkedip -->
+        <img src="image_2.png" alt="Ghoustory" class="h-28 md:h-40 drop-shadow-[0_0_25px_rgba(185,28,28,0.9)] animate-pulse mb-8 object-contain">
+        
+        <!-- Tagline Sinematik -->
+        <h1 class="text-lg md:text-2xl font-mystery text-gray-400 tracking-[0.15em] mb-8 italic text-center px-4">
+            "Saat semua tertidur, <br class="block sm:hidden"><span class="text-ghoulRed font-bold">cerita dimulai...</span>"
+        </h1>
+        
+        <!-- Loading Bar -->
+        <div class="w-64 md:w-80 h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
+            <div class="h-full bg-ghoulRed animate-loading-bar shadow-[0_0_10px_rgba(185,28,28,1)]"></div>
+        </div>
+        
+        <div class="mt-4 text-xs font-mystery text-gray-600 tracking-widest animate-pulse">
+            Sistem Utama Online
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT (Sembunyi saat loading) -->
+    <div id="main-app" class="flex-grow flex flex-col opacity-0 transition-opacity duration-1000">
+        
+        <!-- Navbar -->
+        <nav class="border-b border-red-900 bg-darkBg p-4 sticky top-0 z-40 shadow-md shadow-red-900/20">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
+                    <img src="image_2.png" alt="Logo Ghoustory" class="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]">
+                    <h1 class="text-lg sm:text-2xl font-mystery font-bold tracking-widest text-white leading-tight hover:text-ghoulRed transition">
+                        GHOUSTORY <br class="block sm:hidden"> 
+                        <span class="text-ghoulRed">CONTROL ROOM</span>
+                    </h1>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="showPage('bank-naskah')" class="text-gray-400 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-bars-staggered"></i> <span class="hidden sm:inline">Bank Naskah</span>
+                    </button>
+                    <div class="text-sm font-mystery tracking-wider hidden md:flex items-center gap-2">
+                        <span class="bg-gray-800 px-3 py-1 rounded-full text-xs border border-gray-700">Team: Online</span>
+                        <i class="fa-solid fa-circle text-green-500 text-xs animate-pulse"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- CONTAINER HALAMAN -->
+        <main class="container mx-auto px-4 py-8 flex-grow">
+
+            <!-- HALAMAN 1: BERANDA -->
+            <section id="page-home" class="page-section page-active">
+                <h2 class="text-3xl font-mystery text-center mb-10 mt-8">PILIH PORTAL DIMENSI</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <div onclick="showPage('grimoire')" class="glass-panel p-8 rounded-xl text-center border border-gray-700 hover:border-ghoulRed hover:shadow-[0_0_20px_rgba(185,28,28,0.4)] transition cursor-pointer group">
+                        <i class="fa-solid fa-book-skull text-6xl text-gray-500 group-hover:text-ghoulRed mb-4 transition"></i>
+                        <h3 class="text-xl font-bold mb-2">Grimoire & Naskah</h3>
+                        <p class="text-sm text-gray-400">Riset ide cerita Jatim dari AI, tulis naskah bersama tim, dan masuk ke mode Teleprompter.</p>
+                    </div>
+
+                    <div onclick="showPage('analisis')" class="glass-panel p-8 rounded-xl text-center border border-gray-700 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition cursor-pointer group">
+                        <i class="fa-brands fa-youtube text-6xl text-gray-500 group-hover:text-blue-500 mb-4 transition"></i>
+                        <h3 class="text-xl font-bold mb-2">Analisis Video AI</h3>
+                        <p class="text-sm text-gray-400">Extract highlight 1 menit, subtitle Jatim-Indo, dan Metadata dari YouTube Unlisted.</p>
+                    </div>
+
+                    <div onclick="showPage('distribusi')" class="glass-panel p-8 rounded-xl text-center border border-gray-700 hover:border-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition cursor-pointer group">
+                        <i class="fa-solid fa-network-wired text-6xl text-gray-500 group-hover:text-green-500 mb-4 transition"></i>
+                        <h3 class="text-xl font-bold mb-2">Portal Distribusi</h3>
+                        <p class="text-sm text-gray-400">Checklist status upload konten ke TikTok, YouTube, dan Facebook Reels.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HALAMAN 2: GRIMOIRE & EDITOR -->
+            <section id="page-grimoire" class="page-section max-w-4xl mx-auto">
+                <button onclick="showPage('home')" class="mb-4 text-gray-400 hover:text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                </button>
+                <div class="space-y-6">
+                    <div class="glass-panel p-6 rounded-xl border-t-2 border-ghoulRed">
+                        <h3 class="text-xl font-mystery text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-book-skull text-ghoulRed"></i> Grimoire: Pencari Ide
+                        </h3>
+                        <div class="flex gap-3">
+                            <input type="text" id="topic-input" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-ghoulRed" placeholder="Cari mitos/sejarah. Contoh: Alas Purwo...">
+                            <button class="bg-ghoulRed text-white px-6 py-3 rounded-lg hover:bg-ghoulRedHover transition neon-red font-semibold flex items-center gap-2">
+                                Panggil AI
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-xl border-t-2 border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-mystery text-white flex items-center gap-2">
+                                <i class="fa-solid fa-pen-nib text-gray-400"></i> Editor Naskah
+                            </h3>
+                            <button onclick="toggleTeleprompter()" class="bg-blue-900 text-blue-200 px-4 py-2 rounded border border-blue-700 hover:bg-blue-800 transition text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-person-chalkboard"></i> Teleprompter
+                            </button>
+                        </div>
+                        <textarea id="script-editor" class="w-full h-[50vh] bg-black border border-gray-700 rounded-lg p-4 text-gray-300 focus:outline-none focus:border-ghoulRed resize-none text-lg leading-relaxed" placeholder="Tulis atau hasilkan naskah utuh di sini..."></textarea>
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button class="bg-darkCard border border-gray-600 text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-800 transition">Bersihkan</button>
+                            <button class="bg-green-700 text-white px-8 py-2 rounded-lg hover:bg-green-600 transition font-semibold">Simpan Naskah</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HALAMAN 3: ANALISIS VIDEO URL -->
+            <section id="page-analisis" class="page-section max-w-3xl mx-auto">
+                <button onclick="showPage('home')" class="mb-4 text-gray-400 hover:text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                </button>
+                <div class="glass-panel p-8 rounded-xl border-t-2 border-blue-500">
+                    <h3 class="text-2xl font-mystery text-white pb-2 mb-4 flex items-center gap-2 border-b border-gray-700">
+                        <i class="fa-brands fa-youtube text-red-500"></i> Analisis & Subtitle AI
+                    </h3>
+                    <input type="text" id="yt-link-input" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-gray-300 mb-4 focus:outline-none focus:border-blue-500" placeholder="https://youtu.be/xxx">
+                    <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-robot"></i> Cari Highlight 1 Menit & Buat Subtitle
+                    </button>
+                    <div class="mt-6">
+                        <textarea class="w-full bg-black border border-gray-700 rounded-lg p-4 text-sm text-gray-300 focus:outline-none focus:border-blue-500 h-40 resize-none" placeholder="Hasil highlight, subtitle, dan metadata akan muncul di sini..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HALAMAN 4: PORTAL DISTRIBUSI -->
+            <section id="page-distribusi" class="page-section max-w-xl mx-auto">
+                <button onclick="showPage('home')" class="mb-4 text-gray-400 hover:text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                </button>
+                <div class="glass-panel p-8 rounded-xl border-t-2 border-green-500">
+                    <h3 class="text-2xl font-mystery text-white pb-2 mb-6 border-b border-gray-700">Checklist Distribusi</h3>
+                    <div class="space-y-4">
+                        <label class="flex items-center justify-between p-4 border border-gray-700 rounded-lg hover:bg-gray-900 cursor-pointer transition">
+                            <div class="flex items-center gap-4"><i class="fa-brands fa-tiktok text-white text-2xl"></i><span class="font-medium text-lg">TikTok</span></div>
+                            <input type="checkbox" class="w-6 h-6 accent-green-500 bg-gray-800 border-gray-600 rounded cursor-pointer">
+                        </label>
+                        <label class="flex items-center justify-between p-4 border border-gray-700 rounded-lg hover:bg-gray-900 cursor-pointer transition">
+                            <div class="flex items-center gap-4"><i class="fa-brands fa-youtube text-red-500 text-2xl"></i><span class="font-medium text-lg">YouTube</span></div>
+                            <input type="checkbox" class="w-6 h-6 accent-green-500 bg-gray-800 border-gray-600 rounded cursor-pointer">
+                        </label>
+                        <label class="flex items-center justify-between p-4 border border-gray-700 rounded-lg hover:bg-gray-900 cursor-pointer transition">
+                            <div class="flex items-center gap-4"><i class="fa-brands fa-facebook text-blue-500 text-2xl"></i><span class="font-medium text-lg">Facebook</span></div>
+                            <input type="checkbox" class="w-6 h-6 accent-green-500 bg-gray-800 border-gray-600 rounded cursor-pointer">
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HALAMAN 5: BANK NASKAH -->
+            <section id="page-bank-naskah" class="page-section max-w-4xl mx-auto">
+                <button onclick="showPage('home')" class="mb-4 text-gray-400 hover:text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                </button>
+                <div class="glass-panel p-6 rounded-xl border-t-2 border-gray-500">
+                    <h3 class="text-xl font-mystery text-white mb-6 border-b border-gray-700 pb-2">
+                        <i class="fa-solid fa-folder-open mr-2"></i> Arsip Bank Naskah
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-black border border-gray-700 p-4 rounded-lg flex justify-between items-center hover:border-ghoulRed transition">
+                            <div><h4 class="font-bold text-white text-lg">Tragedi Tumbal Jembatan (Draft)</h4></div>
+                            <button onclick="showPage('grimoire')" class="bg-gray-800 hover:bg-ghoulRed text-white px-4 py-2 rounded transition text-sm">Buka di Editor</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay Teleprompter -->
+    <div id="teleprompter-overlay" class="fixed inset-0 bg-black z-50 hidden flex-col">
+        <div class="p-4 flex justify-between items-center border-b border-gray-800 bg-black z-50">
+            <h2 class="text-ghoulRed font-mystery text-xl">TELEPROMPTER MODE</h2>
+            <div class="flex gap-4">
+                <button onclick="startTeleprompter()" class="bg-green-700 px-4 py-2 rounded text-white font-bold"><i class="fa-solid fa-play mr-2"></i>Mulai</button>
+                <button onclick="stopTeleprompter()" class="bg-yellow-600 px-4 py-2 rounded text-white font-bold"><i class="fa-solid fa-pause mr-2"></i>Stop</button>
+                <button onclick="toggleTeleprompter()" class="bg-red-800 px-4 py-2 rounded text-white font-bold"><i class="fa-solid fa-xmark mr-2"></i>Tutup</button>
+            </div>
+        </div>
+        <div class="flex-grow overflow-hidden relative" id="teleprompter-container">
+            <div id="teleprompter-text" class="text-white text-5xl leading-tight font-bold p-12 text-center w-full max-w-4xl mx-auto absolute inset-x-0"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIKA HALAMAN, LOADING & TELEPROMPTER -->
+    <script>
+        // Logika Loading Screen
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loading-screen');
+                const mainApp = document.getElementById('main-app');
+                
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    mainApp.style.opacity = '1';
+                    document.body.style.overflow = 'auto';
+                }, 700); 
+            }, 3000); // Tampil selama 3 detik biar taglinenya terbaca jelas
+        });
+
+        // Logika Berpindah Halaman
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page-section');
+            pages.forEach(page => page.classList.remove('page-active'));
+            document.getElementById('page-' + pageId).classList.add('page-active');
+        }
+
+        // Logika Teleprompter
+        function toggleTeleprompter() {
+            const overlay = document.getElementById('teleprompter-overlay');
+            const editorText = document.getElementById('script-editor').value;
+            const promptrText = document.getElementById('teleprompter-text');
+            
+            if (overlay.classList.contains('hidden')) {
+                promptrText.innerText = editorText || "Naskah masih kosong.";
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                stopTeleprompter();
+            }
+        }
+        function startTeleprompter() { document.getElementById('teleprompter-text').classList.add('teleprompter-run'); }
+        function stopTeleprompter() { document.getElementById('teleprompter-text').classList.remove('teleprompter-run'); }
+    </script>
+</body>
+</html>
