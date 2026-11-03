@@ -196,7 +196,8 @@
 #page-chat.chat-room-open>.grid{display:block!important;width:100%!important;height:100%!important;max-width:none!important;margin:0!important}
 #page-chat.chat-room-open #chat-sidebar{display:none!important}
 #page-chat.chat-room-open #chat-room-panel{display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;overflow:hidden!important}
-#page-chat.chat-room-open #direct-chat-card,#page-chat.chat-room-open #group-chat-card{height:100%!important;min-height:0!important;max-height:none!important;border-radius:0!important;display:flex!important;flex-direction:column!important}
+#page-chat.chat-room-open #direct-chat-card:not(.hidden),#page-chat.chat-room-open #group-chat-card:not(.hidden){height:100%!important;min-height:0!important;max-height:none!important;border-radius:0!important;display:flex!important;flex-direction:column!important}
+#page-chat.chat-room-open #direct-chat-card.hidden,#page-chat.chat-room-open #group-chat-card.hidden{display:none!important}
 #page-chat.chat-room-open #direct-chat-card>#dm-messages,#page-chat.chat-room-open #group-chat-card>#chat-messages{flex:1 1 auto!important;height:auto!important;min-height:0!important;max-height:none!important}
 #page-chat.chat-room-open .chat-composer{flex:0 0 auto!important;position:sticky!important;bottom:0!important}
 #page-chat.chat-room-open #direct-chat-card>div:first-child button,#page-chat.chat-room-open #group-chat-card>div:first-child button{display:inline-flex!important}
