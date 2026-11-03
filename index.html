@@ -1099,6 +1099,8 @@
                         appOpening = false;
                     }, 700);
                 }, 900);
+                // Tawarkan izin push setelah pengguna benar-benar masuk ke aplikasi.
+                setTimeout(showGhoustoryNotificationPrompt, 1900);
             } catch (error) {
                 console.error('Database bersama belum siap:', error);
                 if (loginStatus) {
@@ -2965,6 +2967,26 @@ async function markDmMessagesRead(){
           const raw=atob((value+padding).replace(/-/g,"+").replace(/_/g,"/"));
           return Uint8Array.from(raw,c=>c.charCodeAt(0));
         }
+        function showGhoustoryNotificationPrompt(){
+          if(!activeUser||!("Notification" in window)||Notification.permission!=="default")return;
+          const key="ghoustory-notification-prompt-"+activeUser.id;
+          if(localStorage.getItem(key)==="done")return;
+          const modal=document.getElementById("ghoustory-notification-prompt");
+          if(modal){modal.classList.remove("hidden");modal.classList.add("flex");}
+        }
+        function closeGhoustoryNotificationPrompt(){
+          const modal=document.getElementById("ghoustory-notification-prompt");
+          if(modal){modal.classList.add("hidden");modal.classList.remove("flex");}
+        }
+        async function acceptGhoustoryNotificationPrompt(){
+          closeGhoustoryNotificationPrompt();
+          try{
+            await enableGhoustoryNotifications();
+            if("Notification" in window&&Notification.permission!=="default"&&activeUser){
+              localStorage.setItem("ghoustory-notification-prompt-"+activeUser.id,"done");
+            }
+          }catch(error){console.error("Izin notifikasi:",error);}
+        }
         async function enableGhoustoryNotifications(){
           try{
             if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){
@@ -3066,5 +3088,17 @@ async function markDmMessagesRead(){
       </form>
     </div>
 
+    <div id="ghoustory-notification-prompt" class="hidden fixed inset-0 z-[210] bg-black/80 backdrop-blur-sm p-5 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="ghoustory-notification-title">
+      <div class="w-full max-w-sm rounded-2xl border border-red-800/70 bg-gradient-to-br from-[#171015] via-[#101018] to-[#0b1422] p-6 text-center shadow-[0_0_45px_rgba(185,28,28,.22)]">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-red-700/60 bg-red-950/60 text-red-300"><i class="fa-solid fa-bell text-2xl"></i></div>
+        <h2 id="ghoustory-notification-title" class="font-mystery text-xl font-bold text-white">Izinkan notifikasi?</h2>
+        <p class="mt-2 text-sm leading-relaxed text-gray-300">Aktifkan notifikasi agar pesan dari kru tetap bisa kamu terima meskipun Ghoustory sedang tidak dibuka.</p>
+        <div class="mt-5 grid grid-cols-2 gap-3">
+          <button type="button" onclick="acceptGhoustoryNotificationPrompt()" class="rounded-xl bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700">Ya</button>
+          <button type="button" onclick="acceptGhoustoryNotificationPrompt()" class="rounded-xl border border-blue-600 bg-blue-950/70 px-4 py-3 text-sm font-bold text-white hover:bg-blue-900">Pasti</button>
+        </div>
+        <p class="mt-3 text-[10px] text-gray-500">Kedua tombol akan membuka permintaan izin notifikasi perangkat.</p>
+      </div>
+    </div>
 </body>
 </html>
