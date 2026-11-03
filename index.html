@@ -2714,7 +2714,7 @@
           button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
         }
         // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
-        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReplyTo=null;
+        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null;
         async function loadDirectConversations(){
           const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
           box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
@@ -2761,13 +2761,27 @@
         async function loadDirectMessages(){
           if(!activeDmConversation)return;if(dmRealtimeChannel){await supabaseClient.removeChannel(dmRealtimeChannel);dmRealtimeChannel=null;}
           const {data,error}=await supabaseClient.from("ghoustory_dm_messages").select("*").eq("conversation_id",activeDmConversation).order("created_at").limit(150);if(error)throw error;
-          dmMessages=data||[];renderDirectMessages();const id=activeDmConversation;
-          dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();loadDirectConversations();}).subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
+          dmMessages=data||[];const ids=dmMessages.map(m=>m.id);dmReads=[];
+          if(ids.length){const {data:reads,error:readError}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id,user_id,read_at").in("message_id",ids);if(readError)throw readError;dmReads=reads||[];}
+          await markDmMessagesRead();renderDirectMessages();const id=activeDmConversation;
+          dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
+            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();loadDirectConversations();})
+            .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(activeDmConversation!==id||!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);renderDirectMessages();})
+            .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
         }
         function renderDirectMessages(){
           const box=document.getElementById("dm-messages");if(!box)return;
           if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
-          box.innerHTML=dmMessages.map(m=>{const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':'';const actions='<div class="flex items-center justify-end gap-3 mt-1 text-[10px]"><button type="button" onclick="setDmReply(\''+m.id+'\')" class="text-blue-300">Balas</button>'+(own&&!m.deleted_at?'<button type="button" onclick="editDmMessage(\''+m.id+'\')" class="text-gray-300">Edit</button><button type="button" onclick="deleteDmMessage(\''+m.id+'\')" class="text-red-300">Hapus</button>':'')+'</div>';return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'">'+quote+'<div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(m.edited_at?' · diedit':'')+'</div>'+actions+'</div></div>';}).join("");box.scrollTop=box.scrollHeight;
+          box.innerHTML=dmMessages.map(m=>{const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':'';const actions='<div class="flex items-center justify-end gap-3 mt-1 text-[10px]"><button type="button" onclick="setDmReply(\''+m.id+'\')" class="text-blue-300">Balas</button>'+(own&&!m.deleted_at?'<button type="button" onclick="editDmMessage(\''+m.id+'\')" class="text-gray-300">Edit</button><button type="button" onclick="deleteDmMessage(\''+m.id+'\')" class="text-red-300">Hapus</button>':'')+'</div>';return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'">'+quote+'<div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(m.edited_at?' · diedit':'')+(own?' · '+(dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id)?'Dibaca':'Terkirim'):'')+'</div>'+actions+'</div></div>';}).join("");box.scrollTop=box.scrollHeight;
+        }
+        async function markDmMessagesRead(){
+          if(!activeUser||!activeDmConversation)return;
+          const pending=dmMessages.filter(m=>m.sender_id!==activeUser.id&&!m.deleted_at&&!dmReads.some(r=>r.message_id===m.id&&r.user_id===activeUser.id));
+          if(!pending.length)return;
+          const rows=pending.map(m=>({message_id:m.id,user_id:activeUser.id}));
+          const {error}=await supabaseClient.from("ghoustory_dm_message_reads").upsert(rows,{onConflict:"message_id,user_id",ignoreDuplicates:true});
+          if(error)console.warn("Status baca belum tersimpan:",error.message);
+          else rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));
         }
         function setDmReply(id){dmReplyTo=dmMessages.find(m=>m.id===id)||null;const wrap=document.getElementById("dm-reply-preview"),label=document.getElementById("dm-reply-text");if(!dmReplyTo||!wrap||!label)return;label.textContent="Membalas: "+(dmReplyTo.deleted_at?"Pesan dihapus":dmReplyTo.body);wrap.classList.remove("hidden");document.getElementById("dm-input")?.focus();}
         function clearDmReply(){dmReplyTo=null;document.getElementById("dm-reply-preview")?.classList.add("hidden");}
