@@ -250,10 +250,25 @@
                     <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
                         <div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div>
                     </div>
-                    <form id="chat-form" onsubmit="sendChatMessage(event)" class="p-3 bg-darkCard border-t border-gray-800 flex gap-2">
-                        <input id="chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Tulis pesan..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm text-white outline-none focus:border-red-700">
-                        <button id="chat-send" type="submit" class="bg-red-700 hover:bg-red-600 text-white rounded-full w-12 h-12 shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+                    <form id="chat-form" onsubmit="sendChatMessage(event)" class="p-3 bg-darkCard border-t border-gray-800 flex gap-2 items-center">
+                        <button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-11 h-11 shrink-0 rounded-full border border-gray-700 text-gray-200 hover:border-red-600"><i class="fa-solid fa-plus"></i></button>
+                        <input id="chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Tulis pesan... (gunakan @ghoust)" class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm text-white outline-none focus:border-red-700">
+                        <button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" class="w-11 h-11 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button>
+                        <button id="chat-send" type="submit" class="bg-red-700 hover:bg-red-600 text-white rounded-full w-11 h-11 shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
                     </form>
+                    <div id="chat-tools-modal" class="hidden fixed inset-0 z-[150] bg-black/80 p-3 items-center justify-center">
+                      <div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-4">
+                        <div class="flex items-center justify-between mb-3"><h3 id="chat-tools-title" class="font-mystery text-white">RITUAL CREW</h3><button type="button" onclick="closeChatTools()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div>
+                        <div id="chat-tools-content" class="space-y-3"></div>
+                      </div>
+                    </div>
+                    <div id="ghoust-ai-modal" class="hidden fixed inset-0 z-[151] bg-black/80 p-3 items-center justify-center">
+                      <div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-blue-900 bg-[#101015] p-4">
+                        <div class="flex items-center justify-between mb-3"><div><h3 class="font-mystery text-white">GHOUSTORY AI</h3><p class="text-[10px] text-blue-300">Asisten RITUAL CREW · panggil juga dengan @ghoust</p></div><button type="button" onclick="closeGhoustAI()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div>
+                        <div id="ghoust-ai-history" class="bg-black/60 border border-gray-800 rounded-xl p-3 min-h-24 max-h-64 overflow-y-auto text-sm text-gray-200 whitespace-pre-wrap mb-3">Tanyakan ide, jadwal, ringkasan, atau data produksi Ghoustory.</div>
+                        <form onsubmit="askGhoustAI(event)" class="flex gap-2"><input id="ghoust-ai-input" maxlength="2000" class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm" placeholder="Tanya GHOUSTORY AI..."><button class="bg-blue-800 rounded-full px-4"><i class="fa-solid fa-paper-plane"></i></button></form>
+                      </div>
+                    </div>
                 </div>
                 <p class="text-[10px] text-gray-500 mt-2 text-center">Riwayat tersimpan di akun dan disalin ke perangkat ini. Pesan disinkronkan agar anggota lain dapat menerimanya.</p>
             </section>
@@ -2467,74 +2482,151 @@
         let chatChannel = null;
         let chatMessages = [];
         let chatLoadedForUser = null;
-        function chatCacheKey() { return "ghoustory-chat-" + (activeUser?.id || "guest"); }
-        function saveChatCache() {
-            try { localStorage.setItem(chatCacheKey(), JSON.stringify(chatMessages.slice(-150))); } catch (e) { console.warn("Cache chat lokal tidak tersedia", e); }
+        let ghoustAiBusy = false;
+        const CHAT_COLLECTIONS = {
+          jadwal:{label:"Jadwal Suting",items:()=>db.jadwal||[],title:x=>x.title||"Jadwal",page:"tim",tab:"jadwal"},
+          production:{label:"Tracker Produksi",items:()=>db.production||[],title:x=>x.title||"Konten",page:"tim",tab:"produksi"},
+          scriptDrafts:{label:"Naskah / Script",items:()=>db.scriptDrafts||[],title:x=>x.title||"Naskah",page:"grimoire",tab:"editor"},
+          mitos:{label:"Mitos",items:()=>db.mitos||[],title:x=>x.text||"Mitos",page:"grimoire",tab:"mitos"},
+          vo:{label:"VO",items:()=>db.vo||[],title:x=>x.title||"VO",page:"ghoustnote",tab:"vo"},
+          notulen:{label:"Notulen",items:()=>db.notulen||[],title:x=>x.topic||"Notulen",page:"ghoustnote",tab:"arsip"},
+          stok:{label:"Stok",items:()=>db.stok||[],title:x=>x.title||x.name||"Stok",page:"tim",tab:"stok"},
+          tayang:{label:"Data Tayang",items:()=>db.tayang||[],title:x=>x.title||"Data Tayang",page:"tayang",tab:null}
+        };
+        function chatCacheKey(){return "ghoustory-chat-"+(activeUser?.id||"guest");}
+        function saveChatCache(){try{localStorage.setItem(chatCacheKey(),JSON.stringify(chatMessages.slice(-150)));}catch(e){console.warn("Cache chat lokal tidak tersedia",e);}}
+        function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
+        function renderChatMessages(){
+          const box=document.getElementById("chat-messages");if(!box)return;
+          if(!chatMessages.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">Belum ada pesan. Mulai obrolan dengan kru!</div>';return;}
+          box.innerHTML=chatMessages.map(msg=>{
+            const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data";
+            const own=msg.sender_id===activeUser?.id&&!isAI;
+            const who=escapeHtml(msg.sender_name||"Kru");
+            const when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
+            let body=escapeHtml(msg.body||"");
+            if(isShared){
+              const cfg=CHAT_COLLECTIONS[msg.data_type],item=getChatLinkedItem(msg);
+              const title=escapeHtml(item?(cfg?.title(item)||msg.data_title):msg.data_title||"Data");
+              const desc=item?(item.date?new Date(item.date+"T00:00:00").toLocaleDateString("id-ID")+(item.time?" · "+item.time:""):item.status||item.segment||item.topic||"Data tersimpan di fitur terkait"):"Data asli sudah dihapus atau tidak tersedia.";
+              body='<div class="rounded-xl border border-blue-900 bg-blue-950/40 p-3 min-w-[210px]"><div class="text-[10px] text-blue-300 font-bold mb-1"><i class="fa-solid fa-share-nodes mr-1"></i>'+escapeHtml(cfg?.label||"DATA DIBAGIKAN")+'</div><div class="font-semibold text-white text-sm">'+title+'</div><div class="text-[11px] text-gray-300 mt-1">'+escapeHtml(desc)+'</div>'+(item?'<button onclick="openSharedChatData(\''+escapeHtml(msg.data_type)+'\',\''+escapeHtml(msg.data_id)+'\')" class="mt-3 text-xs bg-blue-800 hover:bg-blue-700 px-3 py-2 rounded-lg">Lihat data asli</button>':'<div class="text-[10px] text-gray-500 mt-2">Referensi tidak lagi tersedia.</div>')+'</div>';
+            }else body='<div class="text-sm text-white whitespace-pre-wrap break-words">'+body+'</div>';
+            const bubble=isAI?"bg-blue-950/70 border border-blue-700":isShared?"bg-gray-900 border border-blue-900":own?"bg-red-950 border border-red-800":"bg-gray-900 border border-gray-800";
+            return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+' gap-2 items-end"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold '+(isAI?'text-blue-300':own?'text-red-300':'text-blue-300')+' mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':'')+who+'</div>'+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+'</div></div></div>';
+          }).join("");
+          box.scrollTop=box.scrollHeight;
         }
-        function renderChatMessages() {
-            const box = document.getElementById("chat-messages");
-            if (!box) return;
-            if (!chatMessages.length) {
-                box.innerHTML = '<div class="text-center text-xs text-gray-500 py-10">Belum ada pesan. Mulai obrolan dengan kru!</div>';
-                return;
-            }
-            box.innerHTML = chatMessages.map(msg => {
-                const own = msg.sender_id === activeUser?.id;
-                const who = escapeHtml(msg.sender_name || "Kru");
-                const avatar = msg.sender_avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(msg.sender_name || "Kru") + "&background=B91C1C&color=fff";
-                const when = msg.created_at ? new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}) : "";
-                return '<div class="flex ' + (own ? 'justify-end' : 'justify-start') + ' gap-2 items-end">' + (!own ? '<img src="' + escapeHtml(avatar) + '" class="w-7 h-7 rounded-full object-cover border border-gray-700 shrink-0" alt="">' : '') + '<div class="max-w-[82%] rounded-2xl px-3 py-2 ' + (own ? 'bg-red-950 border border-red-800 rounded-br-sm' : 'bg-gray-900 border border-gray-800 rounded-bl-sm') + '">' + '<div class="text-[10px] font-bold ' + (own ? 'text-red-300' : 'text-blue-300') + ' mb-1">' + who + '</div>' + '<div class="text-sm text-white whitespace-pre-wrap break-words">' + escapeHtml(msg.body) + '</div><div class="text-[9px] text-gray-400 text-right mt-1">' + escapeHtml(when) + '</div></div></div>';
-            }).join("");
-            box.scrollTop = box.scrollHeight;
+        async function loadChatMessages(){
+          if(!activeUser||chatLoadedForUser===activeUser.id)return;
+          chatLoadedForUser=activeUser.id;const status=document.getElementById("chat-connection");
+          try{const cached=localStorage.getItem(chatCacheKey());if(cached){chatMessages=JSON.parse(cached)||[];renderChatMessages();}}catch(e){}
+          const {data,error}=await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:false}).limit(150);
+          if(error){if(status)status.textContent="Chat belum tersambung";console.error("Gagal memuat chat:",error);return;}
+          chatMessages=(data||[]).reverse();saveChatCache();renderChatMessages();if(status)status.textContent="Online";
+          if(chatChannel)await supabaseClient.removeChannel(chatChannel);
+          chatChannel=supabaseClient.channel("ghoustory-chat-live");
+          chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_chat_messages"},payload=>{
+            if(!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);saveChatCache();renderChatMessages();}
+          }).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
         }
-        async function loadChatMessages() {
-            if (!activeUser || chatLoadedForUser === activeUser.id) return;
-            chatLoadedForUser = activeUser.id;
-            const status = document.getElementById("chat-connection");
-            try {
-                const cached = localStorage.getItem(chatCacheKey());
-                if (cached) { chatMessages = JSON.parse(cached) || []; renderChatMessages(); }
-            } catch (e) {}
-            const { data, error } = await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:true}).limit(150);
-            if (error) {
-                if (status) status.textContent = "Chat belum tersambung";
-                console.error("Gagal memuat chat:", error);
-                return;
-            }
-            chatMessages = data || [];
-            saveChatCache();
-            renderChatMessages();
-            if (status) status.textContent = "Online";
-            if (chatChannel) await supabaseClient.removeChannel(chatChannel);
-            chatChannel = supabaseClient.channel("ghoustory-chat-live");
-            chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_chat_messages"},payload => {
-                if (!chatMessages.some(m => m.id === payload.new.id)) {
-                    chatMessages.push(payload.new);
-                    chatMessages = chatMessages.slice(-150);
-                    saveChatCache();
-                    renderChatMessages();
-                }
-            }).subscribe(state => {
-                if (status && state !== "SUBSCRIBED") status.textContent = state === "CHANNEL_ERROR" ? "Koneksi bermasalah" : "Menghubungkan...";
-                else if (status) status.textContent = "Online";
-            });
+        async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null}){
+          if(!activeUser)throw new Error("Login diperlukan.");
+          const {error}=await supabaseClient.from("ghoustory_chat_messages").insert({
+            sender_id:activeUser.id,
+            sender_name:activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru",
+            sender_avatar:activeUser.user_metadata?.avatar_url||"",
+            body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title
+          });
+          if(error)throw error;
         }
-        async function sendChatMessage(event) {
-            event.preventDefault();
-            const input = document.getElementById("chat-input");
-            const button = document.getElementById("chat-send");
-            const body = input.value.trim();
-            if (!body || !activeUser) return;
-            button.disabled = true;
-            const { error } = await supabaseClient.from("ghoustory_chat_messages").insert({
-                sender_id: activeUser.id,
-                sender_name: activeUser.user_metadata?.full_name || activeUser.user_metadata?.name || activeUser.email || "Kru",
-                sender_avatar: activeUser.user_metadata?.avatar_url || "",
-                body
-            });
-            button.disabled = false;
-            if (error) { alert("Pesan belum terkirim: " + error.message); return; }
-            input.value = "";
+        async function sendChatMessage(event){
+          event.preventDefault();const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input.value.trim();
+          if(!body||!activeUser)return;
+          if(/(^|\\s)@ghoust\\b/i.test(body)){
+            const question=body.replace(/(^|\\s)@ghoust\\b/i," ").trim()||"Bantu diskusi tim Ghoustory.";
+            input.value="";button.disabled=true;
+            try{await insertChatMessage({body,message_type:"text"});await runGhoustAI(question,true);}catch(e){alert("Pesan/AI gagal diproses: "+e.message);}finally{button.disabled=false;}
+            return;
+          }
+          button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
+        }
+        function openChatTools(){
+          const modal=document.getElementById("chat-tools-modal"),content=document.getElementById("chat-tools-content");
+          document.getElementById("chat-tools-title").textContent="RITUAL CREW · BAGIKAN / BUAT DATA";
+          content.innerHTML='<p class="text-xs text-gray-400">Pilih tindakan yang ingin dilakukan.</p><div class="grid grid-cols-2 gap-2"><button onclick="showChatShareCategories()" class="p-3 rounded-xl bg-blue-950 border border-blue-800 text-left"><i class="fa-solid fa-share-nodes text-blue-300 mr-2"></i><b class="text-sm">Bagikan data</b><p class="text-[10px] text-gray-400 mt-1">Pilih item dari fitur</p></button><button onclick="showChatCreateCategories()" class="p-3 rounded-xl bg-red-950 border border-red-800 text-left"><i class="fa-solid fa-square-plus text-red-300 mr-2"></i><b class="text-sm">Buat data</b><p class="text-[10px] text-gray-400 mt-1">Buat data dari chat</p></button></div>';
+          modal.classList.remove("hidden");modal.classList.add("flex");
+        }
+        function closeChatTools(){const m=document.getElementById("chat-tools-modal");m.classList.add("hidden");m.classList.remove("flex");}
+        function showChatShareCategories(){
+          const c=document.getElementById("chat-tools-content");
+          c.innerHTML='<p class="text-xs text-gray-400">Pilih fitur untuk melihat daftar datanya.</p>'+Object.entries(CHAT_COLLECTIONS).map(([key,v])=>'<button onclick="showChatShareItems(\''+key+'\')" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v.label)+' <i class="fa-solid fa-chevron-right float-right text-gray-500"></i></button>').join("");
+        }
+        function showChatShareItems(type){
+          const cfg=CHAT_COLLECTIONS[type],items=cfg?.items()||[],c=document.getElementById("chat-tools-content");
+          if(!cfg)return;
+          if(!items.length){c.innerHTML='<button onclick="showChatShareCategories()" class="text-xs text-blue-300 mb-3">← Kembali</button><p class="text-sm text-gray-400">Belum ada data di '+escapeHtml(cfg.label)+'.</p>';return;}
+          c.innerHTML='<button onclick="showChatShareCategories()" class="text-xs text-blue-300 mb-3">← Kembali</button><p class="text-xs text-gray-400 mb-2">Pilih satu atau beberapa item '+escapeHtml(cfg.label)+'.</p><div class="space-y-2">'+items.map((x,i)=>'<label class="flex gap-2 items-center p-3 rounded-lg bg-gray-900 border border-gray-800"><input type="checkbox" class="chat-share-check accent-red-600" value="'+escapeHtml(String(x.id))+'"><span class="text-sm">'+escapeHtml(cfg.title(x))+'</span></label>').join("")+'</div><button onclick="sendSelectedChatData(\''+type+'\')" class="w-full mt-3 bg-red-800 p-3 rounded-lg text-sm font-semibold">Kirim pilihan ke RITUAL CREW</button>';
+        }
+        async function sendSelectedChatData(type){
+          const cfg=CHAT_COLLECTIONS[type],selected=[...document.querySelectorAll(".chat-share-check:checked")].map(x=>x.value);
+          if(!selected.length)return alert("Pilih minimal satu data.");
+          try{for(const id of selected){const item=cfg.items().find(x=>String(x.id)===id);if(item)await insertChatMessage({body:"Data dibagikan dari "+cfg.label,message_type:"shared_data",data_type:type,data_id:String(item.id),data_title:cfg.title(item)});}closeChatTools();}catch(e){alert("Gagal membagikan data: "+e.message);}
+        }
+        function showChatCreateCategories(){
+          const options=[["jadwal","Jadwal Suting"],["production","Tugas / Tracker Produksi"],["notulen","Notulen"],["scriptDrafts","Naskah / Script"],["mitos","Ide / Mitos"],["vo","Catatan VO"]];
+          document.getElementById("chat-tools-content").innerHTML='<p class="text-xs text-gray-400">Pilih jenis data baru. Data akan disimpan ke fitur terkait dan dikirim ke chat.</p>'+options.map(([k,v])=>'<button onclick="createChatData(\''+k+'\')" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-plus float-right text-red-400"></i></button>').join("");
+        }
+        async function createChatData(type){
+          const ask=(label)=>prompt(label);let item=null,now=Date.now();
+          if(type==="jadwal"){
+            const title=ask("Nama kegiatan / syuting:");if(!title)return;
+            const date=ask("Tanggal (YYYY-MM-DD):");if(!date||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))return alert("Format tanggal harus YYYY-MM-DD.");
+            const time=ask("Jam (contoh 19:00):")||"",loc=ask("Lokasi:")||"",segment=ask("Segmen:")||"";
+            const absen={};KRU_NAMES.forEach(k=>absen[k]={hadir:true,alasan:""});
+            item={id:now,title,narsum:"",segment,loc,date,time,absen};db.jadwal.push(item);
+          }else if(type==="production"){
+            const title=ask("Nama konten / tugas produksi:");if(!title)return;
+            item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Kru"};db.production.unshift(item);
+          }else if(type==="notulen"){
+            const topic=ask("Judul notulen:");if(!topic)return;const raw=ask("Isi / keputusan rapat:")||"";
+            item={id:now,topic,raw,source:"Dibuat dari RITUAL CREW"};db.notulen.unshift(item);
+          }else if(type==="scriptDrafts"){
+            const title=ask("Judul naskah:");if(!title)return;const content=ask("Isi naskah:")||"";item={id:now,title,content,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};db.scriptDrafts.unshift(item);
+          }else if(type==="mitos"){
+            const text=ask("Ide / topik mitos:");if(!text)return;item={id:now,text,research:"Belum diriset"};db.mitos.unshift(item);
+          }else if(type==="vo"){
+            const title=ask("Judul catatan VO:");if(!title)return;const teks=ask("Isi / arahan VO:")||"";item={id:now,title,teks};db.vo.unshift(item);
+          }
+          if(!item)return;
+          saveData();refreshAllLists();const cfg=CHAT_COLLECTIONS[type];
+          try{await insertChatMessage({body:"Data baru dibuat dari RITUAL CREW",message_type:"shared_data",data_type:type,data_id:String(item.id),data_title:cfg.title(item)});closeChatTools();}
+          catch(e){alert("Data sudah tersimpan, tetapi kartu chat gagal dikirim: "+e.message);}
+        }
+        function openSharedChatData(type,id){
+          const cfg=CHAT_COLLECTIONS[type];if(!cfg||!cfg.items().some(x=>String(x.id)===String(id)))return alert("Data tidak ditemukan.");
+          closeChatTools?.();showPage(cfg.page);
+          if(cfg.page==="tim"){markasTimUnlocked=true;switchTab("tim",cfg.tab);}
+          else if(cfg.page==="grimoire")switchTab("grimoire",type==="mitos"?"mitos":"editor");
+          else if(cfg.page==="ghoustnote")switchTab("ghoustnote",type==="vo"?"vo":"arsip");
+          const item=cfg.items().find(x=>String(x.id)===String(id));
+          if(type==="jadwal")alert("Jadwal: "+item.title+" · "+item.date+" "+(item.time||""));
+          else if(type==="production")alert("Tracker Produksi: "+item.title);
+          else if(type==="scriptDrafts")openScriptDraft(item.id);
+          else if(type==="notulen"){const idx=db.notulen.findIndex(x=>String(x.id)===String(id));if(idx>=0)openModalNotulen(idx);}
+          else if(type==="vo"||type==="mitos")alert(cfg.title(item));
+        }
+        function openGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.remove("hidden");m.classList.add("flex");setTimeout(()=>document.getElementById("ghoust-ai-input")?.focus(),80);}
+        function closeGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.add("hidden");m.classList.remove("flex");}
+        async function askGhoustAI(event){event.preventDefault();const input=document.getElementById("ghoust-ai-input"),q=input.value.trim();if(!q||ghoustAiBusy)return;input.value="";const history=document.getElementById("ghoust-ai-history");history.textContent+="\\n\\nKamu: "+q;try{const answer=await runGhoustAI(q,false);history.textContent+="\\n\\nGHOUSTORY AI: "+answer;}catch(e){history.textContent+="\\n\\nAI: "+e.message;}}
+        async function runGhoustAI(question,postToGroup){
+          if(ghoustAiBusy)throw new Error("GHOUSTORY AI sedang memproses pertanyaan lain.");ghoustAiBusy=true;
+          try{
+            const recent=chatMessages.slice(-20).map(m=>({pengirim:m.sender_name,pesan:m.body,jenis:m.message_type}));
+            const context={jadwal:(db.jadwal||[]).slice(-20),production:(db.production||[]).slice(-20),notulen:(db.notulen||[]).slice(-10).map(x=>({topic:x.topic,raw:String(x.raw||"").slice(0,1500)})),scripts:(db.scriptDrafts||[]).slice(-10).map(x=>({title:x.title,content:String(x.content||"").slice(0,1200)})),vo:(db.vo||[]).slice(-10).map(x=>({title:x.title,teks:String(x.teks||"").slice(0,500)}))};
+            const answer=await callGhoulAI("ritual-chat",{message:question,chat:recent,context});
+            if(postToGroup)await insertChatMessage({body:answer,message_type:"ai"});
+            return answer;
+          }finally{ghoustAiBusy=false;}
         }
         // Service worker dinonaktifkan sementara untuk menguji ikon Home Screen iOS.
         if ('serviceWorker' in navigator) {
