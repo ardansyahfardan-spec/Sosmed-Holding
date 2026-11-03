@@ -102,7 +102,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                     <div onclick="showPage('grimoire')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-skull text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Grimoire</h3></div>
                     <div onclick="showPage('ghoustnote')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
-                    <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata (Integrasi menyusul)</h3></div>
+                    <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata & AI</h3></div>
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
                     <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
@@ -271,9 +271,10 @@
             <!-- 5. MARKAS TIM -->
             <section id="page-tim" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-                <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+                <div class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
                     <div onclick="switchTab('tim', 'jadwal')" class="big-tab-btn color-yellow active p-3 sm:p-4 rounded-xl text-center" id="tabbtn-tim-jadwal"><i class="fa-solid fa-calendar-check text-xl mb-1 text-gray-500"></i><div class="text-[10px] sm:text-xs font-bold leading-tight">Jadwal &<br>Absensi</div></div>
                     <div onclick="switchTab('tim', 'stok')" class="big-tab-btn color-yellow p-3 sm:p-4 rounded-xl text-center" id="tabbtn-tim-stok"><i class="fa-solid fa-film text-xl mb-1 text-gray-500"></i><div class="text-[10px] sm:text-xs font-bold leading-tight">Stok &<br>Klasifikasi</div></div>
+                    <div onclick="switchTab('tim', 'produksi')" class="big-tab-btn color-yellow p-3 sm:p-4 rounded-xl text-center" id="tabbtn-tim-produksi"><i class="fa-solid fa-list-check text-xl mb-1 text-gray-500"></i><div class="text-[10px] sm:text-xs font-bold leading-tight">Tracker<br>Produksi</div></div>
                     <div onclick="switchTab('tim', 'kas')" class="big-tab-btn color-yellow p-3 sm:p-4 rounded-xl text-center" id="tabbtn-tim-kas"><i class="fa-solid fa-wallet text-xl mb-1 text-gray-500"></i><div class="text-[10px] sm:text-xs font-bold leading-tight">Kas &<br>Monetisasi</div></div>
                 </div>
 
@@ -329,6 +330,12 @@
                             <button onclick="addStok()" class="bg-blue-700 px-4 rounded text-white"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div id="list-stok" class="space-y-3"></div>
+                    </div>
+
+                    <!-- TRACKER PRODUKSI KONTEN -->
+                    <div id="tab-tim-produksi" class="tab-content space-y-3">
+                        <div class="bg-black border border-gray-800 rounded-xl p-3"><h4 class="text-sm font-bold text-yellow-500 mb-1">Content Production Tracker</h4><p class="text-[11px] text-gray-400">Semua kru yang login dapat memperbarui status produksi konten.</p></div>
+                        <div id="list-production-tracker" class="space-y-2"></div>
                     </div>
 
                     <!-- TAB KAS & MONETISASI -->
@@ -425,7 +432,7 @@
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="flex items-center gap-3">
                     <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                    <span class="font-mono text-[11px]">Aplikasi: Online | Waktu Dimensi: <b id="live-clock" class="text-ghoulRed">00:00:00 WIB</b></span>
+                    <span class="font-mono text-[11px]">Aplikasi: <b id="sync-status" class="text-yellow-400">Menghubungkan...</b> | Waktu: <b id="live-clock" class="text-ghoulRed">00:00:00 WIB</b></span>
                 </div>
                 <div class="text-center font-mystery text-[11px] text-gray-500 truncate max-w-xs">
                     👻 "Waspada bisikan di balik layar kendali..."
@@ -433,6 +440,9 @@
                 <div class="flex items-center gap-4 text-[11px]">
                     <span>Kas: <b id="footer-kas" class="text-green-400">Rp 0</b></span>
                     <span>Stok: <b id="footer-stok" class="text-yellow-400">0 Video</b></span>
+                    <span>AI: <b id="footer-ai" class="text-blue-300">Gemini siap</b></span>
+                    <span>Kru online: <b id="footer-online" class="text-green-300">0 akun</b></span>
+                    <span>Sync: <b id="footer-synced">-</b></span>
                 </div>
             </div>
         </footer>
@@ -524,7 +534,7 @@
 
         // ================= PENYIMPANAN LOKAL & MIGRASI DATA =================
         const DEFAULT_DB = {
-            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], kas: [],
+            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], production: [], kas: [], aiUsage: [],
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
@@ -544,7 +554,7 @@
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
         // Pastikan struktur data lama tetap kompatibel dengan fitur terbaru.
-        ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+        ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'segmenList'].forEach(key => {
             if (!Array.isArray(db[key])) db[key] = [];
         });
         db.jadwal.forEach(sch => {
@@ -566,6 +576,9 @@
         let sharedSaveTimer = null;
         let sharedSaveQueue = Promise.resolve();
         let appOpening = false;
+        let activeUser = null;
+        let presenceChannel = null;
+        let lastCloudSyncAt = null;
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
@@ -623,10 +636,14 @@
                         .from('app_state')
                         .upsert({ id: 'ghoustory', data: snapshot });
                     if (error) throw error;
+                    lastCloudSyncAt = new Date();
+                    window.__ghoustorySyncError = null;
+                    updateFooterStatus();
                 })
                 .catch(error => {
                     console.error('Gagal menyimpan data ke database bersama:', error);
                     window.__ghoustorySyncError = error.message || String(error);
+                    updateFooterStatus();
                 });
         }
 
@@ -635,6 +652,7 @@
                 db.script = document.getElementById('script-editor').value;
             }
             localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            updateFooterStatus(true);
 
             if (!sharedSyncReady) return;
             clearTimeout(sharedSaveTimer);
@@ -669,6 +687,7 @@
         });
 
         async function masukKeAplikasi(user) {
+            activeUser = user;
             if (appOpening || document.getElementById('login-screen').style.display === 'none') return;
             appOpening = true;
             const loginStatus = document.getElementById('login-status');
@@ -676,6 +695,9 @@
 
             try {
                 await syncSharedDataFromCloud();
+                setupPresence(user);
+                lastCloudSyncAt = new Date();
+                updateFooterStatus();
                 // Pasang foto dan nama asli dari Google
                 document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
                 document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || user.email || "Pengguna Google";
@@ -747,7 +769,7 @@
             renderScriptDrafts();
             renderNotulenList();
             renderMetadataList();
-            renderStok(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
+            renderStok(); renderProductionTracker(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
             
             const totalKas = db.kas.reduce((s, i) => s + i.amount, 0);
             document.getElementById('footer-kas').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
@@ -774,7 +796,7 @@
         // GRIMOIRE MITOS
         let isMitosMic = false;
         let mitosRecognition=null;function toggleMitosMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mitos-mic'),stat=document.getElementById('mitos-mic-status'),input=document.getElementById('input-mitos');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isMitosMic&&mitosRecognition){mitosRecognition.stop();return;}mitosRecognition=new SR();mitosRecognition.lang='id-ID';mitosRecognition.continuous=true;mitosRecognition.interimResults=true;mitosRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)input.value+=(input.value?' ':'')+t.trim();};mitosRecognition.onerror=e=>stat.textContent='Mic: '+e.error;mitosRecognition.onend=()=>{isMitosMic=false;btn.classList.remove('bg-red-700','text-white');stat.classList.add('hidden');};try{mitosRecognition.start();isMitosMic=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';stat.classList.remove('hidden');}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
-        async function callGhoulAI(task,payload={}){const {data,error}=await supabaseClient.functions.invoke('ghoustory-ai',{body:{task,...payload}});if(error)throw new Error(error.message||'Layanan AI gagal dipanggil.');if(!data?.text)throw new Error(data?.error||'AI tidak mengembalikan teks.');return data.text;}
+        async function callGhoulAI(task,payload={}){const {data,error}=await supabaseClient.functions.invoke('ghoustory-ai',{body:{task,...payload}});if(error)throw new Error(error.message||'Layanan AI gagal dipanggil.');if(!data?.text)throw new Error(data?.error||'AI tidak mengembalikan teks.');if(data.usage){const day=new Date().toISOString().slice(0,10);let rec=db.aiUsage.find(x=>x.date===day);if(!rec){rec={date:day,calls:0,totalTokens:0};db.aiUsage.unshift(rec);}rec.calls++;rec.totalTokens+=Number(data.usage.totalTokens||0);rec.lastTask=task;saveData();const footer=document.getElementById('footer-ai');if(footer)footer.textContent=rec.calls+'x / '+rec.totalTokens.toLocaleString('id-ID')+' token';}return data.text;}
         function setButtonBusy(btn,busy){if(!btn)return;if(busy){btn.dataset.oldHtml=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';}else{btn.disabled=false;btn.innerHTML=btn.dataset.oldHtml||btn.innerHTML;}}
         function renderMitosList(){const el=document.getElementById('list-mitos');if(!el)return;if(!db.mitos.length){el.innerHTML='<div class="text-xs text-gray-500 py-2">Belum ada catatan.</div>';return;}el.innerHTML=db.mitos.map((x,i)=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex flex-wrap justify-between gap-2"><b>'+escapeHtml(x.text)+'</b><div class="flex gap-2"><button onclick="salinMitosIndex('+i+')" class="text-xs bg-gray-800 px-2 py-1 rounded">Salin</button><button onclick="kirimMitosKeEditor('+i+')" class="text-xs bg-red-900 px-2 py-1 rounded">Kirim Naskah</button><button onclick="deleteMitos('+i+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div></div><div class="mt-2 text-xs text-orange-200 whitespace-pre-wrap">'+escapeHtml(x.research||'Menunggu riset AI...')+'</div></div>').join('');}
         function salinMitosIndex(i){if(db.mitos[i])copyTextSafe(db.mitos[i].text);}
@@ -1130,11 +1152,61 @@
         }
         function closeModalAbsen() { document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex'); activeScheduleId = null; }
 
+
+        // CONTENT PRODUCTION TRACKER
+        const PRODUCTION_STAGES = ["Selesai Shooting", "Proses Editing", "Review", "Siap Upload", "Sudah Tayang"];
+        function updateProductionStatus(id, status) {
+            const item = db.production.find(x => String(x.id) === String(id));
+            if (!item || !PRODUCTION_STAGES.includes(status)) return;
+            item.status = status;
+            item.updatedAt = new Date().toISOString();
+            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Kru";
+            saveData();
+            renderProductionTracker();
+        }
+        function renderProductionTracker() {
+            const el = document.getElementById("list-production-tracker");
+            if (!el) return;
+            if (!db.production.length) {
+                el.innerHTML = '<div class="text-xs text-gray-500 py-4 text-center">Belum ada konten di tracker. Konten otomatis masuk setelah shooting ditandai selesai.</div>';
+                return;
+            }
+            el.innerHTML = db.production.map(item => {
+                const opts = PRODUCTION_STAGES.map(stage => '<option value="' + stage + '" ' + (item.status === stage ? 'selected' : '') + '>' + stage + '</option>').join('');
+                return '<div class="bg-black border border-gray-800 rounded-lg p-3 space-y-2"><div class="flex justify-between gap-2"><b class="text-sm text-white">' + escapeHtml(item.title || 'Konten') + '</b><span class="text-[10px] text-gray-500">' + escapeHtml(item.updatedBy || 'Kru') + '</span></div><select aria-label="Status produksi" onchange="updateProductionStatus(' + Number(item.id) + ', this.value)" class="w-full bg-darkCard border border-yellow-800 rounded p-2 text-xs text-yellow-200">' + opts + '</select><div class="text-[10px] text-gray-500">Diperbarui: ' + escapeHtml(item.updatedAt ? new Date(item.updatedAt).toLocaleString("id-ID") : "-") + '</div></div>';
+            }).join('');
+        }
+        // STATUS CLOUD, AI, DAN KRU ONLINE
+        function updateFooterStatus(isSaving = false) {
+            const sync = document.getElementById("sync-status"), synced = document.getElementById("footer-synced");
+            if (sync) {
+                if (window.__ghoustorySyncError) { sync.textContent = "Gagal sync"; sync.className = "text-red-400"; }
+                else if (isSaving) { sync.textContent = "Menyimpan..."; sync.className = "text-yellow-400"; }
+                else if (sharedSyncReady) { sync.textContent = "Cloud aktif"; sync.className = "text-green-400"; }
+                else { sync.textContent = "Offline"; sync.className = "text-red-400"; }
+            }
+            if (synced) synced.textContent = lastCloudSyncAt ? lastCloudSyncAt.toLocaleTimeString("id-ID") : "-";
+        }
+        function setupPresence(user) {
+            if (presenceChannel) supabaseClient.removeChannel(presenceChannel);
+            presenceChannel = supabaseClient.channel("ghoustory-presence", { config: { presence: { key: user.id } } });
+            presenceChannel.on("presence", { event: "sync" }, () => {
+                const count = Object.keys(presenceChannel.presenceState()).length;
+                const el = document.getElementById("footer-online");
+                if (el) el.textContent = count + " akun";
+            });
+            presenceChannel.subscribe(async status => {
+                if (status === "SUBSCRIBED") await presenceChannel.track({ user_id: user.id, name: user.user_metadata?.full_name || user.email || "Kru", online_at: new Date().toISOString() });
+            });
+        }
+
         // STOK & KLASIFIKASI
         function selesaiShooting(narsumName) {
             if(!narsumName) return alert("Nama narasumber kosong!");
-            db.stok.push({ id: Date.now(), text: narsumName, format: "🔦 Penelusuran", status: "Siap Edit", segment: "Belum Ada" });
-            saveData(); renderStok(); switchTab('tim', 'stok'); alert(`Shooting selesai! Narasumber "${narsumName}" otomatis masuk ke menu Stok & Klasifikasi.`);
+            const id = Date.now();
+            db.stok.push({ id, text: narsumName, format: "🔦 Penelusuran", status: "Siap Edit", segment: "Belum Ada" });
+            db.production.unshift({ id, title: narsumName, status: "Selesai Shooting", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), updatedBy: activeUser?.user_metadata?.full_name || activeUser?.email || "Kru" });
+            saveData(); renderStok(); renderProductionTracker(); switchTab('tim', 'produksi'); alert(`Shooting selesai! "${narsumName}" masuk ke Stok & Tracker Produksi.`);
         }
         function addStok() {
             const t = document.getElementById('input-stok').value; const fmt = document.getElementById('stok-format').value;
