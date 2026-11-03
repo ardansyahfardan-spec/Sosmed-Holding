@@ -1323,15 +1323,21 @@
             }
         }
 
-        function showPage(pageId) {
+        function showPage(pageId, navOptions = {}) {
+            const target = document.getElementById('page-' + pageId);
+            if (!target) return;
+            if (pageId === 'tim' && !markasTimUnlocked) { openMarkasTimLock(); return; }
+            const current = document.querySelector('.page-section.page-active')?.id?.replace('page-','') || 'home';
+            if (!navOptions.fromHistory && window.ghoustoryNavReady && current !== pageId) {
+                const depth = (window.ghoustoryNavDepth || 0) + 1;
+                window.ghoustoryNavDepth = depth;
+                history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
+            } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
-            if (pageId === 'tim' && !markasTimUnlocked) {
-                openMarkasTimLock();
-                return;
-            }
             if (pageId !== 'tim') markasTimUnlocked = false;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
-            document.getElementById('page-' + pageId).classList.add('page-active');
+            target.classList.add('page-active');
+            window.ghoustoryNavCurrentPage = pageId;
         }
         function switchTab(feature, tabName) {
             document.querySelectorAll(`[id^="tab-${feature}"]`).forEach(el => el.classList.remove('active'));
@@ -2686,7 +2692,7 @@
         }
         // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
         let chatChannel = null;
-        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupPresenceChannel = null, groupTypingTimer = null, groupReplyTo = null;
+        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupReads = [], groupPresenceChannel = null, groupTypingTimer = null, groupReplyTo = null;
         let chatLoadedForUser = null;
         let ghoustAiBusy = false;
         const CHAT_COLLECTIONS = {
@@ -2717,8 +2723,10 @@
   const counts=groupReactions.filter(r=>r.message_id===msg.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
   const reactions=Object.entries(counts).map(([e,n])=>'<button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\''+e+'\')" class="text-xs rounded-full bg-gray-800 border border-gray-700 px-2 py-1">'+e+' '+n+'</button>').join("");
   const pinned=groupPins.some(p=>p.message_id===msg.id);
+  const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
+  const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
   const actions='<div class="flex gap-2 items-center mt-2 flex-wrap"><button type="button" onclick="setGroupReply(\''+msg.id+'\')" class="text-[10px] text-blue-300">Balas</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleGroupPin(\''+msg.id+'\')" class="text-[10px] '+(pinned?'text-yellow-300':'text-gray-400')+'">'+(pinned?'★ Disematkan':'☆ Pin')+'</button>'+(own&&!msg.deleted_at?'<button type="button" onclick="editGroupMessage(\''+msg.id+'\')" class="text-[10px] text-gray-300">Edit</button><button type="button" onclick="deleteGroupMessage(\''+msg.id+'\')" class="text-[10px] text-red-300">Hapus</button>':"")+'</div>';
-  return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold text-blue-300 mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>'+quote+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+'</div><div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+actions+'</div></div>';
+  return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold text-blue-300 mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>'+quote+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+'</div>'+readStatus+'<div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+actions+'</div></div>';
  }).join("");
  box.scrollTop=box.scrollHeight;
 }
@@ -2729,18 +2737,29 @@ async function loadChatMessages(){
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:false}).limit(150);
           if(error){chatLoadedForUser=null;if(status)status.textContent="Chat belum tersambung";console.error("Gagal memuat chat:",error);return;}
           chatMessages=(data||[]).reverse();const ids=chatMessages.map(m=>m.id);
-          if(ids.length){const [rx,pn]=await Promise.all([supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids),supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids)]);if(!rx.error)groupReactions=rx.data||[];if(!pn.error)groupPins=pn.data||[];}
+          groupReads=[];
+          if(ids.length){const [rx,pn,rd]=await Promise.all([supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids),supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids),supabaseClient.from("ghoustory_group_message_reads").select("message_id,user_id,read_at").in("message_id",ids)]);if(!rx.error)groupReactions=rx.data||[];if(!pn.error)groupPins=pn.data||[];if(!rd.error)groupReads=rd.data||[];}
           saveChatCache();renderChatMessages();if(status)status.textContent="Online";
           if(chatChannel)await supabaseClient.removeChannel(chatChannel);
           chatChannel=supabaseClient.channel("ghoustory-chat-live");
           chatChannel.on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_chat_messages"},payload=>{
             if(payload.eventType==="INSERT"&&!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);}
             else if(payload.eventType==="UPDATE"){const i=chatMessages.findIndex(m=>m.id===payload.new.id);if(i>=0)chatMessages[i]=payload.new;}
-            saveChatCache();renderChatMessages();
-          }).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_reactions"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids);groupReactions=data||[];renderChatMessages();}}).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_pins"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids);groupPins=data||[];renderChatMessages();}}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
+            saveChatCache();renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
+          }).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_reactions"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids);groupReactions=data||[];renderChatMessages();}}).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_pins"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids);groupPins=data||[];renderChatMessages();}}).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
           if(groupPresenceChannel)await supabaseClient.removeChannel(groupPresenceChannel);
           groupPresenceChannel=supabaseClient.channel("ghoustory-group-presence",{config:{presence:{key:activeUser.id}}});
           groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota",typing:false});});
+        }
+        function isGroupRoomVisible(){return !!activeUser&&document.getElementById("page-chat")?.classList.contains("page-active")&&!document.getElementById("group-chat-card")?.classList.contains("hidden")&&document.visibilityState==="visible";}
+        async function markGroupMessagesRead(){
+          if(!isGroupRoomVisible())return;
+          const pending=chatMessages.filter(m=>m.sender_id!==activeUser.id&&!m.deleted_at&&!groupReads.some(r=>r.message_id===m.id&&r.user_id===activeUser.id));
+          if(!pending.length)return;
+          const rows=pending.map(m=>({message_id:m.id,user_id:activeUser.id}));
+          const {error}=await supabaseClient.from("ghoustory_group_message_reads").upsert(rows,{onConflict:"message_id,user_id",ignoreDuplicates:true});
+          if(error){console.warn("Status baca grup belum tersimpan:",error.message);return;}
+          const now=new Date().toISOString();rows.forEach(r=>groupReads.push({...r,read_at:now}));renderChatMessages();
         }
         async function setGroupTyping(typing){if(!groupPresenceChannel||!activeUser)return;try{await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(groupTypingTimer)clearTimeout(groupTypingTimer);if(typing)groupTypingTimer=setTimeout(()=>setGroupTyping(false),1800);}
         function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"anggota")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
@@ -2838,8 +2857,8 @@ async function loadChatMessages(){
         }
         
          function showChatInbox(){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
-         function showChatRoom(kind){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
-         function openGroupRoom(){showChatRoom("group");loadChatMessages();}
+         function showChatRoom(kind,navOptions={}){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");if(!navOptions.fromHistory&&window.ghoustoryNavReady&&!page?.classList.contains("chat-room-open")){const depth=(window.ghoustoryNavDepth||0)+1;window.ghoustoryNavDepth=depth;history.pushState({ghoustoryApp:true,page:"chat",chatRoom:kind,depth},"");}panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
+         function openGroupRoom(){showChatRoom("group");loadChatMessages().then(markGroupMessagesRead);}
          function toggleRitualMembers(){document.getElementById("ritual-members-list")?.classList.toggle("hidden");}
          function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
 async function openDirectMessage(otherId){
@@ -3167,5 +3186,39 @@ async function markDmMessagesRead(){
         <p class="mt-3 text-[10px] text-gray-500">Kedua tombol akan membuka permintaan izin notifikasi perangkat.</p>
       </div>
     </div>
+<script>
+(function(){
+ if(window.ghoustoryNavReady)return;
+ const initial=document.querySelector('.page-section.page-active')?.id?.replace('page-','')||'home';
+ window.ghoustoryNavDepth=0;window.ghoustoryNavCurrentPage=initial;window.ghoustoryNavReady=true;
+ history.replaceState({ghoustoryApp:true,page:initial,depth:0},'');
+ window.addEventListener('popstate',function(event){
+  const state=event.state;if(!state?.ghoustoryApp)return;
+  window.ghoustoryNavDepth=Number(state.depth)||0;
+  const page=document.getElementById('page-chat');
+  if(page?.classList.contains('chat-room-open')&&state.page==='chat'&&!state.chatRoom){showChatInbox();return;}
+  const active=document.querySelector('.page-section.page-active')?.id?.replace('page-','');
+  if(state.page&&state.page!==active)showPage(state.page,{fromHistory:true});
+ });
+ let sx=0,sy=0,edge=0,target=null,tracking=false,stateAtStart=null;
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ document.addEventListener('touchstart',function(e){
+  if(e.touches.length!==1)return;const t=e.touches[0];
+  sx=t.clientX;sy=t.clientY;edge=t.clientX<=28?1:(t.clientX>=innerWidth-28?2:0);
+  target=e.target;stateAtStart=history.state;
+  tracking=!!edge&&!!stateAtStart?.ghoustoryApp&&Number(stateAtStart.depth)>0;
+  if(target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-composer,#chat-messages,#dm-messages,[role="dialog"]'))tracking=false;
+ },{passive:true});
+ document.addEventListener('touchend',function(e){
+  if(!tracking||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+  const horizontal=Math.abs(dx)>85&&Math.abs(dy)<55;
+  const direction=edge===1?dx>0:(!ios&&edge===2&&dx<0);
+  if(horizontal&&direction&&history.state===stateAtStart)history.back();tracking=false;
+ },{passive:true});
+ document.addEventListener('touchcancel',function(){tracking=false;},{passive:true});
+ document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&typeof markGroupMessagesRead==='function')markGroupMessagesRead();});
+})();
+</script>
+
 </body>
 </html>
