@@ -578,6 +578,19 @@
         });
         const KURS_USD_IDR = 15500;
 
+        // Cache lokal hanya pelengkap; kegagalannya tidak boleh memutus sinkronisasi cloud.
+        function cacheLocalDb() {
+            try {
+                cacheLocalDb();
+                window.__ghoustoryLocalCacheError = null;
+                return true;
+            } catch (error) {
+                window.__ghoustoryLocalCacheError = error?.message || String(error);
+                console.warn('Cache lokal Safari tidak tersedia; data tetap disinkronkan ke Supabase.', error);
+                return false;
+            }
+        }
+
         // ================= SINKRONISASI DATABASE BERSAMA =================
         let sharedSyncReady = false;
         let sharedSaveTimer = null;
