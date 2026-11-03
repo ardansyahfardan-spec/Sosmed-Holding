@@ -582,7 +582,7 @@
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
-            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'segmenList'].forEach(key => {
                 if (!Array.isArray(normalized[key])) normalized[key] = [];
             });
             normalized.jadwal.forEach(sch => {
@@ -1186,6 +1186,10 @@
                 else { sync.textContent = "Offline"; sync.className = "text-red-400"; }
             }
             if (synced) synced.textContent = lastCloudSyncAt ? lastCloudSyncAt.toLocaleTimeString("id-ID") : "-";
+            const ai = document.getElementById("footer-ai");
+            const today = new Date().toISOString().slice(0,10);
+            const usage = db.aiUsage.find(x => x.date === today);
+            if (ai && usage) ai.textContent = usage.calls + "x / " + Number(usage.totalTokens || 0).toLocaleString("id-ID") + " token";
         }
         function setupPresence(user) {
             if (presenceChannel) supabaseClient.removeChannel(presenceChannel);
