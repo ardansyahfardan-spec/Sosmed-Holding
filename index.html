@@ -547,17 +547,8 @@
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
             ]
         };
-        let db = (() => {
-            try {
-                const saved = JSON.parse(localStorage.getItem('gh_db_v3_2') || 'null');
-                return saved && typeof saved === 'object' && !Array.isArray(saved)
-                    ? { ...DEFAULT_DB, ...saved }
-                    : { ...DEFAULT_DB };
-            } catch (error) {
-                console.error('Data lokal tidak dapat dibaca; memakai data awal.', error);
-                return { ...DEFAULT_DB };
-            }
-        })();
+        // Data aplikasi dimuat langsung dari Supabase; tidak menggunakan penyimpanan browser.
+        let db = { ...DEFAULT_DB };
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
         // Pastikan struktur data lama tetap kompatibel dengan fitur terbaru.
@@ -577,19 +568,6 @@
             });
         });
         const KURS_USD_IDR = 15500;
-
-        // Cache lokal hanya pelengkap; kegagalannya tidak boleh memutus sinkronisasi cloud.
-        function cacheLocalDb() {
-            try {
-                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
-                window.__ghoustoryLocalCacheError = null;
-                return true;
-            } catch (error) {
-                window.__ghoustoryLocalCacheError = error?.message || String(error);
-                console.warn('Cache lokal Safari tidak tersedia; data tetap disinkronkan ke Supabase.', error);
-                return false;
-            }
-        }
 
         // ================= SINKRONISASI DATABASE BERSAMA =================
         let sharedSyncReady = false;
@@ -632,7 +610,6 @@
             const cloudData = data?.data;
             if (cloudData && typeof cloudData === 'object' && Object.keys(cloudData).length > 0) {
                 db = normalizeDbData(cloudData);
-                cacheLocalDb();
             } else {
                 // Database baru: isi satu kali dari data lokal perangkat pertama yang melakukan setup.
                 db = normalizeDbData(db);
@@ -640,7 +617,6 @@
                     .from('app_state')
                     .upsert({ id: 'ghoustory', data: db });
                 if (seedError) throw seedError;
-                cacheLocalDb();
             }
 
             const purgedCompletedItems = purgeCompletedItems();
@@ -673,7 +649,6 @@
             if (document.getElementById('script-editor')) {
                 db.script = document.getElementById('script-editor').value;
             }
-            cacheLocalDb();
             updateFooterStatus(true);
 
             if (!sharedSyncReady) return;
