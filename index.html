@@ -263,6 +263,17 @@
             <!-- CHAT KRU -->
             <section id="page-chat" class="page-section max-w-3xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="grid grid-cols-1 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.5fr)] gap-3 mb-3">
+                  <aside class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
+                    <div class="p-3 bg-gradient-to-r from-blue-950 to-gray-950 flex justify-between"><div><h3 class="text-sm font-bold text-white">Anggota RITUAL CREW</h3><p class="text-[10px] text-gray-400">Pilih anggota untuk chat pribadi</p></div><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div>
+                    <div id="ritual-members-list" class="p-2 max-h-[42vh] md:max-h-[520px] overflow-y-auto space-y-1"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div>
+                  </aside>
+                  <section class="glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
+                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex justify-between gap-2"><div class="min-w-0"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
+                    <div id="dm-messages" class="h-[35vh] min-h-[220px] max-h-[480px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
+                    <form id="dm-form" onsubmit="sendDirectMessage(event)" class="p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-base text-white disabled:opacity-50"><button id="dm-send" type="submit" disabled class="w-11 h-11 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
+                  </section>
+                </div>
                 <div class="glass-panel rounded-2xl overflow-hidden border border-red-900">
                     <div class="bg-gradient-to-r from-red-950 to-blue-950 p-4 flex items-center justify-between">
                         <div><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-comments mr-2"></i>Ritual Crew</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div>
@@ -1278,7 +1289,7 @@
         }
 
         function showPage(pageId) {
-            if (pageId === 'chat') loadChatMessages();
+            if (pageId === 'chat') { loadChatMessages(); loadRitualMembers(); }
             if (pageId === 'tim' && !markasTimUnlocked) {
                 openMarkasTimLock();
                 return;
@@ -2698,6 +2709,47 @@
             return;
           }
           button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
+        }
+        // Direktori anggota dan pesan pribadi RITUAL CREW.
+        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmMessages=[];
+        async function loadRitualMembers(){
+          const box=document.getElementById("ritual-members-list");if(!activeUser||!box)return;
+          box.innerHTML='<p class="text-xs text-gray-500 p-3">Memuat anggota...</p>';
+          const {data,error}=await supabaseClient.from("ghoustory_profiles").select("user_id,nickname,role,avatar_url").order("nickname");
+          if(error){box.textContent="Anggota gagal dimuat: "+error.message;return;}
+          ritualMembers=data||[];
+          if(!ritualMembers.length){box.textContent="Belum ada anggota terdaftar.";return;}
+          box.innerHTML=ritualMembers.map(p=>{const self=p.user_id===activeUser.id,avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";return '<button type="button" '+(self?'disabled':'onclick="openDirectMessage(\''+p.user_id+'\')"')+' class="w-full flex items-center gap-3 p-2 rounded-xl text-left '+(self?'opacity-50':'hover:bg-blue-950/60')+'"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button>';}).join("");
+        }
+        async function openDirectMessage(otherId){
+          if(!activeUser||!otherId||otherId===activeUser.id)return;
+          const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;
+          document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";
+          document.getElementById("dm-subtitle").textContent=member.role||"Anggota RITUAL CREW";
+          const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
+          try{
+            const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
+            let found=null;
+            for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
+            if(!found){const {data:c,error:e3}=await supabaseClient.from("ghoustory_dm_conversations").insert({created_by:activeUser.id}).select("id").single();if(e3)throw e3;const {error:e4}=await supabaseClient.from("ghoustory_dm_participants").insert([{conversation_id:c.id,user_id:activeUser.id,added_by:activeUser.id},{conversation_id:c.id,user_id:otherId,added_by:activeUser.id}]);if(e4)throw e4;found=c.id;}
+            activeDmConversation=found;activeDmMember=member;await loadDirectMessages();
+            document.getElementById("dm-input").disabled=false;document.getElementById("dm-send").disabled=false;document.getElementById("dm-input").placeholder="Kirim pesan pribadi...";
+          }catch(e){box.textContent="Chat pribadi gagal dibuka: "+(e.message||e);document.getElementById("dm-status").textContent="Gagal";}
+        }
+        async function loadDirectMessages(){
+          if(!activeDmConversation)return;if(dmRealtimeChannel){await supabaseClient.removeChannel(dmRealtimeChannel);dmRealtimeChannel=null;}
+          const {data,error}=await supabaseClient.from("ghoustory_dm_messages").select("*").eq("conversation_id",activeDmConversation).order("created_at").limit(150);if(error)throw error;
+          dmMessages=data||[];renderDirectMessages();const id=activeDmConversation;
+          dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation===id&&!dmMessages.some(m=>m.id===p.new.id)){dmMessages.push(p.new);dmMessages=dmMessages.slice(-150);renderDirectMessages();}}).subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
+        }
+        function renderDirectMessages(){
+          const box=document.getElementById("dm-messages");if(!box)return;
+          if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
+          box.innerHTML=dmMessages.map(m=>{const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"";return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'"><div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+'</div></div></div>';}).join("");box.scrollTop=box.scrollHeight;
+        }
+        async function sendDirectMessage(event){
+          event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
+          try{const {error}=await supabaseClient.from("ghoustory_dm_messages").insert({conversation_id:activeDmConversation,sender_id:activeUser.id,body});if(error)throw error;input.value="";}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
         }
         function openChatTools(){
           const modal=document.getElementById("chat-tools-modal"),content=document.getElementById("chat-tools-content");
