@@ -508,9 +508,9 @@
         <div class="p-3 border-b border-gray-800 bg-darkBg flex justify-between items-center z-50 flex-wrap gap-2">
             <h2 class="text-ghoulRed font-mystery font-bold">PROMPTER</h2>
             <div class="flex items-center gap-2">
-                <button onclick="setPromoSpeed(30, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="30s">🐢</button>
-                <button onclick="setPromoSpeed(15, this)" class="promo-spd text-xs bg-yellow-700 text-white px-2 py-1 rounded" title="15s">🚶</button>
-                <button onclick="setPromoSpeed(8, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="8s">🏃</button>
+                <button onclick="setPromoSpeed(16, this)" class="promo-spd text-xs bg-yellow-700 text-white px-2 py-1 rounded" title="Pelan">🐢</button>
+                <button onclick="setPromoSpeed(28, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Normal">🚶</button>
+                <button onclick="setPromoSpeed(42, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Cepat">🏃</button>
                 <div class="w-px h-4 bg-gray-700 mx-1"></div>
                 <button onclick="togglePromoPlay()" id="btn-promo-play" class="bg-green-700 text-white px-3 py-1 rounded text-xs"><i class="fa-solid fa-play"></i></button>
                 <button onclick="closeTeleprompter()" class="bg-red-800 text-white px-3 py-1 rounded text-xs"><i class="fa-solid fa-xmark"></i></button>
@@ -827,7 +827,7 @@
         async function copyTextSafe(v){try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(String(v??''));else{const e=document.createElement('textarea');e.value=String(v??'');e.style.position='fixed';e.style.opacity='0';document.body.appendChild(e);e.select();if(!document.execCommand('copy'))throw Error('Copy gagal');e.remove();}alert('Teks berhasil disalin.');}catch(e){console.error(e);alert('Gagal menyalin otomatis. Silakan salin teks secara manual.');}}
         function copyScriptDraft(id){const x=db.scriptDrafts.find(d=>d.id===id);if(x)copyTextSafe(x.content);}
         function deleteScriptDraft(id){const x=db.scriptDrafts.find(d=>d.id===id);if(!x||!confirm('Hapus naskah "'+x.title+'" dari arsip?'))return;db.scriptDrafts=db.scriptDrafts.filter(d=>d.id!==id);if(activeScriptDraftId===id)newScriptDraft();saveData();renderScriptDrafts();}
-        function renderScriptDrafts(){const el=document.getElementById('list-script-drafts');if(!el)return;const q=(document.getElementById('script-search')?.value||'').toLowerCase().trim(),items=db.scriptDrafts.filter(x=>(x.title||'').toLowerCase().includes(q)||(x.content||'').toLowerCase().includes(q));const count=document.getElementById('script-count');if(count)count.textContent='('+db.scriptDrafts.length+')';if(!items.length){el.innerHTML='<div class="text-xs text-gray-500 py-3">'+(q?'Tidak ada naskah yang cocok.':'Belum ada naskah tersimpan.')+'</div>';return;}el.innerHTML=items.map(x=>'<div class="bg-black border border-gray-800 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><b class="text-sm text-white">'+escapeHtml(x.title)+'</b><div class="text-[10px] text-gray-500">Diperbarui: '+escapeHtml(x.updatedAt?new Date(x.updatedAt).toLocaleString('id-ID'):'-')+'</div><p class="text-xs text-gray-400 mt-1">'+escapeHtml((x.content||'').slice(0,120))+'</p></div><div class="flex gap-2 shrink-0">'+renderDoneControl('scriptDrafts',x)+'<button onclick="openScriptDraft('+Number(x.id)+')" class="bg-blue-900 text-blue-100 text-xs px-3 py-2 rounded">Buka/Edit</button><button onclick="copyScriptDraft('+Number(x.id)+')" class="bg-gray-800 text-gray-200 text-xs px-3 py-2 rounded">Salin</button><button onclick="deleteScriptDraft('+Number(x.id)+')" class="bg-red-950 text-red-200 text-xs px-3 py-2 rounded">Hapus</button></div></div>').join('');}
+        function renderScriptDrafts(){const el=document.getElementById('list-script-drafts');if(!el)return;const q=(document.getElementById('script-search')?.value||'').toLowerCase().trim(),items=db.scriptDrafts.filter(x=>(x.title||'').toLowerCase().includes(q)||(x.content||'').toLowerCase().includes(q));const count=document.getElementById('script-count');if(count)count.textContent='('+db.scriptDrafts.length+')';if(!items.length){el.innerHTML='<div class="text-xs text-gray-500 py-3">'+(q?'Tidak ada naskah yang cocok.':'Belum ada naskah tersimpan.')+'</div>';return;}el.innerHTML=items.map(x=>'<div class="bg-black border border-gray-800 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><b class="text-sm text-white">'+escapeHtml(x.title)+'</b><div class="text-[10px] text-gray-500">Diperbarui: '+escapeHtml(x.updatedAt?new Date(x.updatedAt).toLocaleString('id-ID'):'-')+'</div><p class="text-xs text-gray-400 mt-1">'+escapeHtml((x.content||'').slice(0,120))+'</p></div><div class="flex gap-2 shrink-0">'+renderDoneControl('scriptDrafts',x)+'<button onclick="openArchivedTeleprompter('+Number(x.id)+')" class="bg-purple-900 text-purple-100 text-xs px-3 py-2 rounded">Teleprompter</button><button onclick="openScriptDraft('+Number(x.id)+')" class="bg-blue-900 text-blue-100 text-xs px-3 py-2 rounded">Buka/Edit</button><button onclick="copyScriptDraft('+Number(x.id)+')" class="bg-gray-800 text-gray-200 text-xs px-3 py-2 rounded">Salin</button><button onclick="deleteScriptDraft('+Number(x.id)+')" class="bg-red-950 text-red-200 text-xs px-3 py-2 rounded">Hapus</button></div></div>').join('');}
 
         // GRIMOIRE MITOS
         let isMitosMic = false;
@@ -1464,12 +1464,47 @@
             });
         }
 
-        // TELEPROMPTER NGEBUT
+        // TELEPROMPTER: kecepatan dihitung berdasarkan panjang naskah, bukan durasi tetap.
         let isPromoPlaying = false;
-        function openTeleprompter() { document.getElementById('teleprompter-overlay').classList.remove('hidden'); document.getElementById('teleprompter-overlay').classList.add('flex'); document.getElementById('teleprompter-text').innerText = document.getElementById('script-editor').value || "Naskah Kosong"; setPromoSpeed(15, document.querySelectorAll('.promo-spd')[1]); }
-        function closeTeleprompter() { document.getElementById('teleprompter-overlay').classList.add('hidden'); document.getElementById('teleprompter-overlay').classList.remove('flex'); isPromoPlaying=false; document.getElementById('teleprompter-text').style.animationPlayState = 'paused'; document.getElementById('btn-promo-play').innerHTML='<i class="fa-solid fa-play"></i>'; }
-        function togglePromoPlay() { const t=document.getElementById('teleprompter-text'); const b=document.getElementById('btn-promo-play'); if(isPromoPlaying) { t.style.animationPlayState='paused'; t.classList.remove('teleprompter-run'); b.innerHTML='<i class="fa-solid fa-play"></i>'; } else { t.classList.add('teleprompter-run'); t.style.animationPlayState='running'; b.innerHTML='<i class="fa-solid fa-pause"></i>'; } isPromoPlaying = !isPromoPlaying; }
-        function setPromoSpeed(sec, btnNode) { document.getElementById('teleprompter-text').style.animationDuration = `${sec}s`; document.querySelectorAll('.promo-spd').forEach(b => { b.classList.remove('bg-yellow-700'); b.classList.add('bg-gray-800'); }); btnNode.classList.remove('bg-gray-800'); btnNode.classList.add('bg-yellow-700'); }
+        let promoPixelsPerSecond = 16;
+        function openTeleprompter(content) {
+            const overlay=document.getElementById('teleprompter-overlay'),t=document.getElementById('teleprompter-text');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            isPromoPlaying=false; t.classList.remove('teleprompter-run'); t.style.animation='none';
+            t.innerText = content ?? document.getElementById('script-editor').value ?? "Naskah Kosong";
+            t.style.transform='translateY(100vh)';
+            setPromoSpeed(16, document.querySelector('.promo-spd'));
+            document.getElementById('btn-promo-play').innerHTML='<i class="fa-solid fa-play"></i>';
+        }
+        function openArchivedTeleprompter(id) {
+            const item=db.scriptDrafts.find(d=>String(d.id)===String(id));
+            if(!item)return alert('Naskah tidak ditemukan.');
+            openTeleprompter(item.content || 'Naskah Kosong');
+        }
+        function closeTeleprompter() {
+            const t=document.getElementById('teleprompter-text');
+            document.getElementById('teleprompter-overlay').classList.add('hidden');
+            document.getElementById('teleprompter-overlay').classList.remove('flex');
+            isPromoPlaying=false; t.style.animationPlayState='paused'; t.classList.remove('teleprompter-run');
+            document.getElementById('btn-promo-play').innerHTML='<i class="fa-solid fa-play"></i>';
+        }
+        function togglePromoPlay() {
+            const t=document.getElementById('teleprompter-text'),b=document.getElementById('btn-promo-play');
+            if(isPromoPlaying){t.style.animationPlayState='paused';b.innerHTML='<i class="fa-solid fa-play"></i>';}
+            else {
+                const distance=t.scrollHeight+window.innerHeight;
+                t.style.animation='none'; void t.offsetHeight;
+                t.style.animation=`scrollUp ${Math.max(20,distance/promoPixelsPerSecond)}s linear 1`;
+                t.style.animationPlayState='running'; b.innerHTML='<i class="fa-solid fa-pause"></i>';
+            }
+            isPromoPlaying=!isPromoPlaying;
+        }
+        function setPromoSpeed(speed,btnNode) {
+            promoPixelsPerSecond=speed;
+            document.querySelectorAll('.promo-spd').forEach(b=>{b.classList.remove('bg-yellow-700');b.classList.add('bg-gray-800');});
+            if(btnNode){btnNode.classList.remove('bg-gray-800');btnNode.classList.add('bg-yellow-700');}
+            if(isPromoPlaying){isPromoPlaying=false;togglePromoPlay();}
+        }
 
         function initSocialChart() {
             const ctx = document.getElementById('socialChart');
