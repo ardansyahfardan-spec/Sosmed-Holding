@@ -61,6 +61,7 @@
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
                 <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
             </button>
+            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
             <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.3 - SUPABASE CONNECTED</div>
         </div>
     </div>
@@ -556,9 +557,85 @@
         });
         const KURS_USD_IDR = 15500;
 
+        // ================= SINKRONISASI DATABASE BERSAMA =================
+        let sharedSyncReady = false;
+        let sharedSaveTimer = null;
+        let sharedSaveQueue = Promise.resolve();
+        let appOpening = false;
+
+        function normalizeDbData(data) {
+            const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
+            ['mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+                if (!Array.isArray(normalized[key])) normalized[key] = [];
+            });
+            normalized.jadwal.forEach(sch => {
+                if (!sch || typeof sch !== 'object') return;
+                if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+                KRU_NAMES.forEach(name => {
+                    if (!sch.absen[name] || typeof sch.absen[name] !== 'object') {
+                        sch.absen[name] = { hadir: true, alasan: '' };
+                    } else {
+                        sch.absen[name].hadir = sch.absen[name].hadir !== false;
+                        sch.absen[name].alasan = sch.absen[name].alasan || '';
+                    }
+                });
+            });
+            return normalized;
+        }
+
+        async function syncSharedDataFromCloud() {
+            const { data, error } = await supabaseClient
+                .from('app_state')
+                .select('data')
+                .eq('id', 'ghoustory')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            const cloudData = data?.data;
+            if (cloudData && typeof cloudData === 'object' && Object.keys(cloudData).length > 0) {
+                db = normalizeDbData(cloudData);
+                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            } else {
+                // Database baru: isi satu kali dari data lokal perangkat pertama yang melakukan setup.
+                db = normalizeDbData(db);
+                const { error: seedError } = await supabaseClient
+                    .from('app_state')
+                    .upsert({ id: 'ghoustory', data: db });
+                if (seedError) throw seedError;
+                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            }
+
+            sharedSyncReady = true;
+            if (document.getElementById('script-editor')) {
+                document.getElementById('script-editor').value = db.script || '';
+            }
+        }
+
+        function queueSharedSave(snapshot) {
+            sharedSaveQueue = sharedSaveQueue
+                .then(async () => {
+                    const { error } = await supabaseClient
+                        .from('app_state')
+                        .upsert({ id: 'ghoustory', data: snapshot });
+                    if (error) throw error;
+                })
+                .catch(error => {
+                    console.error('Gagal menyimpan data ke database bersama:', error);
+                    window.__ghoustorySyncError = error.message || String(error);
+                });
+        }
+
         function saveData() {
-            if(document.getElementById('script-editor')) db.script = document.getElementById('script-editor').value;
+            if (document.getElementById('script-editor')) {
+                db.script = document.getElementById('script-editor').value;
+            }
             localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+
+            if (!sharedSyncReady) return;
+            clearTimeout(sharedSaveTimer);
+            const snapshot = JSON.parse(JSON.stringify(db));
+            sharedSaveTimer = setTimeout(() => queueSharedSave(snapshot), 700);
         }
 
         // ================= INISIALISASI & AUTHENTICATION =================
@@ -570,33 +647,51 @@
             initSocialChart();
 
             // Cek Session saat halaman dimuat
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError) console.error('Gagal memeriksa sesi login:', sessionError);
             if (session) {
-                masukKeAplikasi(session.user);
+                await masukKeAplikasi(session.user);
             }
 
             // Dengarkan perubahan status Login/Logout
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
-                    masukKeAplikasi(session.user);
+                    // Jalankan setelah callback auth selesai agar tidak mengunci event auth Supabase.
+                    setTimeout(() => masukKeAplikasi(session.user), 0);
                 } else if (event === 'SIGNED_OUT') {
                     location.reload();
                 }
             });
         });
 
-        function masukKeAplikasi(user) {
-            // Pasang foto dan nama asli dari Google
-            document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ardan+Ghoustory&background=B91C1C&color=fff";
-            document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || "Ardan";
-            
-            document.getElementById('login-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-app').style.opacity = '1';
-                document.getElementById('main-app').classList.remove('hidden');
-                refreshAllLists();
-            }, 500);
+        async function masukKeAplikasi(user) {
+            if (appOpening || document.getElementById('main-app').classList.contains('opacity-100')) return;
+            appOpening = true;
+            const loginStatus = document.getElementById('login-status');
+            if (loginStatus) loginStatus.textContent = 'Menghubungkan database bersama...';
+
+            try {
+                await syncSharedDataFromCloud();
+                // Pasang foto dan nama asli dari Google
+                document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
+                document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || user.email || "Pengguna Google";
+
+                document.getElementById('login-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.opacity = '1';
+                    document.getElementById('main-app').classList.remove('hidden');
+                    refreshAllLists();
+                    appOpening = false;
+                }, 500);
+            } catch (error) {
+                console.error('Database bersama belum siap:', error);
+                if (loginStatus) {
+                    loginStatus.textContent = 'Database belum siap. Jalankan SQL setup di Supabase, lalu muat ulang halaman.';
+                    loginStatus.classList.remove('hidden');
+                }
+                appOpening = false;
+            }
         }
 
         async function loginWithGoogle() {
