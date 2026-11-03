@@ -1170,7 +1170,7 @@
             const save = document.getElementById('profile-save-button');
             const photoSection = document.getElementById('profile-photo-section');
             if (!modal) return;
-            photoSection?.classList.toggle('hidden', mode === 'register');
+            photoSection?.classList.remove('hidden');
             title.textContent = mode === 'register' ? 'DAFTAR ANGGOTA' : 'EDIT PROFIL';
             subtitle.textContent = mode === 'register' ? 'Lengkapi profil sebelum memasuki Control Room.' : 'Perbarui identitasmu di Ghoustory.';
             name.value = activeProfile?.nickname || '';
