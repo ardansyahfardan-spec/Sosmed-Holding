@@ -665,7 +665,7 @@
         });
 
         async function masukKeAplikasi(user) {
-            if (appOpening || document.getElementById('main-app').classList.contains('opacity-100')) return;
+            if (appOpening || document.getElementById('login-screen').style.display === 'none') return;
             appOpening = true;
             const loginStatus = document.getElementById('login-status');
             if (loginStatus) loginStatus.textContent = 'Menghubungkan database bersama...';
