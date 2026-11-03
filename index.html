@@ -1966,8 +1966,13 @@
             });
             presenceChannel.subscribe(async status => {
                 if (status === "SUBSCRIBED") {
-                    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
-                    await presenceChannel.track({ user_id: user.id, name: displayName, avatar_url: user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
+                    let profile = activeProfile;
+                    if (!profile || profile.user_id !== user.id) {
+                        const { data } = await supabaseClient.from("ghoustory_profiles").select("nickname,role,avatar_url").eq("user_id", user.id).maybeSingle();
+                        profile = data || null;
+                    }
+                    const displayName = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
+                    await presenceChannel.track({ user_id: user.id, name: displayName, role: profile?.role || "", avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
                 }
             });
         }
