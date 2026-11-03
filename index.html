@@ -199,10 +199,9 @@
             <!-- 3. ANALISIS AI -->
             <section id="page-analisis" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div class="grid grid-cols-2 gap-3 mb-6">
                     <div onclick="switchTab('analisis', 'arsip')" class="big-tab-btn color-blue active p-4 rounded-xl text-center" id="tabbtn-analisis-arsip"><i class="fa-solid fa-boxes-packing text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Bank Metadata</div></div>
                     <div onclick="switchTab('analisis', 'baru')" class="big-tab-btn color-blue p-4 rounded-xl text-center" id="tabbtn-analisis-baru"><i class="fa-solid fa-robot text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Analisis AI (Gemini)</div></div>
-                    <div onclick="switchTab('analisis', 'shorts')" class="big-tab-btn color-blue p-4 rounded-xl text-center" id="tabbtn-analisis-shorts"><i class="fa-solid fa-scissors text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Shorts Moment Finder</div></div>
                 </div>
                 
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-blue-500">
@@ -215,18 +214,6 @@
                             <input type="text" id="ai-yt-link" class="w-full bg-darkCard border border-gray-700 p-3 rounded text-sm text-white focus:border-blue-500 outline-none" placeholder="Paste Link YouTube Unlisted...">
                             <button onclick="generateMetadata()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded"><i class="fa-solid fa-bolt"></i> Buat Metadata dengan Gemini AI</button>
                         </div>
-                    </div>
-                    <div id="tab-analisis-shorts" class="tab-content space-y-4">
-                        <div class="bg-black p-4 sm:p-6 rounded-xl border border-blue-900/60">
-                            <div class="flex items-center gap-3 mb-2"><i class="fa-solid fa-wand-magic-sparkles text-2xl text-blue-400"></i><h3 class="text-lg font-mystery text-white">Shorts Moment Finder</h3></div>
-                            <p class="text-xs text-gray-400 mb-4">Unggah audio MP3 dari video panjangmu. Gemini akan mencari bagian cerita paling menarik beserta perkiraan timestamp, hook, judul, dan caption untuk bahan edit Shorts.</p>
-                            <label for="shorts-mp3-file" class="block text-xs text-gray-300 mb-2">File audio MP3 (maksimal 17 MB)</label>
-                            <input id="shorts-mp3-file" type="file" accept=".mp3,audio/mpeg,audio/mp3" class="w-full text-xs text-gray-300 file:mr-3 file:rounded file:border-0 file:bg-blue-900 file:px-3 file:py-2 file:text-white">
-                            <div id="shorts-file-info" class="text-[11px] text-gray-500 mt-2">Audio hanya dikirim untuk dianalisis dan tidak disimpan sebagai file di Control Room.</div>
-                            <button id="btn-shorts-analyze" onclick="analyzeShortsMoments()" class="w-full mt-4 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-3 rounded"><i class="fa-solid fa-scissors"></i> Cari Momen Shorts</button>
-                            <div id="shorts-status" class="hidden mt-3 text-xs text-blue-300" role="status" aria-live="polite"></div>
-                        </div>
-                        <div id="shorts-results" class="space-y-3"></div>
                     </div>
                 </div>
             </section>
@@ -1018,27 +1005,6 @@
 
         // ANALISIS AI & TOMBOL DISETUJUI
         async function generateMetadata(){const link=document.getElementById('ai-yt-link').value.trim(),btn=document.querySelector('button[onclick="generateMetadata()"]');if(!link)return alert('Masukkan link YouTube.');setButtonBusy(btn,true);try{const text=await callGhoulAI('metadata',{url:link});db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+link.slice(0,45),aiText:text,url:link});saveData();renderMetadataList();switchTab('analisis','arsip');}catch(e){alert('Gagal membuat metadata: '+e.message);}finally{setButtonBusy(btn,false);}}
-        function blobToBase64DataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>{const value=String(reader.result||'');const comma=value.indexOf(',');resolve(comma>=0?value.slice(comma+1):'');};reader.onerror=()=>reject(new Error('File MP3 gagal dibaca.'));reader.readAsDataURL(file);});}
-        function parseShortsResponse(raw){let value=String(raw||'').trim().replace(/^\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60$/,'');const start=value.indexOf('{'),end=value.lastIndexOf('}');if(start>=0&&end>start)value=value.slice(start,end+1);return JSON.parse(value);}
-        async function analyzeShortsMoments(){
-            const input=document.getElementById('shorts-mp3-file'),file=input?.files?.[0],btn=document.getElementById('btn-shorts-analyze'),status=document.getElementById('shorts-status'),results=document.getElementById('shorts-results');
-            if(!file)return alert('Pilih file MP3 terlebih dahulu.');
-            if(!/\.mp3$/i.test(file.name)||!['audio/mpeg','audio/mp3','application/octet-stream'].includes(file.type||'application/octet-stream'))return alert('Gunakan file berekstensi MP3.');
-            if(file.size>17*1024*1024)return alert('Ukuran MP3 melebihi 17 MB. Kompres atau pecah audio menjadi beberapa bagian, lalu analisis satu per satu.');
-            if(file.size===0)return alert('File MP3 kosong.');
-            setButtonBusy(btn,true);status.classList.remove('hidden');status.textContent='Membaca audio MP3...';results.innerHTML='';
-            try{
-                const audioBase64=await blobToBase64DataUrl(file);
-                status.textContent='Gemini sedang mendengarkan dan mencari momen terbaik. Proses bisa memerlukan beberapa menit...';
-                const raw=await callGhoulAI('shorts-moment-finder',{audioBase64,mimeType:'audio/mpeg',fileName:file.name});
-                const parsed=parseShortsResponse(raw),moments=Array.isArray(parsed.moments)?parsed.moments:[];
-                if(!moments.length)throw new Error('Gemini belum menemukan daftar momen. Coba file lain atau ulangi analisis.');
-                results.innerHTML='<div class="flex items-center justify-between gap-2"><h4 class="text-sm font-bold text-white">Rekomendasi Momen ('+moments.length+')</h4><span class="text-[10px] text-gray-500">Periksa timestamp saat proses editing</span></div>'+moments.map((m,i)=>'<article class="bg-black border border-gray-800 rounded-xl p-4"><div class="flex flex-wrap items-center justify-between gap-2 mb-2"><span class="text-xs font-bold text-blue-300">MOMEN '+(i+1)+'</span><span class="text-xs bg-blue-950 text-blue-200 px-2 py-1 rounded">'+escapeHtml(m.start||'--:--')+' – '+escapeHtml(m.end||'--:--')+'</span></div><h5 class="font-bold text-white mb-2">'+escapeHtml(m.title||'Ide Shorts')+'</h5><p class="text-xs text-gray-300 mb-2">'+escapeHtml(m.hook||'')+'</p><p class="text-xs text-gray-400 mb-2">'+escapeHtml(m.caption||'')+'</p><p class="text-[11px] text-gray-500 mb-2">Alasan: '+escapeHtml(m.reason||'')+'</p><p class="text-[11px] text-gray-500 italic">Cari bagian ini: “'+escapeHtml(m.quote||'')+'”</p><div class="flex gap-2 mt-3"><button onclick="copyTextSafe(this.closest('article').innerText)" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded text-white"><i class="fa-regular fa-copy"></i> Salin detail</button></div></article>').join('');
-                status.textContent='Selesai. '+moments.length+' momen ditemukan. Timestamp bersifat perkiraan AI; cocokkan lagi dengan audio/video saat editing.';
-            }catch(e){status.textContent='Analisis gagal.';alert('Shorts Moment Finder: '+e.message);}
-            finally{setButtonBusy(btn,false);}
-        }
-
         function deleteMetadata(id){if(!confirm('Hapus metadata ini?'))return;db.metadata=db.metadata.filter(x=>x.id!==id);saveData();renderMetadataList();}
 
         function copyMetadataText(i) { if (db.metadata[i]) copyTextSafe(db.metadata[i].aiText); }
