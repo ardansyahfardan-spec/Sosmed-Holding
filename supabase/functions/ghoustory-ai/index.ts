@@ -109,29 +109,45 @@ Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat se
     }
 
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
-    const geminiPayload = {
-      contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
-      generationConfig: { temperature: 0.75, maxOutputTokens: task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500 },
-    };
-
+    const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
+    const retryableStatuses = [429, 500, 502, 503, 504];
+    const maxOutputTokens = task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     let response: Response | null = null;
-    // Retry only temporary capacity/rate-limit errors. Never retry other 4xx errors.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      response = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify(geminiPayload),
-        signal: AbortSignal.timeout(110_000),
-      });
-      console.log("[ghoustory-ai] stage=gemini_attempt attempt=" + (attempt + 1) + " status=" + response.status);
-      if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) break;
-      const retryAfter = Number(response.headers.get("retry-after") || 0);
-      const waitMs = retryAfter > 0 ? Math.min(retryAfter * 1000, 8000) : (attempt === 0 ? 2000 : 4000);
-      await response.body?.cancel();
-      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    let activeModel = "";
+
+    // Try the primary model first. If it is temporarily unavailable, switch to the
+    // documented stable Flash-Lite fallback using the same Gemini API key.
+    for (const model of modelCandidates) {
+      activeModel = model;
+      const attemptsForModel = model === modelCandidates[0] ? 3 : 2;
+      for (let attempt = 0; attempt < attemptsForModel; attempt++) {
+        const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+        response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
+            generationConfig: { temperature: 0.75, maxOutputTokens },
+          }),
+          signal: AbortSignal.timeout(110_000),
+        });
+        console.log("[ghoustory-ai] stage=gemini_attempt model=" + model + " attempt=" + (attempt + 1) + " status=" + response.status);
+        if (response.ok || !retryableStatuses.includes(response.status)) break;
+        if (attempt < attemptsForModel - 1) {
+          const retryAfter = Number(response.headers.get("retry-after") || 0);
+          const waitMs = retryAfter > 0 ? Math.min(retryAfter * 1000, 8000) : (attempt === 0 ? 2000 : 4000);
+          await response.body?.cancel();
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+        }
+      }
+      if (response?.ok || (response && !retryableStatuses.includes(response.status))) break;
+      if (model !== modelCandidates[modelCandidates.length - 1]) {
+        console.warn("[ghoustory-ai] stage=model_fallback primary=" + model + " fallback=" + modelCandidates[modelCandidates.indexOf(model) + 1] + " status=" + response?.status);
+        await response?.body?.cancel();
+      }
     }
     if (!response) return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
+    console.log("[ghoustory-ai] stage=gemini_response model=" + activeModel + " status=" + response.status);
 
     console.log("[ghoustory-ai] stage=gemini_response status=" + response.status);
     const responseText = await response.text();
