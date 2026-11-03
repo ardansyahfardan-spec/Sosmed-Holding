@@ -2748,28 +2748,42 @@ async function loadChatMessages(){
         async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function toggleGroupReaction(messageId,emoji){try{const old=groupReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_group_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_group_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",chatMessages.map(m=>m.id));groupReactions=data||[];renderChatMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
         async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan anggota lain.");return;}const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));groupPins=data||[];renderChatMessages();}catch(e){alert("Pin gagal: "+e.message);}}
-        async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null}){
+        async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null,sender_name=null,notify=true}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
             sender_id:activeUser.id,
-            sender_name:activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru",
-            sender_avatar:activeUser.user_metadata?.avatar_url||"",
+            sender_name:sender_name||(activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru"),
+            sender_avatar:sender_name==="GHOUSTORY AI"?"":(activeUser.user_metadata?.avatar_url||""),
             body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title,reply_to
           }).select("id").single();
           if(error)throw error;
-          await sendGhoustoryPush(data.id,"group");
+          if(notify)await sendGhoustoryPush(data.id,"group");
           return data;
         }
         async function sendChatMessage(event){
-          event.preventDefault();const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input.value.trim();
-          if(!body||!activeUser)return;
-          if(/(^|\\s)@ghoust\\b/i.test(body)){
-            const question=body.replace(/(^|\\s)@ghoust\\b/i," ").trim()||"Bantu diskusi tim Ghoustory.";
-            input.value="";button.disabled=true;
-            try{await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});clearGroupReply();await runGhoustAI(question,true);}catch(e){alert("Pesan/AI gagal diproses: "+e.message);}finally{button.disabled=false;}
+          event.preventDefault();
+          const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input?.value.trim();
+          if(!body||!activeUser||!button)return;
+          const mention=/(^|\\s)@ghoust\\b/i.test(body);
+          const question=body.replace(/@ghoust\\b/ig,"").replace(/\\s+/g," ").trim()||"Ikut nimbrung dan bantu diskusi tim Ghoustory.";
+          button.disabled=true;
+          try{
+            await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});
+            input.value="";clearGroupReply();
+          }catch(error){
+            alert("Pesan belum terkirim: "+error.message);
+            button.disabled=false;
             return;
           }
-          button.disabled=true;try{await insertChatMessage({body,reply_to:groupReplyTo?.id||null});input.value="";clearGroupReply();}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
+          if(mention){
+            try{
+              await runGhoustAI(question,true);
+            }catch(error){
+              try{await insertChatMessage({body:"Maaf, aku belum bisa menjawab sekarang. "+(error.message||"Silakan coba panggil aku lagi dengan @ghoust."),message_type:"ai",sender_name:"GHOUSTORY AI",notify:false});}
+              catch(saveError){console.error("Balasan error GHOUSTORY AI gagal disimpan:",saveError);}
+            }
+          }
+          button.disabled=false;
         }
         // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
         let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[],dmPresenceChannel=null,dmTypingTimer=null;
@@ -3002,7 +3016,7 @@ async function markDmMessagesRead(){
             const recent=chatMessages.slice(-20).map(m=>({pengirim:m.sender_name,pesan:m.body,jenis:m.message_type}));
             const context={jadwal:(db.jadwal||[]).slice(-20),production:(db.production||[]).slice(-20),notulen:(db.notulen||[]).slice(-10).map(x=>({topic:x.topic,raw:String(x.raw||"").slice(0,1500)})),scripts:(db.scriptDrafts||[]).slice(-10).map(x=>({title:x.title,content:String(x.content||"").slice(0,1200)})),vo:(db.vo||[]).slice(-10).map(x=>({title:x.title,teks:String(x.teks||"").slice(0,500)}))};
             const answer=await callGhoulAI("ritual-chat",{message:question,chat:recent,context});
-            if(postToGroup)await insertChatMessage({body:answer,message_type:"ai"});
+            if(postToGroup)await insertChatMessage({body:answer,message_type:"ai",sender_name:"GHOUSTORY AI",notify:false});
             return answer;
           }finally{ghoustAiBusy=false;}
         }
