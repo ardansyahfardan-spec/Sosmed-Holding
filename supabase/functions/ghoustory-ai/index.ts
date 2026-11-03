@@ -145,8 +145,17 @@ Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat se
     }
     console.log("[ghoustory-ai] stage=json_parsed");
     if (!response.ok) {
-      const message = result?.error?.message || "Gemini API gagal memproses permintaan.";
-      return json({ error: message }, response.status);
+      const message = String(result?.error?.message || "Gemini API gagal memproses permintaan.");
+      const status = Number(result?.error?.code || response.status);
+      const reason = String(result?.error?.status || "UNKNOWN");
+      // Log Gemini's diagnostic message (never log the API key or request headers).
+      console.error("[ghoustory-ai] stage=gemini_error status=" + status + " reason=" + reason + " message=" + message.slice(0, 1000));
+      return json({
+        error: message,
+        provider: "Gemini",
+        providerStatus: status,
+        providerReason: reason,
+      }, response.status);
     }
     console.log("[ghoustory-ai] stage=extracting_text");
     const text = (result?.candidates?.[0]?.content?.parts || [])
