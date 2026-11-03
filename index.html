@@ -1144,7 +1144,9 @@
             const preview = document.getElementById('profile-photo-preview');
             const file = document.getElementById('profile-photo-file');
             const save = document.getElementById('profile-save-button');
+            const photoSection = document.getElementById('profile-photo-section');
             if (!modal) return;
+            photoSection?.classList.toggle('hidden', mode === 'register');
             title.textContent = mode === 'register' ? 'DAFTAR ANGGOTA' : 'EDIT PROFIL';
             subtitle.textContent = mode === 'register' ? 'Lengkapi profil sebelum memasuki Control Room.' : 'Perbarui identitasmu di Ghoustory.';
             name.value = activeProfile?.nickname || '';
@@ -2810,7 +2812,7 @@
     <div id="ghoustory-profile-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center">
       <form onsubmit="saveGhoustoryProfile(event)" class="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-5 shadow-2xl">
         <div class="text-center mb-5"><div class="text-red-500 text-xs tracking-[.25em] mb-2">GHOUSTORY CONTROL ROOM</div><h2 id="profile-modal-title" class="font-mystery text-xl text-white">DAFTAR ANGGOTA</h2><p id="profile-modal-subtitle" class="text-xs text-gray-400 mt-2">Lengkapi profil sebelum memasuki Control Room.</p></div>
-        <div class="flex flex-col items-center gap-2 mb-5">
+        <div id="profile-photo-section" class="flex flex-col items-center gap-2 mb-5">
           <img id="profile-photo-preview" src="" alt="Foto profil" class="w-24 h-24 rounded-full object-cover border-2 border-red-700 bg-gray-900">
           <label class="cursor-pointer text-xs text-blue-300 hover:text-blue-200"><i class="fa-solid fa-camera mr-1"></i> Ganti foto profil<input id="profile-photo-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden"></label>
           <p class="text-[10px] text-gray-500">Foto Google digunakan sebagai foto awal jika tersedia. Maksimal 5 MB.</p>
