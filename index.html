@@ -730,7 +730,7 @@
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
             normalized.monetisasi = { ...DEFAULT_DB.monetisasi, ...(normalized.monetisasi && typeof normalized.monetisasi === 'object' ? normalized.monetisasi : {}) };
-            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'segmenList'].forEach(key => {
+            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'socialAnalytics', 'segmenList'].forEach(key => {
                 if (!Array.isArray(normalized[key])) normalized[key] = [];
             });
             normalized.jadwal.forEach(sch => {
