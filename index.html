@@ -698,16 +698,29 @@
 
         async function loginWithGoogle() {
             const btn = document.querySelector('button[onclick="loginWithGoogle()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Membuka Portal...';
-            
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-            });
-            
-            if (error) {
-                alert("Gagal login: " + error.message);
-                btn.innerHTML = originalText;
+            const originalText = btn ? btn.innerHTML : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Membuka Portal...';
+            }
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: 'https://ardansyahfardan-spec.github.io/Sosmed-Holding/'
+                    }
+                });
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Login Google gagal:', error);
+                alert('Gagal login: ' + (error.message || 'Terjadi kesalahan.'));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
             }
         }
 
