@@ -44,7 +44,34 @@ Deno.serve(async (req) => {
       const location = String(body.location || "lokasi misterius").slice(0, 240);
       const premise = String(body.premise || "pengalaman mistis").slice(0, 1200);
       const format = body.format === "Podcast" ? "Podcast / Cerita Studio" : "Penelusuran Lokasi";
-      prompt = `Kamu penulis naskah profesional untuk kanal YouTube horor Indonesia Ghoustory. Buat naskah lengkap berbahasa Indonesia yang natural, enak dibawakan host, punya hook kuat, build-up ketegangan, pertanyaan narasumber, transisi, dan penutup. Format: ${format}. Narasumber: ${guest}. Lokasi: ${location}. Premis: ${premise}. Jangan mengarang fakta tentang kejadian nyata; tandai bagian yang perlu dikonfirmasi. Sertakan arahan visual/audio seperlunya. Output langsung naskah dengan heading yang rapi.`;
+      prompt = `Kamu adalah Head Writer dan produser wawancara untuk kanal YouTube horor Indonesia Ghoustory. Buat DRAF NASKAH PRODUKSI berbahasa Indonesia untuk format ${format}. Narasumber: ${guest}. Lokasi: ${location}. Premis/topik: ${premise}.
+
+PRINSIP WAJIB:
+1. Ini adalah panduan wawancara, bukan cerita fiksi dan bukan dialog yang harus dihafalkan. Jangan pernah menciptakan jawaban, kutipan, reaksi, detail kejadian, kronologi, atau pengalaman atas nama narasumber. Jangan menulis dialog narasumber seolah-olah itu fakta.
+2. Jika informasi belum tersedia, tulis penanda yang jelas seperti [KONFIRMASI KE NARASUMBER: ...]. Jangan mengisi sendiri. Pisahkan fakta yang sudah diberikan dari asumsi dan pertanyaan yang masih harus digali.
+3. Pertanyaan host harus terbuka, singkat, manusiawi, tidak menggiring, dan tidak menyisipkan jawaban. Hindari pertanyaan yang mengasumsikan hal belum diceritakan, misalnya bau, suhu, sosok, atau kejadian tertentu.
+4. Buat pertanyaan lanjutan bersyarat: tulis [TANYAKAN JIKA NARASUMBER MENYEBUT ...], bukan menganggap detail itu pasti terjadi.
+5. Jaga konsistensi kronologi, lokasi, akses ruangan, pintu/kunci, waktu, dan hubungan sebab-akibat. Jika ada kontradiksi atau celah logika, tandai untuk dikonfirmasi; jangan menyelesaikannya dengan karangan.
+6. Jangan mengklaim kisah nyata, lokasi angker, atau unsur gaib sebagai fakta yang terbukti. Gunakan framing "pengalaman yang diceritakan narasumber".
+7. Dialog host boleh ditulis lengkap untuk pembuka, transisi, pengantar segmen, dan penutup. Untuk bagian wawancara, utamakan daftar pertanyaan dan follow-up, bukan jawaban narasumber rekaan.
+
+STRUKTUR OUTPUT:
+- Judul utama + 2 alternatif judul yang menarik tetapi tidak menyesatkan.
+- Premis singkat dan daftar informasi yang sudah diketahui / belum dikonfirmasi.
+- Rundown dengan target durasi total sekitar 15 menit dan pembagian waktu yang realistis.
+- HOOK 30–60 detik: narasi host yang kuat tanpa menambahkan fakta baru.
+- PEMBUKA: sapaan khas Ghoustory dan pengenalan narasumber.
+- SEGMEN AWAL: gali latar tempat, kondisi sebelum kejadian, siapa saja yang terlibat, dan kapan mulai terjadi.
+- SEGMEN PENGEMBANGAN: gali kronologi secara berurutan; sertakan pertanyaan tentang apa yang dilihat/didengar/dirasakan hanya jika relevan dengan jawaban narasumber.
+- SEGMEN KLIMAKS: gali satu kejadian paling kuat berdasarkan cerita narasumber, beri ruang jeda dan respons host; jangan memaksakan adanya klimaks jika narasumber tidak mengalaminya.
+- SEGMEN SETELAH KEJADIAN: dampak, tindakan yang dilakukan, kondisi sekarang, dan kemungkinan penjelasan biasa yang pernah diperiksa.
+- CLOSING: rangkum tanpa menyimpulkan hal gaib sebagai fakta, ucapkan terima kasih, dan ajak penonton berkomentar.
+- CATATAN PRODUKSI: arahan visual/audio sederhana, titik jeda, serta bagian yang perlu B-roll.
+
+GAYA GHOISTORY:
+Santai seperti obrolan cangkruk, akrab tetapi tetap menghormati narasumber. Host penasaran dan empatik, bukan dramatis berlebihan. Bangun ketegangan dari detail yang benar-benar diceritakan, bukan dari efek suara atau jawaban karangan. Hindari repetisi pertanyaan, kata-kata hiperbolis, dan kalimat horor klise yang terlalu sering dipakai.
+
+Panjang naskah harus cukup untuk durasi target, tetapi jangan memanjangkan dengan dialog palsu. Beri label yang jelas pada setiap bagian dan gunakan timestamp perkiraan. Output langsung dalam format rapi yang siap dipakai sebagai panduan host dan kru.`;
     } else if (task === "research") {
       const topic = String(body.topic || "").slice(0, 1200);
       prompt = `Bertindak sebagai asisten riset awal konten horor Ghoustory. Buat ringkasan berdasarkan pengetahuan yang tersedia tentang topik/lokasi berikut: ${topic}. Pisahkan: (1) informasi umum yang perlu diverifikasi, (2) cerita rakyat/rumor yang belum terbukti, (3) hal yang wajib dikonfirmasi sebelum ditayangkan, (4) 8 pertanyaan wawancara/observasi, (5) ide angle cerita. Jangan mengarang sumber, tautan, tanggal, atau fakta. Tegaskan bahwa hasil ini bukan pencarian web langsung dan semua fakta perlu diverifikasi. Bahasa Indonesia.`;
