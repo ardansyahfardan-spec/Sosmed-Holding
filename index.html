@@ -14,6 +14,7 @@
     
     <!-- CDN Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -305,6 +306,11 @@
                             <h4 class="text-xs font-bold text-orange-500 uppercase mb-3"><i class="fa-solid fa-circle-dot text-red-500 animate-pulse mr-1"></i> Rekam Contoh Intonasi VO</h4>
                             <input type="text" id="vo-title" placeholder="Segmen / Judul (Cth: Intro Mitos Alas Purwo)" class="w-full bg-darkCard border border-gray-700 p-2 rounded mb-2 text-white">
                             <input type="text" id="vo-teks" placeholder="Potongan Teks Naskahnya..." class="w-full bg-darkCard border border-gray-700 p-2 rounded mb-3 text-white">
+                            <div class="flex gap-2 mb-2">
+                                <button id="btn-vo-record" onclick="toggleVORecording()" class="flex-1 bg-red-900 hover:bg-red-800 text-white py-3 rounded-lg font-bold text-sm"><i class="fa-solid fa-microphone"></i> Rekam Intonasi</button>
+                                <button id="btn-vo-stop" onclick="stopVORecording()" disabled class="flex-1 bg-gray-800 text-gray-500 py-3 rounded-lg font-bold text-sm"><i class="fa-solid fa-stop"></i> Stop</button>
+                            </div>
+                            <div id="vo-record-status" class="text-[10px] text-gray-500 mb-3">Rekam contoh suara langsung dari HP. Audio disimpan sebagai MP3 di Supabase.</div>
                             <button onclick="simpanDraftVO()" class="w-full bg-red-800 hover:bg-red-700 text-white py-2 rounded font-bold text-xs"><i class="fa-solid fa-floppy-disk"></i> Simpan Catatan VO</button>
                         </div>
                         <div id="list-vo" class="space-y-2"></div>
@@ -1084,9 +1090,78 @@
                 setButtonBusy(btn, false);
             }
         }
-        function simpanDraftVO(){const title=document.getElementById('vo-title').value.trim(),teks=document.getElementById('vo-teks').value.trim();if(!title||!teks)return alert('Isi judul dan teks VO.');db.vo.unshift({id:Date.now(),title,teks});document.getElementById('vo-title').value='';document.getElementById('vo-teks').value='';saveData();renderVOList();}
-        function deleteVO(id){if(!confirm('Hapus catatan VO ini?'))return;db.vo=db.vo.filter(x=>x.id!==id);saveData();renderVOList();}
-        function renderVOList(){const c=document.getElementById('list-vo');if(!c)return;if(!db.vo.length){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;}c.innerHTML=db.vo.map(x=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between gap-2"><b>🎙️ '+escapeHtml(x.title)+'</b>'+renderDoneControl('vo',x)+'<button onclick="deleteVO('+Number(x.id)+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div><div class="text-xs text-gray-400 mt-1">'+escapeHtml(x.teks)+'</div></div>').join('');}
+        let voRecorder = null, voRecorderStream = null, voRecorderChunks = [], voRecordingBusy = false;
+        async function toggleVORecording() {
+            if (voRecorder && voRecorder.state === 'recording') return stopVORecording();
+            const title = document.getElementById('vo-title').value.trim();
+            if (!title) return alert('Isi judul / segmen VO terlebih dahulu.');
+            if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return alert('Browser ini belum mendukung rekaman mikrofon. Coba gunakan Safari versi terbaru.');
+            try {
+                voRecorderStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+                voRecorderChunks = [];
+                const mime = ['audio/webm;codecs=opus','audio/mp4','audio/webm'].find(t => MediaRecorder.isTypeSupported(t));
+                voRecorder = new MediaRecorder(voRecorderStream, mime ? { mimeType: mime } : undefined);
+                voRecorder.ondataavailable = e => { if (e.data && e.data.size) voRecorderChunks.push(e.data); };
+                voRecorder.onstop = processVORecording;
+                voRecorder.start(500);
+                document.getElementById('btn-vo-record').disabled = true;
+                document.getElementById('btn-vo-record').classList.add('opacity-50');
+                document.getElementById('btn-vo-stop').disabled = false;
+                document.getElementById('btn-vo-stop').classList.remove('text-gray-500');
+                document.getElementById('btn-vo-stop').classList.add('text-white','bg-red-700');
+                document.getElementById('vo-record-status').textContent = 'Sedang merekam... Tekan Stop jika selesai.';
+            } catch (e) { alert('Mikrofon tidak dapat diakses: ' + e.message); cleanupVORecorder(); }
+        }
+        function stopVORecording() {
+            if (voRecorder && voRecorder.state === 'recording') voRecorder.stop();
+            if (voRecorderStream) voRecorderStream.getTracks().forEach(t => t.stop());
+            document.getElementById('vo-record-status').textContent = 'Menyiapkan audio MP3...';
+        }
+        function cleanupVORecorder() {
+            if (voRecorderStream) voRecorderStream.getTracks().forEach(t => t.stop());
+            voRecorderStream = null; voRecorder = null;
+            const start = document.getElementById('btn-vo-record'), stop = document.getElementById('btn-vo-stop');
+            if (start) { start.disabled = false; start.classList.remove('opacity-50'); }
+            if (stop) { stop.disabled = true; stop.classList.remove('bg-red-700','text-white'); stop.classList.add('text-gray-500'); }
+        }
+        async function encodeVOAsMp3(blob) {
+            if (!window.lamejs) throw new Error('Encoder MP3 belum termuat. Muat ulang halaman lalu coba lagi.');
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                const decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+                const source = decoded.getChannelData(0);
+                const ratio = decoded.sampleRate / 44100, samples = new Float32Array(Math.ceil(source.length / ratio));
+                for (let i=0; i<samples.length; i++) samples[i] = source[Math.floor(i * ratio)] || 0;
+                const pcm = new Int16Array(samples.length);
+                for (let i=0; i<samples.length; i++) { const s=Math.max(-1,Math.min(1,samples[i])); pcm[i]=s<0?s*32768:s*32767; }
+                const encoder = new lamejs.Mp3Encoder(1,44100,128), chunks=[];
+                for (let i=0; i<pcm.length; i+=1152) { const part=encoder.encodeBuffer(pcm.subarray(i,Math.min(i+1152,pcm.length))); if(part.length) chunks.push(new Int8Array(part)); }
+                const end=encoder.flush(); if(end.length) chunks.push(new Int8Array(end));
+                return new Blob(chunks,{type:'audio/mpeg'});
+            } finally { await ctx.close(); }
+        }
+        async function processVORecording() {
+            const status=document.getElementById('vo-record-status');
+            try {
+                const raw=new Blob(voRecorderChunks,{type:voRecorder?.mimeType || voRecorderChunks[0]?.type || 'audio/webm'});
+                if (!raw.size) throw new Error('Rekaman kosong.');
+                if (raw.size > 18*1024*1024) throw new Error('Rekaman terlalu besar. Maksimal sekitar 18 MB sebelum konversi.');
+                const mp3=await encodeVOAsMp3(raw);
+                const title=document.getElementById('vo-title').value.trim();
+                const teks=document.getElementById('vo-teks').value.trim();
+                const id=Date.now(), path='shared/'+id+'.mp3';
+                const {error}=await supabaseClient.storage.from('vo-recordings').upload(path,mp3,{contentType:'audio/mpeg',upsert:false});
+                if(error) throw error;
+                db.vo.unshift({id,title,teks,audioPath:path,audioType:'audio/mpeg',createdAt:new Date().toISOString()});
+                saveData(); renderVOList();
+                status.textContent='Rekaman berhasil disimpan sebagai MP3 dan siap diputar.';
+            } catch(e) { status.textContent='Gagal menyimpan rekaman.'; alert('Rekaman VO gagal: '+e.message); }
+            finally { voRecorderChunks=[]; cleanupVORecorder(); }
+        }
+        function simpanDraftVO(){const title=document.getElementById('vo-title').value.trim(),teks=document.getElementById('vo-teks').value.trim();if(!title||!teks)return alert('Isi judul dan teks VO.');db.vo.unshift({id:Date.now(),title,teks,createdAt:new Date().toISOString()});document.getElementById('vo-title').value='';document.getElementById('vo-teks').value='';saveData();renderVOList();}
+        async function deleteVO(id){if(!confirm('Hapus catatan VO ini?'))return;const item=db.vo.find(x=>Number(x.id)===Number(id));if(item?.audioPath) await supabaseClient.storage.from('vo-recordings').remove([item.audioPath]);db.vo=db.vo.filter(x=>Number(x.id)!==Number(id));saveData();renderVOList();}
+        async function renderVOList(){const c=document.getElementById('list-vo');if(!c)return;if(!db.vo.length){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;}c.innerHTML=db.vo.map(x=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between gap-2"><b>🎙️ '+escapeHtml(x.title)+'</b>'+renderDoneControl('vo',x)+'<button onclick="deleteVO('+Number(x.id)+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div><div class="text-xs text-gray-400 mt-1">'+escapeHtml(x.teks||'')+'</div>'+(x.audioPath?'<audio controls preload="none" class="w-full mt-3" src="'+(await getVOAudioUrl(x.audioPath))+'"></audio>':'')+'</div>').join('');}
+        async function getVOAudioUrl(path){const {data,error}=await supabaseClient.storage.from('vo-recordings').createSignedUrl(path,3600);if(error){console.error('Gagal membuat URL audio VO:',error);return '';}return data.signedUrl;}
         async function generateNotulen(){const area=document.getElementById('note-raw'),transcript=area.value.trim(),topic=document.getElementById('note-topic').value.trim()||'Rapat',btn=document.querySelector('button[onclick="generateNotulen()"]');if(!transcript)return alert('Isi atau rekam bahan rapat terlebih dahulu.');setButtonBusy(btn,true);try{const text=await callGhoulAI('minutes',{topic,transcript});db.notulen.unshift({id:Date.now(),topic,raw:text,source:transcript});area.value='';document.getElementById('note-topic').value='';saveData();refreshAllLists();switchTab('ghoustnote','arsip');}catch(e){alert('Gagal merangkum notulen AI: '+e.message);}finally{setButtonBusy(btn,false);}}
 
         function renderNotulenList() {
