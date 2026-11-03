@@ -288,6 +288,7 @@
                     <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
                         <div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div>
                     </div>
+                    <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
                     <div id="group-typing-indicator" class="px-4 min-h-4 text-[10px] text-blue-300 bg-black/70" aria-live="polite"></div>
                     <form id="chat-form" onsubmit="sendChatMessage(event)" class="chat-composer p-3 bg-darkCard border-t border-gray-800 flex gap-2 items-center">
                         <button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200 hover:border-red-600"><i class="fa-solid fa-plus"></i></button>
@@ -2647,7 +2648,7 @@
         }
         // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
         let chatChannel = null;
-        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupPresenceChannel = null, groupTypingTimer = null;
+        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupPresenceChannel = null, groupTypingTimer = null, groupReplyTo = null;
         let chatLoadedForUser = null;
         let ghoustAiBusy = false;
         const CHAT_COLLECTIONS = {
@@ -2669,14 +2670,16 @@
  if(!visible.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">'+(groupSearchTerm?'Tidak ada pesan yang cocok.':'Belum ada pesan. Mulai obrolan dengan kru!')+'</div>';return;}
  box.innerHTML=visible.map(msg=>{
   const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data",own=msg.sender_id===activeUser?.id&&!isAI,who=escapeHtml(msg.sender_name||"Kru"),when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
-  let body=escapeHtml(msg.body||"");
-  if(isShared){const cfg=CHAT_COLLECTIONS[msg.data_type],item=getChatLinkedItem(msg),title=escapeHtml(item?(cfg?.title(item)||msg.data_title):msg.data_title||"Data"),desc=item?(item.date?new Date(item.date+"T00:00:00").toLocaleDateString("id-ID")+(item.time?" · "+item.time:""):item.status||item.segment||item.topic||"Data tersimpan di fitur terkait"):"Data asli sudah dihapus atau tidak tersedia.";body='<div class="rounded-xl border border-blue-900 bg-blue-950/40 p-3 min-w-[210px]"><div class="text-[10px] text-blue-300 font-bold mb-1">DATA DIBAGIKAN</div><div class="font-semibold text-white text-sm">'+title+'</div><div class="text-[11px] text-gray-300 mt-1">'+escapeHtml(desc)+'</div>'+(item?'<button onclick="openSharedChatData(\''+escapeHtml(msg.data_type)+'\',\''+escapeHtml(msg.data_id)+'\')" class="mt-3 text-xs bg-blue-800 px-3 py-2 rounded-lg">Lihat data asli</button>':'<div class="text-[10px] text-gray-500 mt-2">Referensi tidak lagi tersedia.</div>')+'</div>';}else body='<div class="text-sm text-white whitespace-pre-wrap break-words">'+body+'</div>';
+  const quoted=msg.reply_to?chatMessages.find(x=>x.id===msg.reply_to):null;
+  const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
+  let body=escapeHtml(msg.deleted_at?"Pesan dihapus":msg.body||"");
+  if(!msg.deleted_at&&isShared){const cfg=CHAT_COLLECTIONS[msg.data_type],item=getChatLinkedItem(msg),title=escapeHtml(item?(cfg?.title(item)||msg.data_title):msg.data_title||"Data"),desc=item?(item.date?new Date(item.date+"T00:00:00").toLocaleDateString("id-ID")+(item.time?" · "+item.time:""):item.status||item.segment||item.topic||"Data tersimpan di fitur terkait"):"Data asli sudah dihapus atau tidak tersedia.";body='<div class="rounded-xl border border-blue-900 bg-blue-950/40 p-3 min-w-[210px]"><div class="text-[10px] text-blue-300 font-bold mb-1">DATA DIBAGIKAN</div><div class="font-semibold text-white text-sm">'+title+'</div><div class="text-[11px] text-gray-300 mt-1">'+escapeHtml(desc)+'</div>'+(item?'<button onclick="openSharedChatData(\''+escapeHtml(msg.data_type)+'\',\''+escapeHtml(msg.data_id)+'\')" class="mt-3 text-xs bg-blue-800 px-3 py-2 rounded-lg">Lihat data asli</button>':'<div class="text-[10px] text-gray-500 mt-2">Referensi tidak lagi tersedia.</div>')+'</div>';}else if(!isShared)body='<div class="text-sm text-white whitespace-pre-wrap break-words">'+body+'</div>';
   const bubble=isAI?"bg-blue-950/70 border border-blue-700":isShared?"bg-gray-900 border border-blue-900":own?"bg-red-950 border border-red-800":"bg-gray-900 border border-gray-800";
   const counts=groupReactions.filter(r=>r.message_id===msg.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
   const reactions=Object.entries(counts).map(([e,n])=>'<button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\''+e+'\')" class="text-xs rounded-full bg-gray-800 border border-gray-700 px-2 py-1">'+e+' '+n+'</button>').join("");
   const pinned=groupPins.some(p=>p.message_id===msg.id);
-  const actions='<div class="flex gap-2 items-center mt-2 flex-wrap"><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleGroupPin(\''+msg.id+'\')" class="text-[10px] '+(pinned?'text-yellow-300':'text-gray-400')+'">'+(pinned?'★ Disematkan':'☆ Pin')+'</button></div>';
-  return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold text-blue-300 mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':'')+who+'</div>'+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+'</div><div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+actions+'</div></div>';
+  const actions='<div class="flex gap-2 items-center mt-2 flex-wrap"><button type="button" onclick="setGroupReply(\''+msg.id+'\')" class="text-[10px] text-blue-300">Balas</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleGroupPin(\''+msg.id+'\')" class="text-[10px] '+(pinned?'text-yellow-300':'text-gray-400')+'">'+(pinned?'★ Disematkan':'☆ Pin')+'</button>'+(own&&!msg.deleted_at?'<button type="button" onclick="editGroupMessage(\''+msg.id+'\')" class="text-[10px] text-gray-300">Edit</button><button type="button" onclick="deleteGroupMessage(\''+msg.id+'\')" class="text-[10px] text-red-300">Hapus</button>':"")+'</div>';
+  return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold text-blue-300 mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>'+quote+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+'</div><div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+actions+'</div></div>';
  }).join("");
  box.scrollTop=box.scrollHeight;
 }
@@ -2699,15 +2702,19 @@ async function loadChatMessages(){
           groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota",typing:false});});
         }
         async function setGroupTyping(typing){if(!groupPresenceChannel||!activeUser)return;try{await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(groupTypingTimer)clearTimeout(groupTypingTimer);if(typing)groupTypingTimer=setTimeout(()=>setGroupTyping(false),1800);}
+        function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"anggota")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
+        function clearGroupReply(){groupReplyTo=null;document.getElementById("group-reply-preview")?.classList.add("hidden");}
+        async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
+        async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function toggleGroupReaction(messageId,emoji){try{const old=groupReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_group_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_group_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",chatMessages.map(m=>m.id));groupReactions=data||[];renderChatMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
         async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));groupPins=data||[];renderChatMessages();}catch(e){alert("Pin gagal: "+e.message);}}
-        async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null}){
+        async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {error}=await supabaseClient.from("ghoustory_chat_messages").insert({
             sender_id:activeUser.id,
             sender_name:activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru",
             sender_avatar:activeUser.user_metadata?.avatar_url||"",
-            body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title
+            body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title,reply_to
           });
           if(error)throw error;
         }
@@ -2717,10 +2724,10 @@ async function loadChatMessages(){
           if(/(^|\\s)@ghoust\\b/i.test(body)){
             const question=body.replace(/(^|\\s)@ghoust\\b/i," ").trim()||"Bantu diskusi tim Ghoustory.";
             input.value="";button.disabled=true;
-            try{await insertChatMessage({body,message_type:"text"});await runGhoustAI(question,true);}catch(e){alert("Pesan/AI gagal diproses: "+e.message);}finally{button.disabled=false;}
+            try{await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});clearGroupReply();await runGhoustAI(question,true);}catch(e){alert("Pesan/AI gagal diproses: "+e.message);}finally{button.disabled=false;}
             return;
           }
-          button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
+          button.disabled=true;try{await insertChatMessage({body,reply_to:groupReplyTo?.id||null});input.value="";clearGroupReply();}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
         }
         // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
         let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[],dmPresenceChannel=null,dmTypingTimer=null;
