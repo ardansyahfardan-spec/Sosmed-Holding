@@ -119,13 +119,13 @@
                 
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-ghoulRed">
                     <div id="tab-grimoire-mitos" class="tab-content active">
-                        <h3 class="text-lg font-mystery mb-2 text-white">Radar Mitos & AI Riset (Gemini Connected)</h3>
-                        <p class="text-xs text-gray-400 mb-4">Catat ide atau rumor angker. Verifikasi sumber dan riset lanjutan dilakukan terpisah.</p>
+                        <h3 class="text-lg font-mystery mb-2 text-white">Radar Mitos & Riset Gemini AI</h3>
+                        <p class="text-xs text-gray-400 mb-4">Simpan topik, lalu Gemini membantu menyusun riset awal, pemisahan fakta dan rumor, serta pertanyaan wawancara.</p>
                         
                         <div class="flex gap-2 mb-2">
                             <input type="text" id="input-mitos" class="flex-grow bg-black border border-gray-700 p-2 rounded text-sm text-white" placeholder="Contoh: Alas Purwo Banyuwangi...">
                             <button onclick="toggleMitosMic()" id="btn-mitos-mic" class="bg-gray-800 hover:bg-red-900 border border-gray-700 px-4 rounded text-xl text-gray-300 transition" title="Voice Note"><i class="fa-solid fa-microphone"></i></button>
-                            <button onclick="addMitos()" class="bg-red-700 px-4 rounded text-white font-bold" title="Simpan Catatan"><i class="fa-solid fa-robot"></i> Simpan</button>
+                            <button onclick="addMitos()" class="bg-red-700 px-4 rounded text-white font-bold" title="Riset dengan Gemini"><i class="fa-solid fa-robot"></i> Riset AI</button>
                         </div>
                         <div id="mitos-mic-status" class="text-[10px] text-gray-500 italic mb-4 hidden">🔴 Mendengarkan suara... (Bicara sekarang)</div>
 
@@ -134,7 +134,7 @@
                     
                     <div id="tab-grimoire-editor" class="tab-content space-y-4">
                         <div class="bg-black p-4 rounded-xl border border-gray-800">
-                            <h4 class="text-xs font-bold text-orange-500 uppercase mb-3"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Peracik Template Naskah</h4>
+                            <h4 class="text-xs font-bold text-orange-500 uppercase mb-1"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Peracik Naskah Gemini AI</h4><p class="text-[10px] text-gray-500 mb-3">Gemini menyusun naskah berdasarkan format, narasumber, lokasi, dan premis yang kamu isi.</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 text-xs">
                                 <input type="text" id="ai-narsum" placeholder="Nama Narasumber (Cth: Pak RT)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
                                 <input type="text" id="ai-lokasi" placeholder="Lokasi (Cth: Pabrik Gula Tua)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
@@ -178,7 +178,7 @@
                                 <button onclick="toggleRecordMic()" id="btn-mic" class="bg-gray-800 hover:bg-red-900 border border-gray-700 px-4 rounded text-xl text-gray-300 transition" title="Rekam Suara"><i class="fa-solid fa-microphone"></i></button>
                             </div>
                             <div id="mic-status" class="text-[10px] text-gray-500 italic mb-2">Mic Off. Gunakan Chrome/Edge dan izinkan akses mikrofon.</div>
-                            <button onclick="generateNotulen()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 rounded text-sm shadow-md"><i class="fa-solid fa-robot"></i> Buat Draf Notulen</button>
+                            <button onclick="generateNotulen()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 rounded text-sm shadow-md"><i class="fa-solid fa-robot"></i> Ringkas dengan Gemini AI</button>
                         </div>
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Daftar Riwayat Rapat</h3>
                         <div id="list-notulen" class="space-y-3"></div>
@@ -212,7 +212,7 @@
                     <div id="tab-analisis-baru" class="tab-content">
                         <div class="bg-black p-4 rounded border border-gray-800">
                             <input type="text" id="ai-yt-link" class="w-full bg-darkCard border border-gray-700 p-3 rounded text-sm text-white focus:border-blue-500 outline-none" placeholder="Paste Link YouTube Unlisted...">
-                            <button onclick="generateMetadata()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded"><i class="fa-solid fa-bolt"></i> Cek Kesiapan Ekstraksi Metadata</button>
+                            <button onclick="generateMetadata()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded"><i class="fa-solid fa-bolt"></i> Buat Metadata dengan Gemini AI</button>
                         </div>
                     </div>
                 </div>
