@@ -2748,7 +2748,7 @@ async function loadChatMessages(){
               const last=msgs?.[0];rows.push({id:part.conversation_id,user_id:other.user_id,nickname:member?.nickname||"Anggota",role:member?.role||"RITUAL CREW",last:last?.deleted_at?"Pesan dihapus":last?.body||"Belum ada pesan",created_at:last?.created_at||""});
             }
             rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(\''+x.user_id+'\')" class="w-full text-left p-2 rounded-xl hover:bg-blue-950/60 flex items-center gap-2 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><span class="w-8 h-8 rounded-full bg-blue-950 border border-blue-800 flex items-center justify-center text-xs text-blue-200"><i class="fa-solid fa-user"></i></span><span class="min-w-0 flex-1"><b class="block text-xs text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[10px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(\''+x.user_id+'\')" class="chat-list-row w-full text-left p-2 rounded-xl hover:bg-blue-950/60 flex items-center gap-2 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><span class="w-8 h-8 rounded-full bg-blue-950 border border-blue-800 flex items-center justify-center text-xs text-blue-200"><i class="fa-solid fa-user"></i></span><span class="min-w-0 flex-1"><b class="block text-xs text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[10px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
             if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
           }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
         }
@@ -2800,7 +2800,7 @@ async function loadChatMessages(){
          function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
 async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
-          const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;
+          const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
           document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";
           document.getElementById("dm-subtitle").textContent=member.role||"Anggota RITUAL CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
