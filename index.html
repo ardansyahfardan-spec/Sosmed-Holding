@@ -164,6 +164,9 @@
     
 
         /* WhatsApp-like inbox and responsive conversation rooms */
+        #page-chat:not(.chat-room-open) #chat-sidebar{grid-column:1/-1}
+        #page-chat.chat-room-open #chat-sidebar{grid-column:auto}
+
         #page-chat .chat-composer{position:sticky;bottom:0;z-index:35;padding-bottom:max(.75rem,env(safe-area-inset-bottom));background:rgba(18,18,18,.97);backdrop-filter:blur(12px)}
         #page-chat #chat-input,#page-chat #dm-input{font-size:16px}
         #page-chat #chat-messages,#page-chat #dm-messages{scroll-padding-bottom:1rem}
@@ -2794,6 +2797,7 @@ async function loadChatMessages(){
          function showChatRoom(kind){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
          function openGroupRoom(){showChatRoom("group");loadChatMessages();}
          function toggleRitualMembers(){document.getElementById("ritual-members-list")?.classList.toggle("hidden");}
+         function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
 async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;
