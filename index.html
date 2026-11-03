@@ -202,6 +202,14 @@
 #page-chat.chat-room-open #direct-chat-card>div:first-child button,#page-chat.chat-room-open #group-chat-card>div:first-child button{display:inline-flex!important}
 #page-chat .chat-composer>button{flex:0 0 auto}
 #page-chat .chat-compose-field{min-width:0}
+
+/* Fix sentuhan kolom pesan RITUAL CREW pada layar sentuh */
+#page-chat.chat-room-open #group-chat-card{position:relative!important;isolation:isolate}
+#page-chat.chat-room-open #group-chat-card .chat-composer{position:relative!important;z-index:100!important;pointer-events:auto!important;flex-shrink:0!important}
+#page-chat.chat-room-open #group-chat-card .chat-compose-field,
+#page-chat.chat-room-open #group-chat-card #chat-input{position:relative!important;z-index:101!important;pointer-events:auto!important;touch-action:manipulation!important}
+#page-chat.chat-room-open #group-chat-card #chat-input{display:block!important;min-width:0!important;opacity:1!important;-webkit-user-select:text!important;user-select:text!important}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
