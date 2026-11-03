@@ -589,9 +589,9 @@
                 </div>
                 <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500">
                     <div id="tab-radar-podium" class="tab-content active"><h3 class="text-sm font-mystery text-white mb-4 text-center">Peringkat Berdasarkan Total Views</h3><div id="social-platform-ranking" class="space-y-3"><p class="text-xs text-gray-500 text-center">Impor laporan CSV untuk mulai melihat peringkat.</p></div></div>
-                    <div id="tab-radar-grafik" class="tab-content"><h3 class="text-sm font-mystery text-white mb-4 text-center">Pertumbuhan Views Harian</h3><div class="w-full h-64 bg-black rounded border border-gray-800 p-2"><canvas id="socialChart"></canvas></div></div>
+                    <div id="tab-radar-grafik" class="tab-content"><h3 class="text-sm font-mystery text-white mb-1 text-center">Pertumbuhan Views — 7 Hari Terakhir</h3><p class="text-[10px] text-gray-500 text-center mb-3">Rentang tanggal bergerak otomatis, termasuk hari ini.</p><div class="w-full h-64 bg-black rounded border border-gray-800 p-2"><canvas id="socialChart"></canvas></div></div>
                 </div>
-                <p class="text-[10px] text-gray-500 mt-3">Catatan: perbandingan memakai total views dari rentang tanggal yang tersedia pada file yang diimpor. Format kolom CSV tiap platform bisa berbeda; bila kolom tidak terbaca, file perlu disesuaikan.</p>
+                <p class="text-[10px] text-gray-500 mt-3">Catatan: grafik dan peringkat menampilkan 7 hari terakhir secara otomatis. Data harian dari screenshot AI digunakan bila terbaca; data yang tidak terbaca dapat dilengkapi lewat input manual atau CSV.</p>
             </section>
 
         </main>
@@ -2026,11 +2026,13 @@
                 const date=document.getElementById('social-image-date').value;
                 const result=await callGhoulAI('social-screenshot',{imageBase64:base64,mimeType:file.type,platform,reportDate:date});
                 const metrics=parseSocialAiJson(result);
-                const row={platform,date:date||new Date().toISOString().slice(0,10),title:String(metrics.title||metrics.period||'Rekap Analytics').slice(0,180),views:Number(metrics.views)||0,likes:Number(metrics.likes)||0,comments:Number(metrics.comments)||0,shares:Number(metrics.shares)||0,followers:Number(metrics.followers)||0,reach:Number(metrics.reach)||0,source:'screenshot-ai',importedAt:new Date().toISOString()};
+                const dailyViews=(Array.isArray(metrics.dailyViews)?metrics.dailyViews:[]).map(point=>({date:String(point.date||''),views:Number(point.views),confidence:['high','medium','low'].includes(String(point.confidence))?String(point.confidence):'low'})).filter(point=>/^\d{4}-\d{2}-\d{2}$/.test(point.date)&&Number.isFinite(point.views)&&point.views>=0).slice(0,14);
+                const row={platform,date:date||new Date().toISOString().slice(0,10),title:String(metrics.title||metrics.period||'Rekap Analytics').slice(0,180),views:Number(metrics.views)||0,likes:Number(metrics.likes)||0,comments:Number(metrics.comments)||0,shares:Number(metrics.shares)||0,followers:Number(metrics.followers)||0,reach:Number(metrics.reach)||0,dailyViews,source:'screenshot-ai',importedAt:new Date().toISOString()};
                 if(!Number.isFinite(row.views)||!row.date)throw new Error('Hasil pembacaan tidak valid.');
                 socialScreenshotDraft=row;
                 const fmt=n=>Number(n||0).toLocaleString('id-ID');
-                preview.innerHTML='<div class="text-xs text-green-300 font-bold mb-2">Hasil pembacaan AI — periksa sebelum disimpan</div><div class="grid grid-cols-2 gap-2 text-xs">'+[['Views',row.views],['Likes',row.likes],['Komentar',row.comments],['Share',row.shares],['Followers',row.followers],['Reach',row.reach]].map(([k,v])=>'<div class="bg-gray-900 p-2 rounded"><span class="text-gray-400">'+k+'</span><b class="block text-white">'+fmt(v)+'</b></div>').join('')+'</div><p class="text-[11px] text-gray-400 mt-2">Keterangan: '+escapeHtml(row.title)+'</p><p class="text-[10px] text-yellow-300 mt-2">Periksa angka. Jika ada yang keliru, gunakan input manual untuk koreksi.</p>';
+                const dailyHtml=dailyViews.length?'<div class="mt-3"><div class="text-xs font-bold text-blue-300 mb-2">Rincian grafik harian yang terbaca</div><div class="max-h-44 overflow-y-auto space-y-1">'+dailyViews.map(p=>'<div class="flex justify-between gap-3 text-[11px] bg-gray-900 rounded px-2 py-1"><span class="text-gray-300">'+escapeHtml(p.date)+'</span><b class="text-white">'+fmt(p.views)+' views</b><span class="'+(p.confidence==='high'?'text-green-300':p.confidence==='medium'?'text-yellow-300':'text-red-300')+'">'+p.confidence+'</span></div>').join('')+'</div></div>':'<p class="text-[11px] text-yellow-300 mt-3">Grafik harian tidak terbaca cukup jelas. Angka total tetap bisa disimpan; grafik harian perlu input manual/CSV.</p>';
+                preview.innerHTML='<div class="text-xs text-green-300 font-bold mb-2">Hasil pembacaan AI — periksa sebelum disimpan</div><div class="grid grid-cols-2 gap-2 text-xs">'+[['Views total',row.views],['Likes',row.likes],['Komentar',row.comments],['Share',row.shares],['Followers',row.followers],['Reach',row.reach]].map(([k,v])=>'<div class="bg-gray-900 p-2 rounded"><span class="text-gray-400">'+k+'</span><b class="block text-white">'+fmt(v)+'</b></div>').join('')+'</div><p class="text-[11px] text-gray-400 mt-2">Keterangan: '+escapeHtml(row.title)+'</p>'+dailyHtml+'<p class="text-[10px] text-yellow-300 mt-2">Periksa angka dan tingkat keyakinan sebelum disimpan.</p>';
                 preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
                 status.textContent='Screenshot selesai dibaca. File asli sudah dilepas dari halaman; hanya hasil angka sementara yang menunggu persetujuan.';
             }catch(error){status.textContent='Gagal membaca screenshot: '+(error.message||error);}
@@ -2161,20 +2163,34 @@
         function renderSocialAnalytics() {
             const rows = Array.isArray(db.socialAnalytics) ? db.socialAnalytics : [];
             const fmt = n => Number(n||0).toLocaleString('id-ID');
-            const totalViews = rows.reduce((s,x)=>s+(Number(x.views)||0),0);
-            const totalEngagement = rows.reduce((s,x)=>s+(Number(x.likes)||0)+(Number(x.comments)||0)+(Number(x.shares)||0),0);
+            const today = new Date();
+            const localToday = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+            const dates = Array.from({length:7},(_,i)=>{const d=new Date(localToday);d.setDate(d.getDate()-6+i);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');});
+            const dateSet = new Set(dates);
+            const dailyTotals = {};
+            Object.keys(SOCIAL_PLATFORMS).forEach(key=>dailyTotals[key]={});
+            rows.forEach(row=>{
+                if(!dailyTotals[row.platform])return;
+                if(Array.isArray(row.dailyViews)&&row.dailyViews.length){
+                    row.dailyViews.forEach(point=>{if(dateSet.has(point.date))dailyTotals[row.platform][point.date]=(dailyTotals[row.platform][point.date]||0)+(Number(point.views)||0);});
+                } else if(dateSet.has(row.date)){
+                    dailyTotals[row.platform][row.date]=(dailyTotals[row.platform][row.date]||0)+(Number(row.views)||0);
+                }
+            });
+            const totalViews = Object.keys(SOCIAL_PLATFORMS).reduce((sum,key)=>sum+dates.reduce((s,date)=>s+(dailyTotals[key][date]||0),0),0);
+            const recentRows = rows.filter(row=>dateSet.has(row.date));
+            const totalEngagement = recentRows.reduce((s,x)=>s+(Number(x.likes)||0)+(Number(x.comments)||0)+(Number(x.shares)||0),0);
             const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
-            setText('social-total-views',fmt(totalViews)); setText('social-total-engagement',fmt(totalEngagement)); setText('social-total-rows',fmt(rows.length));
-            const totals = Object.keys(SOCIAL_PLATFORMS).map(key=>({key,label:SOCIAL_PLATFORMS[key].label,color:SOCIAL_PLATFORMS[key].color,views:rows.filter(x=>x.platform===key).reduce((s,x)=>s+(Number(x.views)||0),0)})).sort((a,b)=>b.views-a.views);
+            setText('social-total-views',fmt(totalViews)); setText('social-total-engagement',fmt(totalEngagement)); setText('social-total-rows',fmt(recentRows.length));
+            const totals = Object.keys(SOCIAL_PLATFORMS).map(key=>({key,label:SOCIAL_PLATFORMS[key].label,color:SOCIAL_PLATFORMS[key].color,views:dates.reduce((s,date)=>s+(dailyTotals[key][date]||0),0)})).sort((a,b)=>b.views-a.views);
             const ranking = document.getElementById('social-platform-ranking');
             if (ranking) {
                 if (!rows.length) ranking.innerHTML='<p class="text-xs text-gray-500 text-center">Belum ada laporan. Impor CSV untuk menampilkan peringkat nyata.</p>';
                 else { const max=Math.max(1,...totals.map(x=>x.views)); ranking.innerHTML=totals.map((x,i)=>'<div class="bg-black/60 border border-gray-800 rounded-lg p-3"><div class="flex justify-between text-xs mb-2"><span class="font-bold text-white">'+(i+1)+'. '+x.label+'</span><span class="text-gray-300">'+fmt(x.views)+' views</span></div><div class="h-2 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full" style="width:'+Math.max(x.views?2:0,x.views/max*100)+'%;background:'+x.color+'"></div></div></div>').join(''); }
             }
             if (socialChartInstance) {
-                const dates=[...new Set(rows.map(x=>x.date).filter(Boolean))].sort().slice(-30);
-                socialChartInstance.data.labels=dates;
-                socialChartInstance.data.datasets=Object.keys(SOCIAL_PLATFORMS).map(key=>({label:SOCIAL_PLATFORMS[key].label,data:dates.map(date=>rows.filter(x=>x.platform===key&&x.date===date).reduce((sum,x)=>sum+(Number(x.views)||0),0)),borderColor:SOCIAL_PLATFORMS[key].color,backgroundColor:SOCIAL_PLATFORMS[key].color,tension:.25}));
+                socialChartInstance.data.labels=dates.map(date=>{const [y,m,d]=date.split('-');return d+'/'+m;});
+                socialChartInstance.data.datasets=Object.keys(SOCIAL_PLATFORMS).map(key=>({label:SOCIAL_PLATFORMS[key].label,data:dates.map(date=>dailyTotals[key][date]||0),borderColor:SOCIAL_PLATFORMS[key].color,backgroundColor:SOCIAL_PLATFORMS[key].color,tension:.25,spanGaps:false}));
                 socialChartInstance.update();
             }
         }
