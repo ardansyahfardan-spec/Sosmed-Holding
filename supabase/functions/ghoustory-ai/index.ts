@@ -131,10 +131,25 @@ Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap d
       if (audioMimeType !== "audio/mpeg") return json({ error: "Shorts Moment Finder hanya menerima audio MP3." }, 400);
       if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
       if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
-      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan 5 sampai 10 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
-Kembalikan HANYA JSON valid dengan struktur:
-{"moments":[{"start":"00:00","end":"00:45","title":"Judul pendek yang kuat","hook":"Kalimat hook pembuka untuk teks/video","caption":"Caption singkat siap pakai","reason":"Mengapa bagian ini menarik untuk Shorts","quote":"Cuplikan ucapan persis/semirip mungkin untuk membantu editor menemukan bagian"}]}
-Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Durasi ideal tiap potongan 20–60 detik. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
+      const requestedCount = Math.max(5, Math.min(10, Number(body.count) || 7));
+      const preferredStyle = String(body.style || "Seimbang").slice(0, 80);
+      const fileName = String(body.fileName || "audio.mp3").slice(0, 120);
+      prompt = `Kamu adalah editor video pendek berpengalaman untuk kanal horor Indonesia Ghoustory. Dengarkan SELURUH audio, pahami konteks dan alur cerita sebelum memilih momen. File: ${fileName}. Jumlah target: ${requestedCount}. Prioritas: ${preferredStyle}.
+Audio dapat berbahasa Indonesia, Jawa, atau campuran. Pahami ungkapan sesuai konteks.
+PILIH MOMEN:
+- Pilih maksimal ${requestedCount} momen paling kuat; jangan memaksakan jumlah jika audio tidak cukup.
+- Utamakan hook kuat, ketegangan, pengakuan, detail ganjil, reaksi emosional, twist, atau humor spontan.
+- Tiap potongan harus punya konteks mandiri, awal/akhir alami, payoff, dan tidak terpotong di tengah kalimat.
+- Durasi ideal 20–60 detik. Hindari jeda, basa-basi, pengulangan, dan potongan yang saling tumpang tindih.
+- Sebar pilihan di berbagai bagian audio jika memang ada momen kuat. Urutkan berdasarkan potensi menarik, bukan kronologi.
+AKURASI:
+- Timestamp dihitung dari awal audio, format HH:MM:SS. Jika perkiraan, tulis jelas "perkiraan" di reason.
+- Quote harus ucapan yang benar-benar terdengar, jangan mengarang.
+- Hook adalah teks usulan editor, bukan klaim ucapan pembicara.
+- Caption singkat, natural, tidak membocorkan twist dan tidak menyesatkan.
+Kembalikan HANYA JSON valid tanpa markdown:
+{"moments":[{"start":"00:01:20","end":"00:02:02","title":"Judul singkat","hook":"Hook pembuka","caption":"Caption siap pakai","reason":"Alasan editorial","quote":"Ucapan asli"}]}
+Jangan menambahkan teks di luar JSON.`;
       requestParts = [
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
