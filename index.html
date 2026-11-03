@@ -508,9 +508,9 @@
         <div class="p-3 border-b border-gray-800 bg-darkBg flex justify-between items-center z-50 flex-wrap gap-2">
             <h2 class="text-ghoulRed font-mystery font-bold">PROMPTER</h2>
             <div class="flex items-center gap-2">
-                <button onclick="setPromoSpeed(16, this)" class="promo-spd text-xs bg-yellow-700 text-white px-2 py-1 rounded" title="Pelan">🐢</button>
-                <button onclick="setPromoSpeed(28, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Normal">🚶</button>
-                <button onclick="setPromoSpeed(42, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Cepat">🏃</button>
+                <button onclick="setPromoSpeed(32, this)" class="promo-spd text-xs bg-yellow-700 text-white px-2 py-1 rounded" title="Pelan">🐢</button>
+                <button onclick="setPromoSpeed(48, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Normal">🚶</button>
+                <button onclick="setPromoSpeed(68, this)" class="promo-spd text-xs bg-gray-800 text-white px-2 py-1 rounded" title="Cepat">🏃</button>
                 <div class="w-px h-4 bg-gray-700 mx-1"></div>
                 <button onclick="togglePromoPlay()" id="btn-promo-play" class="bg-green-700 text-white px-3 py-1 rounded text-xs"><i class="fa-solid fa-play"></i></button>
                 <button onclick="closeTeleprompter()" class="bg-red-800 text-white px-3 py-1 rounded text-xs"><i class="fa-solid fa-xmark"></i></button>
@@ -1466,14 +1466,14 @@
 
         // TELEPROMPTER: kecepatan dihitung berdasarkan panjang naskah, bukan durasi tetap.
         let isPromoPlaying = false;
-        let promoPixelsPerSecond = 16;
+        let promoPixelsPerSecond = 32;
         function openTeleprompter(content) {
             const overlay=document.getElementById('teleprompter-overlay'),t=document.getElementById('teleprompter-text');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
             isPromoPlaying=false; t.classList.remove('teleprompter-run'); t.style.animation='none';
             t.innerText = content ?? document.getElementById('script-editor').value ?? "Naskah Kosong";
             t.style.transform='translateY(100vh)';
-            setPromoSpeed(16, document.querySelector('.promo-spd'));
+            setPromoSpeed(32, document.querySelector('.promo-spd'));
             document.getElementById('btn-promo-play').innerHTML='<i class="fa-solid fa-play"></i>';
         }
         function openArchivedTeleprompter(id) {
