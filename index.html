@@ -275,7 +275,8 @@
                     <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="dm-messages" class="h-[35vh] min-h-[220px] max-h-[480px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
-                    <form id="dm-form" onsubmit="sendDirectMessage(event)" class="p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-base text-white disabled:opacity-50"><button id="dm-send" type="submit" disabled class="w-11 h-11 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
+                    <div id="dm-typing-indicator" class="px-3 min-h-4 text-[10px] text-blue-300 bg-black/60" aria-live="polite"></div>
+                    <form id="dm-form" onsubmit="sendDirectMessage(event)" class="p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-base text-white disabled:opacity-50"><button id="dm-send" type="submit" disabled class="w-11 h-11 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                 </div>
                 <div class="glass-panel rounded-2xl overflow-hidden border border-red-900">
@@ -287,10 +288,11 @@
                     <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
                         <div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div>
                     </div>
+                    <div id="group-typing-indicator" class="px-4 min-h-4 text-[10px] text-blue-300 bg-black/70" aria-live="polite"></div>
                     <form id="chat-form" onsubmit="sendChatMessage(event)" class="chat-composer p-3 bg-darkCard border-t border-gray-800 flex gap-2 items-center">
                         <button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200 hover:border-red-600"><i class="fa-solid fa-plus"></i></button>
                         <div class="chat-compose-field flex-1 min-w-0 flex items-center gap-2 rounded-full bg-black border border-gray-700 px-2 py-1 focus-within:border-red-700">
-                          <input id="chat-input" type="text" maxlength="4000" autocomplete="off" enterkeyhint="send" placeholder="Tulis pesan... (gunakan @ghoust)" class="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none">
+                          <input id="chat-input" type="text" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setGroupTyping(this.value.length>0)" placeholder="Tulis pesan... (gunakan @ghoust)" class="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none">
                           <button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button>
                           <button id="chat-send" type="submit" title="Kirim pesan" aria-label="Kirim pesan" class="bg-red-700 hover:bg-red-600 text-white rounded-full w-10 h-10 shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
                         </div>
@@ -2645,7 +2647,7 @@
         }
         // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
         let chatChannel = null;
-        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [];
+        let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupPresenceChannel = null, groupTypingTimer = null;
         let chatLoadedForUser = null;
         let ghoustAiBusy = false;
         const CHAT_COLLECTIONS = {
@@ -2691,8 +2693,12 @@ async function loadChatMessages(){
           chatChannel=supabaseClient.channel("ghoustory-chat-live");
           chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_chat_messages"},payload=>{
             if(!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);saveChatCache();renderChatMessages();}
-          }).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
+          }).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_reactions"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids);groupReactions=data||[];renderChatMessages();}}).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_pins"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids);groupPins=data||[];renderChatMessages();}}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
+          if(groupPresenceChannel)await supabaseClient.removeChannel(groupPresenceChannel);
+          groupPresenceChannel=supabaseClient.channel("ghoustory-group-presence",{config:{presence:{key:activeUser.id}}});
+          groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota",typing:false});});
         }
+        async function setGroupTyping(typing){if(!groupPresenceChannel||!activeUser)return;try{await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(groupTypingTimer)clearTimeout(groupTypingTimer);if(typing)groupTypingTimer=setTimeout(()=>setGroupTyping(false),1800);}
         async function toggleGroupReaction(messageId,emoji){try{const old=groupReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_group_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_group_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",chatMessages.map(m=>m.id));groupReactions=data||[];renderChatMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
         async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));groupPins=data||[];renderChatMessages();}catch(e){alert("Pin gagal: "+e.message);}}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null}){
@@ -2717,7 +2723,7 @@ async function loadChatMessages(){
           button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
         }
         // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
-        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[];
+        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[],dmPresenceChannel=null,dmTypingTimer=null;
         async function loadDirectConversations(){
           const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
           box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
@@ -2770,8 +2776,14 @@ async function loadChatMessages(){
           dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
             .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();loadDirectConversations();})
             .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(activeDmConversation!==id||!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);renderDirectMessages();})
+            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_message_reactions"},async()=>{if(activeDmConversation!==id)return;const {data}=await supabaseClient.from("ghoustory_dm_message_reactions").select("*").in("message_id",dmMessages.map(m=>m.id));dmReactions=data||[];renderDirectMessages();})
+            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_message_pins"},async()=>{if(activeDmConversation!==id)return;const {data}=await supabaseClient.from("ghoustory_dm_message_pins").select("*").in("message_id",dmMessages.map(m=>m.id));dmPins=data||[];renderDirectMessages();})
             .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
+          if(dmPresenceChannel)await supabaseClient.removeChannel(dmPresenceChannel);
+          dmPresenceChannel=supabaseClient.channel("ghoustory-dm-presence-"+id,{config:{presence:{key:activeUser.id}}});
+          dmPresenceChannel.on("presence",{event:"sync"},()=>{const state=dmPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("dm-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeDmMember?.nickname||"Anggota",typing:false});});
         }
+        async function setDmTyping(typing){if(!dmPresenceChannel||!activeUser)return;try{await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(dmTypingTimer)clearTimeout(dmTypingTimer);if(typing)dmTypingTimer=setTimeout(()=>setDmTyping(false),1800);}
         function renderDirectMessages(){
  const box=document.getElementById("dm-messages");if(!box)return;
  if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
