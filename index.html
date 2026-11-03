@@ -581,7 +581,7 @@
         // Cache lokal hanya pelengkap; kegagalannya tidak boleh memutus sinkronisasi cloud.
         function cacheLocalDb() {
             try {
-                cacheLocalDb();
+                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
                 window.__ghoustoryLocalCacheError = null;
                 return true;
             } catch (error) {
