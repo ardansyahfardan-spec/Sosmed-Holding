@@ -18,11 +18,21 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   try {
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) return json({ error: "Secret GEMINI_API_KEY belum dipasang di Supabase." }, 500);
-
     const body = await req.json();
     const task = String(body.task || "");
+
+    // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
+    if (task === "health") {
+      return json({
+        ok: true,
+        function: "ghoustory-ai",
+        message: "Edge Function runtime berjalan.",
+        geminiConfigured: Boolean(Deno.env.get("GEMINI_API_KEY")),
+      });
+    }
+
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey) return json({ error: "Secret GEMINI_API_KEY belum dipasang di Supabase." }, 500);
     let prompt = "";
     let requestParts: Array<Record<string, unknown>> = [];
     let audioMimeType = "";
