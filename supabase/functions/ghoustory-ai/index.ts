@@ -62,12 +62,13 @@ Deno.serve(async (req) => {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(apiKey),
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
+          tools: task === "research" ? [{ google_search: {} }] : undefined,
           generationConfig: { temperature: 0.75, maxOutputTokens: 5000 },
         }),
       },
@@ -83,7 +84,12 @@ Deno.serve(async (req) => {
       .join("\n")
       .trim();
     if (!text) return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
-    return json({ text });
+    const sources = (result?.candidates?.[0]?.groundingMetadata?.groundingChunks || [])
+      .map((chunk: { web?: { uri?: string; title?: string } }) => chunk.web)
+      .filter((web: { uri?: string } | undefined) => !!web?.uri)
+      .map((web: { uri?: string; title?: string }) => ({ title: web.title || web.uri, url: web.uri }));
+    const sourceText = sources.length ? "\\n\\nSUMBER WEB UNTUK DIVERIFIKASI:\\n" + sources.map((source: {title:string;url:string}, index:number) => (index+1)+". "+source.title+" — "+source.url).join("\\n") : "";
+    return json({ text: text + sourceText, sources });
   } catch (error) {
     console.error("ghoustory-ai error:", error);
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
