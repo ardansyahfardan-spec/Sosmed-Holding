@@ -63,6 +63,7 @@
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
                 <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
             </button>
+            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
             <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.3 - SUPABASE CONNECTED</div>
         </div>
     </div>
@@ -513,23 +514,130 @@
         // ================= SUPABASE CONNECTION =================
         const SUPABASE_URL = 'https://xnbqckfbrrmdjiemfwqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Gunakan global SDK dari CDN dengan nama client terpisah agar tidak terjadi benturan nama/Temporal Dead Zone.
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            throw new Error('Supabase SDK gagal dimuat. Periksa koneksi internet atau CDN.');
+        }
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================= DATABASE DUMMY (SEMENTARA) =================
-        let db = JSON.parse(localStorage.getItem('gh_db_v3_2')) || {
+        // ================= PENYIMPANAN LOKAL & MIGRASI DATA =================
+        const DEFAULT_DB = {
             script: "", mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], kas: [],
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
             ]
         };
+        let db = (() => {
+            try {
+                const saved = JSON.parse(localStorage.getItem('gh_db_v3_2') || 'null');
+                return saved && typeof saved === 'object' && !Array.isArray(saved)
+                    ? { ...DEFAULT_DB, ...saved }
+                    : { ...DEFAULT_DB };
+            } catch (error) {
+                console.error('Data lokal tidak dapat dibaca; memakai data awal.', error);
+                return { ...DEFAULT_DB };
+            }
+        })();
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
+        // Pastikan struktur data lama tetap kompatibel dengan fitur terbaru.
+        ['mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+            if (!Array.isArray(db[key])) db[key] = [];
+        });
+        db.jadwal.forEach(sch => {
+            if (!sch || typeof sch !== 'object') return;
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            KRU_NAMES.forEach(name => {
+                if (!sch.absen[name] || typeof sch.absen[name] !== 'object') {
+                    sch.absen[name] = { hadir: true, alasan: '' };
+                } else {
+                    sch.absen[name].hadir = sch.absen[name].hadir !== false;
+                    sch.absen[name].alasan = sch.absen[name].alasan || '';
+                }
+            });
+        });
         const KURS_USD_IDR = 15500;
 
+        // ================= SINKRONISASI DATABASE BERSAMA =================
+        let sharedSyncReady = false;
+        let sharedSaveTimer = null;
+        let sharedSaveQueue = Promise.resolve();
+        let appOpening = false;
+
+        function normalizeDbData(data) {
+            const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
+            ['mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+                if (!Array.isArray(normalized[key])) normalized[key] = [];
+            });
+            normalized.jadwal.forEach(sch => {
+                if (!sch || typeof sch !== 'object') return;
+                if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+                KRU_NAMES.forEach(name => {
+                    if (!sch.absen[name] || typeof sch.absen[name] !== 'object') {
+                        sch.absen[name] = { hadir: true, alasan: '' };
+                    } else {
+                        sch.absen[name].hadir = sch.absen[name].hadir !== false;
+                        sch.absen[name].alasan = sch.absen[name].alasan || '';
+                    }
+                });
+            });
+            return normalized;
+        }
+
+        async function syncSharedDataFromCloud() {
+            const { data, error } = await supabaseClient
+                .from('app_state')
+                .select('data')
+                .eq('id', 'ghoustory')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            const cloudData = data?.data;
+            if (cloudData && typeof cloudData === 'object' && Object.keys(cloudData).length > 0) {
+                db = normalizeDbData(cloudData);
+                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            } else {
+                // Database baru: isi satu kali dari data lokal perangkat pertama yang melakukan setup.
+                db = normalizeDbData(db);
+                const { error: seedError } = await supabaseClient
+                    .from('app_state')
+                    .upsert({ id: 'ghoustory', data: db });
+                if (seedError) throw seedError;
+                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            }
+
+            sharedSyncReady = true;
+            if (document.getElementById('script-editor')) {
+                document.getElementById('script-editor').value = db.script || '';
+            }
+        }
+
+        function queueSharedSave(snapshot) {
+            sharedSaveQueue = sharedSaveQueue
+                .then(async () => {
+                    const { error } = await supabaseClient
+                        .from('app_state')
+                        .upsert({ id: 'ghoustory', data: snapshot });
+                    if (error) throw error;
+                })
+                .catch(error => {
+                    console.error('Gagal menyimpan data ke database bersama:', error);
+                    window.__ghoustorySyncError = error.message || String(error);
+                });
+        }
+
         function saveData() {
-            if(document.getElementById('script-editor')) db.script = document.getElementById('script-editor').value;
+            if (document.getElementById('script-editor')) {
+                db.script = document.getElementById('script-editor').value;
+            }
             localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+
+            if (!sharedSyncReady) return;
+            clearTimeout(sharedSaveTimer);
+            const snapshot = JSON.parse(JSON.stringify(db));
+            sharedSaveTimer = setTimeout(() => queueSharedSave(snapshot), 700);
         }
 
         // ================= INISIALISASI & AUTHENTICATION =================
@@ -541,33 +649,51 @@
             initSocialChart();
 
             // Cek Session saat halaman dimuat
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError) console.error('Gagal memeriksa sesi login:', sessionError);
             if (session) {
-                masukKeAplikasi(session.user);
+                await masukKeAplikasi(session.user);
             }
 
             // Dengarkan perubahan status Login/Logout
-            supabase.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
-                    masukKeAplikasi(session.user);
+                    // Jalankan setelah callback auth selesai agar tidak mengunci event auth Supabase.
+                    setTimeout(() => masukKeAplikasi(session.user), 0);
                 } else if (event === 'SIGNED_OUT') {
                     location.reload();
                 }
             });
         });
 
-        function masukKeAplikasi(user) {
-            // Pasang foto dan nama asli dari Google
-            document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ardan+Ghoustory&background=B91C1C&color=fff";
-            document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || "Ardan";
-            
-            document.getElementById('login-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-app').style.opacity = '1';
-                document.getElementById('main-app').classList.remove('hidden');
-                refreshAllLists();
-            }, 500);
+        async function masukKeAplikasi(user) {
+            if (appOpening || document.getElementById('login-screen').style.display === 'none') return;
+            appOpening = true;
+            const loginStatus = document.getElementById('login-status');
+            if (loginStatus) loginStatus.textContent = 'Menghubungkan database bersama...';
+
+            try {
+                await syncSharedDataFromCloud();
+                // Pasang foto dan nama asli dari Google
+                document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
+                document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || user.email || "Pengguna Google";
+
+                document.getElementById('login-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.opacity = '1';
+                    document.getElementById('main-app').classList.remove('hidden');
+                    refreshAllLists();
+                    appOpening = false;
+                }, 500);
+            } catch (error) {
+                console.error('Database bersama belum siap:', error);
+                if (loginStatus) {
+                    loginStatus.textContent = 'Database belum siap. Jalankan SQL setup di Supabase, lalu muat ulang halaman.';
+                    loginStatus.classList.remove('hidden');
+                }
+                appOpening = false;
+            }
         }
 
         async function loginWithGoogle() {
@@ -575,7 +701,7 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Membuka Portal...';
             
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
             });
             
@@ -587,7 +713,7 @@
 
         async function logoutApp() {
             if(confirm("Yakin ingin log out dari akun Google?")) { 
-                await supabase.auth.signOut(); 
+                await supabaseClient.auth.signOut(); 
             }
         }
 
@@ -967,10 +1093,21 @@
         }
         function setAbsenKru(name, isHadir) {
             const sch = db.jadwal.find(j => j.id === activeScheduleId);
-            sch.absen[name].hadir = isHadir; if(isHadir) sch.absen[name].alasan = '';
+            if (!sch) return alert("Jadwal tidak ditemukan. Muat ulang daftar jadwal.");
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            if (!sch.absen[name]) sch.absen[name] = { hadir: true, alasan: '' };
+            sch.absen[name].hadir = isHadir;
+            if (isHadir) sch.absen[name].alasan = '';
             saveData(); openModalAbsen(activeScheduleId); renderJadwalCal();
         }
-        function saveAbsenAlasan(name, val) { const sch = db.jadwal.find(j => j.id === activeScheduleId); sch.absen[name].alasan = val; saveData(); }
+        function saveAbsenAlasan(name, val) {
+            const sch = db.jadwal.find(j => j.id === activeScheduleId);
+            if (!sch) return;
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            if (!sch.absen[name]) sch.absen[name] = { hadir: false, alasan: '' };
+            sch.absen[name].alasan = val;
+            saveData();
+        }
         function closeModalAbsen() { document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex'); activeScheduleId = null; }
 
         // STOK & KLASIFIKASI
