@@ -632,7 +632,7 @@
             const cloudData = data?.data;
             if (cloudData && typeof cloudData === 'object' && Object.keys(cloudData).length > 0) {
                 db = normalizeDbData(cloudData);
-                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+                cacheLocalDb();
             } else {
                 // Database baru: isi satu kali dari data lokal perangkat pertama yang melakukan setup.
                 db = normalizeDbData(db);
@@ -640,7 +640,7 @@
                     .from('app_state')
                     .upsert({ id: 'ghoustory', data: db });
                 if (seedError) throw seedError;
-                localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+                cacheLocalDb();
             }
 
             const purgedCompletedItems = purgeCompletedItems();
@@ -673,7 +673,7 @@
             if (document.getElementById('script-editor')) {
                 db.script = document.getElementById('script-editor').value;
             }
-            localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
+            cacheLocalDb();
             updateFooterStatus(true);
 
             if (!sharedSyncReady) return;
