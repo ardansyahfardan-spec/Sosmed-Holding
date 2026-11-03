@@ -1630,17 +1630,30 @@
         }
         function simpanMonetisasi() {
             const yt = parseFloat(document.getElementById('mon-yt-usd').value)||0; const tt = parseFloat(document.getElementById('mon-tt-usd').value)||0; const fb = parseFloat(document.getElementById('mon-fb-usd').value)||0;
-            const totalIdr = (yt + tt + fb) * KURS_USD_IDR;
+            const details = [
+                { label: 'YouTube', amount: yt * KURS_USD_IDR, type: 'in' },
+                { label: 'TikTok', amount: tt * KURS_USD_IDR, type: 'in' },
+                { label: 'Facebook Reels', amount: fb * KURS_USD_IDR, type: 'in' }
+            ].filter(x => x.amount > 0);
+            const totalIdr = details.reduce((s,x) => s + x.amount, 0);
             if(totalIdr <= 0) return alert("Masukkan nominal dollar!");
-            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: `Monetisasi Sosmed ($${yt+tt+fb})`, amount: totalIdr });
+            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), desc: 'Pemasukan Monetisasi', details, amount: totalIdr });
             ['yt','tt','fb'].forEach(p => { document.getElementById(`mon-${p}-usd`).value=''; document.getElementById(`mon-${p}-idr`).value=''; });
             saveData(); renderKas(); alert("Monetisasi masuk kas!");
         }
         function simpanSesiKas() {
-            const a = parseFloat(document.getElementById('cicil-artdan').value)||0; const y = parseFloat(document.getElementById('cicil-yhola').value)||0; const t = parseFloat(document.getElementById('cicil-tio').value)||0; const b = parseFloat(document.getElementById('cicil-bila').value)||0;
-            const masuk = a+y+t+b; const ketOut = document.getElementById('kas-ket-out').value||'Keluar'; const out = parseFloat(document.getElementById('kas-val-out').value)||0;
-            if(masuk===0 && out===0) return;
-            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: `Setor Kru | Keluar: ${ketOut}`, amount: (masuk - out) });
+            const members = [
+                { label: 'Artdan', amount: parseFloat(document.getElementById('cicil-artdan').value)||0 },
+                { label: 'Yhola', amount: parseFloat(document.getElementById('cicil-yhola').value)||0 },
+                { label: 'Tio', amount: parseFloat(document.getElementById('cicil-tio').value)||0 },
+                { label: 'Bila', amount: parseFloat(document.getElementById('cicil-bila').value)||0 }
+            ].filter(x => x.amount > 0).map(x => ({...x, type:'in'}));
+            const ketOut = document.getElementById('kas-ket-out').value.trim()||'Pengeluaran';
+            const out = parseFloat(document.getElementById('kas-val-out').value)||0;
+            const details = [...members, ...(out > 0 ? [{label:ketOut, amount:out, type:'out'}] : [])];
+            if(!details.length) return;
+            const masuk = members.reduce((s,x) => s+x.amount, 0);
+            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), desc: 'Transaksi Kas Kru', details, amount: masuk-out });
             ['cicil-artdan','cicil-yhola','cicil-tio','cicil-bila','kas-ket-out','kas-val-out'].forEach(id => document.getElementById(id).value = id.includes('cicil')?0:'');
             saveData(); renderKas();
         }
@@ -1652,18 +1665,47 @@
         }
         function hapusKas(id){if(!confirm('Hapus transaksi kas ini?'))return;db.kas=db.kas.filter(x=>x.id!==id);saveData();renderKas();}
         function renderKas() {
-            const c = document.getElementById('list-ledger'); const cetak = document.getElementById('kas-ringkasan-cetak'); if(!c) return;
-            c.innerHTML = ''; let cetakHtml = ''; let total = 0;
+            const c = document.getElementById('list-ledger');
+            const cetak = document.getElementById('kas-ringkasan-cetak');
+            if(!c) return;
+            c.innerHTML = '';
+            let total = 0, totalMasuk = 0, totalKeluar = 0;
+            const rows = [];
             if(db.kas.length === 0) c.innerHTML = '<div class="text-xs text-gray-500">Kas kosong.</div>';
             [...db.kas].reverse().forEach(k => {
-                total += k.amount;
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${k.amount.toLocaleString('id-ID')}</b><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
-                cetakHtml += `<div class="flex justify-between"><span>• ${k.desc}</span><b>Rp ${k.amount.toLocaleString('id-ID')}</b></div>`;
+                total += Number(k.amount)||0;
+                const details = Array.isArray(k.details) && k.details.length ? k.details : [{label:k.desc || 'Transaksi', amount:Math.abs(Number(k.amount)||0), type:(Number(k.amount)||0)>=0?'in':'out'}];
+                details.forEach(d => {
+                    const amount = Number(d.amount)||0, isOut = d.type==='out';
+                    if(isOut) totalKeluar += amount; else totalMasuk += amount;
+                    rows.push({date:k.date||'-', label:d.label||k.desc||'Transaksi', amount, type:isOut?'out':'in'});
+                });
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${Number(k.amount||0).toLocaleString('id-ID')}</b><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
             });
             document.getElementById('total-saldo-kas').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-            if(cetak) cetak.innerHTML = cetakHtml;
+            if(cetak) {
+                const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+                cetak.innerHTML = `
+                    <div style="background:#fff;color:#171717;padding:24px 20px;font-family:Arial,sans-serif;text-align:left;width:100%;box-sizing:border-box;">
+                        <div style="text-align:center;border-bottom:2px dashed #555;padding-bottom:14px;margin-bottom:14px;">
+                            <div style="font-size:19px;font-weight:900;letter-spacing:1.5px;">GHOUSTORY</div>
+                            <div style="font-size:11px;letter-spacing:2px;margin-top:3px;">BUKU KAS • NOTA TRANSAKSI</div>
+                            <div style="font-size:10px;color:#666;margin-top:7px;">Dicetak: ${new Date().toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:12px;"><b>RINCIAN ARUS KAS</b><span>${rows.length} item</span></div>
+                        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                            <thead><tr style="border-bottom:1px solid #222;"><th style="text-align:left;padding:7px 3px;">TANGGAL / KETERANGAN</th><th style="text-align:right;padding:7px 3px;">MASUK</th><th style="text-align:right;padding:7px 3px;">KELUAR</th></tr></thead>
+                            <tbody>${rows.length ? rows.map(r=>`<tr style="border-bottom:1px dotted #bbb;"><td style="padding:8px 3px;vertical-align:top;"><b>${escapeHtml(r.label)}</b><div style="font-size:9px;color:#777;margin-top:2px;">${escapeHtml(r.date)}</div></td><td style="padding:8px 3px;text-align:right;white-space:nowrap;">${r.type==='in'?fmt(r.amount):'-'}</td><td style="padding:8px 3px;text-align:right;white-space:nowrap;">${r.type==='out'?fmt(r.amount):'-'}</td></tr>`).join('') : '<tr><td colspan="3" style="padding:18px 3px;text-align:center;color:#777;">Belum ada transaksi</td></tr>'}</tbody>
+                        </table>
+                        <div style="border-top:2px dashed #555;margin-top:14px;padding-top:12px;font-size:11px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Total Pemasukan</span><b>${fmt(totalMasuk)}</b></div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Total Pengeluaran</span><b>${fmt(totalKeluar)}</b></div>
+                            <div style="display:flex;justify-content:space-between;border-top:1px solid #222;padding-top:10px;font-size:15px;font-weight:900;"><span>SALDO AKHIR</span><span>${fmt(total)}</span></div>
+                        </div>
+                        <div style="text-align:center;border-top:1px dashed #999;margin-top:16px;padding-top:12px;font-size:9px;color:#777;">Dokumen kas internal • GHOUSTORY CONTROL ROOM</div>
+                    </div>`;
+            }
         }
-
         function shareKasWA() {
             const total = db.kas.reduce((s, i) => s + i.amount, 0);
             let txt = `*NOTA KAS RESMI GHOUSTORY*\nTotal Saldo: *Rp ${total.toLocaleString('id-ID')}*\n\n`;
