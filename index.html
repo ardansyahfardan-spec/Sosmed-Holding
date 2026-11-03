@@ -174,11 +174,11 @@
                         <div class="bg-black p-4 rounded-xl border border-gray-800">
                             <input type="text" id="note-topic" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-sm mb-3" placeholder="Topik Rapat...">
                             <div class="flex gap-2 mb-2">
-                                <textarea id="note-raw" class="flex-grow h-32 bg-darkCard border border-gray-700 p-3 rounded text-sm text-gray-300" placeholder="Ketik atau klik tombol Mic untuk rekam suara..."></textarea>
-                                <button onclick="toggleRecordMic()" id="btn-mic" class="bg-gray-800 hover:bg-red-900 border border-gray-700 px-4 rounded text-xl text-gray-300 transition" title="Rekam Suara"><i class="fa-solid fa-microphone"></i></button>
+                                <textarea id="note-raw" class="flex-grow h-32 bg-darkCard border border-gray-700 p-3 rounded text-sm text-gray-300" placeholder="Transkrip rapat akan muncul di sini. Bisa juga ketik manual..."></textarea>
+                                <button onclick="toggleRecordMic()" id="btn-mic" class="bg-gray-800 hover:bg-red-900 border border-gray-700 px-4 rounded text-xl text-gray-300 transition" title="Mulai Rekam Rapat"><i class="fa-solid fa-microphone"></i></button>
                             </div>
-                            <div id="mic-status" class="text-[10px] text-gray-500 italic mb-2">Mic Off. Gunakan Chrome/Edge dan izinkan akses mikrofon.</div>
-                            <button onclick="generateNotulen()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 rounded text-sm shadow-md"><i class="fa-solid fa-robot"></i> Ringkas dengan Gemini AI</button>
+                            <div id="mic-status" class="text-[10px] text-gray-500 italic mb-2">Siap merekam. Izinkan akses mikrofon saat diminta. Rekaman diproses AI setelah dihentikan.</div>
+                            <button onclick="generateNotulen()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 rounded text-sm shadow-md"><i class="fa-solid fa-robot"></i> Ringkas Teks dengan Gemini AI</button>
                         </div>
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Daftar Riwayat Rapat</h3>
                         <div id="list-notulen" class="space-y-3"></div>
@@ -841,9 +841,121 @@
         async function addMitos(){const input=document.getElementById('input-mitos'),topic=input.value.trim();if(!topic)return alert('Tulis topik atau lokasi mitos terlebih dahulu.');const item={id:Date.now(),text:topic,research:'Sedang meminta riset Gemini...'};db.mitos.unshift(item);input.value='';saveData();renderMitosList();try{item.research=await callGhoulAI('research',{topic});}catch(e){item.research='Riset AI gagal: '+e.message;}saveData();renderMitosList();}
         async function generateAiScript(){const guest=document.getElementById('ai-narsum').value||'Narasumber',location=document.getElementById('ai-lokasi').value||'lokasi mistis',premise=document.getElementById('ai-premis').value||'kejadian mistis',format=document.getElementById('ai-format').value,btn=document.querySelector('button[onclick="generateAiScript()"]');setButtonBusy(btn,true);try{const text=await callGhoulAI('script',{guest,location,premise,format});document.getElementById('script-editor').value=text;if(!document.getElementById('script-title').value.trim())document.getElementById('script-title').value='Naskah '+format+' - '+premise.slice(0,45);switchTab('grimoire','editor');}catch(e){alert('Gagal membuat naskah AI: '+e.message);}finally{setButtonBusy(btn,false);}}
 
-        // GHOUSTNOTE
+        // GHOUSTNOTE - REKAM AUDIO RAPAT LANGSUNG
         let isRecording = false;
-        let noteRecognition=null;function toggleRecordMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mic'),stat=document.getElementById('mic-status'),area=document.getElementById('note-raw');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isRecording&&noteRecognition){noteRecognition.stop();return;}noteRecognition=new SR();noteRecognition.lang='id-ID';noteRecognition.continuous=true;noteRecognition.interimResults=true;noteRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)area.value+=(area.value?' ':'')+t.trim();};noteRecognition.onerror=e=>stat.textContent='Mic: '+e.error;noteRecognition.onend=()=>{isRecording=false;btn.classList.remove('bg-red-700','text-white');stat.textContent='Mic Off.';};try{noteRecognition.start();isRecording=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
+        let meetingRecorder = null;
+        let meetingStream = null;
+        let meetingChunks = [];
+        let meetingStartedAt = 0;
+        let meetingStopTimer = null;
+        const MAX_MEETING_AUDIO_BYTES = 17 * 1024 * 1024;
+        const MAX_MEETING_MINUTES = 30;
+
+        async function toggleRecordMic() {
+            const btn = document.getElementById('btn-mic');
+            const stat = document.getElementById('mic-status');
+            if (isRecording) {
+                if (meetingRecorder && meetingRecorder.state !== 'inactive') meetingRecorder.stop();
+                return;
+            }
+            if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+                alert('Browser ini belum mendukung perekaman audio. Gunakan Chrome atau Edge terbaru melalui HTTPS.');
+                return;
+            }
+            try {
+                meetingStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+                const preferred = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+                const mimeType = preferred.find(type => MediaRecorder.isTypeSupported(type)) || '';
+                meetingRecorder = new MediaRecorder(meetingStream, mimeType ? { mimeType } : undefined);
+                meetingChunks = [];
+                meetingStartedAt = Date.now();
+                meetingRecorder.ondataavailable = event => { if (event.data && event.data.size) meetingChunks.push(event.data); };
+                meetingRecorder.onerror = event => {
+                    stat.textContent = 'Gagal merekam: ' + (event.error?.message || 'kesalahan perekaman');
+                    cleanupMeetingRecorder();
+                };
+                meetingRecorder.onstop = processMeetingRecording;
+                meetingRecorder.start(1000);
+                isRecording = true;
+                btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                btn.title = 'Stop dan Proses Rapat';
+                btn.classList.add('bg-red-700', 'text-white');
+                stat.textContent = '🔴 Merekam rapat... Tekan tombol stop untuk membuat notulen.';
+                meetingStopTimer = setTimeout(() => {
+                    if (meetingRecorder && meetingRecorder.state !== 'inactive') {
+                        stat.textContent = 'Batas rekaman 30 menit tercapai. Memproses audio...';
+                        meetingRecorder.stop();
+                    }
+                }, MAX_MEETING_MINUTES * 60 * 1000);
+            } catch (error) {
+                cleanupMeetingRecorder();
+                alert('Tidak bisa mengakses mikrofon: ' + (error.message || error) + '. Pastikan izin mikrofon diberikan.');
+            }
+        }
+
+        function cleanupMeetingRecorder() {
+            isRecording = false;
+            if (meetingStopTimer) clearTimeout(meetingStopTimer);
+            meetingStopTimer = null;
+            if (meetingStream) meetingStream.getTracks().forEach(track => track.stop());
+            meetingStream = null;
+            const btn = document.getElementById('btn-mic');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                btn.title = 'Mulai Rekam Rapat';
+                btn.classList.remove('bg-red-700', 'text-white');
+            }
+        }
+
+        async function blobToBase64(blob) {
+            return await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+                reader.onerror = () => reject(new Error('Gagal membaca file audio hasil rekaman.'));
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function processMeetingRecording() {
+            const stat = document.getElementById('mic-status');
+            const btn = document.querySelector('button[onclick="generateNotulen()"]');
+            const topicInput = document.getElementById('note-topic');
+            const area = document.getElementById('note-raw');
+            const topic = topicInput.value.trim() || 'Rapat';
+            const mimeType = meetingRecorder?.mimeType || meetingChunks[0]?.type || 'audio/webm';
+            const audioBlob = new Blob(meetingChunks, { type: mimeType });
+            cleanupMeetingRecorder();
+            meetingRecorder = null;
+            meetingChunks = [];
+            if (!audioBlob.size) {
+                stat.textContent = 'Rekaman kosong. Coba rekam kembali.';
+                return;
+            }
+            if (audioBlob.size > MAX_MEETING_AUDIO_BYTES) {
+                stat.textContent = 'Ukuran audio terlalu besar (maksimal sekitar 17 MB). Coba rekam lebih singkat.';
+                alert('Audio melebihi batas unggahan 17 MB. Rekam rapat dalam beberapa bagian.');
+                return;
+            }
+            setButtonBusy(btn, true);
+            stat.textContent = 'Mengirim audio ke Gemini untuk ditranskrip dan dibuatkan notulen...';
+            try {
+                const audioBase64 = await blobToBase64(audioBlob);
+                const result = await callGhoulAI('minutes-audio', { topic, audioBase64, mimeType: audioBlob.type || mimeType });
+                const item = { id: Date.now(), topic, raw: result, source: '[Notulen dibuat langsung dari rekaman audio]', audioMimeType: audioBlob.type || mimeType };
+                db.notulen.unshift(item);
+                area.value = '';
+                topicInput.value = '';
+                saveData();
+                refreshAllLists();
+                switchTab('ghoustnote', 'arsip');
+                stat.textContent = 'Selesai. Notulen rapat berhasil disimpan. Centang Selesai untuk penghapusan otomatis setelah 7 hari.';
+            } catch (error) {
+                stat.textContent = 'Pemrosesan audio gagal.';
+                alert('Gagal memproses rekaman rapat: ' + error.message);
+            } finally {
+                setButtonBusy(btn, false);
+            }
+        }
         function simpanDraftVO(){const title=document.getElementById('vo-title').value.trim(),teks=document.getElementById('vo-teks').value.trim();if(!title||!teks)return alert('Isi judul dan teks VO.');db.vo.unshift({id:Date.now(),title,teks});document.getElementById('vo-title').value='';document.getElementById('vo-teks').value='';saveData();renderVOList();}
         function deleteVO(id){if(!confirm('Hapus catatan VO ini?'))return;db.vo=db.vo.filter(x=>x.id!==id);saveData();renderVOList();}
         function renderVOList(){const c=document.getElementById('list-vo');if(!c)return;if(!db.vo.length){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;}c.innerHTML=db.vo.map(x=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between gap-2"><b>🎙️ '+escapeHtml(x.title)+'</b>'+renderDoneControl('vo',x)+'<button onclick="deleteVO('+Number(x.id)+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div><div class="text-xs text-gray-400 mt-1">'+escapeHtml(x.teks)+'</div></div>').join('');}
