@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ghoustory-control-room-v6';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png.png'];
+const CACHE_NAME = 'ghoustory-control-room-v7';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './apple-touch-icon.png', './icon-192.png', './icon-512.png.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -38,7 +38,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (['image_2.png', 'ghoustory-logo.png', 'apple-touch-icon 2.png', 'icon-192.png', 'icon-512.png.png', 'manifest.webmanifest'].some((name) => pathname.endsWith('/' + name))) {
+  if (['image_2.png', 'ghoustory-logo.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png.png', 'manifest.webmanifest'].some((name) => pathname.endsWith('/' + name))) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((response) => {
         if (response && response.ok) {
