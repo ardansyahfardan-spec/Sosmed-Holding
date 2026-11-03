@@ -999,27 +999,35 @@
 
         function downloadKasJPEG() {
     const area = document.getElementById('area-kas-cetak');
+    
+    // Kasih efek loading biar nggak dikira nge-lag
+    const btn = event.currentTarget || document.querySelector('button[onclick="downloadKasJPEG()"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+    
     html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
-        canvas.toBlob(function(blob) {
-            // Cek apakah browser mendukung fitur Share (biasanya langsung muncul pilihan simpan ke Galeri / HP)
-            const file = new File([blob], `Nota-Kas-Ghoustory-${Date.now()}.jpeg`, { type: "image/jpeg" });
-            
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({
-                    files: [file],
-                    title: 'Nota Kas Ghoustory',
-                    text: 'Nota Resmi Kas Ghoustory Control Room'
-                }).catch((error) => console.log('Sharing failed', error));
-            } else {
-                // Fallback otomatis unduh langsung ke galeri/download
-                const link = document.createElement('a');
-                link.download = `Nota-Kas-Ghoustory-${Date.now()}.jpeg`;
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                URL.revokeObjectURL(link.href);
-                alert("Nota berhasil diunduh! Cek folder Galeri / Unduhan di HP-mu.");
-            }
-        }, 'image/jpeg', 0.95);
+        // Ubah canvas jadi base64 image data
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        // Bikin overlay popup langsung lewat JS
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;';
+        
+        overlay.innerHTML = `
+            <div class="text-white text-sm mb-4 font-bold text-center">
+                ✅ Nota Berhasil Dibuat!<br>
+                <span class="text-yellow-400 font-normal text-xs">Tekan tahan gambar di bawah, lalu pilih "Simpan Gambar" (Save Image) / Bagikan</span>
+            </div>
+            <img src="${imgData}" class="max-w-full max-h-[70vh] object-contain rounded border border-gray-600 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+            <button onclick="this.parentElement.remove()" class="mt-6 bg-red-800 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg hover:bg-red-700 transition">Tutup</button>
+        `;
+        
+        document.body.appendChild(overlay);
+        btn.innerHTML = originalText; // kembalikan tombol
+        
+    }).catch(err => {
+        alert("Waduh, gagal memproses gambar nih. Error: " + err);
+        btn.innerHTML = originalText;
     });
 }
         // TELEPROMPTER NGEBUT
