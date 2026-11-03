@@ -441,7 +441,7 @@
                     <span>Kas: <b id="footer-kas" class="text-green-400">Rp 0</b></span>
                     <span>Stok: <b id="footer-stok" class="text-yellow-400">0 Video</b></span>
                     <span>AI: <b id="footer-ai" class="text-blue-300">Gemini siap</b></span>
-                    <span>Kru online: <b id="footer-online" class="text-green-300">0 akun</b></span>
+                    <span class="flex flex-wrap items-center gap-1">Kru online: <b id="footer-online" class="text-green-300">0 akun</b><span id="footer-online-names" class="text-gray-400"></span></span>
                     <span>Sync: <b id="footer-synced">-</b></span>
                 </div>
             </div>
@@ -1195,12 +1195,20 @@
             if (presenceChannel) supabaseClient.removeChannel(presenceChannel);
             presenceChannel = supabaseClient.channel("ghoustory-presence", { config: { presence: { key: user.id } } });
             presenceChannel.on("presence", { event: "sync" }, () => {
-                const count = Object.keys(presenceChannel.presenceState()).length;
-                const el = document.getElementById("footer-online");
-                if (el) el.textContent = count + " akun";
+                const state = presenceChannel.presenceState();
+                const onlineUsers = Object.values(state).flat()
+                    .map(entry => entry.name || "Kru")
+                    .filter((name, index, names) => names.indexOf(name) === index);
+                const countEl = document.getElementById("footer-online");
+                const namesEl = document.getElementById("footer-online-names");
+                if (countEl) countEl.textContent = onlineUsers.length + " akun";
+                if (namesEl) namesEl.textContent = onlineUsers.length ? "· " + onlineUsers.join(", ") : "";
             });
             presenceChannel.subscribe(async status => {
-                if (status === "SUBSCRIBED") await presenceChannel.track({ user_id: user.id, name: user.user_metadata?.full_name || user.email || "Kru", online_at: new Date().toISOString() });
+                if (status === "SUBSCRIBED") {
+                    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
+                    await presenceChannel.track({ user_id: user.id, name: displayName, online_at: new Date().toISOString() });
+                }
             });
         }
 
