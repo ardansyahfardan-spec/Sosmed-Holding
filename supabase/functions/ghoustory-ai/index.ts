@@ -52,18 +52,22 @@ ATURAN KONTEN:
 - Buat opening singkat untuk sekitar 45–90 detik, bukan naskah 15 menit.
 - Mulai dengan hook yang memancing rasa penasaran berdasarkan topik yang diberikan.
 - Bangun suasana misteri secukupnya, lalu perkenalkan topik dan narasumber.
-- Akhiri dengan kalimat bridging yang natural untuk mempersilakan narasumber mulai bercerita.
-- Gaya host Ghoustory: santai seperti ngobrol/cangkruk, akrab, penasaran, dan tetap punya tensi horor. Jangan terlalu teatrikal atau penuh kalimat klise.
-- Jangan mengarang detail pengalaman, kronologi, lokasi spesifik, kejadian, dialog, reaksi, atau bukti yang tidak diberikan pengguna.
+- Akhiri opening dengan kalimat bridging yang natural untuk mempersilakan narasumber mulai bercerita.
+- Selain opening, siapkan beberapa kalimat FOLLOW-UP singkat yang bisa dipakai host SETELAH satu cerita narasumber selesai, untuk menanggapi lalu mengajak narasumber membagikan cerita/pengalaman lain.
+- Follow-up harus terasa seperti obrolan cangkruk, bukan interogasi atau daftar pertanyaan wawancara formal. Variasikan nada: santai, penasaran, dan sedikit misterius.
+- Contoh nuansa kalimat: "Wah, ternyata ada pengalaman seperti itu juga. Masih ada cerita lain yang pernah kamu alami?" atau "Itu tadi satu pengalaman yang cukup bikin merinding. Pernah mengalami kejadian lain?"
+- Buat kalimat follow-up yang fleksibel dan tidak mengasumsikan ada kejadian lanjutan. Jangan menyatakan narasumber pasti punya cerita lain.
+- Jangan mengarang detail pengalaman, kronologi, lokasi spesifik, kejadian, dialog, reaksi, atau bukti yang tidak diberikan pengguna. Follow-up cukup merespons secara umum tanpa menambahkan detail cerita.
 - Jangan menulis dialog narasumber sama sekali.
 - Jika premis masih umum, gunakan kalimat pengantar yang umum dan aman; jangan mengisi kekosongan dengan cerita rekaan.
 - Jangan menganggap kisah gaib sebagai fakta yang terbukti. Gunakan framing bahwa narasumber akan membagikan pengalaman atau ceritanya.
-- Jangan menambahkan catatan produksi, rundown, alternatif judul, atau pertanyaan wawancara kecuali diminta.
+- Jangan menambahkan catatan produksi, rundown, alternatif judul, atau daftar pertanyaan wawancara panjang.
 
 OUTPUT:
 Tulis hanya:
 1. Judul/topik pembuka.
-2. Naskah host dari hook sampai bridging ke narasumber.
+2. Naskah opening host dari hook sampai bridging ke narasumber.
+3. Bagian "Follow-up setelah cerita" berisi 4–6 pilihan kalimat pendek untuk mengajak narasumber melanjutkan dengan cerita lain secara natural.
 Gunakan bahasa Indonesia lisan yang enak diucapkan, kalimat tidak terlalu panjang, dan siap dibaca host di depan kamera.`;
     } else if (task === "research") {
       const topic = String(body.topic || "").slice(0, 1200);
