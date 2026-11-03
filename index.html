@@ -2750,6 +2750,7 @@ async function loadChatMessages(){
           if(groupPresenceChannel)await supabaseClient.removeChannel(groupPresenceChannel);
           groupPresenceChannel=supabaseClient.channel("ghoustory-group-presence",{config:{presence:{key:activeUser.id}}});
           groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota",typing:false});});
+          if(isGroupRoomVisible())await markGroupMessagesRead();
         }
         function isGroupRoomVisible(){return !!activeUser&&document.getElementById("page-chat")?.classList.contains("page-active")&&!document.getElementById("group-chat-card")?.classList.contains("hidden")&&document.visibilityState==="visible";}
         async function markGroupMessagesRead(){
