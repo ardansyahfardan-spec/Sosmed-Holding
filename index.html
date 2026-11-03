@@ -511,7 +511,11 @@
         // ================= SUPABASE CONNECTION =================
         const SUPABASE_URL = 'https://xnbqckfbrrmdjiemfwqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Gunakan global SDK dari CDN dengan nama client terpisah agar tidak terjadi benturan nama/Temporal Dead Zone.
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            throw new Error('Supabase SDK gagal dimuat. Periksa koneksi internet atau CDN.');
+        }
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ================= DATABASE DUMMY (SEMENTARA) =================
         let db = JSON.parse(localStorage.getItem('gh_db_v3_2')) || {
@@ -539,13 +543,13 @@
             initSocialChart();
 
             // Cek Session saat halaman dimuat
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 masukKeAplikasi(session.user);
             }
 
             // Dengarkan perubahan status Login/Logout
-            supabase.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
                     masukKeAplikasi(session.user);
                 } else if (event === 'SIGNED_OUT') {
@@ -573,7 +577,7 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Membuka Portal...';
             
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
             });
             
@@ -585,7 +589,7 @@
 
         async function logoutApp() {
             if(confirm("Yakin ingin log out dari akun Google?")) { 
-                await supabase.auth.signOut(); 
+                await supabaseClient.auth.signOut(); 
             }
         }
 
