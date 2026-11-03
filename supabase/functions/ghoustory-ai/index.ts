@@ -125,6 +125,20 @@ Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap d
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
       ];
+    } else if (task === "shorts-moment-finder") {
+      const audioBase64 = String(body.audioBase64 || "");
+      audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+      if (audioMimeType !== "audio/mpeg") return json({ error: "Shorts Moment Finder hanya menerima audio MP3." }, 400);
+      if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
+      if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
+      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan 5 sampai 10 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
+Kembalikan HANYA JSON valid dengan struktur:
+{"moments":[{"start":"00:00","end":"00:45","title":"Judul pendek yang kuat","hook":"Kalimat hook pembuka untuk teks/video","caption":"Caption singkat siap pakai","reason":"Mengapa bagian ini menarik untuk Shorts","quote":"Cuplikan ucapan persis/semirip mungkin untuk membantu editor menemukan bagian"}]}
+Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Durasi ideal tiap potongan 20–60 detik. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
+      requestParts = [
+        { text: prompt },
+        { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
+      ];
     } else if (task === "metadata") {
       const url = String(body.url || "");
       let videoTitle = "";
@@ -151,7 +165,7 @@ Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap d
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const maxOutputTokens = task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const maxOutputTokens = task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     let response: Response | null = null;
     let activeModel = "";
 
