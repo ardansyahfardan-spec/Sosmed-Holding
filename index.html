@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOUSTORY CONTROL ROOM</title>
+    <title>Ghoustory Control Room</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -44,27 +44,25 @@
         @keyframes scrollUp { from { transform: translateY(100vh); } to { transform: translateY(-100%); } }
         .teleprompter-run { animation-name: scrollUp; animation-timing-function: linear; animation-iteration-count: infinite; }
         .is-done { opacity: 0.4; filter: grayscale(100%); }
-        
-        @keyframes fillLoading { 0% { width: 0%; } 100% { width: 100%; } }
-        .animate-loading-bar { animation: fillLoading 2s ease-in-out forwards; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
 
-    <audio id="bgm-audio" loop><source src="bgm.mp3" type="audio/mpeg"></audio>
-
-    <!-- LOADING SCREEN -->
-    <div id="loading-screen" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center transition-opacity duration-700">
-        <img src="image_2.png" alt="Ghoustory Logo" class="h-28 md:h-36 drop-shadow-[0_0_25px_rgba(185,28,28,0.8)] animate-pulse mb-6 object-contain" onerror="this.style.display='none'">
-        <h1 class="text-xl md:text-2xl font-mystery text-gray-400 tracking-widest mb-6 italic text-center px-4">
-            "Saat semua tertidur, <span class="text-ghoulRed font-bold">cerita dimulai...</span>"
-        </h1>
-        <div class="w-64 h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
-            <div class="h-full bg-ghoulRed animate-loading-bar"></div>
+    <!-- LOGIN SCREEN (GOOGLE AUTH SIMULATION) -->
+    <div id="login-screen" class="fixed inset-0 bg-black z-[110] flex flex-col items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center border border-red-900/50 shadow-[0_0_40px_rgba(185,28,28,0.2)]">
+            <img src="image_2.png" alt="Logo" class="h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.8)]" onerror="this.style.display='none'">
+            <h1 class="text-xl font-mystery font-bold tracking-widest text-white mb-1">Ghoustory Control Room</h1>
+            <p class="text-xs text-gray-400 mb-6">Autorisasi Sutradara & Kru Operasional</p>
+            
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
+                <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
+            </button>
+            <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.0</div>
         </div>
-        <div class="mt-4 text-xs font-mystery text-gray-600 tracking-widest animate-pulse">Menghubungkan Dimensi Ghoustory...</div>
     </div>
 
+    <!-- MAIN APP -->
     <div id="main-app" class="flex-grow flex flex-col opacity-0 transition-opacity duration-1000 hidden">
         
         <!-- Navbar -->
@@ -72,15 +70,18 @@
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
                     <img src="image_2.png" alt="Logo" class="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]" onerror="this.style.display='none'">
-                    <h1 class="text-lg sm:text-xl font-mystery font-bold tracking-widest text-white hover:text-ghoulRed transition">GHOUSTORY <span class="text-ghoulRed hidden sm:inline">CONTROL ROOM</span></h1>
+                    <h1 class="text-lg sm:text-xl font-mystery font-bold tracking-widest text-white hover:text-ghoulRed transition">Ghoustory <span class="text-ghoulRed hidden sm:inline">Control Room</span></h1>
                 </div>
-                <div class="flex items-center gap-2 md:gap-4">
-                    <button onclick="toggleBGM()" class="bg-gray-900 border border-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-full text-xs"><i class="fa-solid fa-music" id="music-icon"></i> <span class="hidden md:inline">BGM</span></button>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-darkCard border border-gray-800 px-3 py-1 rounded-full">
+                        <img id="user-avatar" src="" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-red-500">
+                        <span id="user-name-display" class="text-xs text-gray-300 font-semibold hidden md:inline">Ardan</span>
+                    </div>
                     <div class="relative">
                         <button onclick="toggleUserMenu()" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-32 bg-darkCard border border-gray-800 rounded shadow-lg overflow-hidden z-50">
-                            <button onclick="alert('Akun Aktif:\nNama: Ardan\nRole: Sutradara / Admin')" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-gray-800 border-b border-gray-800"><i class="fa-solid fa-user mr-2 text-gray-400"></i> Akun</button>
-                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-xs text-red-500 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log Out</button>
+                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-36 bg-darkCard border border-gray-800 rounded shadow-lg overflow-hidden z-50 text-xs">
+                            <button onclick="alert('Google Account Linked:\nRole: Sutradara / Admin')" class="w-full text-left px-4 py-3 text-white hover:bg-gray-800 border-b border-gray-800"><i class="fa-solid fa-shield-halved mr-2 text-ghoulRed"></i> Akun Google</button>
+                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-500 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log Out</button>
                         </div>
                     </div>
                 </div>
@@ -95,7 +96,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                     <div onclick="showPage('grimoire')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-skull text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Grimoire</h3></div>
                     <div onclick="showPage('ghoustnote')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
-                    <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis AI</h3></div>
+                    <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis AI (Gemini Ready)</h3></div>
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
                     <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
@@ -112,7 +113,7 @@
                 
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-ghoulRed">
                     <div id="tab-grimoire-mitos" class="tab-content active">
-                        <h3 class="text-lg font-mystery mb-2 text-white">Radar Mitos & AI Riset</h3>
+                        <h3 class="text-lg font-mystery mb-2 text-white">Radar Mitos & AI Riset (Gemini Connected)</h3>
                         <p class="text-xs text-gray-400 mb-4">Catat ide/rumor angker pakai Voice Note. AI akan otomatis meriset informasinya.</p>
                         
                         <div class="flex gap-2 mb-2">
@@ -192,7 +193,7 @@
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <div onclick="switchTab('analisis', 'arsip')" class="big-tab-btn color-blue active p-4 rounded-xl text-center" id="tabbtn-analisis-arsip"><i class="fa-solid fa-boxes-packing text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Bank Metadata</div></div>
-                    <div onclick="switchTab('analisis', 'baru')" class="big-tab-btn color-blue p-4 rounded-xl text-center" id="tabbtn-analisis-baru"><i class="fa-solid fa-robot text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Auto-Copywriter</div></div>
+                    <div onclick="switchTab('analisis', 'baru')" class="big-tab-btn color-blue p-4 rounded-xl text-center" id="tabbtn-analisis-baru"><i class="fa-solid fa-robot text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Analisis AI (Gemini)</div></div>
                 </div>
                 
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-blue-500">
@@ -209,41 +210,34 @@
                 </div>
             </section>
 
-            <!-- 4. ARSIP SEGMEN & KALENDER TAYANG MANUAL -->
+            <!-- 4. ARSIP SEGMEN & KALENDER TAYANG -->
             <section id="page-segmen" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
                 <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div onclick="switchTab('segmen', 'kumpulan')" class="big-tab-btn color-yellow active p-4 rounded-xl text-center" id="tabbtn-segmen-kumpulan"><i class="fa-solid fa-layer-group text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Kumpulan Segmen</div></div>
+                    <div onclick="switchTab('segmen', 'kumpulan')" class="big-tab-btn color-yellow active p-4 rounded-xl text-center" id="tabbtn-segmen-kumpulan"><i class="fa-solid fa-layer-group text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Arsip Segmen</div></div>
                     <div onclick="switchTab('segmen', 'kalender')" class="big-tab-btn color-yellow p-4 rounded-xl text-center" id="tabbtn-segmen-kalender"><i class="fa-solid fa-calendar-days text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Kalender Tayang</div></div>
                 </div>
 
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-orange-500">
-                    <div id="tab-segmen-kumpulan" class="tab-content active">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-400 uppercase">Pilih Kategori Segmen</h3>
-                            <button onclick="createNewSegment()" class="bg-orange-700 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded"><i class="fa-solid fa-plus"></i> Tambah Segmen</button>
+                    <div id="tab-segmen-kumpulan" class="tab-content active space-y-4">
+                        <div class="bg-black p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
+                            <h4 class="font-bold text-orange-500 uppercase"><i class="fa-solid fa-plus"></i> Tambah Segmen Baru</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" id="seg-nama" placeholder="Nama Segmen (Cth: #MistikJatim)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
+                                <input type="text" id="seg-tagline" placeholder="Tagline (Cth: Menyibak Misteri Timur Jawa)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            </div>
+                            <textarea id="seg-desc" placeholder="Deskripsi Segmen..." class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white h-16"></textarea>
+                            <div>
+                                <label class="text-gray-400 block mb-1">Logo Segmen (URL Gambar / File)</label>
+                                <input type="text" id="seg-logo" placeholder="URL Logo (Opsional)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            </div>
+                            <button onclick="saveNewSegmentManual()" class="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Simpan Segmen</button>
                         </div>
-                        <div id="view-segmen-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                        <div id="view-segmen-detail" class="hidden">
-                            <button onclick="closeSegmenDetail()" class="text-xs bg-gray-900 px-3 py-1 rounded mb-4 text-gray-400"><i class="fa-solid fa-xmark"></i> Tutup</button>
-                            <h3 class="text-xl font-mystery text-orange-500 text-center mb-4" id="title-segmen-detail">#SEGMEN</h3>
-                            <div id="list-segmen-video" class="space-y-2"></div>
-                        </div>
+                        <div id="view-segmen-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
 
-                    <!-- Kalender Tayang Manual -->
+                    <!-- Kalender Tayang -->
                     <div id="tab-segmen-kalender" class="tab-content space-y-4">
-                        <div class="bg-black p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
-                            <h4 class="font-bold text-orange-500 uppercase"><i class="fa-solid fa-plus"></i> Tambah Jadwal Tayang Manual</h4>
-                            <input type="text" id="tayang-judul" placeholder="Judul Video / Konten..." class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            <div class="grid grid-cols-2 gap-2">
-                                <select id="tayang-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400 font-bold outline-none"></select>
-                                <input type="date" id="tayang-tgl" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            </div>
-                            <button onclick="addTayangManual()" class="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Inject ke Kalender Tayang</button>
-                        </div>
-
-                        <!-- Kalender Visual Tayang -->
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
                                 <button onclick="changeTayangMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
@@ -255,6 +249,9 @@
                             </div>
                             <div id="tayang-calendar-grid" class="grid grid-cols-7 gap-1 text-xs"></div>
                         </div>
+
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">List & Daftar Video Tayang</h4>
+                        <div id="list-tayang-detail" class="space-y-2"></div>
                     </div>
                 </div>
             </section>
@@ -273,17 +270,25 @@
                     <!-- TAB JADWAL & ABSENSI -->
                     <div id="tab-tim-jadwal" class="tab-content active space-y-4">
                         <div class="bg-black p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
-                            <h4 class="font-bold text-yellow-500 uppercase"><i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting</h4>
-                            <input type="text" id="j-nama" placeholder="Nama Kegiatan / Event (Cth: Survey Pabrik)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            <input type="text" id="j-lokasi" placeholder="Lokasi (Cth: Sidoarjo)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            <h4 class="font-bold text-yellow-500 uppercase" id="jadwal-form-title"><i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting</h4>
+                            <input type="hidden" id="j-edit-id" value="">
+                            <input type="text" id="j-nama" placeholder="Nama Kegiatan (Cth: Survey Pabrik)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            <input type="text" id="j-narsum" placeholder="Nama Narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            <div class="grid grid-cols-2 gap-2">
+                                <select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400 font-bold outline-none"></select>
+                                <input type="text" id="j-lokasi" placeholder="Lokasi (Cth: Sidoarjo)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
+                            </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="date" id="j-tgl" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
                                 <input type="text" id="j-jam" placeholder="Jam (Cth: 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
                             </div>
-                            <button onclick="addJadwalLengkap()" class="w-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 rounded">Simpan ke Kalender</button>
+                            <div class="flex gap-2">
+                                <button onclick="saveJadwalLengkap()" class="flex-grow bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 rounded">Simpan Jadwal</button>
+                                <button onclick="resetJadwalForm()" id="btn-cancel-edit" class="bg-gray-800 px-3 py-2 rounded text-gray-400 hidden">Batal</button>
+                            </div>
                         </div>
                         
-                        <!-- Kalender Jadwal Dinamis -->
+                        <!-- Kalender Jadwal -->
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
                                 <button onclick="changeCalMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
@@ -295,12 +300,16 @@
                             </div>
                             <div id="jadwal-calendar-grid" class="grid grid-cols-7 gap-1 text-xs"></div>
                         </div>
+
+                        <!-- List Ringkasan Jadwal & Absen -->
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-4">Ringkasan Narasumber & Kru Absen</h4>
+                        <div id="list-ringkasan-jadwal" class="space-y-2"></div>
                     </div>
 
                     <!-- TAB STOK VIDEO -->
                     <div id="tab-tim-stok" class="tab-content space-y-3">
                         <div class="flex gap-2">
-                            <input type="text" id="input-stok" class="flex-grow bg-black border border-gray-700 p-2 rounded text-sm text-white" placeholder="Judul Video Mentah...">
+                            <input type="text" id="input-stok" class="flex-grow bg-black border border-gray-700 p-2 rounded text-sm text-white" placeholder="Nama Narasumber (Stok Video)...">
                             <select id="stok-format" class="bg-black border border-gray-700 text-yellow-400 text-xs px-2 rounded outline-none">
                                 <option value="🔦 Penelusuran">🔦 Penelusuran</option>
                                 <option value="🎙️ Podcast">🎙️ Podcast</option>
@@ -310,21 +319,21 @@
                         <div id="list-stok" class="space-y-3"></div>
                     </div>
 
-                    <!-- TAB KAS & MONETISASI KURS DOLLAR -->
+                    <!-- TAB KAS & MONETISASI -->
                     <div id="tab-tim-kas" class="tab-content space-y-4">
-                        <div id="area-kas-cetak" class="bg-black border border-green-800 p-4 rounded-xl text-center">
-                            <div class="text-xs text-green-500 font-bold uppercase mb-1">Total Saldo Kas Induk Ghoustory</div>
+                        <div id="area-kas-cetak" class="bg-black border border-green-800 p-6 rounded-xl text-center relative overflow-hidden">
+                            <div class="text-xs text-green-500 font-bold uppercase tracking-widest mb-1">NOTA RESMI KAS GHOUSTORY</div>
                             <div class="text-3xl font-bold text-white mb-2" id="total-saldo-kas">Rp 0</div>
-                            <div id="kas-ringkasan-cetak" class="text-left text-[10px] text-gray-400 border-t border-gray-800 pt-2 mt-2 hidden"></div>
+                            <div id="kas-ringkasan-cetak" class="text-left text-[11px] text-gray-300 border-t border-gray-800 pt-3 mt-3 space-y-1"></div>
                         </div>
                         
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="tutupBuku()" class="bg-gray-800 text-[10px] sm:text-xs py-2 rounded text-gray-300 border border-gray-600 hover:bg-red-900 transition"><i class="fa-solid fa-lock mb-1 block"></i> Tutup Buku</button>
-                            <button onclick="shareKasWA()" class="bg-green-700 text-[10px] sm:text-xs py-2 rounded text-white hover:bg-green-600 transition"><i class="fa-brands fa-whatsapp mb-1 block"></i> Share WA</button>
-                            <button onclick="downloadKasJPEG()" class="bg-blue-800 text-[10px] sm:text-xs py-2 rounded text-white hover:bg-blue-700 transition"><i class="fa-solid fa-download mb-1 block"></i> Unduh JPEG</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="shareKasWA()" class="bg-green-700 text-xs py-2.5 rounded text-white hover:bg-green-600 transition"><i class="fa-brands fa-whatsapp mr-1"></i> Bagikan ke WA</button>
+                            <button onclick="downloadKasJPEG()" class="bg-blue-800 text-xs py-2.5 rounded text-white hover:bg-blue-700 transition"><i class="fa-solid fa-download mr-1"></i> Unduh Nota (JPEG)</button>
                         </div>
+                        <button onclick="tutupBuku()" class="w-full bg-gray-800 text-xs py-2 rounded text-gray-300 border border-gray-600 hover:bg-red-900 transition"><i class="fa-solid fa-lock mr-1"></i> Tutup Buku (Reset Saldo Awal)</button>
                         
-                        <!-- Form Monetisasi Kurs Dollar -->
+                        <!-- Form Monetisasi -->
                         <div class="bg-darkBg border border-purple-900 p-4 rounded-lg space-y-3">
                             <h4 class="text-sm font-bold text-purple-500 border-b border-purple-800 pb-2 flex justify-between items-center">
                                 <span><i class="fa-solid fa-coins mr-1"></i> Monetisasi (Kurs Otomatis)</span>
@@ -398,11 +407,69 @@
             </section>
 
         </main>
+
+        <!-- FOOTER BAWAH (Poin 1 & 2) -->
+        <footer class="border-t border-gray-900 bg-black/80 py-4 px-4 text-xs text-gray-400 mt-auto">
+            <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                    <span class="font-mono text-[11px]">Server: Online | Waktu Dimensi: <b id="live-clock" class="text-ghoulRed">00:00:00 WIB</b></span>
+                </div>
+                <div class="text-center font-mystery text-[11px] text-gray-500 truncate max-w-xs">
+                    👻 "Waspada bisikan di balik layar kendali..."
+                </div>
+                <div class="flex items-center gap-4 text-[11px]">
+                    <span>Kas: <b id="footer-kas" class="text-green-400">Rp 0</b></span>
+                    <span>Stok: <b id="footer-stok" class="text-yellow-400">0 Video</b></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL PREVIEW / EDIT NOTULEN -->
+    <div id="modal-notulen" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
+        <div class="glass-panel p-5 rounded-xl w-full max-w-lg border border-red-900">
+            <div class="flex justify-between items-start mb-3">
+                <h3 id="modal-notulen-title" class="font-bold text-red-500 text-base">Detail Notulen</h3>
+                <button onclick="closeModalNotulen()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <textarea id="modal-notulen-text" class="w-full h-40 bg-black border border-gray-700 p-3 rounded text-sm text-white mb-3"></textarea>
+            <div class="flex gap-2">
+                <button onclick="saveEditNotulen()" class="flex-grow bg-green-700 hover:bg-green-600 text-white py-2 rounded text-xs font-bold">Simpan Perubahan</button>
+                <button onclick="copyNotulenModal()" class="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded text-xs">Salin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANALISIS AI -> DISETUJUI / JADWAL TAYANG -->
+    <div id="modal-setuju" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
+        <div class="glass-panel p-5 rounded-xl w-full max-w-md border border-blue-500">
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="font-bold text-blue-400 text-sm">Plot ke Kalender Tayang & Segmen</h3>
+                <button onclick="closeModalSetuju()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="setuju-meta-index" value="">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-gray-400 block mb-1">Judul Video (Dari Analisis AI)</label>
+                    <input type="text" id="setuju-judul" readonly class="w-full bg-black border border-gray-700 p-2 rounded text-white font-bold">
+                </div>
+                <div>
+                    <label class="text-gray-400 block mb-1">Pilih Segmen</label>
+                    <select id="setuju-segmen" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-orange-400 font-bold outline-none"></select>
+                </div>
+                <div>
+                    <label class="text-gray-400 block mb-1">Tanggal Tayang</label>
+                    <input type="date" id="setuju-tgl" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                </div>
+                <button onclick="submitSetujuTayang()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 rounded">Konfirmasi & Plot Tayang</button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL ABSENSI KRU -->
-    <div id="modal-absen" class="fixed inset-0 bg-black/90 z-[70] hidden items-center justify-center p-4">
-        <div class="bg-darkCard border border-gray-700 p-5 rounded-xl w-full max-w-sm">
+    <div id="modal-absen" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
+        <div class="glass-panel p-5 rounded-xl w-full max-w-sm border border-yellow-500">
             <div class="flex justify-between items-start mb-4">
                 <h3 class="font-bold text-yellow-500 text-lg">Detail & Absensi Kru</h3>
                 <button onclick="closeModalAbsen()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -414,7 +481,7 @@
         </div>
     </div>
 
-    <!-- TELEPROMPTER OVERLAY (NGEBUT) -->
+    <!-- TELEPROMPTER OVERLAY -->
     <div id="teleprompter-overlay" class="fixed inset-0 bg-black z-50 hidden flex-col">
         <div class="p-3 border-b border-gray-800 bg-darkBg flex justify-between items-center z-50 flex-wrap gap-2">
             <h2 class="text-ghoulRed font-mystery font-bold">PROMPTER</h2>
@@ -435,56 +502,48 @@
 
     <script>
         // ================= DATABASE DUMMY =================
-        let db = JSON.parse(localStorage.getItem('gh_db_v2_5')) || {
+        let db = JSON.parse(localStorage.getItem('gh_db_v3_0')) || {
             script: "", mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], kas: [],
-            segmenList: ["#KONCERITO", "#NGLENCER", "#noPokroSO!?", "#TrickorStory"]
+            segmenList: [
+                { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
+                { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
+            ]
         };
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
-        const KURS_USD_IDR = 15500; // Kurs standar per hari
-
-        function cleanDb() {
-            const now = Date.now();
-            const sevenDays = 7 * 24 * 60 * 60 * 1000;
-            const filterFn = (item) => !(item.isDone && (now - item.deletedAt > sevenDays));
-            db.mitos = db.mitos.filter(filterFn); db.notulen = db.notulen.filter(filterFn);
-            db.metadata = db.metadata.filter(filterFn); db.stok = db.stok.filter(filterFn);
-            saveData();
-        }
+        const KURS_USD_IDR = 15500;
 
         function saveData() {
             if(document.getElementById('script-editor')) db.script = document.getElementById('script-editor').value;
-            localStorage.setItem('gh_db_v2_5', JSON.stringify(db));
+            localStorage.setItem('gh_db_v3_0', JSON.stringify(db));
         }
 
         window.addEventListener('load', () => {
-            cleanDb();
-            document.getElementById('script-editor').value = db.script || "";
-            document.getElementById('kurs-display').innerText = KURS_USD_IDR.toLocaleString('id-ID');
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('main-app').style.opacity = '1';
-                    document.getElementById('main-app').classList.remove('hidden');
-                    refreshAllLists();
-                    renderSegmenGrid();
-                    renderJadwalCal();
-                    renderTayangCal();
-                    initSocialChart();
-                }, 500);
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID') + " WIB";
             }, 1000);
         });
 
-        function toggleUserMenu() { document.getElementById('user-menu').classList.toggle('hidden'); }
-        function logoutApp() {
-            if(confirm("Yakin ingin log out dari Control Room?")) {
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('loading-screen').style.display = 'flex';
-                document.getElementById('loading-screen').style.opacity = '1';
-                setTimeout(() => { location.reload(); }, 1000);
-            }
+        function loginWithGoogle() {
+            const avatarUrl = "https://lh3.googleusercontent.com/a/ACg8ocJ..."; // Simulated Google Avatar
+            document.getElementById('user-avatar').src = "https://ui-avatars.com/api/?name=Ardan+Ghoustory&background=B91C1C&color=fff";
+            document.getElementById('user-name-display').innerText = "Ardan";
+            
+            document.getElementById('login-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-app').style.opacity = '1';
+                document.getElementById('main-app').classList.remove('hidden');
+                refreshAllLists();
+            }, 500);
         }
+
+        function logoutApp() {
+            if(confirm("Yakin ingin log out dari akun Google?")) { location.reload(); }
+        }
+
+        function toggleUserMenu() { document.getElementById('user-menu').classList.toggle('hidden'); }
         function showPage(pageId) { document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active')); document.getElementById('page-' + pageId).classList.add('page-active'); }
         function switchTab(feature, tabName) {
             document.querySelectorAll(`[id^="tab-${feature}"]`).forEach(el => el.classList.remove('active'));
@@ -492,97 +551,172 @@
             document.getElementById(`tab-${feature}-${tabName}`).classList.add('active');
             document.getElementById(`tabbtn-${feature}-${tabName}`).classList.add('active');
         }
-        let isMusicPlay = false;
-        function toggleBGM() {
-            const a = document.getElementById('bgm-audio'); const i = document.getElementById('music-icon');
-            if(isMusicPlay) { a.pause(); i.className = "fa-solid fa-music"; isMusicPlay=false; } 
-            else { a.play().catch(e=>console.log(e)); i.className = "fa-solid fa-volume-high text-green-400"; isMusicPlay=true; }
-        }
 
         function refreshAllLists() {
-            renderList('list-mitos', db.mitos, 'mitos', (item, i) => `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white ${item.isDone?'is-done':''}"><div class="flex justify-between items-start"><span class="font-bold">${item.text}</span><button onclick="toggleDone('mitos', ${i})"><i class="fa-solid fa-check text-xl text-gray-600 hover:text-green-500"></i></button></div>${item.research ? `<div class="mt-2 text-xs text-orange-300 bg-gray-900 p-2 rounded border border-gray-700 border-l-2 border-l-orange-500"><i class="fa-solid fa-robot mr-1"></i> ${item.research}</div>` : ''}</div>`);
+            renderList('list-mitos', db.mitos, 'mitos', (item, i) => `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between items-start"><span class="font-bold">${item.text}</span><div class="flex gap-2"><button onclick="salinMitos('${item.text}')" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button><button onclick="kirimKeEditor('${item.text}')" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Kirim Script</button></div></div>${item.research ? `<div class="mt-2 text-xs text-orange-300 bg-gray-900 p-2 rounded border border-gray-700"><i class="fa-solid fa-robot mr-1"></i> ${item.research}</div>` : ''}</div>`);
             renderVOList();
-            renderList('list-notulen', db.notulen, 'notulen', (item, i) => `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white ${item.isDone?'is-done':''}"><div class="font-bold text-red-500">${item.topic}</div><div class="text-xs mt-1 text-gray-400">${item.raw}</div><button onclick="toggleDone('notulen', ${i})" class="mt-2 text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700">${item.isDone?'Hapus 7H':'Tandai Selesai'}</button></div>`);
-            renderList('list-metadata', db.metadata, 'metadata', (item, i) => `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white ${item.isDone?'is-done':''}"><div class="font-bold text-blue-400">${item.title}</div><div class="flex gap-2 mt-2"><button onclick="alert('Salin Teks:\\n${item.aiText}')" class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">Salin</button><button onclick="toggleDone('metadata', ${i})" class="text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700">${item.isDone?'Hapus 7H':'Selesai Upload'}</button></div></div>`);
-            renderStok(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions();
+            renderNotulenList();
+            renderMetadataList();
+            renderStok(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
+            
+            // Footer Quick Stats
+            const totalKas = db.kas.reduce((s, i) => s + i.amount, 0);
+            document.getElementById('footer-kas').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
+            document.getElementById('footer-stok').innerText = `${db.stok.length} Video`;
         }
-        function renderList(cId, arr, arrName, customHtmlFn=null) {
+
+        function renderList(cId, arr, arrName, customHtmlFn) {
             const c = document.getElementById(cId); if(!c) return; c.innerHTML = '';
             if(arr.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada data.</div>'; return; }
-            arr.forEach((item, i) => { if(customHtmlFn) c.innerHTML += customHtmlFn(item, i); else c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center ${item.isDone?'is-done':''}"><span>${item.text}</span><button onclick="toggleDone('${arrName}', ${i})"><i class="fa-solid fa-check text-xl text-gray-600 hover:text-green-500"></i></button></div>`; });
+            arr.forEach((item, i) => { c.innerHTML += customHtmlFn(item, i); });
         }
-        function toggleDone(arrName, i) { db[arrName][i].isDone = !db[arrName][i].isDone; db[arrName][i].deletedAt = db[arrName][i].isDone ? Date.now() : null; saveData(); refreshAllLists(); }
 
-        // GRIMOIRE AI
+        // GRIMOIRE MITOS
         let isMitosMic = false;
         function toggleMitosMic() {
             const btn = document.getElementById('btn-mitos-mic'); const stat = document.getElementById('mitos-mic-status'); const input = document.getElementById('input-mitos');
-            if(!isMitosMic) { isMitosMic=true; btn.classList.add('bg-red-700','text-white'); stat.classList.remove('hidden'); setTimeout(()=>{input.value+=" Lokasi angker di pabrik gula tulangan";}, 1500); } 
+            if(!isMitosMic) { isMitosMic=true; btn.classList.add('bg-red-700','text-white'); stat.classList.remove('hidden'); setTimeout(()=>{input.value+=" Misteri lorong rahasia Lawang Sewu";}, 1500); } 
             else { isMitosMic=false; btn.classList.remove('bg-red-700','text-white'); stat.classList.add('hidden'); }
         }
-        function addMitos() { const t=document.getElementById('input-mitos'); if(t.value) { db.mitos.push({id:Date.now(), text:t.value, research:"Hasil Riset AI: Terkait sejarah kolonial tahun 1920an. Sering ada penampakan...", isDone:false}); t.value=''; saveData(); refreshAllLists(); alert("Mitos & Riset AI Disimpan!"); } }
+        function addMitos() { const t=document.getElementById('input-mitos'); if(t.value) { db.mitos.push({id:Date.now(), text:t.value, research:"Gemini AI Riset: Lokasi ini memiliki catatan sejarah kolonial dan energi gaib yang tinggi."}); t.value=''; saveData(); refreshAllLists(); alert("Riset Mitos Disimpan!"); } }
+        function salinMitos(txt) { navigator.clipboard.writeText(txt); alert("Teks disalin!"); }
+        function kirimKeEditor(txt) { document.getElementById('script-editor').value = `[RISET MITOS GEMINI]\n${txt}\n\nNarasi Utama:\n...`; switchTab('grimoire', 'editor'); }
+
         function generateAiScript() {
-            const n=document.getElementById('ai-narsum').value||'Narasumber'; const l=document.getElementById('ai-lokasi').value||'lokasi mistis'; const p=document.getElementById('ai-premis').value||'penampakan misterius'; const fmt=document.getElementById('ai-format').value;
-            let res = fmt==="Penelusuran"?`[PENELUSURAN]\nLOKASI: ${l.toUpperCase()}\n\n"Malam ini kami di ${l}. Konon ${p} sering terlihat..."\nHost: "Gimana nyatanya Pak ${n}?"` : `[PODCAST]\nTEMA: ${p.toUpperCase()}\n\n"Di podcast Ghoustory malam ini, kita bahas ${l} bersama ${n}..."\n${n}: "Waktu itu saya ngeliat..."`;
-            document.getElementById('script-editor').value = res; alert(`AI meracik format ${fmt}!`);
+            const n=document.getElementById('ai-narsum').value||'Narasumber'; const l=document.getElementById('ai-lokasi').value||'lokasi mistis'; const p=document.getElementById('ai-premis').value||'kejadian mistis'; const fmt=document.getElementById('ai-format').value;
+            let res = fmt==="Penelusuran"?`[PENELUSURAN GEMINI AI]\nLOKASI: ${l.toUpperCase()}\n\n"Malam ini kami di ${l}. Bersama narasumber ${p}..."` : `[PODCAST GEMINI AI]\nTEMA: ${p.toUpperCase()}\n\n"Selamat datang di Ghoustory bersama ${n}..."`;
+            document.getElementById('script-editor').value = res; alert("Naskah diracik AI!");
         }
 
         // GHOUSTNOTE
         let isRecording = false;
-        function toggleRecordMic() { const btn=document.getElementById('btn-mic'); const stat=document.getElementById('mic-status'); const area=document.getElementById('note-raw'); if(!isRecording) { isRecording=true; btn.classList.add('bg-red-700','text-white'); stat.innerText="🔴 Merekam..."; setTimeout(()=>{area.value+=" [Voice-to-Text: Pembagian shift...] ";},1500); } else { isRecording=false; btn.classList.remove('bg-red-700','text-white'); stat.innerText="Mic Off."; } }
+        function toggleRecordMic() { const btn=document.getElementById('btn-mic'); const stat=document.getElementById('mic-status'); const area=document.getElementById('note-raw'); if(!isRecording) { isRecording=true; btn.classList.add('bg-red-700','text-white'); stat.innerText="🔴 Merekam..."; setTimeout(()=>{area.value+=" [Gemini Voice: Jadwal syuting diundur...] ";},1500); } else { isRecording=false; btn.classList.remove('bg-red-700','text-white'); stat.innerText="Mic Off."; } }
         function simpanDraftVO() { const t=document.getElementById('vo-title').value; const k=document.getElementById('vo-teks').value; if(t) { db.vo.push({id:Date.now(), title:t, teks:k}); document.getElementById('vo-title').value=''; document.getElementById('vo-teks').value=''; saveData(); renderVOList(); } }
         function renderVOList() { const c=document.getElementById('list-vo'); if(!c) return; c.innerHTML=''; if(db.vo.length===0){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;} db.vo.forEach(i=>{ c.innerHTML+=`<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><b>🎙️ ${i.title}</b><div class="text-xs text-gray-400 mt-1">"${i.teks}"</div></div>`; }); }
-        function generateNotulen() { const raw=document.getElementById('note-raw').value; const top=document.getElementById('note-topic').value||'Rapat'; if(raw) { db.notulen.push({id:Date.now(), topic:top, raw:"AI: "+raw.substring(0,50)+"...", isDone:false}); saveData(); refreshAllLists(); switchTab('ghoustnote','arsip'); } }
-
-        // ARSIP SEGMEN & KALENDER TAYANG MANUAL
-        function populateSegmentOptions() {
-            const sel = document.getElementById('tayang-segmen'); if(!sel) return;
-            sel.innerHTML = '';
-            db.segmenList.forEach(sg => { sel.innerHTML += `<option value="${sg}">${sg}</option>`; });
+        
+        function generateNotulen() {
+            const raw=document.getElementById('note-raw').value; const top=document.getElementById('note-topic').value||'Rapat';
+            if(raw) { db.notulen.push({id:Date.now(), topic:top, raw:"AI Rangkuman: "+raw}); document.getElementById('note-raw').value=''; document.getElementById('note-topic').value=''; saveData(); refreshAllLists(); switchTab('ghoustnote','arsip'); }
         }
+
+        function renderNotulenList() {
+            const c = document.getElementById('list-notulen'); if(!c) return; c.innerHTML = '';
+            if(db.notulen.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada notulen.</div>'; return; }
+            db.notulen.forEach((item, i) => {
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
+                    <div><b class="text-red-500">${item.topic}</b><div class="text-xs text-gray-400 truncate max-w-xs">${item.raw}</div></div>
+                    <div class="flex gap-1">
+                        <button onclick="openModalNotulen(${i})" class="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-gray-200">Preview / Edit</button>
+                        <button onclick="salinNotulenText(${i})" class="text-xs bg-blue-900 px-2 py-1 rounded text-blue-200">Salin</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        let activeNotulenIndex = null;
+        function openModalNotulen(i) {
+            activeNotulenIndex = i;
+            const item = db.notulen[i];
+            document.getElementById('modal-notulen-title').innerText = item.topic;
+            document.getElementById('modal-notulen-text').value = item.raw;
+            document.getElementById('modal-notulen').classList.remove('hidden'); document.getElementById('modal-notulen').classList.add('flex');
+        }
+        function closeModalNotulen() { document.getElementById('modal-notulen').classList.add('hidden'); document.getElementById('modal-notulen').classList.remove('flex'); }
+        function saveEditNotulen() {
+            if(activeNotulenIndex !== null) {
+                db.notulen[activeNotulenIndex].raw = document.getElementById('modal-notulen-text').value;
+                saveData(); renderNotulenList(); closeModalNotulen(); alert("Notulen diperbarui!");
+            }
+        }
+        function copyNotulenModal() { navigator.clipboard.writeText(document.getElementById('modal-notulen-text').value); alert("Teks dinotulen disalin!"); }
+        function salinNotulenText(i) { navigator.clipboard.writeText(db.notulen[i].raw); alert("Teks disalin!"); }
+
+        // ANALISIS AI & TOMBOL DISETUJUI
+        function generateMetadata() {
+            const link = document.getElementById('ai-yt-link').value;
+            if(!link) return alert("Masukkan link YouTube!");
+            db.metadata.push({ id: Date.now(), title: "Misteri Malam Jumat di Pabrik Gula (Gemini AI)", aiText: "Judul: Misteri Malam Jumat\nCaption: Merinding habis...\nTimestamps: 00:00 Intro..." });
+            saveData(); refreshAllLists(); switchTab('analisis', 'arsip'); alert("Metadata berhasil diekstrak AI!");
+        }
+
+        function renderMetadataList() {
+            const c = document.getElementById('list-metadata'); if(!c) return; c.innerHTML = '';
+            if(db.metadata.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada metadata AI.</div>'; return; }
+            db.metadata.forEach((item, i) => {
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
+                    <div><b class="text-blue-400">${item.title}</b><div class="text-xs text-gray-400">${item.aiText.substring(0,40)}...</div></div>
+                    <div class="flex gap-1">
+                        <button onclick="openModalSetuju(${i})" class="text-xs bg-orange-700 hover:bg-orange-600 px-2.5 py-1 rounded text-white font-bold">Disepakati</button>
+                        <button onclick="navigator.clipboard.writeText('${item.aiText}'); alert('Disalin!');" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function openModalSetuju(i) {
+            const meta = db.metadata[i];
+            document.getElementById('setuju-meta-index').value = i;
+            document.getElementById('setuju-judul').value = meta.title;
+            populateSegmentOptions();
+            document.getElementById('modal-setuju').classList.remove('hidden'); document.getElementById('modal-setuju').classList.add('flex');
+        }
+        function closeModalSetuju() { document.getElementById('modal-setuju').classList.add('hidden'); document.getElementById('modal-setuju').classList.remove('flex'); }
+        
+        function submitSetujuTayang() {
+            const judul = document.getElementById('setuju-judul').value;
+            const seg = document.getElementById('setuju-segmen').value;
+            const tgl = document.getElementById('setuju-tgl').value;
+            if(!tgl) return alert("Pilih tanggal tayang!");
+
+            db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl });
+            saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipih dan di-plot ke kalender tayang!");
+        }
+
+        // ARSIR SEGMEN MANUAL
+        function populateSegmentOptions() {
+            const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen')];
+            sels.forEach(sel => {
+                if(!sel) return; sel.innerHTML = '';
+                db.segmenList.forEach(sg => { sel.innerHTML += `<option value="${sg.nama}">${sg.nama} - ${sg.tagline}</option>`; });
+            });
+        }
+
+        function saveNewSegmentManual() {
+            const nama = document.getElementById('seg-nama').value;
+            const tag = document.getElementById('seg-tagline').value;
+            const desc = document.getElementById('seg-desc').value;
+            const logo = document.getElementById('seg-logo').value;
+            if(!nama) return alert("Nama segmen wajib diisi!");
+
+            db.segmenList.push({ nama: nama.startsWith('#')?nama:'#'+nama, tagline: tag, desc: desc, logo: logo });
+            document.getElementById('seg-nama').value = ''; document.getElementById('seg-tagline').value = ''; document.getElementById('seg-desc').value = ''; document.getElementById('seg-logo').value = '';
+            saveData(); renderSegmenGrid(); populateSegmentOptions(); alert("Segmen baru berhasil disimpan!");
+        }
+
         function renderSegmenGrid() {
             const grid = document.getElementById('view-segmen-grid'); if(!grid) return; grid.innerHTML = '';
-            db.segmenList.forEach(seg => {
-                grid.innerHTML += `<div onclick="openSegmenDetail('${seg}')" class="bg-black border border-gray-800 p-6 rounded-xl text-center cursor-pointer hover:border-orange-500 transition"><i class="fa-solid fa-hashtag text-3xl text-orange-500 mb-2"></i><h4 class="font-bold text-white tracking-widest text-sm">${seg}</h4></div>`;
+            db.segmenList.forEach((seg, idx) => {
+                grid.innerHTML += `<div class="bg-black border border-gray-800 p-4 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            ${seg.logo ? `<img src="${seg.logo}" class="w-10 h-10 object-cover rounded-full border border-orange-500">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
+                            <div><h4 class="font-bold text-orange-400 text-sm">${seg.nama}</h4><p class="text-[11px] text-gray-400 italic">${seg.tagline}</p></div>
+                        </div>
+                        <p class="text-xs text-gray-300 mb-3">${seg.desc}</p>
+                    </div>
+                    <div class="border-t border-gray-900 pt-2 flex justify-between items-center text-[11px] text-gray-500">
+                        <span>Konten Terkait: 0</span>
+                        <button onclick="hapusSegmen(${idx})" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
             });
-            populateSegmentOptions();
         }
-        function createNewSegment() {
-            const s = prompt("Masukkan nama segmen baru (Contoh: #MistikJatim):");
-            if(s) { const fmt = s.startsWith('#') ? s : '#' + s; if(!db.segmenList.includes(fmt)) { db.segmenList.push(fmt); saveData(); renderSegmenGrid(); } }
-        }
-        function openSegmenDetail(segName) {
-            document.getElementById('view-segmen-grid').classList.add('hidden');
-            document.getElementById('view-segmen-detail').classList.remove('hidden');
-            document.getElementById('title-segmen-detail').innerText = segName;
-            const c = document.getElementById('list-segmen-video'); c.innerHTML = '';
-            const vids = db.stok.filter(v => v.segment === segName);
-            if(vids.length === 0) c.innerHTML = '<div class="text-xs text-gray-500 py-4 text-center">Belum ada video di segmen ini.</div>';
-            else vids.forEach(v => c.innerHTML += `<div class="bg-gray-900 border border-gray-700 p-3 rounded text-white text-sm">📍 ${v.text} (${v.format} | ${v.status})</div>`);
-        }
-        function closeSegmenDetail() { document.getElementById('view-segmen-grid').classList.remove('hidden'); document.getElementById('view-segmen-detail').classList.add('hidden'); renderSegmenGrid(); }
+        function hapusSegmen(idx) { db.segmenList.splice(idx, 1); saveData(); renderSegmenGrid(); populateSegmentOptions(); }
 
-        let tayangMonth = new Date().getMonth();
-        let tayangYear = new Date().getFullYear();
-
-        function addTayangManual() {
-            const judul = document.getElementById('tayang-judul').value;
-            const seg = document.getElementById('tayang-segmen').value;
-            const tgl = document.getElementById('tayang-tgl').value;
-            if(!judul || !tgl) return alert("Judul dan Tanggal tayang wajib diisi!");
-            
-            db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl });
-            document.getElementById('tayang-judul').value = ''; document.getElementById('tayang-tgl').value = '';
-            saveData(); renderTayangCal(); alert("Jadwal tayang masuk kalender!");
-        }
-
-        function changeTayangMonth(dir) {
-            tayangMonth += dir;
-            if(tayangMonth > 11) { tayangMonth = 0; tayangYear++; }
-            if(tayangMonth < 0) { tayangMonth = 11; tayangYear--; }
-            renderTayangCal();
-        }
-
+        // KALENDER TAYANG
+        let tayangMonth = new Date().getMonth(); let tayangYear = new Date().getFullYear();
+        function changeTayangMonth(dir) { tayangMonth+=dir; if(tayangMonth>11){tayangMonth=0;tayangYear++;} if(tayangMonth<0){tayangMonth=11;tayangYear--;} renderTayangCal(); }
+        
         function renderTayangCal() {
             const grid = document.getElementById('tayang-calendar-grid'); if(!grid) return;
             const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -591,49 +725,86 @@
             grid.innerHTML = '';
             const firstDay = new Date(tayangYear, tayangMonth, 1).getDay();
             const daysInMonth = new Date(tayangYear, tayangMonth + 1, 0).getDate();
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`;
 
-            for(let i = 0; i < firstDay; i++) { grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`; }
+            const listDetail = document.getElementById('list-tayang-detail'); listDetail.innerHTML = '';
 
-            for(let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${tayangYear}-${String(tayangMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayTayang = db.tayang.filter(t => t.date === dateStr);
+            for(let day=1; day<=daysInMonth; day++) {
+                const dateStr = `${tayangYear}-${String(tayangMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const items = db.tayang.filter(t => t.date === dateStr);
                 
-                let dayHtml = `<div class="bg-black/60 p-1 sm:p-2 rounded min-h-[50px] border border-gray-800 relative">
-                                <span class="text-gray-500 font-bold">${day}</span>`;
-                
-                dayTayang.forEach(item => {
-                    dayHtml += `<div class="mt-1 bg-orange-950/80 border border-orange-600 text-orange-300 text-[9px] p-1 rounded truncate leading-tight">
-                                   📺 <b>${item.segment}</b><br>${item.title}
-                                </div>`;
+                let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
+                items.forEach(it => {
+                    dayHtml += `<div class="mt-0.5 bg-orange-950 text-orange-300 text-[8px] p-0.5 rounded truncate">📺 ${it.title}</div>`;
+                    listDetail.innerHTML += `<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex justify-between items-center">
+                        <div><b>${it.title}</b><div class="text-[10px] text-orange-400">${it.segment} | 📅 ${it.date}</div></div>
+                        <div class="flex gap-1">
+                            <button onclick="editTayang(${it.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
+                            <button onclick="hapusTayang(${it.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                        </div>
+                    </div>`;
                 });
-                dayHtml += `</div>`;
-                grid.innerHTML += dayHtml;
+                dayHtml += `</div>`; grid.innerHTML += dayHtml;
+            }
+            if(listDetail.innerHTML === '') listDetail.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
+        }
+        function hapusTayang(id) { db.tayang = db.tayang.filter(t => t.id !== id); saveData(); renderTayangCal(); }
+        function editTayang(id) {
+            const t = db.tayang.find(x => x.id === id);
+            if(t) {
+                const newTitle = prompt("Edit Judul Video:", t.title);
+                if(newTitle) { t.title = newTitle; saveData(); renderTayangCal(); }
             }
         }
 
-        // JADWAL SHOOTING & ABSENSI LENGKAP
-        let currMonth = new Date().getMonth();
-        let currYear = new Date().getFullYear();
+        // JADWAL & ABSENSI & STOK
+        let currMonth = new Date().getMonth(); let currYear = new Date().getFullYear();
+        function changeCalMonth(dir) { currMonth+=dir; if(currMonth>11){currMonth=0;currYear++;} if(currMonth<0){currMonth=11;currYear--;} renderJadwalCal(); }
 
-        function addJadwalLengkap() {
-            const n = document.getElementById('j-nama').value; const l = document.getElementById('j-lokasi').value;
-            const t = document.getElementById('j-tgl').value; const j = document.getElementById('j-jam').value;
-            if(!n || !t) return alert("Nama event dan Tanggal wajib diisi!");
-            
-            let absensi = {};
-            KRU_NAMES.forEach(kru => { absensi[kru] = { hadir: true, alasan: '' }; });
+        function saveJadwalLengkap() {
+            const editId = document.getElementById('j-edit-id').value;
+            const nama = document.getElementById('j-nama').value;
+            const narsum = document.getElementById('j-narsum').value;
+            const seg = document.getElementById('j-segmen').value;
+            const loc = document.getElementById('j-lokasi').value;
+            const tgl = document.getElementById('j-tgl').value;
+            const jam = document.getElementById('j-jam').value;
+            if(!nama || !tgl) return alert("Nama kegiatan dan tanggal wajib diisi!");
 
-            db.jadwal.push({ id: Date.now(), title: n, loc: l, date: t, time: j, absen: absensi, isDone: false });
-            document.getElementById('j-nama').value = ''; document.getElementById('j-lokasi').value = ''; document.getElementById('j-tgl').value = ''; document.getElementById('j-jam').value = '';
-            saveData(); renderJadwalCal(); alert("Berhasil disuntik ke kalender!");
+            if(editId) {
+                const sch = db.jadwal.find(j => j.id == editId);
+                sch.title = nama; sch.narsum = narsum; sch.segment = seg; sch.loc = loc; sch.date = tgl; sch.time = jam;
+                alert("Jadwal diperbarui!");
+            } else {
+                let absen = {}; KRU_NAMES.forEach(k => absen[k] = { hadir: true, alasan: '' });
+                db.jadwal.push({ id: Date.now(), title: nama, narsum: narsum, segment: seg, loc: loc, date: tgl, time: jam, absen: absen });
+                alert("Jadwal ditambahkan!");
+            }
+            resetJadwalForm(); saveData(); renderJadwalCal();
         }
 
-        function changeCalMonth(dir) {
-            currMonth += dir;
-            if(currMonth > 11) { currMonth = 0; currYear++; }
-            if(currMonth < 0) { currMonth = 11; currYear--; }
-            renderJadwalCal();
+        function resetJadwalForm() {
+            document.getElementById('j-edit-id').value = '';
+            document.getElementById('j-nama').value = ''; document.getElementById('j-narsum').value = ''; document.getElementById('j-lokasi').value = ''; document.getElementById('j-tgl').value = ''; document.getElementById('j-jam').value = '';
+            document.getElementById('jadwal-form-title').innerHTML = '<i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting';
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
         }
+
+        function editJadwal(id) {
+            const sch = db.jadwal.find(j => j.id === id);
+            if(sch) {
+                document.getElementById('j-edit-id').value = sch.id;
+                document.getElementById('j-nama').value = sch.title;
+                document.getElementById('j-narsum').value = sch.narsum || '';
+                document.getElementById('j-lokasi').value = sch.loc || '';
+                document.getElementById('j-tgl').value = sch.date || '';
+                document.getElementById('j-jam').value = sch.time || '';
+                document.getElementById('jadwal-form-title').innerHTML = '<i class="fa-solid fa-pen"></i> Edit Jadwal Shooting';
+                document.getElementById('btn-cancel-edit').classList.remove('hidden');
+                switchTab('tim', 'jadwal');
+            }
+        }
+        function hapusJadwal(id) { db.jadwal = db.jadwal.filter(j => j.id !== id); saveData(); renderJadwalCal(); }
 
         function renderJadwalCal() {
             const grid = document.getElementById('jadwal-calendar-grid'); if(!grid) return;
@@ -643,158 +814,145 @@
             grid.innerHTML = '';
             const firstDay = new Date(currYear, currMonth, 1).getDay();
             const daysInMonth = new Date(currYear, currMonth + 1, 0).getDate();
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`;
 
-            for(let i = 0; i < firstDay; i++) { grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`; }
+            const ringkasanList = document.getElementById('list-ringkasan-jadwal'); ringkasanList.innerHTML = '';
 
-            for(let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${currYear}-${String(currMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const daySchedules = db.jadwal.filter(j => j.date === dateStr);
+            for(let day=1; day<=daysInMonth; day++) {
+                const dateStr = `${currYear}-${String(currMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const schedules = db.jadwal.filter(j => j.date === dateStr);
                 
-                let dayHtml = `<div class="bg-black/60 p-1 sm:p-2 rounded min-h-[50px] border border-gray-800 relative">
-                                <span class="text-gray-500 font-bold">${day}</span>`;
-                
-                daySchedules.forEach((sch, idx) => {
-                    let totalHadir = 0; KRU_NAMES.forEach(k => { if(sch.absen[k]?.hadir) totalHadir++; });
-                    dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-1 bg-red-900/80 border border-red-700 text-white text-[9px] p-1 rounded cursor-pointer hover:bg-red-700 truncate leading-tight" title="Klik untuk absensi">
-                                   🎥 ${sch.title} <br><span class="text-[8px] text-red-200">(${totalHadir}/5 Kru)</span>
-                                </div>`;
+                let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
+                schedules.forEach(sch => {
+                    let totalHadir = 0; let kruTidakHadir = [];
+                    KRU_NAMES.forEach(k => { if(sch.absen[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${sch.absen[k].alasan||'tanpa alasan'})`); });
+
+                    dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-0.5 bg-red-950 text-red-300 text-[8px] p-0.5 rounded cursor-pointer truncate">🎥 ${sch.title} (${totalHadir}/5)</div>`;
+                    
+                    ringkasanList.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-xs text-white flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <div><b>🎥 ${sch.title}</b><div class="text-[10px] text-gray-400">Narasumber: <b class="text-yellow-400">${sch.narsum || '-'}</b> | Segmen: ${sch.segment || '-'}</div></div>
+                            <div class="flex gap-1">
+                                <button onclick="selesaiShooting('${sch.narsum || sch.title}')" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-white font-bold">Selesai Shooting</button>
+                                <button onclick="editJadwal(${sch.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
+                                <button onclick="hapusJadwal(${sch.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-red-400 bg-red-950/30 p-1.5 rounded border border-red-900/50">
+                            <b>Kru Tidak Hadir:</b> ${kruTidakHadir.length > 0 ? kruTidakHadir.join(', ') : 'Semua Hadir Nihil'}
+                        </div>
+                    </div>`;
                 });
-                dayHtml += `</div>`;
-                grid.innerHTML += dayHtml;
+                dayHtml += `</div>`; grid.innerHTML += dayHtml;
             }
+            if(ringkasanList.innerHTML === '') ringkasanList.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada jadwal shooting.</div>';
         }
 
+        // ABSENSI MODAL
         let activeScheduleId = null;
         function openModalAbsen(schId) {
             const sch = db.jadwal.find(j => j.id === schId); if(!sch) return;
             activeScheduleId = schId;
-            document.getElementById('absen-detail-info').innerHTML = `<b>🎥 ${sch.title}</b><br>📍 ${sch.loc}<br>🕒 ${sch.date} (${sch.time})`;
-            
+            document.getElementById('absen-detail-info').innerHTML = `<b>🎥 ${sch.title}</b><br>Narsum: ${sch.narsum}<br>📍 ${sch.loc} (${sch.time})`;
             const listDiv = document.getElementById('absen-list-kru'); listDiv.innerHTML = '';
             
             KRU_NAMES.forEach(name => {
                 const data = sch.absen[name] || { hadir: true, alasan: '' };
-                const isHadir = data.hadir;
-                
-                listDiv.innerHTML += `
-                    <div class="bg-black p-2 rounded border border-gray-700 flex flex-col gap-2">
-                        <div class="flex justify-between items-center">
-                            <span class="text-white text-sm">${name}</span>
-                            <div class="flex gap-1">
-                                <button onclick="setAbsenKru('${name}', true)" class="px-2 py-1 text-[10px] rounded ${isHadir ? 'bg-green-700 text-white font-bold' : 'bg-gray-800 text-gray-500'}">HADIR</button>
-                                <button onclick="setAbsenKru('${name}', false)" class="px-2 py-1 text-[10px] rounded ${!isHadir ? 'bg-red-700 text-white font-bold' : 'bg-gray-800 text-gray-500'}">TIDAK</button>
-                            </div>
+                listDiv.innerHTML += `<div class="bg-black p-2 rounded border border-gray-700 flex flex-col gap-2">
+                    <div class="flex justify-between items-center"><span class="text-white text-sm">${name}</span>
+                        <div class="flex gap-1">
+                            <button onclick="setAbsenKru('${name}', true)" class="px-2 py-1 text-[10px] rounded ${data.hadir?'bg-green-700 text-white font-bold':'bg-gray-800 text-gray-500'}">HADIR</button>
+                            <button onclick="setAbsenKru('${name}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
                         </div>
-                        ${!isHadir ? `<input type="text" value="${data.alasan}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Tulis alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
                     </div>
-                `;
+                    ${!data.hadir ? `<input type="text" value="${data.alasan}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
+                </div>`;
             });
             document.getElementById('modal-absen').classList.remove('hidden'); document.getElementById('modal-absen').classList.add('flex');
         }
-
         function setAbsenKru(name, isHadir) {
             const sch = db.jadwal.find(j => j.id === activeScheduleId);
-            if(!sch.absen[name]) sch.absen[name] = { hadir: true, alasan: '' };
-            sch.absen[name].hadir = isHadir;
-            if(isHadir) sch.absen[name].alasan = '';
+            sch.absen[name].hadir = isHadir; if(isHadir) sch.absen[name].alasan = '';
             saveData(); openModalAbsen(activeScheduleId); renderJadwalCal();
         }
+        function saveAbsenAlasan(name, val) { const sch = db.jadwal.find(j => j.id === activeScheduleId); sch.absen[name].alasan = val; saveData(); }
+        function closeModalAbsen() { document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex'); activeScheduleId = null; }
 
-        function saveAbsenAlasan(name, val) {
-            const sch = db.jadwal.find(j => j.id === activeScheduleId);
-            sch.absen[name].alasan = val; saveData();
+        // STOK & KLASIFIKASI (FOKUS NARSUM)
+        function selesaiShooting(narsumName) {
+            if(!narsumName) return alert("Nama narasumber kosong!");
+            db.stok.push({ id: Date.now(), text: narsumName, format: "🔦 Penelusuran", status: "Siap Edit", segment: "Belum Ada" });
+            saveData(); renderStok(); switchTab('tim', 'stok'); alert(`Shooting selesai! Narasumber "${narsumName}" otomatis masuk ke menu Stok & Klasifikasi.`);
         }
-
-        function closeModalAbsen() {
-            document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex');
-            activeScheduleId = null;
+        function addStok() {
+            const t = document.getElementById('input-stok').value; const fmt = document.getElementById('stok-format').value;
+            if(t) { db.stok.push({ id: Date.now(), text: t, format: fmt, status: "Siap Edit", segment: "Belum Ada" }); document.getElementById('input-stok').value=''; saveData(); renderStok(); }
         }
-
-        // KAS & MONETISASI KURS DOLLAR
-        function hitungRupiah(platform) {
-            const usd = parseFloat(document.getElementById(`mon-${platform}-usd`).value) || 0;
-            const idr = usd * KURS_USD_IDR;
-            document.getElementById(`mon-${platform}-idr`).value = idr > 0 ? `Rp ${idr.toLocaleString('id-ID')}` : '';
-        }
-
-        function simpanMonetisasi() {
-            const ytUsd = parseFloat(document.getElementById('mon-yt-usd').value) || 0;
-            const ttUsd = parseFloat(document.getElementById('mon-tt-usd').value) || 0;
-            const fbUsd = parseFloat(document.getElementById('mon-fb-usd').value) || 0;
-            
-            const totalUsd = ytUsd + ttUsd + fbUsd;
-            const totalIdr = totalUsd * KURS_USD_IDR;
-
-            if(totalIdr <= 0) return alert("Masukkan nominal dollar ($) di salah satu sosmed!");
-
-            db.kas.push({ id:Date.now(), date:new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc:`Cair Ads ($${totalUsd} @${KURS_USD_IDR})`, amount: totalIdr });
-            
-            ['yt', 'tt', 'fb'].forEach(p => {
-                document.getElementById(`mon-${p}-usd`).value = '';
-                document.getElementById(`mon-${p}-idr`).value = '';
+        function renderStok() {
+            const c = document.getElementById('list-stok'); if(!c) return; c.innerHTML = '';
+            if(db.stok.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada stok.</div>'; return; }
+            db.stok.forEach((item, i) => {
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
+                    <div><b>👤 Narasumber: ${item.text}</b><div class="text-[10px] text-yellow-400">${item.format} | Status: ${item.status}</div></div>
+                    <button onclick="db.stok.splice(${i},1); saveData(); renderStok();" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                </div>`;
             });
-
-            saveData(); renderKas(); alert(`Monetisasi $${totalUsd} berhasil dikonversi ke Rp ${totalIdr.toLocaleString('id-ID')} dan masuk ke Kas Utama!`);
         }
 
+        // KAS & NOTA JPEG RESMI
+        function hitungRupiah(p) {
+            const usd = parseFloat(document.getElementById(`mon-${p}-usd`).value) || 0;
+            document.getElementById(`mon-${p}-idr`).value = usd > 0 ? `Rp ${(usd * KURS_USD_IDR).toLocaleString('id-ID')}` : '';
+        }
+        function simpanMonetisasi() {
+            const yt = parseFloat(document.getElementById('mon-yt-usd').value)||0; const tt = parseFloat(document.getElementById('mon-tt-usd').value)||0; const fb = parseFloat(document.getElementById('mon-fb-usd').value)||0;
+            const totalIdr = (yt + tt + fb) * KURS_USD_IDR;
+            if(totalIdr <= 0) return alert("Masukkan nominal dollar!");
+            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: `Monetisasi Sosmed ($${yt+tt+fb})`, amount: totalIdr });
+            ['yt','tt','fb'].forEach(p => { document.getElementById(`mon-${p}-usd`).value=''; document.getElementById(`mon-${p}-idr`).value=''; });
+            saveData(); renderKas(); alert("Monetisasi masuk kas!");
+        }
         function simpanSesiKas() {
             const a = parseFloat(document.getElementById('cicil-artdan').value)||0; const y = parseFloat(document.getElementById('cicil-yhola').value)||0; const t = parseFloat(document.getElementById('cicil-tio').value)||0; const b = parseFloat(document.getElementById('cicil-bila').value)||0;
-            const totalMasuk = a+y+t+b; const ketOut = document.getElementById('kas-ket-out').value||'Pengeluaran'; const valOut = parseFloat(document.getElementById('kas-val-out').value)||0;
-            if(totalMasuk===0 && valOut===0) return;
-            db.kas.push({ id:Date.now(), date:new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc:`Setor (A:${a/1e3}k,Y:${y/1e3}k,T:${t/1e3}k,B:${b/1e3}k) | Keluar: ${ketOut}`, amount:(totalMasuk - valOut) });
-            document.getElementById('cicil-artdan').value=0; document.getElementById('cicil-yhola').value=0; document.getElementById('cicil-tio').value=0; document.getElementById('cicil-bila').value=0; document.getElementById('kas-ket-out').value=''; document.getElementById('kas-val-out').value='';
+            const masuk = a+y+t+b; const ketOut = document.getElementById('kas-ket-out').value||'Keluar'; const out = parseFloat(document.getElementById('kas-val-out').value)||0;
+            if(masuk===0 && out===0) return;
+            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: `Setor Kru | Keluar: ${ketOut}`, amount: (masuk - out) });
+            ['cicil-artdan','cicil-yhola','cicil-tio','cicil-bila','kas-ket-out','kas-val-out'].forEach(id => document.getElementById(id).value = id.includes('cicil')?0:'');
             saveData(); renderKas();
         }
-
         function tutupBuku() {
-            if(!confirm("Tutup buku? Rekap jadi Saldo Awal.")) return;
-            const total = db.kas.reduce((sum, item) => sum + item.amount, 0);
-            db.kas = [{ id:Date.now(), date:new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc:"Saldo Pindahan (Closing)", amount:total }];
+            if(!confirm("Tutup buku?")) return;
+            const total = db.kas.reduce((s, i) => s + i.amount, 0);
+            db.kas = [{ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: "Saldo Pindahan", amount: total }];
             saveData(); renderKas();
         }
-
         function renderKas() {
-            const c = document.getElementById('list-ledger'); if(!c) return; c.innerHTML = '';
-            let total = 0; if(db.kas.length === 0) c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada kas.</div>';
+            const c = document.getElementById('list-ledger'); const cetak = document.getElementById('kas-ringkasan-cetak'); if(!c) return;
+            c.innerHTML = ''; let cetakHtml = ''; let total = 0;
+            if(db.kas.length === 0) c.innerHTML = '<div class="text-xs text-gray-500">Kas kosong.</div>';
             [...db.kas].reverse().forEach(k => {
                 total += k.amount;
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><div class="flex flex-col"><span class="text-white">${k.desc}</span><span class="text-gray-500">${k.date}</span></div><span class="font-bold ${k.amount >= 0?'text-green-500':'text-red-500'}">Rp ${k.amount.toLocaleString('id-ID')}</span></div>`;
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${k.desc} (${k.date})</span><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${k.amount.toLocaleString('id-ID')}</b></div>`;
+                cetakHtml += `<div class="flex justify-between"><span>• ${k.desc}</span><b>Rp ${k.amount.toLocaleString('id-ID')}</b></div>`;
             });
-            document.getElementById('total-saldo-kas').innerText = `Rp ${db.kas.reduce((sum, i)=>sum+i.amount,0).toLocaleString('id-ID')}`;
+            document.getElementById('total-saldo-kas').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+            if(cetak) cetak.innerHTML = cetakHtml;
         }
-        
+
         function shareKasWA() {
-            const total = db.kas.reduce((sum, i)=>sum+i.amount,0);
-            let txt = `*LAPORAN KAS GHOUSTORY*\nSaldo Saat Ini: *Rp ${total.toLocaleString('id-ID')}*\n\n*Riwayat Terakhir:*\n`;
-            [...db.kas].reverse().slice(0,5).forEach(k => { txt += `- ${k.date}: ${k.desc} (Rp ${k.amount.toLocaleString('id-ID')})\n`; });
+            const total = db.kas.reduce((s, i) => s + i.amount, 0);
+            let txt = `*NOTA KAS RESMI GHOUSTORY*\nTotal Saldo: *Rp ${total.toLocaleString('id-ID')}*\n\n`;
+            [...db.kas].reverse().slice(0,5).forEach(k => { txt += `- ${k.desc}: Rp ${k.amount.toLocaleString('id-ID')}\n`; });
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
         }
 
         function downloadKasJPEG() {
             const area = document.getElementById('area-kas-cetak');
-            const ringkasan = document.getElementById('kas-ringkasan-cetak');
-            let txtHtml = `<b>Riwayat Terakhir:</b><br>`;
-            [...db.kas].reverse().slice(0,5).forEach(k => { txtHtml += `- ${k.desc} (Rp ${k.amount.toLocaleString('id-ID')})<br>`; });
-            ringkasan.innerHTML = txtHtml; ringkasan.classList.remove('hidden');
-
-            setTimeout(() => {
-                html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `Kas-Ghoustory-${new Date().getTime()}.jpeg`;
-                    link.href = canvas.toDataURL('image/jpeg', 0.9);
-                    link.click(); ringkasan.classList.add('hidden');
-                });
-            }, 100);
-        }
-
-        // STOK VIDEO
-        function addStok() { const t=document.getElementById('input-stok'); const fmt=document.getElementById('stok-format').value; if(t.value) { db.stok.push({id:Date.now(), text:t.value, format:fmt, status:"Siap Edit", segment:"Belum Ada", isDone:false}); t.value=''; saveData(); renderStok(); } }
-        function updateStokStatus(i, val) { db.stok[i].status=val; saveData(); } function updateStokSegmen(i, val) { db.stok[i].segment=val; saveData(); }
-        function renderStok() {
-            const c=document.getElementById('list-stok'); if(!c) return; c.innerHTML='';
-            db.stok.forEach((item, i) => {
-                let opts = `<option value="Belum Ada">Pilih Segmen...</option>`; db.segmenList.forEach(sg => { opts += `<option value="${sg}" ${item.segment===sg?'selected':''}>${sg}</option>`; });
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white ${item.isDone?'is-done':''}"><div class="flex justify-between items-center font-bold mb-1">${item.text} <span class="text-[10px] bg-gray-900 text-yellow-400 px-2 py-0.5 rounded border border-gray-700">${item.format}</span> <button onclick="toggleDone('stok', ${i})"><i class="fa-solid fa-check hover:text-green-500 text-gray-500"></i></button></div><div class="grid grid-cols-2 gap-2 mt-2"><select onchange="updateStokStatus(${i}, this.value)" class="text-xs bg-gray-900 text-yellow-400 border border-gray-700 rounded p-1 outline-none"><option value="Siap Edit" ${item.status==='Siap Edit'?'selected':''}>Siap Edit</option><option value="Sudah Diedit" ${item.status==='Sudah Diedit'?'selected':''}>Sudah Diedit</option></select><select onchange="updateStokSegmen(${i}, this.value)" class="text-xs bg-gray-900 text-orange-400 border border-gray-700 rounded p-1 outline-none">${opts}</select></div></div>`;
+            html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Nota-Kas-Ghoustory-${new Date().getTime()}.jpeg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.click();
             });
         }
 
@@ -805,10 +963,9 @@
         function togglePromoPlay() { const t=document.getElementById('teleprompter-text'); const b=document.getElementById('btn-promo-play'); if(isPromoPlaying) { t.style.animationPlayState='paused'; t.classList.remove('teleprompter-run'); b.innerHTML='<i class="fa-solid fa-play"></i>'; } else { t.classList.add('teleprompter-run'); t.style.animationPlayState='running'; b.innerHTML='<i class="fa-solid fa-pause"></i>'; } isPromoPlaying = !isPromoPlaying; }
         function setPromoSpeed(sec, btnNode) { document.getElementById('teleprompter-text').style.animationDuration = `${sec}s`; document.querySelectorAll('.promo-spd').forEach(b => { b.classList.remove('bg-yellow-700'); b.classList.add('bg-gray-800'); }); btnNode.classList.remove('bg-gray-800'); btnNode.classList.add('bg-yellow-700'); }
 
-        // CHART
         function initSocialChart() {
             const ctx = document.getElementById('socialChart');
-            if(ctx) { new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'], datasets: [ { label: 'YouTube', data: [1200, 2500, 4100, 7800], borderColor: '#EF4444', backgroundColor: '#EF4444', tension: 0.3 }, { label: 'TikTok', data: [3000, 8500, 14000, 25000], borderColor: '#EAB308', backgroundColor: '#EAB308', tension: 0.3 }, { label: 'Facebook', data: [500, 1200, 2000, 4500], borderColor: '#3B82F6', backgroundColor: '#3B82F6', tension: 0.3 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } }, scales: { x: { ticks: { color: '#888' }, grid: { color: '#222' } }, y: { ticks: { color: '#888' }, grid: { color: '#222' } } } } }); }
+            if(ctx) { new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: ['M1', 'M2', 'M3', 'M4'], datasets: [{ label: 'YouTube', data: [1200, 2500, 4100, 7800], borderColor: '#EF4444' }, { label: 'TikTok', data: [3000, 8500, 14000, 25000], borderColor: '#EAB308' }, { label: 'FB', data: [500, 1200, 2000, 4500], borderColor: '#3B82F6' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } }, scales: { x: { ticks: { color: '#888' }, grid: { color: '#222' } }, y: { ticks: { color: '#888' }, grid: { color: '#222' } } } } }); }
         }
     </script>
 </body>
