@@ -756,7 +756,7 @@
             } catch (error) {
                 console.error('Database bersama belum siap:', error);
                 if (loginStatus) {
-                    loginStatus.textContent = 'Database belum siap. Jalankan SQL setup di Supabase, lalu muat ulang halaman.';
+                    loginStatus.textContent = 'Database belum siap: ' + (error?.message || String(error)) + '. Hubungi pengelola aplikasi dengan pesan ini.';
                     loginStatus.classList.remove('hidden');
                 }
                 appOpening = false;
