@@ -2758,7 +2758,8 @@ async function loadChatMessages(){
             body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title,reply_to
           }).select("id").single();
           if(error)throw error;
-          if(notify)await sendGhoustoryPush(data.id,"group");
+          // Push notification is auxiliary; failure must not undo a successful message insert.
+          if(notify){try{await sendGhoustoryPush(data.id,"group");}catch(pushError){console.warn("Pesan tersimpan, tetapi push notification gagal:",pushError);}}
           return data;
         }
         async function sendChatMessage(event){
@@ -2770,7 +2771,9 @@ async function loadChatMessages(){
           button.disabled=true;
           try{
             await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});
-            input.value="";clearGroupReply();
+            input.value="";
+            input.dispatchEvent(new Event("input",{bubbles:true}));
+            clearGroupReply();
           }catch(error){
             alert("Pesan belum terkirim: "+error.message);
             button.disabled=false;
