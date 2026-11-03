@@ -48,7 +48,7 @@
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
 
-    <!-- LOGIN SCREEN (GOOGLE AUTH SIMULATION) -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen" class="fixed inset-0 bg-black z-[110] flex flex-col items-center justify-center p-4">
         <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center border border-red-900/50 shadow-[0_0_40px_rgba(185,28,28,0.2)]">
             <img src="image_2.png" alt="Logo" class="h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.8)]" onerror="this.style.display='none'">
@@ -58,7 +58,7 @@
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
                 <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
             </button>
-            <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.0</div>
+            <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.2</div>
         </div>
     </div>
 
@@ -221,17 +221,21 @@
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-orange-500">
                     <div id="tab-segmen-kumpulan" class="tab-content active space-y-4">
                         <div class="bg-black p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
-                            <h4 class="font-bold text-orange-500 uppercase"><i class="fa-solid fa-plus"></i> Tambah Segmen Baru</h4>
+                            <h4 class="font-bold text-orange-500 uppercase" id="segmen-form-title"><i class="fa-solid fa-plus"></i> Tambah Segmen Baru</h4>
+                            <input type="hidden" id="seg-edit-index" value="-1">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <input type="text" id="seg-nama" placeholder="Nama Segmen (Cth: #MistikJatim)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
                                 <input type="text" id="seg-tagline" placeholder="Tagline (Cth: Menyibak Misteri Timur Jawa)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
                             </div>
                             <textarea id="seg-desc" placeholder="Deskripsi Segmen..." class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white h-16"></textarea>
                             <div>
-                                <label class="text-gray-400 block mb-1">Logo Segmen (URL Gambar / File)</label>
-                                <input type="text" id="seg-logo" placeholder="URL Logo (Opsional)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                                <label class="text-gray-400 block mb-1">Upload Logo Segmen (File Gambar)</label>
+                                <input type="file" id="seg-logo-file" accept="image/*" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-700 file:text-white hover:file:bg-orange-600">
                             </div>
-                            <button onclick="saveNewSegmentManual()" class="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Simpan Segmen</button>
+                            <div class="flex gap-2">
+                                <button onclick="saveNewSegmentManual()" class="flex-grow bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Simpan Segmen</button>
+                                <button onclick="resetSegmenForm()" id="btn-cancel-seg-edit" class="bg-gray-800 px-3 py-2 rounded text-gray-400 hidden">Batal</button>
+                            </div>
                         </div>
                         <div id="view-segmen-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
@@ -276,7 +280,7 @@
                             <input type="text" id="j-narsum" placeholder="Nama Narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                             <div class="grid grid-cols-2 gap-2">
                                 <select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400 font-bold outline-none"></select>
-                                <input type="text" id="j-lokasi" placeholder="Lokasi (Cth: Sidoarjo)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
+                                <input type="text" id="j-lokasi" placeholder="Lokasi (Cth: Sidoarjo)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="date" id="j-tgl" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
@@ -408,7 +412,7 @@
 
         </main>
 
-        <!-- FOOTER BAWAH (Poin 1 & 2) -->
+        <!-- FOOTER BAWAH -->
         <footer class="border-t border-gray-900 bg-black/80 py-4 px-4 text-xs text-gray-400 mt-auto">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="flex items-center gap-3">
@@ -502,7 +506,7 @@
 
     <script>
         // ================= DATABASE DUMMY =================
-        let db = JSON.parse(localStorage.getItem('gh_db_v3_0')) || {
+        let db = JSON.parse(localStorage.getItem('gh_db_v3_2')) || {
             script: "", mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], kas: [],
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
@@ -515,7 +519,7 @@
 
         function saveData() {
             if(document.getElementById('script-editor')) db.script = document.getElementById('script-editor').value;
-            localStorage.setItem('gh_db_v3_0', JSON.stringify(db));
+            localStorage.setItem('gh_db_v3_2', JSON.stringify(db));
         }
 
         window.addEventListener('load', () => {
@@ -523,10 +527,10 @@
                 const now = new Date();
                 document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID') + " WIB";
             }, 1000);
+            initSocialChart();
         });
 
         function loginWithGoogle() {
-            const avatarUrl = "https://lh3.googleusercontent.com/a/ACg8ocJ..."; // Simulated Google Avatar
             document.getElementById('user-avatar').src = "https://ui-avatars.com/api/?name=Ardan+Ghoustory&background=B91C1C&color=fff";
             document.getElementById('user-name-display').innerText = "Ardan";
             
@@ -559,7 +563,6 @@
             renderMetadataList();
             renderStok(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
             
-            // Footer Quick Stats
             const totalKas = db.kas.reduce((s, i) => s + i.amount, 0);
             document.getElementById('footer-kas').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
             document.getElementById('footer-stok').innerText = `${db.stok.length} Video`;
@@ -669,10 +672,10 @@
             if(!tgl) return alert("Pilih tanggal tayang!");
 
             db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl });
-            saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipih dan di-plot ke kalender tayang!");
+            saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipilih dan di-plot ke kalender tayang!");
         }
 
-        // ARSIR SEGMEN MANUAL
+        // ARSIP SEGMEN (DENGAN UPLOAD FILE & EDIT)
         function populateSegmentOptions() {
             const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen')];
             sels.forEach(sel => {
@@ -682,15 +685,60 @@
         }
 
         function saveNewSegmentManual() {
+            const editIdx = parseInt(document.getElementById('seg-edit-index').value);
             const nama = document.getElementById('seg-nama').value;
             const tag = document.getElementById('seg-tagline').value;
             const desc = document.getElementById('seg-desc').value;
-            const logo = document.getElementById('seg-logo').value;
+            const fileInput = document.getElementById('seg-logo-file');
+            
             if(!nama) return alert("Nama segmen wajib diisi!");
 
-            db.segmenList.push({ nama: nama.startsWith('#')?nama:'#'+nama, tagline: tag, desc: desc, logo: logo });
-            document.getElementById('seg-nama').value = ''; document.getElementById('seg-tagline').value = ''; document.getElementById('seg-desc').value = ''; document.getElementById('seg-logo').value = '';
-            saveData(); renderSegmenGrid(); populateSegmentOptions(); alert("Segmen baru berhasil disimpan!");
+            const finishSave = (logoBase64) => {
+                const segObj = { 
+                    nama: nama.startsWith('#') ? nama : '#' + nama, 
+                    tagline: tag, 
+                    desc: desc, 
+                    logo: logoBase64 || (editIdx >= 0 ? db.segmenList[editIdx].logo : '') 
+                };
+
+                if(editIdx >= 0) {
+                    db.segmenList[editIdx] = segObj;
+                    alert("Segmen berhasil diperbarui!");
+                } else {
+                    db.segmenList.push(segObj);
+                    alert("Segmen baru berhasil disimpan!");
+                }
+                resetSegmenForm(); saveData(); renderSegmenGrid(); populateSegmentOptions();
+            };
+
+            if(fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { finishSave(e.target.result); };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                finishSave(null);
+            }
+        }
+
+        function resetSegmenForm() {
+            document.getElementById('seg-edit-index').value = "-1";
+            document.getElementById('seg-nama').value = '';
+            document.getElementById('seg-tagline').value = '';
+            document.getElementById('seg-desc').value = '';
+            document.getElementById('seg-logo-file').value = '';
+            document.getElementById('segmen-form-title').innerHTML = '<i class="fa-solid fa-plus"></i> Tambah Segmen Baru';
+            document.getElementById('btn-cancel-seg-edit').classList.add('hidden');
+        }
+
+        function editSegmen(idx) {
+            const seg = db.segmenList[idx];
+            document.getElementById('seg-edit-index').value = idx;
+            document.getElementById('seg-nama').value = seg.nama;
+            document.getElementById('seg-tagline').value = seg.tagline;
+            document.getElementById('seg-desc').value = seg.desc;
+            document.getElementById('segmen-form-title').innerHTML = '<i class="fa-solid fa-pen"></i> Edit Segmen';
+            document.getElementById('btn-cancel-seg-edit').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderSegmenGrid() {
@@ -705,8 +753,11 @@
                         <p class="text-xs text-gray-300 mb-3">${seg.desc}</p>
                     </div>
                     <div class="border-t border-gray-900 pt-2 flex justify-between items-center text-[11px] text-gray-500">
-                        <span>Konten Terkait: 0</span>
-                        <button onclick="hapusSegmen(${idx})" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        <span>Segmen Aktif</span>
+                        <div class="flex gap-2">
+                            <button onclick="editSegmen(${idx})" class="text-yellow-500 hover:text-yellow-400"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button onclick="hapusSegmen(${idx})" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        </div>
                     </div>
                 </div>`;
             });
@@ -878,7 +929,7 @@
         function saveAbsenAlasan(name, val) { const sch = db.jadwal.find(j => j.id === activeScheduleId); sch.absen[name].alasan = val; saveData(); }
         function closeModalAbsen() { document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex'); activeScheduleId = null; }
 
-        // STOK & KLASIFIKASI (FOKUS NARSUM)
+        // STOK & KLASIFIKASI
         function selesaiShooting(narsumName) {
             if(!narsumName) return alert("Nama narasumber kosong!");
             db.stok.push({ id: Date.now(), text: narsumName, format: "🔦 Penelusuran", status: "Siap Edit", segment: "Belum Ada" });
