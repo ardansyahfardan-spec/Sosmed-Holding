@@ -233,9 +233,11 @@
                     </div>
                     <div class="relative">
                         <button onclick="toggleUserMenu()" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-52 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs">
-                            <div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">LOGIN SEBAGAI</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div>
-                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log out</button>
+                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs">
+                            <div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div>
+                            <button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800"><i class="fa-solid fa-user-pen mr-2 text-red-400"></i> Edit Profil</button>
+                            <button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800"><i class="fa-solid fa-gear mr-2 text-blue-400"></i> Pengaturan Akun</button>
+                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800 border-t border-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log out</button>
                         </div>
                     </div>
                 </div>
@@ -1046,6 +1048,17 @@
                 document.getElementById('user-name-display').innerText = accountName;
                 document.getElementById('user-menu-account-name').innerText = accountName;
 
+                const { data: savedProfile, error: profileError } = await supabaseClient
+                    .from('ghoustory_profiles').select('*').eq('user_id', user.id).maybeSingle();
+                if (profileError) throw profileError;
+                if (!savedProfile) {
+                    welcomeScreen.classList.add('hidden');
+                    welcomeScreen.classList.remove('flex');
+                    appOpening = false;
+                    openProfileModal('register');
+                    return;
+                }
+                applyGhoustoryProfile(savedProfile);
                 if (welcomeStatus) welcomeStatus.textContent = 'Ruang kendali siap dibuka...';
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').style.opacity = '0';
@@ -1102,6 +1115,114 @@
                 }
             }
         }
+
+        let activeProfile = null;
+        let profileModalMode = 'register';
+
+        function applyGhoustoryProfile(profile) {
+            activeProfile = profile;
+            const fallback = activeUser?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
+            const avatar = profile?.avatar_url || fallback;
+            const nickname = profile?.nickname || activeUser?.user_metadata?.full_name || activeUser?.email || "Anggota";
+            const role = profile?.role || "Anggota";
+            const headerAvatar = document.getElementById('user-avatar');
+            if (headerAvatar) headerAvatar.src = avatar;
+            const headerName = document.getElementById('user-name-display');
+            if (headerName) headerName.innerText = nickname;
+            const menuName = document.getElementById('user-menu-account-name');
+            if (menuName) menuName.innerText = nickname + " · " + role;
+        }
+
+        function openProfileModal(mode='edit') {
+            profileModalMode = mode;
+            const modal = document.getElementById('ghoustory-profile-modal');
+            const title = document.getElementById('profile-modal-title');
+            const subtitle = document.getElementById('profile-modal-subtitle');
+            const name = document.getElementById('profile-nickname');
+            const role = document.getElementById('profile-role');
+            const other = document.getElementById('profile-role-other');
+            const preview = document.getElementById('profile-photo-preview');
+            const file = document.getElementById('profile-photo-file');
+            const save = document.getElementById('profile-save-button');
+            if (!modal) return;
+            title.textContent = mode === 'register' ? 'DAFTAR ANGGOTA' : 'EDIT PROFIL';
+            subtitle.textContent = mode === 'register' ? 'Lengkapi profil sebelum memasuki Control Room.' : 'Perbarui identitasmu di Ghoustory.';
+            name.value = activeProfile?.nickname || '';
+            const knownRoles = ['Admin','Host','Editor','Kameramen','Produser','Penulis','Desainer','Audio','Lainnya'];
+            role.value = knownRoles.includes(activeProfile?.role) ? activeProfile.role : (activeProfile?.role ? 'Lainnya' : '');
+            other.value = role.value === 'Lainnya' ? (activeProfile?.role || '') : '';
+            other.classList.toggle('hidden', role.value !== 'Lainnya');
+            preview.src = activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
+            file.value = '';
+            save.textContent = mode === 'register' ? 'Simpan & Masuk' : 'Simpan Perubahan';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('user-menu')?.classList.add('hidden');
+        }
+
+        function closeProfileModal() {
+            if (profileModalMode === 'register' && !activeProfile) return;
+            const modal = document.getElementById('ghoustory-profile-modal');
+            modal?.classList.add('hidden'); modal?.classList.remove('flex');
+        }
+
+        async function saveGhoustoryProfile(event) {
+            event.preventDefault();
+            if (!activeUser) return;
+            const button = document.getElementById('profile-save-button');
+            const status = document.getElementById('profile-save-status');
+            const nickname = document.getElementById('profile-nickname').value.trim();
+            const selectedRole = document.getElementById('profile-role').value;
+            const role = selectedRole === 'Lainnya' ? document.getElementById('profile-role-other').value.trim() : selectedRole;
+            const file = document.getElementById('profile-photo-file').files?.[0];
+            if (!nickname || !role) { status.textContent = 'Nama panggilan dan peran wajib diisi.'; return; }
+            if (file && (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5*1024*1024)) {
+                status.textContent = 'Foto harus JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.'; return;
+            }
+            button.disabled = true; status.textContent = 'Menyimpan profil...';
+            let newPath = null;
+            const oldPath = activeProfile?.avatar_path || null;
+            try {
+                let avatarUrl = activeProfile?.avatar_url || activeUser.user_metadata?.avatar_url || null;
+                if (file) {
+                    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+                    newPath = activeUser.id + '/' + Date.now() + '.' + ext;
+                    const { error: uploadError } = await supabaseClient.storage.from('ghoustory-avatars').upload(newPath, file, { contentType:file.type, upsert:false });
+                    if (uploadError) throw uploadError;
+                    const { data: publicData } = supabaseClient.storage.from('ghoustory-avatars').getPublicUrl(newPath);
+                    avatarUrl = publicData.publicUrl;
+                }
+                const payload = { user_id:activeUser.id, nickname, role, avatar_url:avatarUrl, avatar_path:newPath || oldPath, updated_at:new Date().toISOString() };
+                const { data, error } = await supabaseClient.from('ghoustory_profiles').upsert(payload, { onConflict:'user_id' }).select().single();
+                if (error) throw error;
+                activeProfile = data;
+                applyGhoustoryProfile(data);
+                if (newPath && oldPath && oldPath !== newPath) {
+                    const { error: removeError } = await supabaseClient.storage.from('ghoustory-avatars').remove([oldPath]);
+                    if (removeError) console.warn('Foto lama belum terhapus:', removeError.message);
+                }
+                const modal = document.getElementById('ghoustory-profile-modal');
+                modal.classList.add('hidden'); modal.classList.remove('flex');
+                if (profileModalMode === 'register') {
+                    const welcome = document.getElementById('welcome-screen');
+                    const app = document.getElementById('main-app');
+                    app.classList.remove('hidden'); app.style.opacity = '0';
+                    refreshAllLists();
+                    setTimeout(() => { welcome.classList.add('hidden'); welcome.classList.remove('flex'); app.style.opacity = '1'; }, 150);
+                }
+            } catch (error) {
+                if (newPath) await supabaseClient.storage.from('ghoustory-avatars').remove([newPath]).catch(()=>{});
+                status.textContent = 'Profil gagal disimpan: ' + (error.message || error);
+            } finally { button.disabled = false; }
+        }
+
+        document.addEventListener('change', event => {
+            if (event.target?.id === 'profile-role') document.getElementById('profile-role-other')?.classList.toggle('hidden', event.target.value !== 'Lainnya');
+            if (event.target?.id === 'profile-photo-file') {
+                const file = event.target.files?.[0];
+                if (file) document.getElementById('profile-photo-preview').src = URL.createObjectURL(file);
+            }
+        });
 
         async function logoutApp() {
             if(confirm("Yakin ingin log out dari akun Google?")) {
@@ -2681,5 +2802,26 @@
         }
       })();
     </script>
+    <div id="ghoustory-profile-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center">
+      <form onsubmit="saveGhoustoryProfile(event)" class="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-5 shadow-2xl">
+        <div class="text-center mb-5"><div class="text-red-500 text-xs tracking-[.25em] mb-2">GHOUSTORY CONTROL ROOM</div><h2 id="profile-modal-title" class="font-mystery text-xl text-white">DAFTAR ANGGOTA</h2><p id="profile-modal-subtitle" class="text-xs text-gray-400 mt-2">Lengkapi profil sebelum memasuki Control Room.</p></div>
+        <div class="flex flex-col items-center gap-2 mb-5">
+          <img id="profile-photo-preview" src="" alt="Foto profil" class="w-24 h-24 rounded-full object-cover border-2 border-red-700 bg-gray-900">
+          <label class="cursor-pointer text-xs text-blue-300 hover:text-blue-200"><i class="fa-solid fa-camera mr-1"></i> Ganti foto profil<input id="profile-photo-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden"></label>
+          <p class="text-[10px] text-gray-500">Foto Google digunakan sebagai foto awal jika tersedia. Maksimal 5 MB.</p>
+        </div>
+        <label class="block text-xs text-gray-300 mb-1" for="profile-nickname">Nama panggilan *</label>
+        <input id="profile-nickname" required maxlength="40" autocomplete="nickname" class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Nama yang akan dilihat anggota lain">
+        <label class="block text-xs text-gray-300 mb-1" for="profile-role">Peran *</label>
+        <select id="profile-role" required class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-3">
+          <option value="">Pilih peran</option><option>Admin</option><option>Host</option><option>Editor</option><option>Kameramen</option><option>Produser</option><option>Penulis</option><option>Desainer</option><option>Audio</option><option value="Lainnya">Lainnya</option>
+        </select>
+        <input id="profile-role-other" maxlength="60" class="hidden w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Tulis peranmu">
+        <p id="profile-save-status" class="text-xs text-yellow-300 min-h-5 mb-3" role="status"></p>
+        <button id="profile-save-button" type="submit" class="w-full rounded-lg bg-red-700 hover:bg-red-600 py-3 text-sm font-semibold text-white">Simpan & Masuk</button>
+        <button type="button" onclick="closeProfileModal()" class="w-full mt-2 rounded-lg border border-gray-700 py-3 text-xs text-gray-400">Tutup</button>
+      </form>
+    </div>
+
 </body>
 </html>
