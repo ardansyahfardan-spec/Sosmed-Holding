@@ -1245,9 +1245,17 @@
             }
         });
 
+        async function stopChatPresence(){
+            if(ritualHeartbeatTimer){clearInterval(ritualHeartbeatTimer);ritualHeartbeatTimer=null;}
+            const channels=[ritualPresenceChannel,groupPresenceChannel,dmPresenceChannel].filter(Boolean);
+            ritualPresenceChannel=null;groupPresenceChannel=null;dmPresenceChannel=null;
+            await Promise.all(channels.map(ch=>supabaseClient.removeChannel(ch)));
+            ritualOnlineIds=new Set();
+        }
         async function logoutApp() {
             if(confirm("Yakin ingin log out dari akun Google?")) {
                 markasTimUnlocked = false;
+                await stopChatPresence();
                 await supabaseClient.auth.signOut();
             }
         }
