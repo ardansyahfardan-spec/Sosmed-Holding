@@ -18,8 +18,10 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   try {
+    console.log("[ghoustory-ai] stage=reading_request");
     const body = await req.json();
     const task = String(body.task || "");
+    console.log("[ghoustory-ai] stage=request_parsed task=" + task);
 
     // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
     if (task === "health") {
@@ -86,6 +88,7 @@ Deno.serve(async (req) => {
       return json({ error: "Jenis tugas AI tidak dikenal." }, 400);
     }
 
+    console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
       {
@@ -94,16 +97,27 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
           tools: task === "research" ? [{ google_search: {} }] : undefined,
-          generationConfig: { temperature: 0.75, maxOutputTokens: 5000 },
+          generationConfig: { temperature: 0.75, maxOutputTokens: task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500 },
         }),
       },
     );
 
-    const result = await response.json();
+    console.log("[ghoustory-ai] stage=gemini_response status=" + response.status);
+    const responseText = await response.text();
+    console.log("[ghoustory-ai] stage=response_body_received chars=" + responseText.length);
+    let result: Record<string, any>;
+    try {
+      result = JSON.parse(responseText);
+    } catch (_) {
+      console.error("[ghoustory-ai] stage=json_parse_failed");
+      return json({ error: "Respons Gemini bukan JSON yang valid." }, 502);
+    }
+    console.log("[ghoustory-ai] stage=json_parsed");
     if (!response.ok) {
       const message = result?.error?.message || "Gemini API gagal memproses permintaan.";
       return json({ error: message }, response.status);
     }
+    console.log("[ghoustory-ai] stage=extracting_text");
     const text = (result?.candidates?.[0]?.content?.parts || [])
       .map((part: { text?: string }) => part.text || "")
       .join("\n")
