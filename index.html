@@ -339,9 +339,10 @@
                         <div class="bg-black p-4 rounded border border-gray-800 space-y-3">
                             <div>
                                 <label class="block text-xs text-gray-400 mb-1">Link YouTube (publik atau unlisted)</label>
-                                <input type="url" id="video-analysis-youtube-url" class="w-full bg-darkCard border border-gray-700 p-3 rounded text-sm text-white focus:border-blue-500 outline-none" placeholder="https://youtu.be/... atau https://www.youtube.com/watch?v=...">
-                                <button id="video-analysis-youtube-run" onclick="analyzeVideoYoutube()" class="w-full mt-2 bg-gradient-to-r from-red-800 to-blue-800 hover:brightness-110 text-white font-bold py-3 rounded text-sm"><i class="fa-brands fa-youtube mr-1"></i> Analisis dari Link YouTube</button>
-                                <p class="text-[10px] text-gray-500 mt-1">Menggunakan caption/transkrip yang tersedia. Jika caption tidak tersedia atau tidak bisa diakses, gunakan MP3.</p>
+                                <input type="url" id="ai-yt-link" class="w-full bg-darkCard border border-gray-700 p-3 rounded text-sm text-white focus:border-blue-500 outline-none" placeholder="https://youtu.be/... atau https://www.youtube.com/watch?v=...">
+                                <button id="video-analysis-youtube-run" onclick="analyzeVideoYoutube()" class="w-full mt-2 bg-gradient-to-r from-red-800 to-blue-800 hover:brightness-110 text-white font-bold py-3 rounded text-sm"><i class="fa-brands fa-youtube mr-1"></i> Analisis Transkrip & Cari Shorts</button>
+                                <button onclick="generateMetadata()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded text-sm"><i class="fa-solid fa-bolt mr-1"></i> Buat Metadata Upload dengan Gemini AI</button>
+                                <p class="text-[10px] text-gray-500 mt-1">Satu link dipakai untuk analisis transkrip dan pembuatan metadata. Analisis transkrip memerlukan caption yang dapat dibaca; jika tidak tersedia, gunakan MP3.</p>
                             </div>
                             <div class="border-t border-gray-800 pt-3">
                                 <label class="block text-xs text-gray-400 mb-1">Atau unggah audio MP3 hasil ekstrak</label>
@@ -353,10 +354,6 @@
                             <p id="video-analysis-status" class="text-xs text-gray-400" aria-live="polite">Masukkan link YouTube atau pilih MP3 untuk memulai.</p>
                             <div id="video-analysis-preview" class="hidden mt-4"></div>
                             <button id="video-analysis-save" onclick="saveVideoAnalysis()" disabled class="hidden w-full mt-3 bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Hasil ke Supabase</button>
-                        </div>
-                        <div class="bg-black/40 border border-gray-800 rounded p-3 mt-3">
-                            <input type="text" id="ai-yt-link" class="w-full bg-darkCard border border-gray-700 p-3 rounded text-sm text-white focus:border-blue-500 outline-none" placeholder="Link YouTube untuk membuat metadata siap upload...">
-                            <button onclick="generateMetadata()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded"><i class="fa-solid fa-bolt"></i> Buat Metadata Upload dengan Gemini AI</button>
                         </div>
                     </div>
                 </div>
@@ -2044,7 +2041,7 @@
             return '<div class="space-y-3"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Bahasa terdeteksi</div><b class="text-sm text-white">'+esc(item.detectedLanguage||'Tidak diketahui')+'</b></div><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Jumlah kandidat Shorts</div><b class="text-sm text-white">'+moments.length+' bagian</b></div></div><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Transkrip asli</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.fullTranscript||'Tidak tersedia')+'</pre></details><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Terjemahan Bahasa Indonesia</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.indonesianTranscript||'Tidak tersedia')+'</pre></details><div><b class="text-sm text-white">Ringkasan cerita</b><ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-gray-300">'+(Array.isArray(item.summary)?item.summary.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>—</li>')+'</ul></div><div><b class="text-sm text-white">Rekomendasi potongan Shorts</b><div class="mt-2">'+moments.map((m,i)=>videoMomentMarkup(m,i)).join('')+'</div></div></div>';
         }
         async function analyzeVideoYoutube() {
-            const url=document.getElementById('video-analysis-youtube-url')?.value.trim();
+            const url=document.getElementById('ai-yt-link')?.value.trim();
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             await runVideoAnalysis('youtube',url);
