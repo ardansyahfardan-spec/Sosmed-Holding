@@ -2491,7 +2491,7 @@
           vo:{label:"VO",items:()=>db.vo||[],title:x=>x.title||"VO",page:"ghoustnote",tab:"vo"},
           notulen:{label:"Notulen",items:()=>db.notulen||[],title:x=>x.topic||"Notulen",page:"ghoustnote",tab:"arsip"},
           stok:{label:"Stok",items:()=>db.stok||[],title:x=>x.title||x.name||"Stok",page:"tim",tab:"stok"},
-          tayang:{label:"Data Tayang",items:()=>db.tayang||[],title:x=>x.title||"Data Tayang",page:"tayang",tab:null}
+          tayang:{label:"Data Tayang",items:()=>db.tayang||[],title:x=>x.title||"Data Tayang",page:"segmen",tab:null}
         };
         function chatCacheKey(){return "ghoustory-chat-"+(activeUser?.id||"guest");}
         function saveChatCache(){try{localStorage.setItem(chatCacheKey(),JSON.stringify(chatMessages.slice(-150)));}catch(e){console.warn("Cache chat lokal tidak tersedia",e);}}
@@ -2604,8 +2604,8 @@
         }
         function openSharedChatData(type,id){
           const cfg=CHAT_COLLECTIONS[type];if(!cfg||!cfg.items().some(x=>String(x.id)===String(id)))return alert("Data tidak ditemukan.");
-          closeChatTools?.();showPage(cfg.page);
-          if(cfg.page==="tim"){markasTimUnlocked=true;switchTab("tim",cfg.tab);}
+          closeChatTools?.();if(cfg.page==="tim")markasTimUnlocked=true;showPage(cfg.page);
+          if(cfg.page==="tim"){switchTab("tim",cfg.tab);}
           else if(cfg.page==="grimoire")switchTab("grimoire",type==="mitos"?"mitos":"editor");
           else if(cfg.page==="ghoustnote")switchTab("ghoustnote",type==="vo"?"vo":"arsip");
           const item=cfg.items().find(x=>String(x.id)===String(id));
