@@ -517,16 +517,43 @@
         }
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================= DATABASE DUMMY (SEMENTARA) =================
-        let db = JSON.parse(localStorage.getItem('gh_db_v3_2')) || {
+        // ================= PENYIMPANAN LOKAL & MIGRASI DATA =================
+        const DEFAULT_DB = {
             script: "", mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], kas: [],
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
             ]
         };
+        let db = (() => {
+            try {
+                const saved = JSON.parse(localStorage.getItem('gh_db_v3_2') || 'null');
+                return saved && typeof saved === 'object' && !Array.isArray(saved)
+                    ? { ...DEFAULT_DB, ...saved }
+                    : { ...DEFAULT_DB };
+            } catch (error) {
+                console.error('Data lokal tidak dapat dibaca; memakai data awal.', error);
+                return { ...DEFAULT_DB };
+            }
+        })();
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
+        // Pastikan struktur data lama tetap kompatibel dengan fitur terbaru.
+        ['mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'kas', 'segmenList'].forEach(key => {
+            if (!Array.isArray(db[key])) db[key] = [];
+        });
+        db.jadwal.forEach(sch => {
+            if (!sch || typeof sch !== 'object') return;
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            KRU_NAMES.forEach(name => {
+                if (!sch.absen[name] || typeof sch.absen[name] !== 'object') {
+                    sch.absen[name] = { hadir: true, alasan: '' };
+                } else {
+                    sch.absen[name].hadir = sch.absen[name].hadir !== false;
+                    sch.absen[name].alasan = sch.absen[name].alasan || '';
+                }
+            });
+        });
         const KURS_USD_IDR = 15500;
 
         function saveData() {
@@ -969,10 +996,21 @@
         }
         function setAbsenKru(name, isHadir) {
             const sch = db.jadwal.find(j => j.id === activeScheduleId);
-            sch.absen[name].hadir = isHadir; if(isHadir) sch.absen[name].alasan = '';
+            if (!sch) return alert("Jadwal tidak ditemukan. Muat ulang daftar jadwal.");
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            if (!sch.absen[name]) sch.absen[name] = { hadir: true, alasan: '' };
+            sch.absen[name].hadir = isHadir;
+            if (isHadir) sch.absen[name].alasan = '';
             saveData(); openModalAbsen(activeScheduleId); renderJadwalCal();
         }
-        function saveAbsenAlasan(name, val) { const sch = db.jadwal.find(j => j.id === activeScheduleId); sch.absen[name].alasan = val; saveData(); }
+        function saveAbsenAlasan(name, val) {
+            const sch = db.jadwal.find(j => j.id === activeScheduleId);
+            if (!sch) return;
+            if (!sch.absen || typeof sch.absen !== 'object') sch.absen = {};
+            if (!sch.absen[name]) sch.absen[name] = { hadir: false, alasan: '' };
+            sch.absen[name].alasan = val;
+            saveData();
+        }
         function closeModalAbsen() { document.getElementById('modal-absen').classList.add('hidden'); document.getElementById('modal-absen').classList.remove('flex'); activeScheduleId = null; }
 
         // STOK & KLASIFIKASI
