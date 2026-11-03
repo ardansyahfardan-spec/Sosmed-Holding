@@ -537,61 +537,85 @@
             <!-- 6. RADAR ANALITIK -->
             <section id="page-radar" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-                <div class="glass-panel p-4 sm:p-5 rounded-xl border-t-2 border-red-500 mb-4">
-                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-camera text-xl text-red-400"></i><h3 class="font-mystery text-white">Baca Screenshot dengan AI</h3></div>
-                    <p class="text-xs text-gray-400 mb-3">Pilih platform, tanggal laporan, lalu unggah screenshot Analytics. AI membaca angka yang terlihat. Screenshot hanya dikirim sementara untuk diproses Gemini dan tidak disimpan ke database atau Storage Supabase.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-image-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-image-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                    </div>
-                    <input id="social-image-file" type="file" accept="image/jpeg,image/png,image/webp" class="w-full mt-3 text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white">
-                    <button id="social-image-analyze" onclick="analyzeSocialScreenshot()" class="w-full mt-3 bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Baca Screenshot</button>
-                    <p id="social-image-status" class="text-xs text-gray-400 mt-2" aria-live="polite">File hanya diproses sementara. Maksimal 8 MB.</p>
-                    <div id="social-image-preview" class="hidden mt-3 bg-black/60 border border-gray-800 rounded-lg p-3"></div>
-                    <button id="social-image-save" onclick="saveSocialScreenshotResult()" disabled class="hidden w-full mt-3 bg-green-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Angka ke Supabase</button>
-                </div>
-                <div class="glass-panel p-4 sm:p-5 rounded-xl border-t-2 border-blue-500 mb-4">
-                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-keyboard text-xl text-blue-400"></i><h3 class="font-mystery text-white">Input Manual Analytics</h3></div>
-                    <p class="text-xs text-gray-400 mb-3">Masukkan angka langsung dari aplikasi Analytics di HP. Kolom selain tanggal, platform, dan views boleh dikosongkan.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-manual-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-manual-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div class="sm:col-span-2"><label class="block text-xs text-gray-400 mb-1">Nama konten / keterangan (opsional)</label><input id="social-manual-title" type="text" maxlength="180" placeholder="Contoh: Rekap Analytics 7 hari" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Views / Tayangan *</label><input id="social-manual-views" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Likes</label><input id="social-manual-likes" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Komentar</label><input id="social-manual-comments" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Share</label><input id="social-manual-shares" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Followers / Subscribers</label><input id="social-manual-followers" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">Reach / Jangkauan</label><input id="social-manual-reach" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
-                    </div>
-                    <button onclick="addManualSocialData()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Input Manual</button>
-                    <p id="social-manual-status" class="text-xs text-gray-400 mt-2" aria-live="polite">Data akan tersimpan ke Supabase.</p>
-                </div>
-                <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500 mb-5">
-                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-file-csv text-xl text-blue-400"></i><h3 class="font-mystery text-white">Impor Laporan Sosmed</h3></div>
-                    <p class="text-xs text-gray-400 mb-4">Unggah CSV dari YouTube Studio, TikTok Analytics, atau Meta Business Suite. Data akan digabung ke database Supabase, bukan disimpan di perangkat ini.</p>
-                    <div class="grid sm:grid-cols-2 gap-3">
-                        <div><label class="block text-xs text-gray-400 mb-1">Platform laporan</label><select id="social-import-platform" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
-                        <div><label class="block text-xs text-gray-400 mb-1">File CSV</label><input id="social-import-file" type="file" accept=".csv,text/csv" class="w-full text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-2 mt-3"><button onclick="previewSocialCsv()" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg"><i class="fa-solid fa-eye mr-1"></i> Baca & Pratinjau</button><button id="social-import-confirm" onclick="commitSocialCsv()" disabled class="bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Gabungkan ke Database</button></div>
-                    <p id="social-import-status" class="text-xs text-gray-400 mt-3" aria-live="polite">Belum ada file yang dibaca.</p>
-                    <div id="social-import-preview" class="hidden mt-3 overflow-x-auto"></div>
+                <div class="mb-4">
+                    <h2 class="font-mystery text-lg text-white mb-1"><i class="fa-solid fa-chart-line text-blue-400 mr-2"></i>Ringkasan Performa</h2>
+                    <p class="text-xs text-gray-400">Pantau performa YouTube, TikTok, dan Facebook dalam 7 hari terakhir.</p>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Total Views</div><div id="social-total-views" class="text-lg font-bold text-white">0</div></div>
                     <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Interaksi</div><div id="social-total-engagement" class="text-lg font-bold text-white">0</div></div>
                     <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Baris Data</div><div id="social-total-rows" class="text-lg font-bold text-white">0</div></div>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="grid grid-cols-2 gap-3 mb-3">
                     <button onclick="switchTab('radar', 'podium')" class="big-tab-btn color-purple active p-3 rounded-xl text-center" id="tabbtn-radar-podium"><i class="fa-solid fa-medal text-xl mb-1 text-yellow-400"></i><div class="text-xs font-bold">Peringkat Platform</div></button>
-                    <button onclick="switchTab('radar', 'grafik')" class="big-tab-btn color-purple p-3 rounded-xl text-center" id="tabbtn-radar-grafik"><i class="fa-solid fa-chart-line text-xl mb-1 text-blue-400"></i><div class="text-xs font-bold">Grafik Per Sosmed</div></button>
+                    <button onclick="switchTab('radar', 'grafik')" class="big-tab-btn color-purple p-3 rounded-xl text-center" id="tabbtn-radar-grafik"><i class="fa-solid fa-chart-line text-xl mb-1 text-blue-400"></i><div class="text-xs font-bold">Grafik 7 Hari</div></button>
                 </div>
-                <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500">
-                    <div id="tab-radar-podium" class="tab-content active"><h3 class="text-sm font-mystery text-white mb-4 text-center">Peringkat Berdasarkan Total Views</h3><div id="social-platform-ranking" class="space-y-3"><p class="text-xs text-gray-500 text-center">Impor laporan CSV untuk mulai melihat peringkat.</p></div></div>
+                <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500 mb-4">
+                    <div id="tab-radar-podium" class="tab-content active"><h3 class="text-sm font-mystery text-white mb-4 text-center">Peringkat Berdasarkan Total Views</h3><div id="social-platform-ranking" class="space-y-3"><p class="text-xs text-gray-500 text-center">Belum ada laporan untuk ditampilkan.</p></div></div>
                     <div id="tab-radar-grafik" class="tab-content"><h3 class="text-sm font-mystery text-white mb-1 text-center">Pertumbuhan Views — 7 Hari Terakhir</h3><p class="text-[10px] text-gray-500 text-center mb-3">Rentang tanggal bergerak otomatis, termasuk hari ini.</p><div class="w-full h-64 bg-black rounded border border-gray-800 p-2"><canvas id="socialChart"></canvas></div></div>
                 </div>
-                <p class="text-[10px] text-gray-500 mt-3">Catatan: grafik dan peringkat menampilkan 7 hari terakhir secara otomatis. Data harian dari screenshot AI digunakan bila terbaca; data yang tidak terbaca dapat dilengkapi lewat input manual atau CSV.</p>
+                <p class="text-[10px] text-gray-500 mb-5">Grafik dan peringkat memakai data 7 hari terakhir. Data harian dari screenshot AI digunakan bila terbaca.</p>
+
+                <div class="space-y-3 mb-5">
+                    <details class="glass-panel rounded-xl border border-gray-800 overflow-hidden">
+                        <summary class="flex items-center justify-between gap-3 p-4 cursor-pointer list-none">
+                            <span class="flex items-center gap-3 min-w-0"><i class="fa-solid fa-camera text-red-400 text-lg"></i><span><b class="block text-sm text-white">Baca Screenshot dengan AI</b><small class="block text-[11px] text-gray-400">Cara tercepat dari HP</small></span></span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                        </summary>
+                        <div class="border-t border-gray-800 p-4">
+                            <p class="text-xs text-gray-400 mb-3">Pilih platform, tanggal laporan, lalu unggah screenshot Analytics. AI membaca angka yang terlihat. Screenshot dikirim sementara untuk diproses Gemini dan tidak disimpan ke database atau Storage Supabase.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-image-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-image-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                            </div>
+                            <input id="social-image-file" type="file" accept="image/jpeg,image/png,image/webp" class="w-full mt-3 text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white">
+                            <button id="social-image-analyze" onclick="analyzeSocialScreenshot()" class="w-full mt-3 bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Baca Screenshot</button>
+                            <p id="social-image-status" class="text-xs text-gray-400 mt-2" aria-live="polite">File hanya diproses sementara. Maksimal 8 MB.</p>
+                            <div id="social-image-preview" class="hidden mt-3 bg-black/60 border border-gray-800 rounded-lg p-3"></div>
+                            <button id="social-image-save" onclick="saveSocialScreenshotResult()" disabled class="hidden w-full mt-3 bg-green-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Angka ke Supabase</button>
+                        </div>
+                    </details>
+
+                    <details class="glass-panel rounded-xl border border-gray-800 overflow-hidden">
+                        <summary class="flex items-center justify-between gap-3 p-4 cursor-pointer list-none">
+                            <span class="flex items-center gap-3 min-w-0"><i class="fa-solid fa-keyboard text-blue-400 text-lg"></i><span><b class="block text-sm text-white">Input Manual Analytics</b><small class="block text-[11px] text-gray-400">Isi angka satu per satu</small></span></span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                        </summary>
+                        <div class="border-t border-gray-800 p-4">
+                            <p class="text-xs text-gray-400 mb-3">Masukkan angka langsung dari aplikasi Analytics di HP. Kolom selain tanggal, platform, dan views boleh dikosongkan.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-manual-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-manual-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div class="sm:col-span-2"><label class="block text-xs text-gray-400 mb-1">Nama konten / keterangan (opsional)</label><input id="social-manual-title" type="text" maxlength="180" placeholder="Contoh: Rekap Analytics 7 hari" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Views / Tayangan *</label><input id="social-manual-views" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Likes</label><input id="social-manual-likes" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Komentar</label><input id="social-manual-comments" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Share</label><input id="social-manual-shares" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Followers / Subscribers</label><input id="social-manual-followers" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">Reach / Jangkauan</label><input id="social-manual-reach" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                            </div>
+                            <button onclick="addManualSocialData()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Input Manual</button>
+                            <p id="social-manual-status" class="text-xs text-gray-400 mt-2" aria-live="polite">Data akan tersimpan ke Supabase.</p>
+                        </div>
+                    </details>
+
+                    <details class="glass-panel rounded-xl border border-gray-800 overflow-hidden">
+                        <summary class="flex items-center justify-between gap-3 p-4 cursor-pointer list-none">
+                            <span class="flex items-center gap-3 min-w-0"><i class="fa-solid fa-file-csv text-purple-400 text-lg"></i><span><b class="block text-sm text-white">Impor Laporan CSV</b><small class="block text-[11px] text-gray-400">Untuk unggah file laporan</small></span></span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                        </summary>
+                        <div class="border-t border-gray-800 p-4">
+                            <p class="text-xs text-gray-400 mb-4">Unggah CSV dari YouTube Studio, TikTok Analytics, atau Meta Business Suite. Data akan digabung ke database Supabase.</p>
+                            <div class="grid sm:grid-cols-2 gap-3">
+                                <div><label class="block text-xs text-gray-400 mb-1">Platform laporan</label><select id="social-import-platform" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">File CSV</label><input id="social-import-file" type="file" accept=".csv,text/csv" class="w-full text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white"></div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mt-3"><button onclick="previewSocialCsv()" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg"><i class="fa-solid fa-eye mr-1"></i> Baca & Pratinjau</button><button id="social-import-confirm" onclick="commitSocialCsv()" disabled class="bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Gabungkan ke Database</button></div>
+                            <p id="social-import-status" class="text-xs text-gray-400 mt-3" aria-live="polite">Belum ada file yang dibaca.</p>
+                            <div id="social-import-preview" class="hidden mt-3 overflow-x-auto"></div>
+                        </div>
+                    </details>
+                </div>
             </section>
 
         </main>
