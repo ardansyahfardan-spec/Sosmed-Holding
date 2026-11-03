@@ -3207,13 +3207,14 @@ async function markDmMessagesRead(){
   sx=t.clientX;sy=t.clientY;edge=t.clientX<=28?1:(t.clientX>=innerWidth-28?2:0);
   target=e.target;stateAtStart=history.state;
   tracking=!!edge&&!!stateAtStart?.ghoustoryApp&&Number(stateAtStart.depth)>0;
-  if(target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-composer,#chat-messages,#dm-messages,[role="dialog"]'))tracking=false;
+  if(target?.closest?.('.fixed,input,textarea,select,button,a,[contenteditable="true"],.chat-composer,#chat-messages,#dm-messages,[role="dialog"]'))tracking=false;
  },{passive:true});
  document.addEventListener('touchend',function(e){
   if(!tracking||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
   const horizontal=Math.abs(dx)>85&&Math.abs(dy)<55;
   const direction=edge===1?dx>0:(!ios&&edge===2&&dx<0);
-  if(horizontal&&direction&&history.state===stateAtStart)history.back();tracking=false;
+  const stillOnStart=history.state?.ghoustoryApp&&history.state.page===stateAtStart?.page&&history.state.depth===stateAtStart?.depth&&history.state.chatRoom===stateAtStart?.chatRoom;
+  if(horizontal&&direction&&stillOnStart)history.back();tracking=false;
  },{passive:true});
  document.addEventListener('touchcancel',function(){tracking=false;},{passive:true});
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&typeof markGroupMessagesRead==='function')markGroupMessagesRead();});
