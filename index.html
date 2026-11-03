@@ -537,25 +537,31 @@
             <!-- 6. RADAR ANALITIK -->
             <section id="page-radar" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div onclick="switchTab('radar', 'podium')" class="big-tab-btn color-purple active p-4 rounded-xl text-center" id="tabbtn-radar-podium"><i class="fa-solid fa-medal text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Podium Sosmed</div></div>
-                    <div onclick="switchTab('radar', 'grafik')" class="big-tab-btn color-purple p-4 rounded-xl text-center" id="tabbtn-radar-grafik"><i class="fa-solid fa-chart-line text-2xl mb-2 text-gray-500"></i><div class="text-xs font-bold">Grafik Per Sosmed</div></div>
-                </div>
-
-                <div class="glass-panel p-6 rounded-xl border-t-2 border-purple-500">
-                    <div id="tab-radar-podium" class="tab-content active text-center">
-                        <h3 class="text-lg font-mystery text-white mb-6">Contoh Klasemen Platform (data belum terhubung)</h3>
-                        <div class="flex justify-center items-end gap-2 sm:gap-4 h-40 border-b border-gray-800 pb-2">
-                            <div class="bg-gray-800 w-16 sm:w-24 h-20 rounded-t-lg flex flex-col justify-end pb-2 relative"><i class="fa-brands fa-youtube text-red-500 text-xl absolute -top-8 left-1/2 -translate-x-1/2"></i><span class="font-bold text-gray-400 text-sm">2nd</span></div>
-                            <div class="bg-yellow-700 w-16 sm:w-24 h-32 rounded-t-lg flex flex-col justify-end pb-2 relative shadow-[0_0_20px_rgba(234,179,8,0.4)]"><i class="fa-brands fa-tiktok text-white text-xl absolute -top-8 left-1/2 -translate-x-1/2"></i><span class="font-bold text-white text-lg">1st</span></div>
-                            <div class="bg-gray-900 w-16 sm:w-24 h-12 rounded-t-lg flex flex-col justify-end pb-2 relative"><i class="fa-brands fa-facebook text-blue-500 text-xl absolute -top-8 left-1/2 -translate-x-1/2"></i><span class="font-bold text-orange-700 text-sm">3rd</span></div>
-                        </div>
+                <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500 mb-5">
+                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-file-csv text-xl text-blue-400"></i><h3 class="font-mystery text-white">Impor Laporan Sosmed</h3></div>
+                    <p class="text-xs text-gray-400 mb-4">Unggah CSV dari YouTube Studio, TikTok Analytics, atau Meta Business Suite. Data akan digabung ke database Supabase, bukan disimpan di perangkat ini.</p>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-gray-400 mb-1">Platform laporan</label><select id="social-import-platform" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">File CSV</label><input id="social-import-file" type="file" accept=".csv,text/csv" class="w-full text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white"></div>
                     </div>
-                    <div id="tab-radar-grafik" class="tab-content">
-                        <h3 class="text-sm font-mystery text-white mb-4 text-center">Grafik Pertumbuhan Views</h3>
-                        <div class="w-full h-64 bg-black rounded border border-gray-800 p-2"><canvas id="socialChart"></canvas></div>
-                    </div>
+                    <div class="flex flex-wrap gap-2 mt-3"><button onclick="previewSocialCsv()" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg"><i class="fa-solid fa-eye mr-1"></i> Baca & Pratinjau</button><button id="social-import-confirm" onclick="commitSocialCsv()" disabled class="bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Gabungkan ke Database</button></div>
+                    <p id="social-import-status" class="text-xs text-gray-400 mt-3" aria-live="polite">Belum ada file yang dibaca.</p>
+                    <div id="social-import-preview" class="hidden mt-3 overflow-x-auto"></div>
                 </div>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Total Views</div><div id="social-total-views" class="text-lg font-bold text-white">0</div></div>
+                    <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Interaksi</div><div id="social-total-engagement" class="text-lg font-bold text-white">0</div></div>
+                    <div class="glass-panel p-3 rounded-lg text-center"><div class="text-[10px] text-gray-400">Baris Data</div><div id="social-total-rows" class="text-lg font-bold text-white">0</div></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <button onclick="switchTab('radar', 'podium')" class="big-tab-btn color-purple active p-3 rounded-xl text-center" id="tabbtn-radar-podium"><i class="fa-solid fa-medal text-xl mb-1 text-yellow-400"></i><div class="text-xs font-bold">Peringkat Platform</div></button>
+                    <button onclick="switchTab('radar', 'grafik')" class="big-tab-btn color-purple p-3 rounded-xl text-center" id="tabbtn-radar-grafik"><i class="fa-solid fa-chart-line text-xl mb-1 text-blue-400"></i><div class="text-xs font-bold">Grafik Per Sosmed</div></button>
+                </div>
+                <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500">
+                    <div id="tab-radar-podium" class="tab-content active"><h3 class="text-sm font-mystery text-white mb-4 text-center">Peringkat Berdasarkan Total Views</h3><div id="social-platform-ranking" class="space-y-3"><p class="text-xs text-gray-500 text-center">Impor laporan CSV untuk mulai melihat peringkat.</p></div></div>
+                    <div id="tab-radar-grafik" class="tab-content"><h3 class="text-sm font-mystery text-white mb-4 text-center">Pertumbuhan Views Harian</h3><div class="w-full h-64 bg-black rounded border border-gray-800 p-2"><canvas id="socialChart"></canvas></div></div>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-3">Catatan: perbandingan memakai total views dari rentang tanggal yang tersedia pada file yang diimpor. Format kolom CSV tiap platform bisa berbeda; bila kolom tidak terbaca, file perlu disesuaikan.</p>
             </section>
 
         </main>
@@ -682,9 +688,9 @@
         }
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================= PENYIMPANAN LOKAL & MIGRASI DATA =================
+        // ================= STRUKTUR DATA DALAM MEMORI + DATABASE CLOUD =================
         const DEFAULT_DB = {
-            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], production: [], kas: [], aiUsage: [], monetisasi: { ytUsd: "", ttUsd: "", fbUsd: "" },
+            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], production: [], kas: [], aiUsage: [], socialAnalytics: [], monetisasi: { ytUsd: "", ttUsd: "", fbUsd: "" },
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
@@ -695,7 +701,7 @@
 
         const KRU_NAMES = ['Artdan', 'Tio', 'Bila', 'Yhola', 'Ardhi'];
         // Pastikan struktur data lama tetap kompatibel dengan fitur terbaru.
-        ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'segmenList'].forEach(key => {
+        ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'socialAnalytics', 'segmenList'].forEach(key => {
             if (!Array.isArray(db[key])) db[key] = [];
         });
         db.jadwal.forEach(sch => {
@@ -1020,7 +1026,7 @@
             renderScriptDrafts();
             renderNotulenList();
             renderMetadataList();
-            renderStok(); renderProductionTracker(); renderKas(); renderMonetisasi(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
+            renderStok(); renderProductionTracker(); renderKas(); renderMonetisasi(); renderSocialAnalytics(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
             
             const totalKas = db.kas.reduce((s, i) => s + i.amount, 0);
             document.getElementById('footer-kas').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
@@ -1940,9 +1946,152 @@
             if(isPromoPlaying){isPromoPlaying=false;togglePromoPlay();}
         }
 
+        // ================= ANALISIS SOSMED (CSV -> SUPABASE) =================
+        let socialCsvDraft = null;
+        let socialChartInstance = null;
+        const SOCIAL_PLATFORMS = {
+            youtube: { label: 'YouTube', color: '#EF4444' },
+            tiktok: { label: 'TikTok', color: '#EAB308' },
+            facebook: { label: 'Facebook', color: '#3B82F6' }
+        };
+        function parseSocialCsv(text) {
+            const sample = text.slice(0, 5000);
+            const commaCount = (sample.match(/,/g) || []).length;
+            const semiCount = (sample.match(/;/g) || []).length;
+            const delimiter = semiCount > commaCount ? ';' : ',';
+            const rows = []; let row = []; let cell = ''; let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i], next = text[i + 1];
+                if (ch === '"' && quoted && next === '"') { cell += '"'; i++; }
+                else if (ch === '"') quoted = !quoted;
+                else if (ch === delimiter && !quoted) { row.push(cell); cell = ''; }
+                else if ((ch === '\n' || ch === '\r') && !quoted) {
+                    if (ch === '\r' && next === '\n') i++;
+                    row.push(cell); if (row.some(v => String(v).trim() !== '')) rows.push(row);
+                    row = []; cell = '';
+                } else cell += ch;
+            }
+            row.push(cell); if (row.some(v => String(v).trim() !== '')) rows.push(row);
+            return rows;
+        }
+        function socialHeaderKey(value) {
+            return String(value || '').toLowerCase().replace(/[\uFEFF]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+        }
+        const SOCIAL_HEADER_ALIASES = {
+            date: ['date','tanggal','publishdate','publisheddate','contentpublished','videopublishdate','day'],
+            title: ['title','videotitle','contenttitle','namavideo','judul','posttitle','content'],
+            views: ['views','view','videoviews','totalviews','tayangan','penayangan','plays','playcount','videoplays'],
+            likes: ['likes','like','videolikes','suka','jumlahsuka'],
+            comments: ['comments','comment','commentscount','komentar','jumlahkomentar'],
+            shares: ['shares','share','shared','bagikan','dibagikan','jumlahdibagikan'],
+            followers: ['followers','follower','subscribers','subscriber','pengikut','pelanggan'],
+            reach: ['reach','accountsreached','jangkauan','reached']
+        };
+        function socialFindColumn(headers, field) {
+            const aliases = SOCIAL_HEADER_ALIASES[field] || [];
+            return headers.findIndex(h => aliases.includes(socialHeaderKey(h)));
+        }
+        function socialNumber(value) {
+            let raw = String(value ?? '').trim().replace(/[\s]/g, '');
+            if (!raw) return 0;
+            if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(raw)) raw = raw.replace(/\./g, '').replace(',', '.');
+            else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(raw)) raw = raw.replace(/,/g, '');
+            else raw = raw.replace(',', '.');
+            const n = Number(raw.replace(/[^0-9.-]/g, ''));
+            return Number.isFinite(n) ? n : 0;
+        }
+        function socialDate(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            let m = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+            if (m) { const a=Number(m[1]), b=Number(m[2]), y=m[3]; const day=a>12?a:b>12?b:a; const month=a>12?b:b>12?a:a; return y+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
+            const d = new Date(raw);
+            return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0,10);
+        }
+        function previewSocialCsv() {
+            const file = document.getElementById('social-import-file')?.files?.[0];
+            const status = document.getElementById('social-import-status');
+            const preview = document.getElementById('social-import-preview');
+            const confirmBtn = document.getElementById('social-import-confirm');
+            socialCsvDraft = null; confirmBtn.disabled = true; confirmBtn.className = 'bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed';
+            if (!file) { status.textContent = 'Pilih file CSV terlebih dahulu.'; preview.classList.add('hidden'); return; }
+            if (file.size > 15 * 1024 * 1024) { status.textContent = 'Ukuran file terlalu besar. Maksimal 15 MB.'; return; }
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const rows = parseSocialCsv(String(reader.result || '').replace(/^\uFEFF/, ''));
+                    if (rows.length < 2) throw new Error('CSV tidak memiliki baris data.');
+                    let headerIndex = -1, headers = [], map = {};
+                    for (let i=0; i<Math.min(rows.length,20); i++) {
+                        const candidate = rows[i];
+                        const found = {};
+                        Object.keys(SOCIAL_HEADER_ALIASES).forEach(k => found[k] = socialFindColumn(candidate,k));
+                        if (found.views >= 0 && (found.date >= 0 || found.title >= 0)) { headerIndex=i; headers=candidate; map=found; break; }
+                    }
+                    if (headerIndex < 0) throw new Error('Kolom wajib tidak terdeteksi. CSV harus memiliki kolom Views/Tayangan dan Tanggal atau Judul konten.');
+                    const platform = document.getElementById('social-import-platform').value;
+                    const parsed = rows.slice(headerIndex+1).map(cols => {
+                        const get = key => map[key] >= 0 ? cols[map[key]] : '';
+                        const date = socialDate(get('date'));
+                        const title = String(get('title') || '').trim();
+                        const views = socialNumber(get('views'));
+                        if (!date && !title) return null;
+                        return { platform, date, title, views, likes:socialNumber(get('likes')), comments:socialNumber(get('comments')), shares:socialNumber(get('shares')), followers:socialNumber(get('followers')), reach:socialNumber(get('reach')) };
+                    }).filter(Boolean);
+                    if (!parsed.length) throw new Error('Tidak ditemukan baris data yang dapat dibaca.');
+                    socialCsvDraft = { platform, fileName:file.name, rows:parsed };
+                    const sample = parsed.slice(0,5);
+                    preview.innerHTML = '<div class="text-xs text-gray-300 mb-2">Terdeteksi: <b>'+escapeHtml(SOCIAL_PLATFORMS[platform].label)+'</b> · '+parsed.length+' baris · Kolom: '+escapeHtml(Object.keys(map).filter(k=>map[k]>=0).join(', '))+'</div><table class="w-full text-left text-[11px]"><thead><tr class="text-gray-400 border-b border-gray-700"><th class="p-2">Tanggal</th><th class="p-2">Konten</th><th class="p-2">Views</th><th class="p-2">Likes</th></tr></thead><tbody>'+sample.map(x=>'<tr class="border-b border-gray-800"><td class="p-2">'+escapeHtml(x.date||'-')+'</td><td class="p-2">'+escapeHtml(x.title||'-')+'</td><td class="p-2">'+x.views.toLocaleString('id-ID')+'</td><td class="p-2">'+x.likes.toLocaleString('id-ID')+'</td></tr>').join('')+'</tbody></table>';
+                    preview.classList.remove('hidden');
+                    confirmBtn.disabled = false; confirmBtn.className = 'bg-green-700 hover:bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-lg';
+                    status.textContent = 'Pratinjau berhasil. Periksa platform dan contoh baris sebelum menggabungkan.';
+                } catch (error) { status.textContent = error.message || 'Gagal membaca CSV.'; preview.classList.add('hidden'); }
+            };
+            reader.onerror = () => { status.textContent = 'File gagal dibaca.'; };
+            reader.readAsText(file);
+        }
+        function commitSocialCsv() {
+            if (!socialCsvDraft || !sharedSyncReady) { alert('Database belum siap atau file belum dipratinjau.'); return; }
+            const existing = new Set((db.socialAnalytics || []).map(x => [x.platform,x.date,x.title,x.views,x.likes,x.comments,x.shares].join('|').toLowerCase()));
+            let added = 0, duplicates = 0;
+            socialCsvDraft.rows.forEach(row => {
+                const key = [row.platform,row.date,row.title,row.views,row.likes,row.comments,row.shares].join('|').toLowerCase();
+                if (existing.has(key)) { duplicates++; return; }
+                existing.add(key);
+                db.socialAnalytics.push({ ...row, id: 'social-' + Date.now() + '-' + added + '-' + Math.random().toString(36).slice(2,7), sourceFile:socialCsvDraft.fileName, importedAt:new Date().toISOString() });
+                added++;
+            });
+            saveData(); renderSocialAnalytics();
+            document.getElementById('social-import-status').textContent = 'Selesai: '+added+' baris baru digabung, '+duplicates+' duplikat dilewati. Sinkronisasi Supabase berjalan.';
+            document.getElementById('social-import-preview').classList.add('hidden');
+            document.getElementById('social-import-confirm').disabled = true;
+            socialCsvDraft = null;
+        }
+        function renderSocialAnalytics() {
+            const rows = Array.isArray(db.socialAnalytics) ? db.socialAnalytics : [];
+            const fmt = n => Number(n||0).toLocaleString('id-ID');
+            const totalViews = rows.reduce((s,x)=>s+(Number(x.views)||0),0);
+            const totalEngagement = rows.reduce((s,x)=>s+(Number(x.likes)||0)+(Number(x.comments)||0)+(Number(x.shares)||0),0);
+            const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+            setText('social-total-views',fmt(totalViews)); setText('social-total-engagement',fmt(totalEngagement)); setText('social-total-rows',fmt(rows.length));
+            const totals = Object.keys(SOCIAL_PLATFORMS).map(key=>({key,label:SOCIAL_PLATFORMS[key].label,color:SOCIAL_PLATFORMS[key].color,views:rows.filter(x=>x.platform===key).reduce((s,x)=>s+(Number(x.views)||0),0)})).sort((a,b)=>b.views-a.views);
+            const ranking = document.getElementById('social-platform-ranking');
+            if (ranking) {
+                if (!rows.length) ranking.innerHTML='<p class="text-xs text-gray-500 text-center">Belum ada laporan. Impor CSV untuk menampilkan peringkat nyata.</p>';
+                else { const max=Math.max(1,...totals.map(x=>x.views)); ranking.innerHTML=totals.map((x,i)=>'<div class="bg-black/60 border border-gray-800 rounded-lg p-3"><div class="flex justify-between text-xs mb-2"><span class="font-bold text-white">'+(i+1)+'. '+x.label+'</span><span class="text-gray-300">'+fmt(x.views)+' views</span></div><div class="h-2 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full" style="width:'+Math.max(x.views?2:0,x.views/max*100)+'%;background:'+x.color+'"></div></div></div>').join(''); }
+            }
+            if (socialChartInstance) {
+                const dates=[...new Set(rows.map(x=>x.date).filter(Boolean))].sort().slice(-30);
+                socialChartInstance.data.labels=dates;
+                socialChartInstance.data.datasets=Object.keys(SOCIAL_PLATFORMS).map(key=>({label:SOCIAL_PLATFORMS[key].label,data:dates.map(date=>rows.filter(x=>x.platform===key&&x.date===date).reduce((sum,x)=>sum+(Number(x.views)||0),0)),borderColor:SOCIAL_PLATFORMS[key].color,backgroundColor:SOCIAL_PLATFORMS[key].color,tension:.25}));
+                socialChartInstance.update();
+            }
+        }
         function initSocialChart() {
             const ctx = document.getElementById('socialChart');
-            if(ctx) { new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: ['M1', 'M2', 'M3', 'M4'], datasets: [{ label: 'YouTube (contoh)', data: [1200, 2500, 4100, 7800], borderColor: '#EF4444' }, { label: 'TikTok (contoh)', data: [3000, 8500, 14000, 25000], borderColor: '#EAB308' }, { label: 'Facebook (contoh)', data: [500, 1200, 2000, 4500], borderColor: '#3B82F6' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } }, scales: { x: { ticks: { color: '#888' }, grid: { color: '#222' } }, y: { ticks: { color: '#888' }, grid: { color: '#222' } } } } }); }
+            if(ctx && window.Chart) {
+                socialChartInstance = new Chart(ctx.getContext('2d'), { type:'line', data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#fff',font:{size:10}}}},scales:{x:{ticks:{color:'#888'},grid:{color:'#222'}},y:{beginAtZero:true,ticks:{color:'#888'},grid:{color:'#222'}}}} });
+            }
         }
     </script>
 </body>
