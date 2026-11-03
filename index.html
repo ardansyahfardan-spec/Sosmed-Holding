@@ -162,6 +162,12 @@
             #modal-notulen > div > .flex:last-child { flex-wrap: wrap; }
         }
     
+
+        /* WhatsApp-like inbox and responsive conversation rooms */
+        #page-chat .chat-composer{position:sticky;bottom:0;z-index:35;padding-bottom:max(.75rem,env(safe-area-inset-bottom));background:rgba(18,18,18,.97);backdrop-filter:blur(12px)}
+        #page-chat #chat-input,#page-chat #dm-input{font-size:16px}
+        #page-chat #chat-messages,#page-chat #dm-messages{scroll-padding-bottom:1rem}
+        @media(max-width:767px){#page-chat.chat-room-open #chat-sidebar{display:none!important}#page-chat #chat-room-panel{width:100%;min-width:0}}
         /* RITUAL CREW: composer tetap terlihat dan menyesuaikan keyboard HP. */
         #page-chat { --chat-keyboard-offset: 0px; }
         #page-chat .chat-composer {
@@ -261,17 +267,17 @@
             </section>
 
             <!-- CHAT KRU -->
-            <section id="page-chat" class="page-section max-w-3xl mx-auto">
+            <section id="page-chat" class="page-section max-w-6xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-                <div class="grid grid-cols-1 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.5fr)] gap-3 mb-3">
-                  <aside class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.5fr)] gap-3 mb-3">
+                  <aside id="chat-sidebar" class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
                     <div class="p-3 bg-gradient-to-r from-blue-950 to-gray-950 flex justify-between"><div><h3 class="text-sm font-bold text-white">Anggota RITUAL CREW</h3><p class="text-[10px] text-gray-400">Pilih anggota untuk chat pribadi</p></div><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div>
-                    <div class="px-3 pt-3"><h4 class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-2">Percakapan terakhir</h4><div id="dm-conversations-list" class="space-y-1 max-h-48 overflow-y-auto"><p class="text-xs text-gray-500 p-2">Memuat percakapan...</p></div></div>
-                    <div class="px-3 pt-3"><h4 class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-2">Mulai chat baru · Anggota</h4></div>
-                    <div id="ritual-members-list" class="p-2 max-h-[32vh] md:max-h-[360px] overflow-y-auto space-y-1"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div>
+                    <div class="p-3 border-b border-gray-800"><button type="button" onclick="openGroupRoom()" class="w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/70 to-blue-950/70 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-gradient-to-br from-red-800 to-blue-900 flex items-center justify-center"><i class="fa-solid fa-users text-white"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">RITUAL CREW</b><small class="text-[10px] text-gray-400">Grup obrolan seluruh kru</small></span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button><h4 class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-4 mb-2">Pesan pribadi</h4><div id="dm-conversations-list" class="space-y-1 max-h-48 overflow-y-auto"><p class="text-xs text-gray-500 p-2">Memuat percakapan...</p></div></div>
+                    <div class="px-3 pt-3"><button type="button" onclick="toggleRitualMembers()" class="text-xs text-blue-300"><i class="fa-solid fa-user-plus mr-2"></i>Mulai chat baru</button></div>
+                    <div id="ritual-members-list" class="hidden p-2 max-h-[32vh] md:max-h-[360px] overflow-y-auto space-y-1"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div>
                   </aside>
-                  <section class="glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex justify-between gap-2"><div class="min-w-0"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
+                  <div id="chat-room-panel" class="hidden min-w-0"><div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div><section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
+                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex justify-between gap-2"><div class="min-w-0"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div></div>
                     <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="dm-messages" class="h-[35vh] min-h-[220px] max-h-[480px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -279,10 +285,10 @@
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-base text-white disabled:opacity-50"><button id="dm-send" type="submit" disabled class="w-11 h-11 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                 </div>
-                <div class="glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-4 flex items-center justify-between">
+                <div id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
+                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="md:hidden text-white p-2" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-arrow-left"></i></button><div class="min-w-0 flex-1">
                         <div><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-comments mr-2"></i>Ritual Crew</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div>
-                        <span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span>
+                        <span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
                     </div>
                     <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
@@ -311,8 +317,8 @@
                         <form onsubmit="askGhoustAI(event)" class="flex gap-2"><input id="ghoust-ai-input" maxlength="2000" class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm" placeholder="Tanya GHOUSTORY AI..."><button class="bg-blue-800 rounded-full px-4"><i class="fa-solid fa-paper-plane"></i></button></form>
                       </div>
                     </div>
-                </div>
-                <p class="text-[10px] text-gray-500 mt-2 text-center">Riwayat tersimpan di akun dan disalin ke perangkat ini. Pesan disinkronkan agar anggota lain dapat menerimanya.</p>
+                </div></div>
+                <p class="text-[10px] text-gray-500 mt-2 text-center">Pesan RITUAL CREW disinkronkan antaranggota.</p>
             </section>
 
             <!-- 1. GRIMOIRE -->
@@ -1305,7 +1311,7 @@
         }
 
         function showPage(pageId) {
-            if (pageId === 'chat') { loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
+            if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId === 'tim' && !markasTimUnlocked) {
                 openMarkasTimLock();
                 return;
@@ -2799,7 +2805,12 @@ async function loadChatMessages(){
           await startRitualPresence();
           await loadDirectConversations();
         }
-        async function openDirectMessage(otherId){
+        
+         function showChatInbox(){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
+         function showChatRoom(kind){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
+         function openGroupRoom(){showChatRoom("group");loadChatMessages();}
+         function toggleRitualMembers(){document.getElementById("ritual-members-list")?.classList.toggle("hidden");}
+async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;
           document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";
