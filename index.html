@@ -120,12 +120,12 @@
                 <div class="glass-panel p-6 rounded-xl border-t-2 border-ghoulRed">
                     <div id="tab-grimoire-mitos" class="tab-content active">
                         <h3 class="text-lg font-mystery mb-2 text-white">Radar Mitos & AI Riset (Gemini Connected)</h3>
-                        <p class="text-xs text-gray-400 mb-4">Catat ide/rumor angker pakai Voice Note. AI akan otomatis meriset informasinya.</p>
+                        <p class="text-xs text-gray-400 mb-4">Catat ide atau rumor angker. Verifikasi sumber dan riset lanjutan dilakukan terpisah.</p>
                         
                         <div class="flex gap-2 mb-2">
                             <input type="text" id="input-mitos" class="flex-grow bg-black border border-gray-700 p-2 rounded text-sm text-white" placeholder="Contoh: Alas Purwo Banyuwangi...">
                             <button onclick="toggleMitosMic()" id="btn-mitos-mic" class="bg-gray-800 hover:bg-red-900 border border-gray-700 px-4 rounded text-xl text-gray-300 transition" title="Voice Note"><i class="fa-solid fa-microphone"></i></button>
-                            <button onclick="addMitos()" class="bg-red-700 px-4 rounded text-white font-bold" title="AI Riset & Simpan"><i class="fa-solid fa-robot"></i> Riset</button>
+                            <button onclick="addMitos()" class="bg-red-700 px-4 rounded text-white font-bold" title="Simpan Catatan"><i class="fa-solid fa-robot"></i> Simpan</button>
                         </div>
                         <div id="mitos-mic-status" class="text-[10px] text-gray-500 italic mb-4 hidden">🔴 Mendengarkan suara... (Bicara sekarang)</div>
 
@@ -775,7 +775,7 @@
         let isMitosMic = false;
         let mitosRecognition=null;function toggleMitosMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mitos-mic'),stat=document.getElementById('mitos-mic-status'),input=document.getElementById('input-mitos');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isMitosMic&&mitosRecognition){mitosRecognition.stop();return;}mitosRecognition=new SR();mitosRecognition.lang='id-ID';mitosRecognition.continuous=true;mitosRecognition.interimResults=true;mitosRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)input.value+=(input.value?' ':'')+t.trim();};mitosRecognition.onerror=e=>stat.textContent='Mic: '+e.error;mitosRecognition.onend=()=>{isMitosMic=false;btn.classList.remove('bg-red-700','text-white');stat.classList.add('hidden');};try{mitosRecognition.start();isMitosMic=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';stat.classList.remove('hidden');}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
         function addMitos() { const t=document.getElementById('input-mitos'); if(t.value) { db.mitos.push({id:Date.now(), text:t.value, research:"Catatan awal tersimpan. Riset sumber dan verifikasi fakta belum dilakukan."}); t.value=''; saveData(); refreshAllLists(); alert("Catatan mitos berhasil disimpan."); } }
-        function salinMitos(txt) { navigator.clipboard.writeText(txt); alert("Teks disalin!"); }
+        function salinMitos(txt) { copyTextSafe(txt); }
         function kirimKeEditor(txt) { document.getElementById('script-editor').value = `[RISET MITOS GEMINI]\n${txt}\n\nNarasi Utama:\n...`; switchTab('grimoire', 'editor'); }
 
         function generateAiScript(){const n=document.getElementById('ai-narsum').value||'Narasumber',l=document.getElementById('ai-lokasi').value||'lokasi mistis',p=document.getElementById('ai-premis').value||'kejadian mistis',fmt=document.getElementById('ai-format').value;const res=fmt==='Penelusuran'?'[DRAF TEMPLATE PENELUSURAN]\nLOKASI: '+l.toUpperCase()+'\nNARASUMBER: '+n+'\nPREMIS: '+p+'\n\nOPENING:\nMalam ini tim Ghoustory berada di '+l+'. Kami menelusuri cerita tentang '+p+'.\n\nPERTANYAAN:\n1. Sejak kapan kejadian ini dikenal?\n2. Apa pengalaman paling kuat?\n3. Adakah saksi atau bukti pendukung?\n\nCATATAN TEMUAN:\n[Isi temuan di lokasi]':'[DRAF TEMPLATE PODCAST]\nTEMA: '+p.toUpperCase()+'\nNARASUMBER: '+n+'\n\nOPENING:\nSelamat datang di Ghoustory. Malam ini kita membahas '+p+'.\n\nPERTANYAAN:\n1. Bisa ceritakan awal mula kisah ini?\n2. Bagian mana yang paling sulit dilupakan?\n3. Apa yang terjadi setelahnya?\n\nPENUTUP:\nTerima kasih sudah berbagi cerita bersama Ghoustory.';document.getElementById('script-editor').value=res;if(!document.getElementById('script-title').value.trim())document.getElementById('script-title').value='Draf '+fmt+' - '+p.slice(0,45);switchTab('grimoire','editor');alert('Template naskah dibuat. Ini kerangka awal, bukan hasil AI Gemini.');}
@@ -788,7 +788,7 @@
         
         function generateNotulen() {
             const raw=document.getElementById('note-raw').value; const top=document.getElementById('note-topic').value||'Rapat';
-            if(raw) { db.notulen.push({id:Date.now(), topic:top, raw:"DRAF NOTULEN (belum diringkas AI):\\n"+raw}); document.getElementById('note-raw').value=''; document.getElementById('note-topic').value=''; saveData(); refreshAllLists(); switchTab('ghoustnote','arsip'); }
+            if(raw) { db.notulen.push({id:Date.now(), topic:top, raw:"DRAF NOTULEN (belum diringkas AI):\n"+raw}); document.getElementById('note-raw').value=''; document.getElementById('note-topic').value=''; saveData(); refreshAllLists(); switchTab('ghoustnote','arsip'); }
         }
 
         function renderNotulenList() {
@@ -820,11 +820,13 @@
                 saveData(); renderNotulenList(); closeModalNotulen(); alert("Notulen diperbarui!");
             }
         }
-        function copyNotulenModal() { navigator.clipboard.writeText(document.getElementById('modal-notulen-text').value); alert("Teks dinotulen disalin!"); }
-        function salinNotulenText(i) { navigator.clipboard.writeText(db.notulen[i].raw); alert("Teks disalin!"); }
+        function copyNotulenModal() { copyTextSafe(document.getElementById('modal-notulen-text').value); }
+        function salinNotulenText(i) { if (db.notulen[i]) copyTextSafe(db.notulen[i].raw); }
 
         // ANALISIS AI & TOMBOL DISETUJUI
         function generateMetadata(){const link=document.getElementById('ai-yt-link').value.trim();let parsed;try{parsed=new URL(link);}catch(e){return alert('Masukkan URL YouTube yang valid.');}if(!['youtube.com','www.youtube.com','youtu.be','m.youtube.com'].includes(parsed.hostname))return alert('Link harus berasal dari YouTube.');alert('Ekstraksi metadata belum terhubung ke YouTube/Gemini API. Hasil contoh palsu tidak akan disimpan. Fitur ini memerlukan integrasi API/backend.');}
+
+        function copyMetadataText(i) { if (db.metadata[i]) copyTextSafe(db.metadata[i].aiText); }
 
         function renderMetadataList() {
             const c = document.getElementById('list-metadata'); if(!c) return; c.innerHTML = '';
@@ -834,7 +836,7 @@
                     <div><b class="text-blue-400">${item.title}</b><div class="text-xs text-gray-400">${item.aiText.substring(0,40)}...</div></div>
                     <div class="flex gap-1">
                         <button onclick="openModalSetuju(${i})" class="text-xs bg-orange-700 hover:bg-orange-600 px-2.5 py-1 rounded text-white font-bold">Disepakati</button>
-                        <button onclick="navigator.clipboard.writeText('${item.aiText}'); alert('Disalin!');" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button>
+                        <button onclick="copyMetadataText(${i})" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button>
                     </div>
                 </div>`;
             });
