@@ -2682,6 +2682,7 @@
         let ghoustAiBusy = false;
         const CHAT_COLLECTIONS = {
           jadwal:{label:"Jadwal Suting",items:()=>db.jadwal||[],title:x=>x.title||"Jadwal",page:"tim",tab:"jadwal"},
+          kas:{label:"Kas & Iuran",items:()=>db.kas||[],title:x=>x.desc||"Transaksi Kas",page:"tim",tab:"kas"},
           production:{label:"Tracker Produksi",items:()=>db.production||[],title:x=>x.title||"Konten",page:"tim",tab:"produksi"},
           scriptDrafts:{label:"Naskah / Script",items:()=>db.scriptDrafts||[],title:x=>x.title||"Naskah",page:"grimoire",tab:"editor"},
           mitos:{label:"Mitos",items:()=>db.mitos||[],title:x=>x.text||"Mitos",page:"grimoire",tab:"mitos"},
@@ -2906,34 +2907,70 @@ async function markDmMessagesRead(){
           try{for(const id of selected){const item=cfg.items().find(x=>String(x.id)===id);if(item)await insertChatMessage({body:"Data dibagikan dari "+cfg.label,message_type:"shared_data",data_type:type,data_id:String(item.id),data_title:cfg.title(item)});}closeChatTools();}catch(e){alert("Gagal membagikan data: "+e.message);}
         }
         function showChatCreateCategories(){
-          const options=[["jadwal","Jadwal Suting"],["production","Tugas / Tracker Produksi"],["notulen","Notulen"],["scriptDrafts","Naskah / Script"],["mitos","Ide / Mitos"],["vo","Catatan VO"]];
-          document.getElementById("chat-tools-content").innerHTML='<p class="text-xs text-gray-400">Pilih jenis data baru. Data akan disimpan ke fitur terkait dan dikirim ke chat.</p>'+options.map(([k,v])=>'<button onclick="createChatData(\''+k+'\')" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-plus float-right text-red-400"></i></button>').join("");
+          const options=[["jadwal","Jadwal Shooting"],["kas","Kas & Iuran"],["production","Tugas / Tracker Produksi"],["notulen","Notulen"],["scriptDrafts","Naskah / Script"],["mitos","Ide / Mitos"],["vo","Catatan VO"]];
+          const c=document.getElementById("chat-tools-content");
+          c.innerHTML='<p class="text-xs text-gray-400">Pilih formulir data. Setelah disimpan, data masuk ke fitur terkait dan ringkasannya dikirim ke RITUAL CREW.</p>'+options.map(([k,v])=>'<button type="button" onclick="showChatCreateForm(&quot;'+k+'&quot;)" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-chevron-right float-right text-red-400"></i></button>').join("");
         }
-        async function createChatData(type){
-          const ask=(label)=>prompt(label);let item=null,now=Date.now();
+        function chatCreateField(id,label,placeholder,type="text",required=false){
+          return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
+        }
+        function showChatCreateForm(type){
+          const c=document.getElementById("chat-tools-content");
+          const titles={jadwal:"Jadwal Shooting",kas:"Kas & Iuran",production:"Tugas / Tracker Produksi",notulen:"Notulen",scriptDrafts:"Naskah / Script",mitos:"Ide / Mitos",vo:"Catatan VO"};
+          let fields="";
           if(type==="jadwal"){
-            const title=ask("Nama kegiatan / syuting:");if(!title)return;
-            const date=ask("Tanggal (YYYY-MM-DD):");if(!date||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))return alert("Format tanggal harus YYYY-MM-DD.");
-            const time=ask("Jam (contoh 19:00):")||"",loc=ask("Lokasi:")||"",segment=ask("Segmen:")||"";
-            const absen={};KRU_NAMES.forEach(k=>absen[k]={hadir:true,alasan:""});
-            item={id:now,title,narsum:"",segment,loc,date,time,absen};db.jadwal.push(item);
+            fields=chatCreateField("title","Nama kegiatan / shooting","Contoh: Shooting NGLENCER","text",true)+chatCreateField("narsum","Narasumber","Nama narasumber")+chatCreateField("segment","Segmen","Contoh: NGLENCER")+chatCreateField("loc","Lokasi","Lokasi shooting")+chatCreateField("date","Tanggal","Pilih tanggal","date",true)+chatCreateField("time","Jam","Contoh: 19:00 WIB");
+          }else if(type==="kas"){
+            fields='<p class="text-xs text-gray-400">Isi nominal iuran anggota dan/atau pengeluaran. Nominal yang tidak digunakan boleh dikosongkan.</p>'+["Artdan","Yhola","Tio","Bila"].map((n,i)=>chatCreateField("member-"+i,"Iuran "+n,"Nominal rupiah","number")).join("")+chatCreateField("out-desc","Keterangan pengeluaran","Contoh: Konsumsi shooting")+chatCreateField("out-amount","Nominal pengeluaran","Nominal rupiah","number");
+          }else if(type==="production") fields=chatCreateField("title","Nama konten / tugas","Judul konten","text",true);
+          else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
+          else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
+          else if(type==="mitos") fields=chatCreateField("title","Ide / topik mitos","Contoh: Rumah tua ...","text",true);
+          else if(type==="vo") fields=chatCreateField("title","Judul catatan VO","Judul VO","text",true)+'<label class="block text-xs text-gray-300">Isi / arahan VO<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Arahan pengisi suara..."></textarea></label>';
+          else return;
+          c.innerHTML='<button type="button" onclick="showChatCreateCategories()" class="text-xs text-blue-300 mb-1">← Kembali ke pilihan data</button><h4 class="text-sm font-bold text-white">'+titles[type]+'</h4><form id="chat-create-form" class="space-y-3" onsubmit="submitChatCreateForm(event,&quot;'+type+'&quot;)">'+fields+'<button type="submit" class="w-full bg-red-800 hover:bg-red-700 p-3 rounded-lg text-sm font-semibold text-white"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan ke Fitur & Kirim ke Chat</button></form>';
+        }
+        async function submitChatCreateForm(event,type){
+          event.preventDefault();
+          const val=id=>document.getElementById("chat-create-"+id)?.value?.trim()||"";
+          const number=id=>Math.max(0,Number(val(id))||0);
+          const now=Date.now();let item=null,summary="";
+          if(type==="jadwal"){
+            const title=val("title"),date=val("date");if(!title||!date)return alert("Nama kegiatan dan tanggal wajib diisi.");
+            const absen={};(KRU_NAMES||[]).forEach(k=>absen[k]={hadir:true,alasan:""});
+            item={id:now,title,narsum:val("narsum"),segment:val("segment"),loc:val("loc"),date,time:val("time"),absen};
+            db.jadwal.push(item);summary="Jadwal shooting dibuat: "+title+" · "+date+(item.time?" · "+item.time:"")+(item.loc?" · "+item.loc:"");
+          }else if(type==="kas"){
+            const names=["Artdan","Yhola","Tio","Bila"];
+            const details=names.map((name,i)=>({label:name,amount:number("member-"+i),type:"in"})).filter(x=>x.amount>0);
+            const out=number("out-amount");if(out>0)details.push({label:val("out-desc")||"Pengeluaran",amount:out,type:"out"});
+            if(!details.length)return alert("Masukkan minimal satu nominal iuran atau pengeluaran.");
+            const masuk=details.filter(x=>x.type==="in").reduce((sum,x)=>sum+x.amount,0);
+            item={id:now,date:new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}),desc:"Transaksi Kas dari RITUAL CREW",details,amount:masuk-out};
+            db.kas.push(item);summary="Transaksi kas tercatat: "+details.map(x=>x.label+" Rp "+Number(x.amount).toLocaleString("id-ID")).join(", ");
           }else if(type==="production"){
-            const title=ask("Nama konten / tugas produksi:");if(!title)return;
-            item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Kru"};db.production.unshift(item);
+            const title=val("title");if(!title)return alert("Nama tugas wajib diisi.");
+            item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Kru"};db.production.unshift(item);summary="Tugas produksi dibuat: "+title;
           }else if(type==="notulen"){
-            const topic=ask("Judul notulen:");if(!topic)return;const raw=ask("Isi / keputusan rapat:")||"";
-            item={id:now,topic,raw,source:"Dibuat dari RITUAL CREW"};db.notulen.unshift(item);
+            const topic=val("title");if(!topic)return alert("Judul notulen wajib diisi.");
+            item={id:now,topic,raw:document.getElementById("chat-create-content")?.value||"",source:"Dibuat dari RITUAL CREW"};db.notulen.unshift(item);summary="Notulen dibuat: "+topic;
           }else if(type==="scriptDrafts"){
-            const title=ask("Judul naskah:");if(!title)return;const content=ask("Isi naskah:")||"";item={id:now,title,content,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};db.scriptDrafts.unshift(item);
+            const title=val("title"),content=document.getElementById("chat-create-content")?.value?.trim()||"";if(!title||!content)return alert("Judul dan isi naskah wajib diisi.");
+            item={id:now,title,content,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};db.scriptDrafts.unshift(item);summary="Naskah baru dibuat: "+title;
           }else if(type==="mitos"){
-            const text=ask("Ide / topik mitos:");if(!text)return;item={id:now,text,research:"Belum diriset"};db.mitos.unshift(item);
+            const text=val("title");if(!text)return alert("Ide mitos wajib diisi.");
+            item={id:now,text,research:"Belum diriset"};db.mitos.unshift(item);summary="Ide mitos ditambahkan: "+text;
           }else if(type==="vo"){
-            const title=ask("Judul catatan VO:");if(!title)return;const teks=ask("Isi / arahan VO:")||"";item={id:now,title,teks};db.vo.unshift(item);
+            const title=val("title");if(!title)return alert("Judul catatan VO wajib diisi.");
+            item={id:now,title,teks:document.getElementById("chat-create-content")?.value||""};db.vo.unshift(item);summary="Catatan VO dibuat: "+title;
           }
           if(!item)return;
-          saveData();refreshAllLists();const cfg=CHAT_COLLECTIONS[type];
-          try{await insertChatMessage({body:"Data baru dibuat dari RITUAL CREW",message_type:"shared_data",data_type:type,data_id:String(item.id),data_title:cfg.title(item)});closeChatTools();}
-          catch(e){alert("Data sudah tersimpan, tetapi kartu chat gagal dikirim: "+e.message);}
+          saveData();refreshAllLists();
+          try{
+            const cfg=CHAT_COLLECTIONS[type];
+            await insertChatMessage({body:summary,message_type:"shared_data",data_type:type,data_id:String(item.id),data_title:cfg?.title(item)||summary});
+            closeChatTools();
+          }catch(e){alert("Data sudah tersimpan di fitur, tetapi kartu chat gagal dikirim: "+(e.message||e));}
         }
         function openSharedChatData(type,id){
           const cfg=CHAT_COLLECTIONS[type];if(!cfg||!cfg.items().some(x=>String(x.id)===String(id)))return alert("Data tidak ditemukan.");
