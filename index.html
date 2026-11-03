@@ -537,6 +537,36 @@
             <!-- 6. RADAR ANALITIK -->
             <section id="page-radar" class="page-section max-w-5xl mx-auto">
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="glass-panel p-4 sm:p-5 rounded-xl border-t-2 border-red-500 mb-4">
+                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-camera text-xl text-red-400"></i><h3 class="font-mystery text-white">Baca Screenshot dengan AI</h3></div>
+                    <p class="text-xs text-gray-400 mb-3">Pilih platform, tanggal laporan, lalu unggah screenshot Analytics. AI membaca angka yang terlihat. Screenshot hanya dikirim sementara untuk diproses Gemini dan tidak disimpan ke database atau Storage Supabase.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-image-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-image-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                    </div>
+                    <input id="social-image-file" type="file" accept="image/jpeg,image/png,image/webp" class="w-full mt-3 text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white">
+                    <button id="social-image-analyze" onclick="analyzeSocialScreenshot()" class="w-full mt-3 bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Baca Screenshot</button>
+                    <p id="social-image-status" class="text-xs text-gray-400 mt-2" aria-live="polite">File hanya diproses sementara. Maksimal 8 MB.</p>
+                    <div id="social-image-preview" class="hidden mt-3 bg-black/60 border border-gray-800 rounded-lg p-3"></div>
+                    <button id="social-image-save" onclick="saveSocialScreenshotResult()" disabled class="hidden w-full mt-3 bg-green-700 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Simpan Angka ke Supabase</button>
+                </div>
+                <div class="glass-panel p-4 sm:p-5 rounded-xl border-t-2 border-blue-500 mb-4">
+                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-keyboard text-xl text-blue-400"></i><h3 class="font-mystery text-white">Input Manual Analytics</h3></div>
+                    <p class="text-xs text-gray-400 mb-3">Masukkan angka langsung dari aplikasi Analytics di HP. Kolom selain tanggal, platform, dan views boleh dikosongkan.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-gray-400 mb-1">Platform</label><select id="social-manual-platform" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Tanggal laporan</label><input id="social-manual-date" type="date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div class="sm:col-span-2"><label class="block text-xs text-gray-400 mb-1">Nama konten / keterangan (opsional)</label><input id="social-manual-title" type="text" maxlength="180" placeholder="Contoh: Rekap Analytics 7 hari" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Views / Tayangan *</label><input id="social-manual-views" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Likes</label><input id="social-manual-likes" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Komentar</label><input id="social-manual-comments" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Share</label><input id="social-manual-shares" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Followers / Subscribers</label><input id="social-manual-followers" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Reach / Jangkauan</label><input id="social-manual-reach" type="number" min="0" inputmode="numeric" placeholder="0" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-sm text-white"></div>
+                    </div>
+                    <button onclick="addManualSocialData()" class="w-full mt-3 bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-lg text-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Input Manual</button>
+                    <p id="social-manual-status" class="text-xs text-gray-400 mt-2" aria-live="polite">Data akan tersimpan ke Supabase.</p>
+                </div>
                 <div class="glass-panel p-4 sm:p-6 rounded-xl border-t-2 border-purple-500 mb-5">
                     <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-file-csv text-xl text-blue-400"></i><h3 class="font-mystery text-white">Impor Laporan Sosmed</h3></div>
                     <p class="text-xs text-gray-400 mb-4">Unggah CSV dari YouTube Studio, TikTok Analytics, atau Meta Business Suite. Data akan digabung ke database Supabase, bukan disimpan di perangkat ini.</p>
@@ -1021,6 +1051,7 @@
         }
 
         function refreshAllLists() {
+            setSocialDateDefaults();
             renderMitosList();
             renderVOList();
             renderScriptDrafts();
@@ -1954,6 +1985,66 @@
             tiktok: { label: 'TikTok', color: '#EAB308' },
             facebook: { label: 'Facebook', color: '#3B82F6' }
         };
+        let socialScreenshotDraft = null;
+        function setSocialDateDefaults() {
+            const today = new Date();
+            const localDate = new Date(today.getTime() - today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+            ['social-image-date','social-manual-date'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=localDate;});
+        }
+        function addManualSocialData() {
+            if (!sharedSyncReady) return alert('Database belum siap. Tunggu sinkronisasi selesai.');
+            const value=id=>document.getElementById(id)?.value ?? '';
+            const date=value('social-manual-date'), platform=value('social-manual-platform'), views=value('social-manual-views');
+            if(!date) return alert('Pilih tanggal laporan.');
+            if(views===''||!Number.isFinite(Number(views))||Number(views)<0) return alert('Isi jumlah views dengan angka 0 atau lebih.');
+            const row={id:'social-manual-'+Date.now(),platform,date,title:value('social-manual-title').trim(),views:Number(views),likes:Number(value('social-manual-likes'))||0,comments:Number(value('social-manual-comments'))||0,shares:Number(value('social-manual-shares'))||0,followers:Number(value('social-manual-followers'))||0,reach:Number(value('social-manual-reach'))||0,source:'manual',importedAt:new Date().toISOString()};
+            const key=[row.platform,row.date,row.title,row.views,row.likes,row.comments,row.shares].join('|').toLowerCase();
+            const duplicate=(db.socialAnalytics||[]).some(x=>[x.platform,x.date,x.title,x.views,x.likes,x.comments,x.shares].join('|').toLowerCase()===key);
+            if(duplicate&&!confirm('Data yang sama sudah ada. Tetap simpan sebagai catatan baru?'))return;
+            db.socialAnalytics.unshift(row);saveData();renderSocialAnalytics();
+            ['title','views','likes','comments','shares','followers','reach'].forEach(k=>{const el=document.getElementById('social-manual-'+k);if(el)el.value='';});
+            const status=document.getElementById('social-manual-status');if(status)status.textContent='Data berhasil ditambahkan. Sinkronisasi Supabase berjalan.';
+        }
+        function parseSocialAiJson(raw) {
+            const cleaned=String(raw||'').replace(/^﻿/,'').replace(/^\s*```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+            const parsed=JSON.parse(cleaned);
+            return parsed.metrics||parsed;
+        }
+        async function analyzeSocialScreenshot() {
+            const fileInput=document.getElementById('social-image-file'), file=fileInput?.files?.[0];
+            const status=document.getElementById('social-image-status'), preview=document.getElementById('social-image-preview'), saveBtn=document.getElementById('social-image-save'), btn=document.getElementById('social-image-analyze');
+            socialScreenshotDraft=null;saveBtn.classList.add('hidden');saveBtn.disabled=true;preview.classList.add('hidden');
+            if(!file)return status.textContent='Pilih screenshot Analytics terlebih dahulu.';
+            if(!['image/jpeg','image/png','image/webp'].includes(file.type))return status.textContent='Format harus JPG, PNG, atau WEBP.';
+            if(file.size>8*1024*1024)return status.textContent='Ukuran screenshot maksimal 8 MB.';
+            if(!sharedSyncReady)return status.textContent='Database belum siap. Tunggu sinkronisasi selesai.';
+            setButtonBusy(btn,true);status.textContent='Mengirim screenshot sementara ke Gemini untuk dibaca...';
+            let base64='';
+            try{
+                base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(new Error('Gagal membaca screenshot.'));reader.readAsDataURL(file);});
+                const platform=document.getElementById('social-image-platform').value;
+                const date=document.getElementById('social-image-date').value;
+                const result=await callGhoulAI('social-screenshot',{imageBase64:base64,mimeType:file.type,platform,reportDate:date});
+                const metrics=parseSocialAiJson(result);
+                const row={platform,date:date||new Date().toISOString().slice(0,10),title:String(metrics.title||metrics.period||'Rekap Analytics').slice(0,180),views:Number(metrics.views)||0,likes:Number(metrics.likes)||0,comments:Number(metrics.comments)||0,shares:Number(metrics.shares)||0,followers:Number(metrics.followers)||0,reach:Number(metrics.reach)||0,source:'screenshot-ai',importedAt:new Date().toISOString()};
+                if(!Number.isFinite(row.views)||!row.date)throw new Error('Hasil pembacaan tidak valid.');
+                socialScreenshotDraft=row;
+                const fmt=n=>Number(n||0).toLocaleString('id-ID');
+                preview.innerHTML='<div class="text-xs text-green-300 font-bold mb-2">Hasil pembacaan AI — periksa sebelum disimpan</div><div class="grid grid-cols-2 gap-2 text-xs">'+[['Views',row.views],['Likes',row.likes],['Komentar',row.comments],['Share',row.shares],['Followers',row.followers],['Reach',row.reach]].map(([k,v])=>'<div class="bg-gray-900 p-2 rounded"><span class="text-gray-400">'+k+'</span><b class="block text-white">'+fmt(v)+'</b></div>').join('')+'</div><p class="text-[11px] text-gray-400 mt-2">Keterangan: '+escapeHtml(row.title)+'</p><p class="text-[10px] text-yellow-300 mt-2">Periksa angka. Jika ada yang keliru, gunakan input manual untuk koreksi.</p>';
+                preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
+                status.textContent='Screenshot selesai dibaca. File asli sudah dilepas dari halaman; hanya hasil angka sementara yang menunggu persetujuan.';
+            }catch(error){status.textContent='Gagal membaca screenshot: '+(error.message||error);}
+            finally{base64='';if(fileInput)fileInput.value='';setButtonBusy(btn,false);}
+        }
+        function saveSocialScreenshotResult() {
+            if(!socialScreenshotDraft||!sharedSyncReady)return alert('Belum ada hasil pembacaan yang siap disimpan.');
+            const row={...socialScreenshotDraft,id:'social-image-'+Date.now()};
+            const key=[row.platform,row.date,row.title,row.views,row.likes,row.comments,row.shares].join('|').toLowerCase();
+            if((db.socialAnalytics||[]).some(x=>[x.platform,x.date,x.title,x.views,x.likes,x.comments,x.shares].join('|').toLowerCase()===key))return alert('Data yang sama sudah ada di Radar Sosmed.');
+            db.socialAnalytics.unshift(row);saveData();renderSocialAnalytics();socialScreenshotDraft=null;
+            document.getElementById('social-image-preview').classList.add('hidden');document.getElementById('social-image-save').classList.add('hidden');document.getElementById('social-image-status').textContent='Angka berhasil disimpan. Screenshot tidak disimpan di Supabase.';
+        }
+
         function parseSocialCsv(text) {
             const sample = text.slice(0, 5000);
             const commaCount = (sample.match(/,/g) || []).length;
