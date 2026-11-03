@@ -11,12 +11,12 @@
   "theme_color": "#050505",
   "icons": [
     {
-      "src": "./image_2.png",
+      "src": "./ghoustory-logo.png",
       "sizes": "any",
       "type": "image/png"
     },
     {
-      "src": "./ghoustory-logo.png",
+      "src": "./image_2.png",
       "sizes": "any",
       "type": "image/png"
     }
