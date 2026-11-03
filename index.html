@@ -235,7 +235,27 @@
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
                     <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
+                    <div onclick="showPage('chat')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-green-500"><i class="fa-solid fa-comments text-3xl mb-2 text-green-400"></i><h3 class="font-bold text-sm">Chat Kru</h3><p class="text-[10px] text-gray-500 mt-1">Ruang obrolan Ghoustory</p></div>
                 </div>
+            </section>
+
+            <!-- CHAT KRU -->
+            <section id="page-chat" class="page-section max-w-3xl mx-auto">
+                <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="glass-panel rounded-2xl overflow-hidden border border-red-900">
+                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-4 flex items-center justify-between">
+                        <div><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-comments mr-2"></i>Chat Kru Ghoustory</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div>
+                        <span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span>
+                    </div>
+                    <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
+                        <div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div>
+                    </div>
+                    <form id="chat-form" onsubmit="sendChatMessage(event)" class="p-3 bg-darkCard border-t border-gray-800 flex gap-2">
+                        <input id="chat-input" type="text" maxlength="4000" autocomplete="off" placeholder="Tulis pesan..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm text-white outline-none focus:border-red-700">
+                        <button id="chat-send" type="submit" class="bg-red-700 hover:bg-red-600 text-white rounded-full w-12 h-12 shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2 text-center">Riwayat tersimpan di akun dan disalin ke perangkat ini. Pesan disinkronkan agar anggota lain dapat menerimanya.</p>
             </section>
 
             <!-- 1. GRIMOIRE -->
@@ -1099,6 +1119,7 @@
         }
 
         function showPage(pageId) {
+            if (pageId === 'chat') loadChatMessages();
             if (pageId === 'tim' && !markasTimUnlocked) {
                 openMarkasTimLock();
                 return;
@@ -2442,6 +2463,79 @@
                 alert('Untuk memasang aplikasi:\\n1. Buka halaman ini di Google Chrome.\\n2. Tekan menu titik tiga (⋮).\\n3. Pilih “Install app” atau “Tambahkan ke layar utama”.');
             }
         }
+        // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
+        let chatChannel = null;
+        let chatMessages = [];
+        let chatLoadedForUser = null;
+        function chatCacheKey() { return "ghoustory-chat-" + (activeUser?.id || "guest"); }
+        function saveChatCache() {
+            try { localStorage.setItem(chatCacheKey(), JSON.stringify(chatMessages.slice(-150))); } catch (e) { console.warn("Cache chat lokal tidak tersedia", e); }
+        }
+        function renderChatMessages() {
+            const box = document.getElementById("chat-messages");
+            if (!box) return;
+            if (!chatMessages.length) {
+                box.innerHTML = '<div class="text-center text-xs text-gray-500 py-10">Belum ada pesan. Mulai obrolan dengan kru!</div>';
+                return;
+            }
+            box.innerHTML = chatMessages.map(msg => {
+                const own = msg.sender_id === activeUser?.id;
+                const who = escapeHtml(msg.sender_name || "Kru");
+                const avatar = msg.sender_avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(msg.sender_name || "Kru") + "&background=B91C1C&color=fff";
+                const when = msg.created_at ? new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}) : "";
+                return '<div class="flex ' + (own ? 'justify-end' : 'justify-start') + ' gap-2 items-end">' + (!own ? '<img src="' + escapeHtml(avatar) + '" class="w-7 h-7 rounded-full object-cover border border-gray-700 shrink-0" alt="">' : '') + '<div class="max-w-[82%] rounded-2xl px-3 py-2 ' + (own ? 'bg-red-950 border border-red-800 rounded-br-sm' : 'bg-gray-900 border border-gray-800 rounded-bl-sm') + '">' + (!own ? '<div class="text-[10px] font-bold text-blue-300 mb-1">' + who + '</div>' : '') + '<div class="text-sm text-white whitespace-pre-wrap break-words">' + escapeHtml(msg.body) + '</div><div class="text-[9px] text-gray-400 text-right mt-1">' + escapeHtml(when) + '</div></div></div>';
+            }).join("");
+            box.scrollTop = box.scrollHeight;
+        }
+        async function loadChatMessages() {
+            if (!activeUser || chatLoadedForUser === activeUser.id) return;
+            chatLoadedForUser = activeUser.id;
+            const status = document.getElementById("chat-connection");
+            try {
+                const cached = localStorage.getItem(chatCacheKey());
+                if (cached) { chatMessages = JSON.parse(cached) || []; renderChatMessages(); }
+            } catch (e) {}
+            const { data, error } = await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:true}).limit(150);
+            if (error) {
+                if (status) status.textContent = "Chat belum tersambung";
+                console.error("Gagal memuat chat:", error);
+                return;
+            }
+            chatMessages = data || [];
+            saveChatCache();
+            renderChatMessages();
+            if (status) status.textContent = "Online";
+            if (chatChannel) await supabaseClient.removeChannel(chatChannel);
+            chatChannel = supabaseClient.channel("ghoustory-chat-live");
+            chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_chat_messages"},payload => {
+                if (!chatMessages.some(m => m.id === payload.new.id)) {
+                    chatMessages.push(payload.new);
+                    chatMessages = chatMessages.slice(-150);
+                    saveChatCache();
+                    renderChatMessages();
+                }
+            }).subscribe(state => {
+                if (status && state !== "SUBSCRIBED") status.textContent = state === "CHANNEL_ERROR" ? "Koneksi bermasalah" : "Menghubungkan...";
+                else if (status) status.textContent = "Online";
+            });
+        }
+        async function sendChatMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById("chat-input");
+            const button = document.getElementById("chat-send");
+            const body = input.value.trim();
+            if (!body || !activeUser) return;
+            button.disabled = true;
+            const { error } = await supabaseClient.from("ghoustory_chat_messages").insert({
+                sender_id: activeUser.id,
+                sender_name: activeUser.user_metadata?.full_name || activeUser.user_metadata?.name || activeUser.email || "Kru",
+                sender_avatar: activeUser.user_metadata?.avatar_url || "",
+                body
+            });
+            button.disabled = false;
+            if (error) { alert("Pesan belum terkirim: " + error.message); return; }
+            input.value = "";
+        }
         // Service worker dinonaktifkan sementara untuk menguji ikon Home Screen iOS.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -2449,5 +2543,5 @@
             });
         }
 </script>
-\n</body>
+</body>
 </html>
