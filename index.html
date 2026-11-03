@@ -997,7 +997,7 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
         }
 
-       function downloadKasJPEG() {
+        function downloadKasJPEG() {
     const area = document.getElementById('area-kas-cetak');
     html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
         canvas.toBlob(function(blob) {
@@ -1022,9 +1022,6 @@
         }, 'image/jpeg', 0.95);
     });
 }
-            });
-        }
-
         // TELEPROMPTER NGEBUT
         let isPromoPlaying = false;
         function openTeleprompter() { document.getElementById('teleprompter-overlay').classList.remove('hidden'); document.getElementById('teleprompter-overlay').classList.add('flex'); document.getElementById('teleprompter-text').innerText = document.getElementById('script-editor').value || "Naskah Kosong"; setPromoSpeed(15, document.querySelectorAll('.promo-spd')[1]); }
