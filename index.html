@@ -1239,6 +1239,7 @@
                     app.classList.remove('hidden'); app.style.opacity = '0';
                     refreshAllLists();
                     setTimeout(() => { welcome.classList.add('hidden'); welcome.classList.remove('flex'); app.style.opacity = '1'; }, 150);
+                    setTimeout(showGhoustoryNotificationPrompt, 900);
                 }
             } catch (error) {
                 if (newPath) await supabaseClient.storage.from('ghoustory-avatars').remove([newPath]).catch(()=>{});
@@ -2968,7 +2969,10 @@ async function markDmMessagesRead(){
           return Uint8Array.from(raw,c=>c.charCodeAt(0));
         }
         function showGhoustoryNotificationPrompt(){
-          if(!activeUser||!("Notification" in window)||Notification.permission!=="default")return;
+          if(!activeUser)return;
+          // Tetap tampilkan penjelasan di browser yang belum mendukung Web Push
+          // (misalnya Safari iPhone yang belum dipasang ke Home Screen).
+          if("Notification" in window && Notification.permission!=="default")return;
           const key="ghoustory-notification-prompt-"+activeUser.id;
           if(localStorage.getItem(key)==="done")return;
           const modal=document.getElementById("ghoustory-notification-prompt");
