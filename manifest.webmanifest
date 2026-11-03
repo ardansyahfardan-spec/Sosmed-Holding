@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "Ghoustory Control Room",
+  "short_name": "Ghoustory",
+  "description": "Ruang kendali operasional dan analitik Ghoustory.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "./image_2.png",
+      "sizes": "any",
+      "type": "image/png"
+    },
+    {
+      "src": "./ghoustory-logo.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
