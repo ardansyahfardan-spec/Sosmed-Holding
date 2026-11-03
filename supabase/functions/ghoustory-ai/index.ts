@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       prompt = `Kamu penulis naskah profesional untuk kanal YouTube horor Indonesia Ghoustory. Buat naskah lengkap berbahasa Indonesia yang natural, enak dibawakan host, punya hook kuat, build-up ketegangan, pertanyaan narasumber, transisi, dan penutup. Format: ${format}. Narasumber: ${guest}. Lokasi: ${location}. Premis: ${premise}. Jangan mengarang fakta tentang kejadian nyata; tandai bagian yang perlu dikonfirmasi. Sertakan arahan visual/audio seperlunya. Output langsung naskah dengan heading yang rapi.`;
     } else if (task === "research") {
       const topic = String(body.topic || "").slice(0, 1200);
-      prompt = `Bertindak sebagai asisten riset konten horor Ghoustory. Buat ringkasan riset awal tentang topik/lokasi berikut: ${topic}. Pisahkan: (1) informasi yang cukup dikenal/terverifikasi, (2) cerita rakyat/rumor yang belum terbukti, (3) hal yang perlu dikonfirmasi sebelum ditayangkan, (4) 8 pertanyaan wawancara/observasi, (5) ide angle cerita. Jangan mengarang sumber, tanggal, atau fakta. Jika tidak yakin, tulis bahwa perlu verifikasi. Bahasa Indonesia.`;
+      prompt = `Bertindak sebagai asisten riset awal konten horor Ghoustory. Buat ringkasan berdasarkan pengetahuan yang tersedia tentang topik/lokasi berikut: ${topic}. Pisahkan: (1) informasi umum yang perlu diverifikasi, (2) cerita rakyat/rumor yang belum terbukti, (3) hal yang wajib dikonfirmasi sebelum ditayangkan, (4) 8 pertanyaan wawancara/observasi, (5) ide angle cerita. Jangan mengarang sumber, tautan, tanggal, atau fakta. Tegaskan bahwa hasil ini bukan pencarian web langsung dan semua fakta perlu diverifikasi. Bahasa Indonesia.`;
     } else if (task === "minutes") {
       const topic = String(body.topic || "Rapat").slice(0, 200);
       const transcript = String(body.transcript || "").slice(0, 24000);
@@ -89,10 +89,9 @@ Deno.serve(async (req) => {
     }
 
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
     const geminiPayload = {
       contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
-      tools: task === "research" ? [{ google_search: {} }] : undefined,
       generationConfig: { temperature: 0.75, maxOutputTokens: task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500 },
     };
 
