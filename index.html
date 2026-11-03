@@ -4,7 +4,16 @@
     <link rel="icon" type="image/png" href="./image_2.png">
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">\n
+    <meta name="theme-color" content="#050505">
+    <meta name="application-name" content="Ghoustory Control Room">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Ghoustory">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./image_2.png">
     <title>Ghoustory Control Room</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -168,7 +177,10 @@
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
                 <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
             </button>
-            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
+
+            <button id="install-app-btn" type="button" onclick="installGhoustoryApp()" class="w-full mt-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm">
+                <i class="fa-solid fa-download"></i> Pasang Aplikasi
+            </button>\n            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
             <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.3 - SUPABASE CONNECTED</div>
         </div>
     </div>
@@ -2356,5 +2368,51 @@
             }
         }
     </script>
-</body>
+
+    <script>
+        // PWA: service worker hanya menangani app shell; request Supabase/API tidak di-cache.
+        let ghoustoryInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            ghoustoryInstallPrompt = event;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            ghoustoryInstallPrompt = null;
+            const button = document.getElementById('install-app-btn');
+            if (button) {
+                button.innerHTML = '<i class="fa-solid fa-check"></i> Aplikasi Terpasang';
+                button.disabled = true;
+                button.classList.add('opacity-60', 'cursor-not-allowed');
+            }
+        });
+
+        async function installGhoustoryApp() {
+            if (ghoustoryInstallPrompt) {
+                ghoustoryInstallPrompt.prompt();
+                await ghoustoryInstallPrompt.userChoice;
+                ghoustoryInstallPrompt = null;
+                return;
+            }
+
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+            if (isInStandaloneMode) {
+                alert('Ghoustory Control Room sudah terpasang di perangkat ini.');
+            } else if (isIOS) {
+                alert('Untuk memasang di iPhone/iPad:\\n1. Buka halaman ini menggunakan Safari.\\n2. Tekan tombol Bagikan (ikon kotak dengan panah ke atas).\\n3. Pilih “Tambahkan ke Layar Utama” / “Add to Home Screen”.\\n4. Tekan Tambahkan.');
+            } else {
+                alert('Untuk memasang aplikasi:\\n1. Buka halaman ini di Google Chrome.\\n2. Tekan menu titik tiga (⋮).\\n3. Pilih “Install app” atau “Tambahkan ke layar utama”.');
+            }
+        }
+
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((error) => {
+                    console.warn('PWA service worker gagal didaftarkan:', error);
+                });
+            });
+        }
+    </script>
+\n</body>
 </html>
