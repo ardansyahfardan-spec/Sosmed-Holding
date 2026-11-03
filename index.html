@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Ghoustory">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="./manifest.webmanifest">
     <title>Ghoustory Control Room</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -286,7 +287,7 @@
               <button onclick="showPage('home')" class="mb-3 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke Control Room</button>
               <div class="grid grid-cols-1 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.5fr)] gap-3">
                 <aside id="chat-sidebar" class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
-                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">RITUAL CREW</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan tim</p></div><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div>
+                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">RITUAL CREW</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan tim</p></div><div class="flex items-center gap-2"><button type="button" onclick="enableGhoustoryNotifications()" class="px-2 py-1.5 rounded-lg border border-blue-800 text-[10px] text-blue-200 hover:bg-blue-950" aria-label="Aktifkan notifikasi"><i class="fa-solid fa-bell mr-1"></i>Notifikasi</button><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div></div>
                   <div class="p-3 border-b border-gray-800"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i><input id="chat-list-search" type="search" oninput="filterChatList(this.value)" placeholder="Cari percakapan..." class="w-full bg-black border border-gray-800 rounded-full pl-9 pr-3 py-2.5 text-xs text-white"></div></div>
                   <div class="p-3 border-b border-gray-800">
                     <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Percakapan</div>
@@ -2725,13 +2726,15 @@ async function loadChatMessages(){
         async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan anggota lain.");return;}const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));groupPins=data||[];renderChatMessages();}catch(e){alert("Pin gagal: "+e.message);}}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null}){
           if(!activeUser)throw new Error("Login diperlukan.");
-          const {error}=await supabaseClient.from("ghoustory_chat_messages").insert({
+          const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
             sender_id:activeUser.id,
             sender_name:activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru",
             sender_avatar:activeUser.user_metadata?.avatar_url||"",
             body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title,reply_to
-          });
+          }).select("id").single();
           if(error)throw error;
+          await sendGhoustoryPush(data.id,"group");
+          return data;
         }
         async function sendChatMessage(event){
           event.preventDefault();const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input.value.trim();
@@ -2876,7 +2879,7 @@ async function markDmMessagesRead(){
         async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();await loadDirectConversations();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
         async function sendDirectMessage(event){
           event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
-          try{const payload={conversation_id:activeDmConversation,sender_id:activeUser.id,body};if(dmReplyTo)payload.reply_to=dmReplyTo.id;const {error}=await supabaseClient.from("ghoustory_dm_messages").insert(payload);if(error)throw error;input.value="";clearDmReply();}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
+          try{const payload={conversation_id:activeDmConversation,sender_id:activeUser.id,body};if(dmReplyTo)payload.reply_to=dmReplyTo.id;const {data:sent,error}=await supabaseClient.from("ghoustory_dm_messages").insert(payload).select("id").single();if(error)throw error;await sendGhoustoryPush(sent.id,"dm");input.value="";clearDmReply();}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
         }
         function openChatTools(){
           const modal=document.getElementById("chat-tools-modal"),content=document.getElementById("chat-tools-content");
@@ -2956,11 +2959,48 @@ async function markDmMessagesRead(){
             return answer;
           }finally{ghoustAiBusy=false;}
         }
-        // Service worker dinonaktifkan sementara untuk menguji ikon Home Screen iOS.
+        // Service worker tetap aktif untuk cache aplikasi dan push notification.
+        const GHOUSTORY_VAPID_PUBLIC_KEY = "BO_dk0WrnY1xVA8a7gagL-Pl6DKn8KBjKqSj7PuGE4M7IbKPOn0H2kfMOxrNgTbhhl0U3QbFVupKvkyPCDGH0Kg";
+        function ghoulBase64ToBytes(value){
+          const padding="=".repeat((4-value.length%4)%4);
+          const raw=atob((value+padding).replace(/-/g,"+").replace(/_/g,"/"));
+          return Uint8Array.from(raw,c=>c.charCodeAt(0));
+        }
+        async function enableGhoustoryNotifications(){
+          try{
+            if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){
+              alert("Perangkat/browser ini belum mendukung push notification.");
+              return;
+            }
+            const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isStandalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+            if(isIos&&!isStandalone){
+              alert("Di iPhone/iPad, tambahkan Ghoustory Control Room ke Home Screen terlebih dahulu, lalu buka dari ikon aplikasi untuk mengaktifkan notifikasi.");
+              return;
+            }
+            const permission=await Notification.requestPermission();
+            if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
+            const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+            await navigator.serviceWorker.ready;
+            let subscription=await registration.pushManager.getSubscription();
+            if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
+            const json=subscription.toJSON();
+            const {error}=await supabaseClient.from("ghoustory_push_subscriptions").upsert({
+              user_id:activeUser.id,endpoint:json.endpoint,p256dh:json.keys?.p256dh,auth:json.keys?.auth,user_agent:navigator.userAgent
+            },{onConflict:"endpoint"});
+            if(error)throw error;
+            alert("Notifikasi Ghoustory berhasil diaktifkan pada perangkat ini.");
+          }catch(error){console.error("Push setup:",error);alert("Notifikasi gagal diaktifkan: "+(error.message||error));}
+        }
+        async function sendGhoustoryPush(messageId,kind){
+          if(!messageId||!activeUser)return;
+          try{
+            const {error}=await supabaseClient.functions.invoke("ghoustory-push",{body:{message_id:messageId,kind}});
+            if(error)console.warn("Push notification belum terkirim:",error.message);
+          }catch(error){console.warn("Push notification belum terkirim:",error);}
+        }
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-                registrations.forEach((registration) => registration.unregister());
-            });
+          navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
