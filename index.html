@@ -1088,6 +1088,7 @@
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').style.opacity = '0';
                 refreshAllLists();
+                setTimeout(() => handleGhoustoryPushDeepLink(), 1200);
                 setTimeout(() => {
                     welcomeScreen.style.opacity = '0';
                     document.getElementById('main-app').style.opacity = '1';
@@ -2996,6 +2997,24 @@ async function markDmMessagesRead(){
             const {error}=await supabaseClient.functions.invoke("ghoustory-push",{body:{message_id:messageId,kind}});
             if(error)console.warn("Push notification belum terkirim:",error.message);
           }catch(error){console.warn("Push notification belum terkirim:",error);}
+        }
+        async function handleGhoustoryPushDeepLink(){
+          const params=new URLSearchParams(window.location.search);
+          if(params.get("chat")!=="1")return;
+          try{
+            showPage("chat");
+            await loadRitualMembers();
+            const conversationId=params.get("conversation_id");
+            if(conversationId){
+              const {data:people,error}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",conversationId);
+              if(error)throw error;
+              const other=(people||[]).find(p=>p.user_id!==activeUser?.id);
+              if(other)await openDirectMessage(other.user_id);
+            }else{
+              openGroupRoom();
+            }
+            window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+          }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
