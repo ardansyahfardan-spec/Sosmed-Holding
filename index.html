@@ -824,9 +824,16 @@
         // ================= INISIALISASI & AUTHENTICATION =================
         window.addEventListener('load', async () => {
             setInterval(() => {
-                const now = new Date();
-                document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID') + " WIB";
+                const clock = document.getElementById('live-clock');
+                if (clock) clock.innerText = new Date().toLocaleTimeString('id-ID') + " WIB";
             }, 1000);
+            setInterval(async () => {
+                if (!sharedSyncReady) return;
+                try {
+                    const removed = await purgeCompletedItems();
+                    if (removed) { saveData(); refreshAllLists(); }
+                } catch (error) { console.error('Pembersihan otomatis gagal:', error); }
+            }, 60 * 60 * 1000);
             initSocialChart();
 
             // Cek Session saat halaman dimuat
