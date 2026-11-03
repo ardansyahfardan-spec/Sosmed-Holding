@@ -1253,8 +1253,8 @@
 
         async function stopChatPresence(){
             if(ritualHeartbeatTimer){clearInterval(ritualHeartbeatTimer);ritualHeartbeatTimer=null;}
-            const channels=[ritualPresenceChannel,groupPresenceChannel,dmPresenceChannel].filter(Boolean);
-            ritualPresenceChannel=null;groupPresenceChannel=null;dmPresenceChannel=null;
+            const channels=[presenceChannel,ritualPresenceChannel,groupPresenceChannel,dmPresenceChannel].filter(Boolean);
+            presenceChannel=null;ritualPresenceChannel=null;groupPresenceChannel=null;dmPresenceChannel=null;
             await Promise.all(channels.map(ch=>supabaseClient.removeChannel(ch)));
             ritualOnlineIds=new Set();
         }
@@ -1986,6 +1986,8 @@
                 const state = presenceChannel.presenceState();
                 const onlineUsers = Object.values(state).flat()
                     .filter((entry, index, all) => all.findIndex(x => x.user_id === entry.user_id) === index);
+                ritualOnlineIds = new Set(onlineUsers.map(entry => entry.user_id).filter(Boolean));
+                if (typeof renderRitualMembers === "function") renderRitualMembers();
                 const avatarWrap = document.getElementById("online-avatars");
                 if (avatarWrap) {
                     avatarWrap.innerHTML = onlineUsers.map(entry => {
@@ -1997,7 +1999,7 @@
                 const countEl = document.getElementById("footer-online");
                 const namesEl = document.getElementById("footer-online-names");
                 if (countEl) countEl.textContent = onlineUsers.length + " akun";
-                if (namesEl) namesEl.textContent = onlineUsers.length ? "· " + onlineUsers.join(", ") : "";
+                if (namesEl) namesEl.textContent = onlineUsers.length ? "· " + onlineUsers.map(entry => entry.name || "Kru").join(", ") : "";
             });
             presenceChannel.subscribe(async status => {
                 if (status === "SUBSCRIBED") {
@@ -2008,6 +2010,15 @@
                     }
                     const displayName = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
                     await presenceChannel.track({ user_id: user.id, name: displayName, role: profile?.role || "", avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
+                    const touchLastSeen = async () => {
+                        const stamp = new Date().toISOString();
+                        const { error } = await supabaseClient.from("ghoustory_profiles").update({ last_seen_at: stamp }).eq("user_id", user.id);
+                        if (error) console.warn("Pembaruan terakhir aktif gagal:", error.message);
+                        else if (activeProfile) activeProfile.last_seen_at = stamp;
+                    };
+                    await touchLastSeen();
+                    if (ritualHeartbeatTimer) clearInterval(ritualHeartbeatTimer);
+                    ritualHeartbeatTimer = setInterval(touchLastSeen, 30000);
                 }
             });
         }
@@ -2779,22 +2790,9 @@ async function loadChatMessages(){
           }).join("");
         }
         async function startRitualPresence(){
-          if(!activeUser)return;
-          if(ritualPresenceChannel)await supabaseClient.removeChannel(ritualPresenceChannel);
-          ritualPresenceChannel=supabaseClient.channel("ghoustory-members-presence",{config:{presence:{key:activeUser.id}}});
-          ritualPresenceChannel.on("presence",{event:"sync"},()=>{
-            const state=ritualPresenceChannel.presenceState();
-            ritualOnlineIds=new Set(Object.values(state).flat().map(x=>x.user_id).filter(Boolean));
-            renderRitualMembers();
-          }).subscribe(async state=>{
-            if(state==="SUBSCRIBED"){
-              await ritualPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota"});
-              const touch=async()=>{const stamp=new Date().toISOString();const {error}=await supabaseClient.from("ghoustory_profiles").update({last_seen_at:stamp}).eq("user_id",activeUser.id);if(!error&&activeProfile)activeProfile.last_seen_at=stamp;};
-              await touch();
-              if(ritualHeartbeatTimer)clearInterval(ritualHeartbeatTimer);
-              ritualHeartbeatTimer=setInterval(touch,60000);
-            }
-          });
+          // Status online anggota mengikuti Presence global sejak aplikasi dibuka,
+          // bukan hanya ketika pengguna sedang berada di halaman chat.
+          renderRitualMembers();
         }
         async function loadRitualMembers(){
           const box=document.getElementById("ritual-members-list");if(!activeUser||!box)return;
