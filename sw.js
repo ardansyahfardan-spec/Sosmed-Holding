@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ghoustory-control-room-v5';
+const CACHE_NAME = 'ghoustory-control-room-v6';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png.png'];
 
 self.addEventListener('install', (event) => {
@@ -20,6 +20,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
+  const pathname = decodeURIComponent(url.pathname);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
@@ -37,7 +38,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (['image_2.png', 'ghoustory-logo.png', 'apple-touch-icon 2.png', 'icon-192.png', 'icon-512.png.png', 'manifest.webmanifest'].some((name) => url.pathname.endsWith('/' + name))) {
+  if (['image_2.png', 'ghoustory-logo.png', 'apple-touch-icon 2.png', 'icon-192.png', 'icon-512.png.png', 'manifest.webmanifest'].some((name) => pathname.endsWith('/' + name))) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((response) => {
         if (response && response.ok) {
