@@ -741,7 +741,7 @@
                 if (seedError) throw seedError;
             }
 
-            const purgedCompletedItems = purgeCompletedItems();
+            const purgedCompletedItems = await purgeCompletedItems();
             sharedSyncReady = true;
             if (purgedCompletedItems) saveData();
             if (document.getElementById('script-editor')) {
@@ -797,18 +797,26 @@
             refreshAllLists();
         }
 
-        function purgeCompletedItems() {
+        async function purgeCompletedItems() {
             const cutoff = Date.now() - AUTO_PURGE_AFTER_DAYS * 24 * 60 * 60 * 1000;
             let removed = 0;
+            const expiredVOAudio = [];
             AUTO_PURGE_COLLECTIONS.forEach(collection => {
+                if (!Array.isArray(db[collection])) return;
                 const before = db[collection].length;
                 db[collection] = db[collection].filter(item => {
                     if (!item || !item.completedAt) return true;
                     const completedTime = new Date(item.completedAt).getTime();
-                    return !Number.isFinite(completedTime) || completedTime > cutoff;
+                    const expired = Number.isFinite(completedTime) && completedTime <= cutoff;
+                    if (expired && collection === 'vo' && item.audioPath) expiredVOAudio.push(item.audioPath);
+                    return !expired;
                 });
                 removed += before - db[collection].length;
             });
+            if (expiredVOAudio.length) {
+                const { error } = await supabaseClient.storage.from('vo-recordings').remove(expiredVOAudio);
+                if (error) console.error('Catatan VO terhapus, tetapi sebagian file audio gagal dibersihkan:', error);
+            }
             if (removed) console.info(removed + ' item selesai dibersihkan otomatis setelah 7 hari.');
             return removed > 0;
         }
