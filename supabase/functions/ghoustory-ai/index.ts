@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -89,7 +89,8 @@ Deno.serve(async (req) => {
       .filter((web: { uri?: string } | undefined) => !!web?.uri)
       .map((web: { uri?: string; title?: string }) => ({ title: web.title || web.uri, url: web.uri }));
     const sourceText = sources.length ? "\\n\\nSUMBER WEB UNTUK DIVERIFIKASI:\\n" + sources.map((source: {title:string;url:string}, index:number) => (index+1)+". "+source.title+" — "+source.url).join("\\n") : "";
-    return json({ text: text + sourceText, sources });
+    const usage = result?.usageMetadata ? { promptTokens: result.usageMetadata.promptTokenCount || 0, outputTokens: result.usageMetadata.candidatesTokenCount || 0, totalTokens: result.usageMetadata.totalTokenCount || 0 } : null;
+    return json({ text: text + sourceText, sources, usage });
   } catch (error) {
     console.error("ghoustory-ai error:", error);
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
