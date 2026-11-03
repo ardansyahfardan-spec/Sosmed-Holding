@@ -742,7 +742,7 @@
         }
 
         function refreshAllLists() {
-            renderList('list-mitos', db.mitos, 'mitos', (item, i) => `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between items-start"><span class="font-bold">${item.text}</span><div class="flex gap-2"><button onclick="salinMitos('${item.text}')" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button><button onclick="kirimKeEditor('${item.text}')" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Kirim Script</button></div></div>${item.research ? `<div class="mt-2 text-xs text-orange-300 bg-gray-900 p-2 rounded border border-gray-700"><i class="fa-solid fa-robot mr-1"></i> ${item.research}</div>` : ''}</div>`);
+            renderMitosList();
             renderVOList();
             renderScriptDrafts();
             renderNotulenList();
@@ -774,22 +774,22 @@
         // GRIMOIRE MITOS
         let isMitosMic = false;
         let mitosRecognition=null;function toggleMitosMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mitos-mic'),stat=document.getElementById('mitos-mic-status'),input=document.getElementById('input-mitos');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isMitosMic&&mitosRecognition){mitosRecognition.stop();return;}mitosRecognition=new SR();mitosRecognition.lang='id-ID';mitosRecognition.continuous=true;mitosRecognition.interimResults=true;mitosRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)input.value+=(input.value?' ':'')+t.trim();};mitosRecognition.onerror=e=>stat.textContent='Mic: '+e.error;mitosRecognition.onend=()=>{isMitosMic=false;btn.classList.remove('bg-red-700','text-white');stat.classList.add('hidden');};try{mitosRecognition.start();isMitosMic=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';stat.classList.remove('hidden');}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
-        function addMitos() { const t=document.getElementById('input-mitos'); if(t.value) { db.mitos.push({id:Date.now(), text:t.value, research:"Catatan awal tersimpan. Riset sumber dan verifikasi fakta belum dilakukan."}); t.value=''; saveData(); refreshAllLists(); alert("Catatan mitos berhasil disimpan."); } }
-        function salinMitos(txt) { copyTextSafe(txt); }
-        function kirimKeEditor(txt) { document.getElementById('script-editor').value = `[RISET MITOS GEMINI]\n${txt}\n\nNarasi Utama:\n...`; switchTab('grimoire', 'editor'); }
-
-        function generateAiScript(){const n=document.getElementById('ai-narsum').value||'Narasumber',l=document.getElementById('ai-lokasi').value||'lokasi mistis',p=document.getElementById('ai-premis').value||'kejadian mistis',fmt=document.getElementById('ai-format').value;const res=fmt==='Penelusuran'?'[DRAF TEMPLATE PENELUSURAN]\nLOKASI: '+l.toUpperCase()+'\nNARASUMBER: '+n+'\nPREMIS: '+p+'\n\nOPENING:\nMalam ini tim Ghoustory berada di '+l+'. Kami menelusuri cerita tentang '+p+'.\n\nPERTANYAAN:\n1. Sejak kapan kejadian ini dikenal?\n2. Apa pengalaman paling kuat?\n3. Adakah saksi atau bukti pendukung?\n\nCATATAN TEMUAN:\n[Isi temuan di lokasi]':'[DRAF TEMPLATE PODCAST]\nTEMA: '+p.toUpperCase()+'\nNARASUMBER: '+n+'\n\nOPENING:\nSelamat datang di Ghoustory. Malam ini kita membahas '+p+'.\n\nPERTANYAAN:\n1. Bisa ceritakan awal mula kisah ini?\n2. Bagian mana yang paling sulit dilupakan?\n3. Apa yang terjadi setelahnya?\n\nPENUTUP:\nTerima kasih sudah berbagi cerita bersama Ghoustory.';document.getElementById('script-editor').value=res;if(!document.getElementById('script-title').value.trim())document.getElementById('script-title').value='Draf '+fmt+' - '+p.slice(0,45);switchTab('grimoire','editor');alert('Template naskah dibuat. Ini kerangka awal, bukan hasil AI Gemini.');}
+        async function callGhoulAI(task,payload={}){const {data,error}=await supabaseClient.functions.invoke('ghoustory-ai',{body:{task,...payload}});if(error)throw new Error(error.message||'Layanan AI gagal dipanggil.');if(!data?.text)throw new Error(data?.error||'AI tidak mengembalikan teks.');return data.text;}
+        function setButtonBusy(btn,busy){if(!btn)return;if(busy){btn.dataset.oldHtml=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';}else{btn.disabled=false;btn.innerHTML=btn.dataset.oldHtml||btn.innerHTML;}}
+        function renderMitosList(){const el=document.getElementById('list-mitos');if(!el)return;if(!db.mitos.length){el.innerHTML='<div class="text-xs text-gray-500 py-2">Belum ada catatan.</div>';return;}el.innerHTML=db.mitos.map((x,i)=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex flex-wrap justify-between gap-2"><b>'+escapeHtml(x.text)+'</b><div class="flex gap-2"><button onclick="salinMitosIndex('+i+')" class="text-xs bg-gray-800 px-2 py-1 rounded">Salin</button><button onclick="kirimMitosKeEditor('+i+')" class="text-xs bg-red-900 px-2 py-1 rounded">Kirim Naskah</button><button onclick="deleteMitos('+i+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div></div><div class="mt-2 text-xs text-orange-200 whitespace-pre-wrap">'+escapeHtml(x.research||'Menunggu riset AI...')+'</div></div>').join('');}
+        function salinMitosIndex(i){if(db.mitos[i])copyTextSafe(db.mitos[i].text);}
+        function kirimMitosKeEditor(i){const x=db.mitos[i];if(!x)return;document.getElementById('script-title').value='Riset Mitos - '+x.text.slice(0,50);document.getElementById('script-editor').value='[RISET MITOS]\\n'+x.text+'\\n\\n'+(x.research||'');switchTab('grimoire','editor');}
+        function deleteMitos(i){if(!db.mitos[i]||!confirm('Hapus catatan mitos ini?'))return;db.mitos.splice(i,1);saveData();renderMitosList();}
+        async function addMitos(){const input=document.getElementById('input-mitos'),topic=input.value.trim();if(!topic)return alert('Tulis topik atau lokasi mitos terlebih dahulu.');const item={id:Date.now(),text:topic,research:'Sedang meminta riset Gemini...'};db.mitos.unshift(item);input.value='';saveData();renderMitosList();try{item.research=await callGhoulAI('research',{topic});}catch(e){item.research='Riset AI gagal: '+e.message;}saveData();renderMitosList();}
+        async function generateAiScript(){const guest=document.getElementById('ai-narsum').value||'Narasumber',location=document.getElementById('ai-lokasi').value||'lokasi mistis',premise=document.getElementById('ai-premis').value||'kejadian mistis',format=document.getElementById('ai-format').value,btn=document.querySelector('button[onclick="generateAiScript()"]');setButtonBusy(btn,true);try{const text=await callGhoulAI('script',{guest,location,premise,format});document.getElementById('script-editor').value=text;if(!document.getElementById('script-title').value.trim())document.getElementById('script-title').value='Naskah '+format+' - '+premise.slice(0,45);switchTab('grimoire','editor');}catch(e){alert('Gagal membuat naskah AI: '+e.message);}finally{setButtonBusy(btn,false);}}
 
         // GHOUSTNOTE
         let isRecording = false;
         let noteRecognition=null;function toggleRecordMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mic'),stat=document.getElementById('mic-status'),area=document.getElementById('note-raw');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isRecording&&noteRecognition){noteRecognition.stop();return;}noteRecognition=new SR();noteRecognition.lang='id-ID';noteRecognition.continuous=true;noteRecognition.interimResults=true;noteRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)area.value+=(area.value?' ':'')+t.trim();};noteRecognition.onerror=e=>stat.textContent='Mic: '+e.error;noteRecognition.onend=()=>{isRecording=false;btn.classList.remove('bg-red-700','text-white');stat.textContent='Mic Off.';};try{noteRecognition.start();isRecording=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
-        function simpanDraftVO() { const t=document.getElementById('vo-title').value; const k=document.getElementById('vo-teks').value; if(t) { db.vo.push({id:Date.now(), title:t, teks:k}); document.getElementById('vo-title').value=''; document.getElementById('vo-teks').value=''; saveData(); renderVOList(); } }
-        function renderVOList() { const c=document.getElementById('list-vo'); if(!c) return; c.innerHTML=''; if(db.vo.length===0){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;} db.vo.forEach(i=>{ c.innerHTML+=`<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><b>🎙️ ${i.title}</b><div class="text-xs text-gray-400 mt-1">"${i.teks}"</div></div>`; }); }
-        
-        function generateNotulen() {
-            const raw=document.getElementById('note-raw').value; const top=document.getElementById('note-topic').value||'Rapat';
-            if(raw) { db.notulen.push({id:Date.now(), topic:top, raw:"DRAF NOTULEN (belum diringkas AI):\n"+raw}); document.getElementById('note-raw').value=''; document.getElementById('note-topic').value=''; saveData(); refreshAllLists(); switchTab('ghoustnote','arsip'); }
-        }
+        function simpanDraftVO(){const title=document.getElementById('vo-title').value.trim(),teks=document.getElementById('vo-teks').value.trim();if(!title||!teks)return alert('Isi judul dan teks VO.');db.vo.unshift({id:Date.now(),title,teks});document.getElementById('vo-title').value='';document.getElementById('vo-teks').value='';saveData();renderVOList();}
+        function deleteVO(id){if(!confirm('Hapus catatan VO ini?'))return;db.vo=db.vo.filter(x=>x.id!==id);saveData();renderVOList();}
+        function renderVOList(){const c=document.getElementById('list-vo');if(!c)return;if(!db.vo.length){c.innerHTML='<div class="text-xs text-gray-500 py-2">Kosong.</div>';return;}c.innerHTML=db.vo.map(x=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex justify-between gap-2"><b>🎙️ '+escapeHtml(x.title)+'</b><button onclick="deleteVO('+Number(x.id)+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div><div class="text-xs text-gray-400 mt-1">'+escapeHtml(x.teks)+'</div></div>').join('');}
+        async function generateNotulen(){const area=document.getElementById('note-raw'),transcript=area.value.trim(),topic=document.getElementById('note-topic').value.trim()||'Rapat',btn=document.querySelector('button[onclick="generateNotulen()"]');if(!transcript)return alert('Isi atau rekam bahan rapat terlebih dahulu.');setButtonBusy(btn,true);try{const text=await callGhoulAI('minutes',{topic,transcript});db.notulen.unshift({id:Date.now(),topic,raw:text,source:transcript});area.value='';document.getElementById('note-topic').value='';saveData();refreshAllLists();switchTab('ghoustnote','arsip');}catch(e){alert('Gagal merangkum notulen AI: '+e.message);}finally{setButtonBusy(btn,false);}}
 
         function renderNotulenList() {
             const c = document.getElementById('list-notulen'); if(!c) return; c.innerHTML = '';
@@ -800,11 +800,13 @@
                     <div class="flex gap-1">
                         <button onclick="openModalNotulen(${i})" class="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-gray-200">Preview / Edit</button>
                         <button onclick="salinNotulenText(${i})" class="text-xs bg-blue-900 px-2 py-1 rounded text-blue-200">Salin</button>
+                        <button onclick="deleteNotulen(${item.id})" class="text-xs bg-red-950 px-2 py-1 rounded text-red-200">Hapus</button>
                     </div>
                 </div>`;
             });
         }
 
+        function deleteNotulen(id){if(!confirm('Hapus notulen ini?'))return;db.notulen=db.notulen.filter(x=>x.id!==id);saveData();renderNotulenList();}
         let activeNotulenIndex = null;
         function openModalNotulen(i) {
             activeNotulenIndex = i;
@@ -824,7 +826,8 @@
         function salinNotulenText(i) { if (db.notulen[i]) copyTextSafe(db.notulen[i].raw); }
 
         // ANALISIS AI & TOMBOL DISETUJUI
-        function generateMetadata(){const link=document.getElementById('ai-yt-link').value.trim();let parsed;try{parsed=new URL(link);}catch(e){return alert('Masukkan URL YouTube yang valid.');}if(!['youtube.com','www.youtube.com','youtu.be','m.youtube.com'].includes(parsed.hostname))return alert('Link harus berasal dari YouTube.');alert('Ekstraksi metadata belum terhubung ke YouTube/Gemini API. Hasil contoh palsu tidak akan disimpan. Fitur ini memerlukan integrasi API/backend.');}
+        async function generateMetadata(){const link=document.getElementById('ai-yt-link').value.trim(),btn=document.querySelector('button[onclick="generateMetadata()"]');if(!link)return alert('Masukkan link YouTube.');setButtonBusy(btn,true);try{const text=await callGhoulAI('metadata',{url:link});db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+link.slice(0,45),aiText:text,url:link});saveData();renderMetadataList();switchTab('analisis','arsip');}catch(e){alert('Gagal membuat metadata: '+e.message);}finally{setButtonBusy(btn,false);}}
+        function deleteMetadata(id){if(!confirm('Hapus metadata ini?'))return;db.metadata=db.metadata.filter(x=>x.id!==id);saveData();renderMetadataList();}
 
         function copyMetadataText(i) { if (db.metadata[i]) copyTextSafe(db.metadata[i].aiText); }
 
@@ -837,6 +840,7 @@
                     <div class="flex gap-1">
                         <button onclick="openModalSetuju(${i})" class="text-xs bg-orange-700 hover:bg-orange-600 px-2.5 py-1 rounded text-white font-bold">Disepakati</button>
                         <button onclick="copyMetadataText(${i})" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button>
+                        <button onclick="deleteMetadata(${item.id})" class="text-xs bg-red-950 px-2 py-1 rounded text-red-200">Hapus</button>
                     </div>
                 </div>`;
             });
@@ -948,7 +952,7 @@
                 </div>`;
             });
         }
-        function hapusSegmen(idx) { db.segmenList.splice(idx, 1); saveData(); renderSegmenGrid(); populateSegmentOptions(); }
+        function hapusSegmen(idx) { if(!confirm('Hapus segmen ini?'))return; db.segmenList.splice(idx, 1); saveData(); renderSegmenGrid(); populateSegmentOptions(); }
 
         // KALENDER TAYANG
         let tayangMonth = new Date().getMonth(); let tayangYear = new Date().getFullYear();
@@ -985,7 +989,7 @@
             }
             if(listDetail.innerHTML === '') listDetail.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
         }
-        function hapusTayang(id) { db.tayang = db.tayang.filter(t => t.id !== id); saveData(); renderTayangCal(); }
+        function hapusTayang(id) { if(!confirm('Hapus jadwal tayang ini?'))return; db.tayang = db.tayang.filter(t => t.id !== id); saveData(); renderTayangCal(); }
         function editTayang(id) {
             const t = db.tayang.find(x => x.id === id);
             if(t) {
@@ -1041,7 +1045,7 @@
                 switchTab('tim', 'jadwal');
             }
         }
-        function hapusJadwal(id) { db.jadwal = db.jadwal.filter(j => j.id !== id); saveData(); renderJadwalCal(); }
+        function hapusJadwal(id) { if(!confirm('Hapus jadwal shooting ini?'))return; db.jadwal = db.jadwal.filter(j => j.id !== id); saveData(); renderJadwalCal(); }
 
         function renderJadwalCal() {
             const grid = document.getElementById('jadwal-calendar-grid'); if(!grid) return;
@@ -1136,13 +1140,14 @@
             const t = document.getElementById('input-stok').value; const fmt = document.getElementById('stok-format').value;
             if(t) { db.stok.push({ id: Date.now(), text: t, format: fmt, status: "Siap Edit", segment: "Belum Ada" }); document.getElementById('input-stok').value=''; saveData(); renderStok(); }
         }
+        function hapusStok(id){if(!confirm('Hapus item stok ini?'))return;db.stok=db.stok.filter(x=>x.id!==id);saveData();renderStok();}
         function renderStok() {
             const c = document.getElementById('list-stok'); if(!c) return; c.innerHTML = '';
             if(db.stok.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada stok.</div>'; return; }
             db.stok.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
                     <div><b>👤 Narasumber: ${item.text}</b><div class="text-[10px] text-yellow-400">${item.format} | Status: ${item.status}</div></div>
-                    <button onclick="db.stok.splice(${i},1); saveData(); renderStok();" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                    <button onclick="hapusStok(${item.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
                 </div>`;
             });
         }
@@ -1174,13 +1179,14 @@
             db.kas = [{ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: "Saldo Pindahan", amount: total }];
             saveData(); renderKas();
         }
+        function hapusKas(id){if(!confirm('Hapus transaksi kas ini?'))return;db.kas=db.kas.filter(x=>x.id!==id);saveData();renderKas();}
         function renderKas() {
             const c = document.getElementById('list-ledger'); const cetak = document.getElementById('kas-ringkasan-cetak'); if(!c) return;
             c.innerHTML = ''; let cetakHtml = ''; let total = 0;
             if(db.kas.length === 0) c.innerHTML = '<div class="text-xs text-gray-500">Kas kosong.</div>';
             [...db.kas].reverse().forEach(k => {
                 total += k.amount;
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${k.desc} (${k.date})</span><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${k.amount.toLocaleString('id-ID')}</b></div>`;
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${k.amount.toLocaleString('id-ID')}</b><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
                 cetakHtml += `<div class="flex justify-between"><span>• ${k.desc}</span><b>Rp ${k.amount.toLocaleString('id-ID')}</b></div>`;
             });
             document.getElementById('total-saldo-kas').innerText = `Rp ${total.toLocaleString('id-ID')}`;
