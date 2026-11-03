@@ -49,22 +49,21 @@ Deno.serve(async (req) => {
 Format: ${format}. Nama narasumber: ${guest}. Lokasi: ${location}. Topik/premis dari pengguna: ${premise}.
 
 ATURAN KONTEN:
-- Buat opening singkat untuk sekitar 45–90 detik, bukan naskah 15 menit.
-- Mulai dengan hook yang memancing rasa penasaran berdasarkan topik yang diberikan.
-- Bangun suasana misteri secukupnya, lalu perkenalkan topik dan narasumber.
-- Akhiri dengan satu kalimat bridging yang natural untuk mempersilakan narasumber mulai bercerita.
-- Tugasmu hanya menulis PEMBUKAAN host. Jangan membuat follow-up setelah cerita, pertanyaan lanjutan, dialog narasumber, atau bagian setelah narasumber mulai bercerita.
-- Jangan mengarang detail pengalaman, kronologi, lokasi spesifik, kejadian, dialog, reaksi, atau bukti yang tidak diberikan pengguna.
-- Jangan menulis dialog narasumber sama sekali.
-- Jika premis masih umum, gunakan kalimat pengantar yang umum dan aman; jangan mengisi kekosongan dengan cerita rekaan.
-- Jangan menganggap kisah gaib sebagai fakta yang terbukti. Gunakan framing bahwa narasumber akan membagikan pengalaman atau ceritanya.
-- Jangan menambahkan catatan produksi, rundown, alternatif judul, atau pertanyaan wawancara.
+- Buat opening host sekitar 45–90 detik.
+- Tulis untuk DIUCAPKAN, bukan untuk dibaca seperti artikel atau berita.
+- Gunakan bahasa Indonesia lisan yang luwes, akrab, spontan, dan terasa seperti host sedang ngobrol langsung dengan penonton. Boleh memakai penghubung percakapan seperti "Nah", "Jadi", atau "Coba bayangkan" secara wajar, jangan berlebihan.
+- Utamakan kalimat pendek sampai sedang, satu gagasan per kalimat, mudah diucapkan dalam sekali napas.
+- Hindari bahasa kaku/formal, kalimat berbunga-bunga, istilah rumit, pengulangan ide, dan frasa klise AI seperti "di balik...", "menyimpan misteri...", atau "kisah yang tak terlupakan" kecuali benar-benar cocok.
+- Buat alur yang enak untuk take: hook yang langsung menarik perhatian → konteks singkat → perkenalan narasumber → satu kalimat pengantar agar narasumber mulai bercerita.
+- Sisipkan jeda paragraf pada pergantian gagasan. Jangan menulis arahan kamera, ekspresi, atau catatan dalam tanda kurung.
+- Baca ulang secara mental sebagai host. Jika terdengar seperti tulisan artikel, sederhanakan sampai terdengar seperti percakapan alami.
+- Jangan membuat keseluruhan episode, rundown, pertanyaan wawancara, dialog narasumber, atau bagian setelah narasumber mulai bercerita.
+- Jangan mengarang detail pengalaman, kronologi, lokasi spesifik, kejadian, reaksi, atau bukti yang tidak diberikan pengguna.
+- Jika premis masih umum, gunakan pengantar yang aman tanpa mengisi kekosongan dengan cerita rekaan.
+- Jangan menyatakan kisah gaib sebagai fakta terbukti. Jangan menambahkan catatan produksi atau alternatif judul.
 
 OUTPUT:
-Tulis hanya:
-1. Judul/topik pembuka.
-2. Satu naskah opening host dari hook, pengantar topik, perkenalan narasumber, sampai bridging untuk mempersilakan narasumber mulai bercerita.
-Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat sekitar 45–90 detik, kalimat tidak terlalu panjang, dan siap dibaca host di depan kamera.`;
+Tulis hanya judul singkat dan naskah opening final yang siap dibaca host di depan kamera.`;
     } else if (task === "research") {
       const topic = String(body.topic || "").slice(0, 1200);
       prompt = `Bertindak sebagai asisten riset awal konten horor Ghoustory. Susun bahan riset berdasarkan pengetahuan yang tersedia tentang topik/lokasi berikut: ${topic}.
@@ -111,7 +110,33 @@ Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap d
     } else if (task === "minutes") {
       const topic = String(body.topic || "Rapat").slice(0, 200);
       const transcript = String(body.transcript || "").slice(0, 24000);
-      prompt = `Ubah transkrip rapat berikut menjadi notulen yang jelas dan rapi dalam bahasa Indonesia. Topik: ${topic}. Susun: Ringkasan, Keputusan, Daftar Tugas (PIC dan tenggat hanya jika disebut), Hal yang belum diputuskan, dan tindak lanjut. Jangan menambahkan keputusan atau nama yang tidak ada dalam transkrip. Jika informasi tidak disebut, tulis "Belum disebut". Transkrip:\n${transcript}`;
+      prompt = `Kamu adalah asisten notulen tim produksi Ghoustory. Ubah transkrip berikut menjadi NOTULEN SUPER RINGKAS yang bisa dipindai dalam beberapa detik. Topik: ${topic}.
+
+ATURAN WAJIB:
+- Ambil hanya inti informasi, keputusan, dan tindakan. Jangan menceritakan ulang jalannya rapat.
+- Gunakan kalimat pendek, bahasa Indonesia sederhana, langsung ke poin.
+- Hindari paragraf panjang, basa-basi, pengulangan, dan penjelasan yang tidak mengubah keputusan.
+- Gunakan ikon seperlunya agar cepat dibaca; jangan memenuhi notulen dengan emoji.
+- Jangan mengarang nama, keputusan, PIC, atau tenggat. Jika tidak ada, tulis "Belum ditentukan".
+- Jika suatu bagian memang tidak ada isinya, cukup tulis "—".
+
+FORMAT:
+📝 INTI RAPAT
+Maksimal 1–3 bullet, tiap bullet satu kalimat pendek.
+
+✅ KEPUTUSAN
+Hanya keputusan yang benar-benar disepakati.
+
+📌 TINDAKAN
+Format: [ ] Tugas — PIC — Tenggat. Isi PIC/tenggat hanya jika disebut.
+
+⏳ BELUM DIPUTUSKAN
+Hanya hal yang masih menggantung. Jika tidak ada, tulis "—".
+
+Jangan menambahkan pembukaan, kesimpulan panjang, atau tindak lanjut generik. Keluarkan notulen saja.
+
+TRANSKRIP:
+${transcript}`;
     } else if (task === "minutes-audio") {
       const topic = String(body.topic || "Rapat").slice(0, 200);
       const audioBase64 = String(body.audioBase64 || "");
@@ -120,7 +145,17 @@ Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap d
       if (!allowedAudioTypes.includes(audioMimeType)) return json({ error: "Format audio tidak didukung: " + audioMimeType }, 400);
       if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data audio kosong atau tidak valid." }, 400);
       if (audioBase64.length > 23_000_000) return json({ error: "Audio terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
-      prompt = `Kamu adalah asisten notulen rapat untuk tim produksi Ghoustory. Dengarkan rekaman audio rapat berbahasa Indonesia; percakapan bisa bercampur bahasa Jawa dan Indonesia. Tugasmu: (1) tulis TRANSKRIP yang setia pada ucapan, pertahankan istilah/nama yang terdengar dan tandai bagian yang tidak jelas sebagai [tidak terdengar], jangan menebak; (2) susun NOTULEN dengan bagian Ringkasan, Poin Pembahasan, Keputusan, Daftar Tugas (PIC dan tenggat hanya jika benar-benar disebut), Hal yang Belum Diputuskan, dan Tindak Lanjut. Topik rapat: ${topic}. Bedakan keputusan pasti dari usulan. Jangan mengarang nama, keputusan, tanggal, atau penanggung jawab. Jika pembicara tidak dapat dikenali dengan yakin, jangan menebak identitasnya. Gunakan bahasa Indonesia yang rapi. Format keluaran dengan heading TRANSKRIP dan NOTULEN.`;
+      prompt = `Kamu adalah asisten notulen tim produksi Ghoustory. Dengarkan rapat berbahasa Indonesia yang mungkin bercampur bahasa Jawa dan Indonesia.
+
+KELUARAN HARUS DUA BAGIAN:
+1. TRANSKRIP: tulis ucapan setia pada rekaman. Pertahankan nama/istilah yang terdengar. Tandai bagian tidak jelas sebagai [tidak terdengar]. Jangan menebak atau merapikan sampai mengubah makna.
+2. NOTULEN SUPER RINGKAS: jangan menceritakan ulang rapat. Gunakan format:
+📝 INTI RAPAT — maksimal 1–3 bullet singkat.
+✅ KEPUTUSAN — hanya yang benar-benar disepakati.
+📌 TINDAKAN — [ ] tugas — PIC — tenggat; PIC/tenggat hanya jika disebut.
+⏳ BELUM DIPUTUSKAN — hanya hal yang masih menggantung; jika tidak ada, tulis "—".
+
+Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf panjang, pengulangan, dan basa-basi. Jangan mengarang nama, keputusan, tanggal, PIC, atau tenggat. Bedakan usulan dari keputusan. Jika pembicara tidak dapat dikenali dengan yakin, jangan menebak identitasnya. Topik rapat: ${topic}. Pisahkan dengan heading TRANSKRIP dan NOTULEN.`;
       requestParts = [
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
