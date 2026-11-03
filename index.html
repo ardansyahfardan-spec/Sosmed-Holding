@@ -266,11 +266,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.5fr)] gap-3 mb-3">
                   <aside class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
                     <div class="p-3 bg-gradient-to-r from-blue-950 to-gray-950 flex justify-between"><div><h3 class="text-sm font-bold text-white">Anggota RITUAL CREW</h3><p class="text-[10px] text-gray-400">Pilih anggota untuk chat pribadi</p></div><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div>
-                    <div id="ritual-members-list" class="p-2 max-h-[42vh] md:max-h-[520px] overflow-y-auto space-y-1"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div>
+                    <div class="px-3 pt-3"><h4 class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-2">Percakapan terakhir</h4><div id="dm-conversations-list" class="space-y-1 max-h-48 overflow-y-auto"><p class="text-xs text-gray-500 p-2">Memuat percakapan...</p></div></div>
+                    <div class="px-3 pt-3"><h4 class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-2">Mulai chat baru · Anggota</h4></div>
+                    <div id="ritual-members-list" class="p-2 max-h-[32vh] md:max-h-[360px] overflow-y-auto space-y-1"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div>
                   </aside>
                   <section class="glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
                     <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex justify-between gap-2"><div class="min-w-0"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
                     <div id="dm-messages" class="h-[35vh] min-h-[220px] max-h-[480px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
+                    <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-base text-white disabled:opacity-50"><button id="dm-send" type="submit" disabled class="w-11 h-11 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                 </div>
@@ -1289,7 +1292,7 @@
         }
 
         function showPage(pageId) {
-            if (pageId === 'chat') { loadChatMessages(); loadRitualMembers(); }
+            if (pageId === 'chat') { loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId === 'tim' && !markasTimUnlocked) {
                 openMarkasTimLock();
                 return;
@@ -2710,8 +2713,25 @@
           }
           button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
         }
-        // Direktori anggota dan pesan pribadi RITUAL CREW.
-        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmMessages=[];
+        // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
+        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmMessages=[],dmReplyTo=null;
+        async function loadDirectConversations(){
+          const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
+          box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
+          try{
+            const {data:mine,error}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(error)throw error;
+            const rows=[];
+            for(const part of mine||[]){
+              const {data:people,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",part.conversation_id);if(e1)throw e1;
+              const other=(people||[]).find(x=>x.user_id!==activeUser.id);if(!other)continue;
+              const member=ritualMembers.find(x=>x.user_id===other.user_id);
+              const {data:msgs,error:e2}=await supabaseClient.from("ghoustory_dm_messages").select("body,created_at,sender_id,deleted_at").eq("conversation_id",part.conversation_id).order("created_at",{ascending:false}).limit(1);if(e2)throw e2;
+              const last=msgs?.[0];rows.push({id:part.conversation_id,user_id:other.user_id,nickname:member?.nickname||"Anggota",role:member?.role||"RITUAL CREW",last:last?.deleted_at?"Pesan dihapus":last?.body||"Belum ada pesan",created_at:last?.created_at||""});
+            }
+            rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(\''+x.user_id+'\')" class="w-full text-left p-2 rounded-xl hover:bg-blue-950/60 flex items-center gap-2 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><span class="w-8 h-8 rounded-full bg-blue-950 border border-blue-800 flex items-center justify-center text-xs text-blue-200"><i class="fa-solid fa-user"></i></span><span class="min-w-0 flex-1"><b class="block text-xs text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[10px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+          }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
+        }
         async function loadRitualMembers(){
           const box=document.getElementById("ritual-members-list");if(!activeUser||!box)return;
           box.innerHTML='<p class="text-xs text-gray-500 p-3">Memuat anggota...</p>';
@@ -2732,7 +2752,7 @@
             let found=null;
             for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
             if(!found){const {data:c,error:e3}=await supabaseClient.from("ghoustory_dm_conversations").insert({created_by:activeUser.id}).select("id").single();if(e3)throw e3;const {error:e4}=await supabaseClient.from("ghoustory_dm_participants").insert([{conversation_id:c.id,user_id:activeUser.id,added_by:activeUser.id},{conversation_id:c.id,user_id:otherId,added_by:activeUser.id}]);if(e4)throw e4;found=c.id;}
-            activeDmConversation=found;activeDmMember=member;await loadDirectMessages();
+            activeDmConversation=found;activeDmMember=member;clearDmReply();await loadDirectMessages();await loadDirectConversations();
             document.getElementById("dm-input").disabled=false;document.getElementById("dm-send").disabled=false;document.getElementById("dm-input").placeholder="Kirim pesan pribadi...";
           }catch(e){box.textContent="Chat pribadi gagal dibuka: "+(e.message||e);document.getElementById("dm-status").textContent="Gagal";}
         }
@@ -2740,16 +2760,20 @@
           if(!activeDmConversation)return;if(dmRealtimeChannel){await supabaseClient.removeChannel(dmRealtimeChannel);dmRealtimeChannel=null;}
           const {data,error}=await supabaseClient.from("ghoustory_dm_messages").select("*").eq("conversation_id",activeDmConversation).order("created_at").limit(150);if(error)throw error;
           dmMessages=data||[];renderDirectMessages();const id=activeDmConversation;
-          dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation===id&&!dmMessages.some(m=>m.id===p.new.id)){dmMessages.push(p.new);dmMessages=dmMessages.slice(-150);renderDirectMessages();}}).subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
+          dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();loadDirectConversations();}).subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
         }
         function renderDirectMessages(){
           const box=document.getElementById("dm-messages");if(!box)return;
           if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
-          box.innerHTML=dmMessages.map(m=>{const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"";return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'"><div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+'</div></div></div>';}).join("");box.scrollTop=box.scrollHeight;
+          box.innerHTML=dmMessages.map(m=>{const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':'';const actions='<div class="flex items-center justify-end gap-3 mt-1 text-[10px]"><button type="button" onclick="setDmReply(\''+m.id+'\')" class="text-blue-300">Balas</button>'+(own&&!m.deleted_at?'<button type="button" onclick="editDmMessage(\''+m.id+'\')" class="text-gray-300">Edit</button><button type="button" onclick="deleteDmMessage(\''+m.id+'\')" class="text-red-300">Hapus</button>':'')+'</div>';return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'">'+quote+'<div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(m.edited_at?' · diedit':'')+'</div>'+actions+'</div></div>';}).join("");box.scrollTop=box.scrollHeight;
         }
+        function setDmReply(id){dmReplyTo=dmMessages.find(m=>m.id===id)||null;const wrap=document.getElementById("dm-reply-preview"),label=document.getElementById("dm-reply-text");if(!dmReplyTo||!wrap||!label)return;label.textContent="Membalas: "+(dmReplyTo.deleted_at?"Pesan dihapus":dmReplyTo.body);wrap.classList.remove("hidden");document.getElementById("dm-input")?.focus();}
+        function clearDmReply(){dmReplyTo=null;document.getElementById("dm-reply-preview")?.classList.add("hidden");}
+        async function editDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;const body=prompt("Edit pesan:",m.body||"");if(body===null)return;const clean=body.trim();if(!clean)return alert("Pesan tidak boleh kosong.");try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({body:clean.slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();}catch(e){alert("Pesan gagal diedit: "+(e.message||e));}}
+        async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString(),body:""}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();await loadDirectConversations();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
         async function sendDirectMessage(event){
           event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
-          try{const {error}=await supabaseClient.from("ghoustory_dm_messages").insert({conversation_id:activeDmConversation,sender_id:activeUser.id,body});if(error)throw error;input.value="";}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
+          try{const payload={conversation_id:activeDmConversation,sender_id:activeUser.id,body};if(dmReplyTo)payload.reply_to=dmReplyTo.id;const {error}=await supabaseClient.from("ghoustory_dm_messages").insert(payload);if(error)throw error;input.value="";clearDmReply();}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
         }
         function openChatTools(){
           const modal=document.getElementById("chat-tools-modal"),content=document.getElementById("chat-tools-content");
