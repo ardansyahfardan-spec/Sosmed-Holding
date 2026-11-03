@@ -504,7 +504,11 @@
                                     <input type="text" id="mon-fb-idr" placeholder="Otomatis (Rp)" readonly class="flex-grow bg-black/50 border border-gray-800 p-1.5 rounded text-gray-400">
                                 </div>
                             </div>
-                            <button onclick="simpanMonetisasi()" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded text-xs">Masukkan Total Rupiah ke Kas</button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="simpanDraftMonetisasi()" class="bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Data</button>
+                                <button onclick="simpanMonetisasi()" class="bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded text-xs"><i class="fa-solid fa-wallet mr-1"></i> Masukkan ke Kas</button>
+                            </div>
+                            <p id="monetisasi-save-status" class="text-[10px] text-gray-500 text-center">Isi nominal lalu tekan Simpan Data agar tersimpan setelah reload.</p>
                         </div>
 
                         <!-- Form Kas Reguler -->
@@ -680,7 +684,7 @@
 
         // ================= PENYIMPANAN LOKAL & MIGRASI DATA =================
         const DEFAULT_DB = {
-            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], production: [], kas: [], aiUsage: [],
+            script: "", scriptDrafts: [], mitos: [], vo: [], notulen: [], metadata: [], jadwal: [], tayang: [], stok: [], production: [], kas: [], aiUsage: [], monetisasi: { ytUsd: "", ttUsd: "", fbUsd: "" },
             segmenList: [
                 { nama: "#KONCERITO", tagline: "Kisah Ngobrol Cerita Misteri", desc: "Diskusi santai tapi bikin merinding.", logo: "" },
                 { nama: "#NGLENCER", tagline: "Nglencer Jelajah Angker", desc: "Penelusuran langsung ke lokasi terbengkalai.", logo: "" }
@@ -719,6 +723,7 @@
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
+            normalized.monetisasi = { ...DEFAULT_DB.monetisasi, ...(normalized.monetisasi && typeof normalized.monetisasi === 'object' ? normalized.monetisasi : {}) };
             ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'segmenList'].forEach(key => {
                 if (!Array.isArray(normalized[key])) normalized[key] = [];
             });
@@ -1015,7 +1020,7 @@
             renderScriptDrafts();
             renderNotulenList();
             renderMetadataList();
-            renderStok(); renderProductionTracker(); renderKas(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
+            renderStok(); renderProductionTracker(); renderKas(); renderMonetisasi(); renderJadwalCal(); renderTayangCal(); populateSegmentOptions(); renderSegmenGrid();
             
             const totalKas = db.kas.reduce((s, i) => s + i.amount, 0);
             document.getElementById('footer-kas').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
@@ -1685,6 +1690,26 @@
         }
 
         // KAS & NOTA JPEG RESMI
+        function renderMonetisasi() {
+            const saved = db.monetisasi || {};
+            ['yt','tt','fb'].forEach(p => {
+                const usdInput = document.getElementById(`mon-${p}-usd`);
+                if (!usdInput) return;
+                usdInput.value = saved[p + 'Usd'] ?? '';
+                hitungRupiah(p);
+            });
+        }
+        function simpanDraftMonetisasi() {
+            db.monetisasi = {
+                ytUsd: document.getElementById('mon-yt-usd').value,
+                ttUsd: document.getElementById('mon-tt-usd').value,
+                fbUsd: document.getElementById('mon-fb-usd').value
+            };
+            saveData();
+            const status = document.getElementById('monetisasi-save-status');
+            if (status) status.textContent = '✓ Data monetisasi tersimpan dan akan tetap ada setelah reload.';
+            alert('Data monetisasi berhasil disimpan!');
+        }
         function hitungRupiah(p) {
             const usd = parseFloat(document.getElementById(`mon-${p}-usd`).value) || 0;
             document.getElementById(`mon-${p}-idr`).value = usd > 0 ? `Rp ${(usd * KURS_USD_IDR).toLocaleString('id-ID')}` : '';
@@ -1700,6 +1725,9 @@
             if(totalIdr <= 0) return alert("Masukkan nominal dollar!");
             db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), desc: 'Pemasukan Monetisasi', details, amount: totalIdr });
             ['yt','tt','fb'].forEach(p => { document.getElementById(`mon-${p}-usd`).value=''; document.getElementById(`mon-${p}-idr`).value=''; });
+            db.monetisasi = { ytUsd: "", ttUsd: "", fbUsd: "" };
+            const status = document.getElementById('monetisasi-save-status');
+            if (status) status.textContent = 'Nominal sudah dimasukkan ke kas. Isi data baru untuk periode berikutnya.';
             saveData(); renderKas(); alert("Monetisasi masuk kas!");
         }
         function simpanSesiKas() {
