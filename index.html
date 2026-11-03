@@ -997,13 +997,31 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
         }
 
-        function downloadKasJPEG() {
-            const area = document.getElementById('area-kas-cetak');
-            html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
+       function downloadKasJPEG() {
+    const area = document.getElementById('area-kas-cetak');
+    html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 }).then(canvas => {
+        canvas.toBlob(function(blob) {
+            // Cek apakah browser mendukung fitur Share (biasanya langsung muncul pilihan simpan ke Galeri / HP)
+            const file = new File([blob], `Nota-Kas-Ghoustory-${Date.now()}.jpeg`, { type: "image/jpeg" });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: 'Nota Kas Ghoustory',
+                    text: 'Nota Resmi Kas Ghoustory Control Room'
+                }).catch((error) => console.log('Sharing failed', error));
+            } else {
+                // Fallback otomatis unduh langsung ke galeri/download
                 const link = document.createElement('a');
-                link.download = `Nota-Kas-Ghoustory-${new Date().getTime()}.jpeg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.download = `Nota-Kas-Ghoustory-${Date.now()}.jpeg`;
+                link.href = URL.createObjectURL(blob);
                 link.click();
+                URL.revokeObjectURL(link.href);
+                alert("Nota berhasil diunduh! Cek folder Galeri / Unduhan di HP-mu.");
+            }
+        }, 'image/jpeg', 0.95);
+    });
+}
             });
         }
 
