@@ -160,6 +160,25 @@ Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf 
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
       ];
+    } else if (task === "social-screenshot") {
+      const imageBase64 = String(body.imageBase64 || "");
+      const imageMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+      const platform = String(body.platform || "");
+      const reportDate = String(body.reportDate || "").slice(0, 10);
+      if (!["youtube", "tiktok", "facebook"].includes(platform)) return json({ error: "Platform tidak dikenal." }, 400);
+      if (!["image/jpeg", "image/png", "image/webp"].includes(imageMimeType)) return json({ error: "Format gambar harus JPG, PNG, atau WEBP." }, 400);
+      if (!imageBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64)) return json({ error: "Data screenshot kosong atau tidak valid." }, 400);
+      if (imageBase64.length > 11_000_000) return json({ error: "Screenshot terlalu besar. Maksimal 8 MB." }, 413);
+      const platformName = platform === "youtube" ? "YouTube Studio" : platform === "tiktok" ? "TikTok Analytics" : "Meta Business Suite";
+      prompt = `Baca screenshot Analytics ${platformName} untuk membantu pemilik kanal Ghoustory mencatat performa. Tanggal laporan yang dipilih pengguna: ${reportDate || "tidak ditentukan"}.
+Ekstrak HANYA angka yang benar-benar terlihat. Jangan menebak angka yang tertutup, terpotong, atau tidak ada. Perhatikan satuan K/M dan ubah menjadi angka penuh (misalnya 1,2 rb = 1200; 3,4 jt = 3400000). Jangan menjumlahkan metrik yang berbeda. Jika screenshot menampilkan periode, tulis periodenya sebagai title singkat. Untuk metrik yang tidak terlihat, isi 0.
+Kembalikan HANYA JSON valid tanpa markdown:
+{"title":"nama/periode laporan singkat","views":0,"likes":0,"comments":0,"shares":0,"followers":0,"reach":0}
+Pastikan angka berupa integer. Jika label metrik tidak jelas, jangan memaksakan pemetaan ke kolom lain.`;
+      requestParts = [
+        { text: prompt },
+        { inline_data: { mime_type: imageMimeType, data: imageBase64 } },
+      ];
     } else if (task === "shorts-moment-finder") {
       const audioBase64 = String(body.audioBase64 || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -200,7 +219,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const maxOutputTokens = task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const maxOutputTokens = task === "social-screenshot" ? 1000 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     let response: Response | null = null;
     let activeModel = "";
 
