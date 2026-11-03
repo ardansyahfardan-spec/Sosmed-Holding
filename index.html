@@ -2714,7 +2714,7 @@
           button.disabled=true;try{await insertChatMessage({body});input.value="";}catch(error){alert("Pesan belum terkirim: "+error.message);}finally{button.disabled=false;}
         }
         // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
-        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmMessages=[],dmReplyTo=null;
+        let ritualMembers=[],activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReplyTo=null;
         async function loadDirectConversations(){
           const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
           box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
@@ -2730,6 +2730,7 @@
             }
             rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
             box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(\''+x.user_id+'\')" class="w-full text-left p-2 rounded-xl hover:bg-blue-950/60 flex items-center gap-2 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><span class="w-8 h-8 rounded-full bg-blue-950 border border-blue-800 flex items-center justify-center text-xs text-blue-200"><i class="fa-solid fa-user"></i></span><span class="min-w-0 flex-1"><b class="block text-xs text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[10px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+            if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
           }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
         }
         async function loadRitualMembers(){
@@ -2740,6 +2741,7 @@
           ritualMembers=data||[];
           if(!ritualMembers.length){box.textContent="Belum ada anggota terdaftar.";return;}
           box.innerHTML=ritualMembers.map(p=>{const self=p.user_id===activeUser.id,avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";return '<button type="button" '+(self?'disabled':'onclick="openDirectMessage(\''+p.user_id+'\')"')+' class="w-full flex items-center gap-3 p-2 rounded-xl text-left '+(self?'opacity-50':'hover:bg-blue-950/60')+'"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button>';}).join("");
+          await loadDirectConversations();
         }
         async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
