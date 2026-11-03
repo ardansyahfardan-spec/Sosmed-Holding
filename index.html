@@ -235,7 +235,7 @@
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
                     <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
-                    <div onclick="showPage('chat')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-green-500"><i class="fa-solid fa-comments text-3xl mb-2 text-green-400"></i><h3 class="font-bold text-sm">Chat Kru</h3><p class="text-[10px] text-gray-500 mt-1">Ruang obrolan Ghoustory</p></div>
+                    <div onclick="showPage('chat')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-green-500"><i class="fa-solid fa-comments text-3xl mb-2 text-green-400"></i><h3 class="font-bold text-sm">Ritual Crew</h3><p class="text-[10px] text-gray-500 mt-1">Ruang obrolan Ghoustory</p></div>
                 </div>
             </section>
 
@@ -244,7 +244,7 @@
                 <button onclick="showPage('home')" class="mb-4 text-gray-400 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
                 <div class="glass-panel rounded-2xl overflow-hidden border border-red-900">
                     <div class="bg-gradient-to-r from-red-950 to-blue-950 p-4 flex items-center justify-between">
-                        <div><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-comments mr-2"></i>Chat Kru Ghoustory</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div>
+                        <div><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-comments mr-2"></i>Ritual Crew</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div>
                         <span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span>
                     </div>
                     <div id="chat-messages" class="h-[55vh] min-h-[300px] max-h-[620px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70">
@@ -1543,7 +1543,7 @@
             document.getElementById('segmen-video-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
         }
         function closeSegmenVideoDetail() { document.getElementById('segmen-video-detail').classList.add('hidden'); }
-        function openTayangFromArchive(id) { switchTab('segmen','kalender'); const item=db.tayang.find(v=>Number(v.id)===Number(id)); if(item) alert('Judul: '+item.title+'\\nSegmen: '+item.segment+'\\nTanggal tayang: '+(item.date||'-')); }
+        function openTayangFromArchive(id) { switchTab('segmen','kalender'); const item=db.tayang.find(v=>Number(v.id)===Number(id)); if(item) alert('Judul: '+item.title+'\nSegmen: '+item.segment+'\nTanggal tayang: '+(item.date||'-')); }
         function hapusSegmen(idx) { if(!confirm('Hapus segmen ini?'))return; db.segmenList.splice(idx, 1); saveData(); renderSegmenGrid(); populateSegmentOptions(); }
 
         // KALENDER TAYANG
@@ -2458,9 +2458,9 @@
             if (isInStandaloneMode) {
                 alert('Ghoustory Control Room sudah terpasang di perangkat ini.');
             } else if (isIOS) {
-                alert('Untuk memasang di iPhone/iPad:\\n1. Buka halaman ini menggunakan Safari.\\n2. Tekan tombol Bagikan (ikon kotak dengan panah ke atas).\\n3. Pilih “Tambahkan ke Layar Utama” / “Add to Home Screen”.\\n4. Tekan Tambahkan.');
+                alert('Untuk memasang di iPhone/iPad:\n1. Buka halaman ini menggunakan Safari.\n2. Tekan tombol Bagikan (ikon kotak dengan panah ke atas).\n3. Pilih “Tambahkan ke Layar Utama” / “Add to Home Screen”.\n4. Tekan Tambahkan.');
             } else {
-                alert('Untuk memasang aplikasi:\\n1. Buka halaman ini di Google Chrome.\\n2. Tekan menu titik tiga (⋮).\\n3. Pilih “Install app” atau “Tambahkan ke layar utama”.');
+                alert('Untuk memasang aplikasi:\n1. Buka halaman ini di Google Chrome.\n2. Tekan menu titik tiga (⋮).\n3. Pilih “Install app” atau “Tambahkan ke layar utama”.');
             }
         }
         // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
@@ -2483,7 +2483,7 @@
                 const who = escapeHtml(msg.sender_name || "Kru");
                 const avatar = msg.sender_avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(msg.sender_name || "Kru") + "&background=B91C1C&color=fff";
                 const when = msg.created_at ? new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}) : "";
-                return '<div class="flex ' + (own ? 'justify-end' : 'justify-start') + ' gap-2 items-end">' + (!own ? '<img src="' + escapeHtml(avatar) + '" class="w-7 h-7 rounded-full object-cover border border-gray-700 shrink-0" alt="">' : '') + '<div class="max-w-[82%] rounded-2xl px-3 py-2 ' + (own ? 'bg-red-950 border border-red-800 rounded-br-sm' : 'bg-gray-900 border border-gray-800 rounded-bl-sm') + '">' + (!own ? '<div class="text-[10px] font-bold text-blue-300 mb-1">' + who + '</div>' : '') + '<div class="text-sm text-white whitespace-pre-wrap break-words">' + escapeHtml(msg.body) + '</div><div class="text-[9px] text-gray-400 text-right mt-1">' + escapeHtml(when) + '</div></div></div>';
+                return '<div class="flex ' + (own ? 'justify-end' : 'justify-start') + ' gap-2 items-end">' + (!own ? '<img src="' + escapeHtml(avatar) + '" class="w-7 h-7 rounded-full object-cover border border-gray-700 shrink-0" alt="">' : '') + '<div class="max-w-[82%] rounded-2xl px-3 py-2 ' + (own ? 'bg-red-950 border border-red-800 rounded-br-sm' : 'bg-gray-900 border border-gray-800 rounded-bl-sm') + '">' + '<div class="text-[10px] font-bold ' + (own ? 'text-red-300' : 'text-blue-300') + ' mb-1">' + who + '</div>' + '<div class="text-sm text-white whitespace-pre-wrap break-words">' + escapeHtml(msg.body) + '</div><div class="text-[9px] text-gray-400 text-right mt-1">' + escapeHtml(when) + '</div></div></div>';
             }).join("");
             box.scrollTop = box.scrollHeight;
         }
