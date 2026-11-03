@@ -178,7 +178,8 @@
 
             <button id="install-app-btn" type="button" onclick="installGhoustoryApp()" class="w-full mt-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm">
                 <i class="fa-solid fa-download"></i> Pasang Aplikasi
-            </button>\n            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
+            </button>
+            <p id="login-status" class="hidden mt-3 text-xs text-yellow-400" role="status" aria-live="polite"></p>
             <div class="mt-6 text-[10px] text-gray-600 font-mystery">SECURE DIMENSIONAL GATEWAY v3.3 - SUPABASE CONNECTED</div>
         </div>
     </div>
@@ -206,15 +207,16 @@
                     <h1 class="text-lg sm:text-xl font-mystery font-bold tracking-widest text-white hover:text-ghoulRed transition">Ghoustory <span class="text-ghoulRed">Control Room</span></h1>
                 </div>
                 <div class="flex items-center gap-3">
+                    <div id="online-avatars" class="flex items-center -space-x-2" aria-label="Anggota yang sedang online"></div>
                     <div class="flex items-center gap-2 bg-darkCard border border-gray-800 px-3 py-1 rounded-full">
                         <img id="user-avatar" src="" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-red-500">
                         <span id="user-name-display" class="text-xs text-gray-300 font-semibold hidden md:inline">Loading...</span>
                     </div>
                     <div class="relative">
                         <button onclick="toggleUserMenu()" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-36 bg-darkCard border border-gray-800 rounded shadow-lg overflow-hidden z-50 text-xs">
-                            <button onclick="alert('Google Account Linked:\nRole: Sutradara / Admin')" class="w-full text-left px-4 py-3 text-white hover:bg-gray-800 border-b border-gray-800"><i class="fa-solid fa-shield-halved mr-2 text-ghoulRed"></i> Akun Google</button>
-                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-500 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log Out</button>
+                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-52 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs">
+                            <div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">LOGIN SEBAGAI</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div>
+                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log out</button>
                         </div>
                     </div>
                 </div>
@@ -984,7 +986,9 @@
                 updateFooterStatus();
                 // Pasang foto dan nama asli dari Google
                 document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
-                document.getElementById('user-name-display').innerText = user.user_metadata?.full_name || user.email || "Pengguna Google";
+                const accountName = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Pengguna Google";
+                document.getElementById('user-name-display').innerText = accountName;
+                document.getElementById('user-menu-account-name').innerText = accountName;
 
                 if (welcomeStatus) welcomeStatus.textContent = 'Ruang kendali siap dibuka...';
                 document.getElementById('main-app').classList.remove('hidden');
@@ -1050,7 +1054,15 @@
             }
         }
 
-        function toggleUserMenu() { document.getElementById('user-menu').classList.toggle('hidden'); }
+        function toggleUserMenu() {
+            const menu = document.getElementById('user-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('user-menu');
+            const trigger = event.target.closest('[onclick="toggleUserMenu()"]');
+            if (menu && !menu.classList.contains('hidden') && !menu.contains(event.target) && !trigger) menu.classList.add('hidden');
+        });
         // Pengunci tampilan sederhana khusus Markas Tim.
         const MARKAS_TIM_PASSWORD = 'kitakaya';
         let markasTimUnlocked = false;
@@ -1698,6 +1710,26 @@
 
         // CONTENT PRODUCTION TRACKER
         const PRODUCTION_STAGES = ["Selesai Shooting", "Proses Editing", "Review", "Siap Upload", "Sudah Tayang"];
+        function editProductionItem(id) {
+            const item = db.production.find(x => String(x.id) === String(id));
+            if (!item) return;
+            const nextTitle = prompt("Ubah nama/judul konten:", item.title || "");
+            if (nextTitle === null) return;
+            if (!nextTitle.trim()) return alert("Judul konten tidak boleh kosong.");
+            item.title = nextTitle.trim();
+            item.updatedAt = new Date().toISOString();
+            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Kru";
+            saveData();
+            renderProductionTracker();
+        }
+        function deleteProductionItem(id) {
+            const item = db.production.find(x => String(x.id) === String(id));
+            if (!item) return;
+            if (!confirm('Hapus "' + (item.title || "Konten") + '" dari Tracker Produksi?')) return;
+            db.production = db.production.filter(x => String(x.id) !== String(id));
+            saveData();
+            renderProductionTracker();
+        }
         function updateProductionStatus(id, status) {
             const item = db.production.find(x => String(x.id) === String(id));
             if (!item || !PRODUCTION_STAGES.includes(status)) return;
@@ -1716,7 +1748,7 @@
             }
             el.innerHTML = db.production.map(item => {
                 const opts = PRODUCTION_STAGES.map(stage => '<option value="' + stage + '" ' + (item.status === stage ? 'selected' : '') + '>' + stage + '</option>').join('');
-                return '<div class="bg-black border border-gray-800 rounded-lg p-3 space-y-2"><div class="flex justify-between gap-2"><b class="text-sm text-white">' + escapeHtml(item.title || 'Konten') + '</b>' + renderDoneControl('production', item) + '<span class="text-[10px] text-gray-500">' + escapeHtml(item.updatedBy || 'Kru') + '</span></div><select aria-label="Status produksi" onchange="updateProductionStatus(' + Number(item.id) + ', this.value)" class="w-full bg-darkCard border border-yellow-800 rounded p-2 text-xs text-yellow-200">' + opts + '</select><div class="text-[10px] text-gray-500">Diperbarui: ' + escapeHtml(item.updatedAt ? new Date(item.updatedAt).toLocaleString("id-ID") : "-") + '</div></div>';
+                return '<div class="bg-black border border-gray-800 rounded-lg p-3 space-y-2"><div class="flex justify-between items-start gap-2"><b class="text-sm text-white flex-1">' + escapeHtml(item.title || 'Konten') + '</b><div class="flex items-center gap-2">' + renderDoneControl('production', item) + '<button type="button" onclick="editProductionItem(' + Number(item.id) + ')" class="text-[10px] text-blue-300 hover:text-blue-200 px-1"><i class="fa-solid fa-pen"></i> Edit</button><button type="button" onclick="deleteProductionItem(' + Number(item.id) + ')" class="text-[10px] text-red-400 hover:text-red-300 px-1"><i class="fa-solid fa-trash"></i> Hapus</button></div></div><div class="text-[10px] text-gray-500">Diubah oleh: ' + escapeHtml(item.updatedBy || 'Kru') + '</div><select aria-label="Status produksi" onchange="updateProductionStatus(' + Number(item.id) + ', this.value)" class="w-full bg-darkCard border border-yellow-800 rounded p-2 text-xs text-yellow-200">' + opts + '</select><div class="text-[10px] text-gray-500">Diperbarui: ' + escapeHtml(item.updatedAt ? new Date(item.updatedAt).toLocaleString("id-ID") : "-") + '</div></div>';
             }).join('');
         }
         // STATUS CLOUD, AI, DAN KRU ONLINE
@@ -1740,8 +1772,15 @@
             presenceChannel.on("presence", { event: "sync" }, () => {
                 const state = presenceChannel.presenceState();
                 const onlineUsers = Object.values(state).flat()
-                    .map(entry => entry.name || "Kru")
-                    .filter((name, index, names) => names.indexOf(name) === index);
+                    .filter((entry, index, all) => all.findIndex(x => x.user_id === entry.user_id) === index);
+                const avatarWrap = document.getElementById("online-avatars");
+                if (avatarWrap) {
+                    avatarWrap.innerHTML = onlineUsers.map(entry => {
+                        const name = entry.name || "Kru";
+                        const photo = entry.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
+                        return '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(name) + '" title="' + escapeHtml(name) + '" class="w-7 h-7 rounded-full object-cover border-2 border-darkBg shadow">';
+                    }).join("");
+                }
                 const countEl = document.getElementById("footer-online");
                 const namesEl = document.getElementById("footer-online-names");
                 if (countEl) countEl.textContent = onlineUsers.length + " akun";
@@ -1750,7 +1789,7 @@
             presenceChannel.subscribe(async status => {
                 if (status === "SUBSCRIBED") {
                     const displayName = user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
-                    await presenceChannel.track({ user_id: user.id, name: displayName, online_at: new Date().toISOString() });
+                    await presenceChannel.track({ user_id: user.id, name: displayName, avatar_url: user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
                 }
             });
         }
