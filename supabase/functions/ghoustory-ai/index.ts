@@ -82,6 +82,32 @@ Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat se
       6. REFERENSI UNTUK CEK MANUAL: sarankan jenis sumber tepercaya yang sebaiknya dicari (misalnya situs pemerintah, arsip, jurnal akademik, museum, atau media kredibel). Jangan menciptakan URL atau mengklaim sumber telah dibaca.
 
       Gunakan bahasa Indonesia lisan yang natural, atmosfer misteri khas Ghoustory, tetapi tetap akurat dan tidak clickbait menyesatkan. Jangan membuat daftar pertanyaan wawancara. Tegaskan bahwa hasil ini adalah riset awal berbasis pengetahuan model, bukan hasil pencarian web langsung, sehingga fakta perlu dicek sebelum tayang.`;
+    } else if (task === "monologue") {
+      const topic = String(body.topic || "Topik misteri").slice(0, 1200);
+      const research = String(body.research || "").slice(0, 18000);
+      prompt = `Kamu adalah penulis naskah monolog dokumenter misteri dan horor untuk kanal YouTube Ghoustory. Ubah bahan riset berikut menjadi naskah monolog video yang siap dibacakan satu host.
+
+TOPIK: ${topic}
+BAHAN RISET:
+${research}
+
+ATURAN WAJIB:
+- Pahami seluruh bahan riset lalu susun ulang menjadi narasi yang runtut, menarik, dan enak didengar. Jangan sekadar menyalin ringkasan.
+- Jangan menambahkan fakta, nama, tanggal, lokasi, kutipan, kronologi, atau detail yang tidak ada dalam bahan riset.
+- Bedakan fakta dari legenda, mitos, rumor, dan klaim yang belum terbukti. Gunakan penanda seperti "menurut cerita yang beredar" atau "belum dapat dipastikan".
+- Jangan menyebut rumor sebagai fakta atau klaim supranatural seolah terbukti.
+- Jika bahan minim, buat naskah lebih singkat. Jangan mengarang demi memenuhi durasi.
+- Jangan membuat dialog narasumber, pertanyaan wawancara, rundown, atau catatan produksi.
+- Gunakan bahasa Indonesia lisan yang natural, atmosfer misteri khas Ghoustory, tetapi tetap bertanggung jawab.
+
+STRUKTUR:
+1. Judul naskah.
+2. Hook pembuka.
+3. Pengantar topik dan konteks.
+4. Isi monolog yang mengalir berdasarkan bahan riset.
+5. Penutup yang mengajak penonton berpikir atau berdiskusi.
+
+Target sekitar 3–5 menit jika bahan cukup. Keluarkan hanya naskah final siap dibaca host, tanpa analisis tambahan.`;
     } else if (task === "minutes") {
       const topic = String(body.topic || "Rapat").slice(0, 200);
       const transcript = String(body.transcript || "").slice(0, 24000);
