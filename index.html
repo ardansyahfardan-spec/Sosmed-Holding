@@ -246,6 +246,13 @@
                             </div>
                         </div>
                         <div id="view-segmen-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                        <div id="segmen-video-detail" class="hidden bg-black border border-orange-900/60 rounded-xl p-4">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div><p class="text-[10px] uppercase tracking-widest text-orange-500">Arsip Video Disepakati</p><h4 id="segmen-detail-title" class="font-bold text-white text-lg"></h4></div>
+                                <button onclick="closeSegmenVideoDetail()" class="text-xs bg-gray-800 px-3 py-2 rounded text-gray-300"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                            </div>
+                            <div id="segmen-video-list" class="space-y-2"></div>
+                        </div>
                     </div>
 
                     <!-- Kalender Tayang -->
@@ -1033,7 +1040,7 @@
             const tgl = document.getElementById('setuju-tgl').value;
             if(!tgl) return alert("Pilih tanggal tayang!");
 
-            db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl });
+            db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl, agreed: true });
             saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipilih dan di-plot ke kalender tayang!");
         }
 
@@ -1107,12 +1114,14 @@
             const grid = document.getElementById('view-segmen-grid'); if(!grid) return; grid.innerHTML = '';
             db.segmenList.forEach((seg, idx) => {
                 grid.innerHTML += `<div class="bg-black border border-gray-800 p-4 rounded-xl flex flex-col justify-between">
-                    <div>
+                    <div onclick="openSegmenVideoDetail(${idx})" class="cursor-pointer">
                         <div class="flex items-center gap-3 mb-2">
                             ${seg.logo ? `<img src="${seg.logo}" class="w-10 h-10 object-cover rounded-full border border-orange-500">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
                             <div><h4 class="font-bold text-orange-400 text-sm">${seg.nama}</h4><p class="text-[11px] text-gray-400 italic">${seg.tagline}</p></div>
                         </div>
                         <p class="text-xs text-gray-300 mb-3">${seg.desc}</p>
+                        <p class="text-xs text-orange-300 mb-2"><i class="fa-solid fa-film"></i> ${db.tayang.filter(v => v.segment === seg.nama && v.agreed !== false).length} video disepakati</p>
+                        <p class="text-[10px] text-gray-500">Klik untuk melihat daftar video <i class="fa-solid fa-arrow-right"></i></p>
                     </div>
                     <div class="border-t border-gray-900 pt-2 flex justify-between items-center text-[11px] text-gray-500">
                         <span>Segmen Aktif</span>
@@ -1124,6 +1133,17 @@
                 </div>`;
             });
         }
+        function openSegmenVideoDetail(idx) {
+            const seg = db.segmenList[idx]; if(!seg) return;
+            document.getElementById('segmen-detail-title').textContent = seg.nama;
+            const list = document.getElementById('segmen-video-list');
+            const videos = db.tayang.filter(v => v.segment === seg.nama && v.agreed !== false).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+            list.innerHTML = videos.length ? videos.map((v,n) => `<div class="border border-gray-800 rounded-lg p-3 flex items-start justify-between gap-3"><div class="min-w-0"><p class="text-[10px] text-orange-400 mb-1">VIDEO ${n+1} · ${escapeHtml(v.date||'Tanggal belum diatur')}</p><b class="text-sm text-white">${escapeHtml(v.title||'Tanpa judul')}</b><p class="text-[10px] text-green-400 mt-1"><i class="fa-solid fa-circle-check"></i> Disepakati</p></div><button onclick="openTayangFromArchive(${Number(v.id)})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-300 shrink-0">Lihat</button></div>`).join('') : '<p class="text-xs text-gray-500 py-3">Belum ada video yang disepakati untuk segmen ini.</p>';
+            document.getElementById('segmen-video-detail').classList.remove('hidden');
+            document.getElementById('segmen-video-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+        function closeSegmenVideoDetail() { document.getElementById('segmen-video-detail').classList.add('hidden'); }
+        function openTayangFromArchive(id) { switchTab('segmen','kalender'); const item=db.tayang.find(v=>Number(v.id)===Number(id)); if(item) alert('Judul: '+item.title+'\\nSegmen: '+item.segment+'\\nTanggal tayang: '+(item.date||'-')); }
         function hapusSegmen(idx) { if(!confirm('Hapus segmen ini?'))return; db.segmenList.splice(idx, 1); saveData(); renderSegmenGrid(); populateSegmentOptions(); }
 
         // KALENDER TAYANG
@@ -1150,7 +1170,7 @@
                 items.forEach(it => {
                     dayHtml += `<div class="mt-0.5 bg-orange-950 text-orange-300 text-[8px] p-0.5 rounded truncate">📺 ${it.title}</div>`;
                     listDetail.innerHTML += `<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex justify-between items-center">
-                        <div><b>${it.title}</b><div class="text-[10px] text-orange-400">${it.segment} | 📅 ${it.date}</div></div>
+                        <div class="min-w-0"><b>${it.title}</b><div class="text-[10px] text-orange-400">${it.segment} | 📅 ${it.date}</div><label class="text-[10px] ${it.agreed === false ? 'text-gray-500' : 'text-green-400'} block mt-1"><input type="checkbox" ${it.agreed === false ? '' : 'checked'} onchange="setTayangAgreed(${Number(it.id)},this.checked)" class="accent-green-500 mr-1"> Disepakati</label></div>
                         <div class="flex gap-1">
                             ${renderDoneControl('tayang', it)}
                             <button onclick="editTayang(${it.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
@@ -1161,6 +1181,10 @@
                 dayHtml += `</div>`; grid.innerHTML += dayHtml;
             }
             if(listDetail.innerHTML === '') listDetail.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
+        }
+        function setTayangAgreed(id, agreed) {
+            const item = db.tayang.find(v => Number(v.id) === Number(id)); if(!item) return;
+            item.agreed = agreed; saveData(); renderTayangCal(); renderSegmenGrid();
         }
         function hapusTayang(id) { if(!confirm('Hapus jadwal tayang ini?'))return; db.tayang = db.tayang.filter(t => t.id !== id); saveData(); renderTayangCal(); }
         function editTayang(id) {
