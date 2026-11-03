@@ -49,6 +49,42 @@
         @keyframes scrollUp { from { transform: translateY(100vh); } to { transform: translateY(-100%); } }
         .teleprompter-run { animation-name: scrollUp; animation-timing-function: linear; animation-iteration-count: infinite; }
         .is-done { opacity: 0.4; filter: grayscale(100%); }
+
+        /* Responsive layout: cegah komponen melebar keluar viewport HP. */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { width: 100%; max-width: 100%; }
+        img, canvas, video, iframe { max-width: 100%; }
+        input, textarea, select, button { max-width: 100%; }
+        .page-section, .tab-content, .glass-panel, main, nav, footer { min-width: 0; }
+        table { max-width: 100%; }
+        @media (max-width: 640px) {
+            nav { padding: 0.65rem !important; }
+            nav .container { gap: 0.5rem; }
+            nav h1 { font-size: 0.88rem !important; letter-spacing: 0.04em !important; }
+            main { padding-left: 0.65rem !important; padding-right: 0.65rem !important; }
+            .page-section > .glass-panel { padding: 0.85rem !important; }
+            .page-section .big-tab-btn { padding: 0.7rem 0.45rem !important; }
+            .page-section .flex.gap-2, .page-section .flex.gap-3 { flex-wrap: wrap; }
+            .page-section input, .page-section select, .page-section textarea { min-width: 0; }
+            .page-section textarea { max-width: 100%; }
+            #footer-status { gap: 0.45rem 0.8rem; }
+            #modal-notulen { padding: 0.5rem !important; }
+            #modal-notulen > div {
+                width: 100% !important;
+                max-width: none !important;
+                max-height: 94dvh;
+                overflow-y: auto;
+                padding: 0.9rem !important;
+            }
+            #modal-notulen-text {
+                min-height: 62dvh !important;
+                height: 62dvh !important;
+                font-size: 0.9rem !important;
+                line-height: 1.55 !important;
+                resize: vertical;
+            }
+            #modal-notulen > div > .flex:last-child { flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -457,12 +493,12 @@
 
     <!-- MODAL PREVIEW / EDIT NOTULEN -->
     <div id="modal-notulen" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
-        <div class="glass-panel p-5 rounded-xl w-full max-w-lg border border-red-900">
+        <div class="glass-panel p-5 rounded-xl w-full max-w-5xl border border-red-900 max-h-[94vh] overflow-y-auto">
             <div class="flex justify-between items-start mb-3">
                 <h3 id="modal-notulen-title" class="font-bold text-red-500 text-base">Detail Notulen</h3>
                 <button onclick="closeModalNotulen()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <textarea id="modal-notulen-text" class="w-full h-40 bg-black border border-gray-700 p-3 rounded text-sm text-white mb-3"></textarea>
+            <textarea id="modal-notulen-text" class="w-full min-h-[65vh] bg-black border border-gray-700 p-4 rounded text-sm md:text-base leading-relaxed text-white mb-3 resize-y"></textarea>
             <div class="flex gap-2">
                 <button onclick="saveEditNotulen()" class="flex-grow bg-green-700 hover:bg-green-600 text-white py-2 rounded text-xs font-bold">Simpan Perubahan</button>
                 <button onclick="copyNotulenModal()" class="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded text-xs">Salin</button>
