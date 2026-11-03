@@ -67,7 +67,27 @@ Tulis hanya:
 Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat sekitar 45–90 detik, kalimat tidak terlalu panjang, dan siap dibaca host di depan kamera.`;
     } else if (task === "research") {
       const topic = String(body.topic || "").slice(0, 1200);
-      prompt = `Bertindak sebagai asisten riset awal konten horor Ghoustory. Buat ringkasan berdasarkan pengetahuan yang tersedia tentang topik/lokasi berikut: ${topic}. Pisahkan: (1) informasi umum yang perlu diverifikasi, (2) cerita rakyat/rumor yang belum terbukti, (3) hal yang wajib dikonfirmasi sebelum ditayangkan, (4) 8 pertanyaan wawancara/observasi, (5) ide angle cerita. Jangan mengarang sumber, tautan, tanggal, atau fakta. Tegaskan bahwa hasil ini bukan pencarian web langsung dan semua fakta perlu diverifikasi. Bahasa Indonesia.`;
+      prompt = `Kamu adalah peneliti sekaligus penulis naskah dokumenter horor untuk kanal YouTube Ghoustory. Lakukan RISET WEB AKTUAL menggunakan Google Search tentang topik/lokasi berikut: ${topic}.
+
+      PRIORITAS SUMBER:
+      - Utamakan sumber primer dan tepercaya: situs resmi pemerintah/lembaga, arsip atau dokumen resmi, jurnal/penelitian akademik, museum/perpustakaan, serta media berita nasional atau lokal yang kredibel.
+      - Gunakan beberapa sumber independen bila memungkinkan. Jangan jadikan blog anonim, unggahan media sosial, atau konten sensasional sebagai dasar fakta.
+      - Jangan pernah mengarang nama sumber, kutipan, tanggal, angka, peristiwa, atau tautan. Jika bukti tidak ditemukan, katakan belum terverifikasi.
+      - Bedakan dengan tegas FAKTA TERVERIFIKASI, CERITA RAKYAT/LEGENDA, dan RUMOR/KLAIM YANG BELUM TERBUKTI. Jangan menyajikan cerita gaib sebagai fakta.
+      - Periksa konsistensi tanggal, nama, lokasi, dan detail penting antarsumber. Sertakan tautan sumber yang benar-benar digunakan.
+
+      TUJUAN OUTPUT:
+      Hasil riset akan dipakai sebagai bahan SCRIPT MONOLOG VIDEO yang dibacakan satu host, bukan wawancara dan bukan dialog podcast.
+
+      Susun jawaban dengan format:
+      1. RINGKASAN RISET: latar belakang topik/lokasi dan poin penting yang didukung sumber.
+      2. FAKTA DAN KRONOLOGI: hanya fakta yang punya dukungan sumber; sertakan tanggal/nama jika tersedia.
+      3. LEGENDA ATAU CERITA MASYARAKAT: jelaskan sebagai cerita/kepercayaan yang beredar, bukan fakta terverifikasi.
+      4. HAL YANG BELUM PASTI: informasi yang saling bertentangan atau belum ditemukan bukti.
+      5. NASKAH MONOLOG: tulis naskah narasi siap dibacakan host sekitar 3–5 menit, mengalir dan menarik dengan hook pembuka, pengantar konteks, perkembangan cerita berdasarkan fakta, bagian legenda/rumor dengan penanda yang jelas, lalu penutup yang mengajak penonton berpikir. Jangan menambahkan detail yang tidak ada di hasil riset.
+      6. DAFTAR SUMBER: judul, nama penerbit/lembaga, dan URL sumber.
+
+      Gunakan bahasa Indonesia lisan yang natural, atmosfer misteri khas Ghoustory, tetapi tetap akurat dan tidak clickbait menyesatkan. Jangan membuat daftar pertanyaan wawancara.`;
     } else if (task === "minutes") {
       const topic = String(body.topic || "Rapat").slice(0, 200);
       const transcript = String(body.transcript || "").slice(0, 24000);
@@ -128,6 +148,7 @@ Gunakan bahasa Indonesia lisan yang natural seperti ngobrol/cangkruk, singkat se
           body: JSON.stringify({
             contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
             generationConfig: { temperature: 0.75, maxOutputTokens },
+            ...(task === "research" ? { tools: [{ google_search: {} }] } : {}),
           }),
           signal: AbortSignal.timeout(110_000),
         });
