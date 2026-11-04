@@ -572,7 +572,7 @@
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div id="group-chat-header" class="gh-group-chat-header bg-gradient-to-r from-red-950 to-blue-950"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span></div>
+                    <div id="group-chat-header" class="gh-group-chat-header bg-gradient-to-r from-red-950 to-blue-950"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span></div>
                     <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="group-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
@@ -1017,7 +1017,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.25</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.26</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -1041,6 +1041,20 @@
           <div class="w-full max-w-md rounded-2xl border border-green-900/60 bg-[#10131b] p-4 max-h-[80vh] flex flex-col">
             <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Crew sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status anggota...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="online-crew-list" class="overflow-y-auto space-y-2 min-h-0"><p class="text-xs text-gray-500 py-4 text-center">Belum ada data online.</p></div>
+          </div>
+        </div>
+
+        <div id="ritual-group-info-modal" class="hidden fixed inset-0 z-[230] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="ritual-group-info-title" onclick="if(event.target===this)closeRitualGroupInfo()">
+          <div class="w-full max-w-md max-h-[85vh] rounded-2xl border border-red-900/70 bg-[#10131b] flex flex-col overflow-hidden">
+            <div class="p-4 bg-gradient-to-r from-red-950 to-blue-950 border-b border-gray-800">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0"><span class="w-12 h-12 rounded-full bg-black/30 border border-red-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-users text-xl text-red-200"></i></span><div class="min-w-0"><h3 id="ritual-group-info-title" class="font-bold text-white">RITUAL CREW</h3><p class="text-[10px] text-gray-300">Info grup dan daftar anggota</p></div></div>
+                <button type="button" onclick="closeRitualGroupInfo()" class="w-9 h-9 rounded-full border border-gray-600 text-gray-300 shrink-0" aria-label="Tutup info grup"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="flex items-center justify-between mt-4 text-xs"><span class="text-gray-300">Anggota grup</span><b id="ritual-group-member-count" class="text-blue-200">Memuat...</b></div>
+            </div>
+            <div class="p-3 overflow-y-auto min-h-0 space-y-2"><div class="flex items-center justify-between px-1"><h4 class="text-xs font-semibold text-gray-300">Anggota RITUAL CREW</h4><button type="button" onclick="loadRitualMembers()" class="text-[10px] text-blue-300"><i class="fa-solid fa-rotate mr-1"></i>Perbarui</button></div><div id="ritual-group-members" class="space-y-2"><p class="text-xs text-gray-500 p-4 text-center">Memuat anggota...</p></div></div>
+            <div class="p-3 border-t border-gray-800 text-[10px] text-gray-500">Hanya admin utama yang dapat mengeluarkan anggota. Akses akun dan workspace tetap aktif.</div>
           </div>
         </div>
 
@@ -3543,15 +3557,26 @@ async function loadChatMessages(){
         function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
         function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
         function renderRitualMembers(){
-          const box=document.getElementById("ritual-members-list");if(!box)return;
-          if(!ritualMembers.length){box.textContent="Belum ada anggota RITUAL CREW.";return;}
-          box.innerHTML=ritualMembers.map(p=>{
+          const dmBox=document.getElementById("ritual-members-list"),infoBox=document.getElementById("ritual-group-members");
+          const members=ritualMembers||[];
+          if(!members.length){
+            if(dmBox)dmBox.innerHTML='<p class="text-xs text-gray-500 p-3">Belum ada anggota RITUAL CREW.</p>';
+            if(infoBox)infoBox.innerHTML='<p class="text-xs text-gray-500 p-4 text-center">Belum ada anggota RITUAL CREW.</p>';
+            const count=document.getElementById("ritual-group-member-count");if(count)count.textContent="0 anggota";
+            return;
+          }
+          if(dmBox)dmBox.innerHTML=members.map(p=>{
             const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";
             const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
-            const dmButton='<button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button>';
-            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-2.5 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari RITUAL CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"anggota")+'"><i class="fa-solid fa-user-xmark"></i></button>':'';
-            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40">'+dmButton+kickButton+'</div>';
+            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
           }).join("");
+          if(infoBox)infoBox.innerHTML=members.map(p=>{
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";
+            const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
+            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari RITUAL CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"anggota")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
+            return '<div class="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-black/25"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-11 h-11 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small><small class="block text-[10px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+kickButton+'</div>';
+          }).join("");
+          const count=document.getElementById("ritual-group-member-count");if(count)count.textContent=members.length+" anggota";
         }
         async function kickRitualCrewMember(userId){
           if(!isGhoustoryAdmin)return alert("Hanya admin utama yang dapat mengeluarkan anggota grup.");
@@ -3615,6 +3640,15 @@ async function loadChatMessages(){
             await markGroupMessagesRead();
           }catch(error){alert("Akses RITUAL CREW gagal diperiksa: "+(error.message||error));}
         }
+        async function openRitualGroupInfo(){
+          try{
+            if(!(await ensureRitualGroupAccess(true))){alert("Akun ini tidak tergabung dalam RITUAL CREW.");return;}
+            const modal=document.getElementById("ritual-group-info-modal");
+            modal?.classList.remove("hidden");modal?.classList.add("flex");
+            renderRitualMembers();
+          }catch(error){alert("Info grup gagal dibuka: "+(error.message||error));}
+        }
+        function closeRitualGroupInfo(){const modal=document.getElementById("ritual-group-info-modal");modal?.classList.add("hidden");modal?.classList.remove("flex");}
          function toggleRitualMembers(){document.getElementById("ritual-members-list")?.classList.toggle("hidden");}
          function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
 async function openDirectMessage(otherId){
@@ -3846,7 +3880,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=43",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=44",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
