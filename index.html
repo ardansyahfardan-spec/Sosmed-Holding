@@ -224,19 +224,13 @@
 
 
 /* Crew Hub: rapat, ringkas, dan semua kotak berukuran seragam */
-/* Crew Hub & Anda: tarik seluruh area konten mendekati header */
-#main-app main.compact-page-top{
-  padding-top:0!important;
-  transform:translateY(-22px)!important;
-}
-#main-app main.compact-page-top>#page-crewhub,
-#main-app main.compact-page-top>#page-anda{
-  margin-top:0!important;
-  position:relative!important;
-  top:0!important;
-}
+/* Crew Hub & Anda berada di luar <main>. Di HP, sembunyikan
+   main yang kosong agar flex-grow tidak mendorong halaman ke bawah. */
 @media(max-width:640px){
-  #main-app main.compact-page-top{transform:translateY(-30px)!important}
+  #main-app:has(#page-crewhub.page-active)>main,
+  #main-app:has(#page-anda.page-active)>main{
+    display:none!important;
+  }
 }
 #page-crewhub>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media(min-width:640px){#page-crewhub>.grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
