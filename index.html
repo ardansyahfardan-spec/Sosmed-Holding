@@ -224,13 +224,19 @@
 
 
 /* Crew Hub: rapat, ringkas, dan semua kotak berukuran seragam */
-/* Crew Hub & Anda dimulai tepat di bawah header */
-main.compact-page-top{padding-top:0!important;margin-top:0!important}
-main.compact-page-top>#page-crewhub,
-main.compact-page-top>#page-anda{margin-top:-.65rem!important;position:relative!important;top:-.35rem!important}
+/* Crew Hub & Anda: tarik seluruh area konten mendekati header */
+#main-app main.compact-page-top{
+  padding-top:0!important;
+  transform:translateY(-22px)!important;
+}
+#main-app main.compact-page-top>#page-crewhub,
+#main-app main.compact-page-top>#page-anda{
+  margin-top:0!important;
+  position:relative!important;
+  top:0!important;
+}
 @media(max-width:640px){
-  main.compact-page-top>#page-crewhub,
-  main.compact-page-top>#page-anda{margin-top:-.85rem!important;top:-.45rem!important}
+  #main-app main.compact-page-top{transform:translateY(-30px)!important}
 }
 #page-crewhub>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media(min-width:640px){#page-crewhub>.grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
