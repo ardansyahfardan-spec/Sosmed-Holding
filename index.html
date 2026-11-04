@@ -540,7 +540,7 @@
                     <div onclick="showPage('ghoustnote')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
                     <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata & AI</h3></div>
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
-                    <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
+                    <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Crew</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
                     
                 </div>
@@ -551,25 +551,25 @@
               
               <div class="grid grid-cols-1 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.5fr)] gap-3">
                 <aside id="chat-sidebar" class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
-                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">RITUAL CREW</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan tim</p></div><div class="flex items-center gap-2"><button type="button" onclick="enableGhoustoryNotifications()" class="px-2 py-1.5 rounded-lg border border-blue-800 text-[10px] text-blue-200 hover:bg-blue-950" aria-label="Aktifkan notifikasi"><i class="fa-solid fa-bell mr-1"></i>Notifikasi</button><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div></div>
+                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">RITUAL CREW</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan Crew</p></div><div class="flex items-center gap-2"><button type="button" onclick="enableGhoustoryNotifications()" class="px-2 py-1.5 rounded-lg border border-blue-800 text-[10px] text-blue-200 hover:bg-blue-950" aria-label="Aktifkan notifikasi"><i class="fa-solid fa-bell mr-1"></i>Notifikasi</button><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div></div>
                   <div class="p-3 border-b border-gray-800"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i><input id="chat-list-search" type="search" oninput="filterChatList(this.value)" placeholder="Cari percakapan..." class="w-full bg-black border border-gray-800 rounded-full pl-9 pr-3 py-2.5 text-xs text-white"></div></div>
                   <div class="p-3 border-b border-gray-800">
                     <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Percakapan</div>
                     <button type="button" onclick="openGroupRoom()" data-chat-name="ritual crew" class="chat-list-row w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/60 to-blue-950/60 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-black border border-red-800/70 overflow-hidden flex items-center justify-center"><img id="ritual-group-avatar" src="ghoustory-logo.png" alt="Logo Ritual Crew" class="w-full h-full object-contain p-1" onerror="this.onerror=null;this.src='image_2.png'"></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">RITUAL CREW</b><small class="text-[10px] text-gray-400">Grup obrolan seluruh kru</small></span><span id="group-unread-badge" class="gh-unread-badge hidden">0</span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button>
                     <div id="dm-conversations-list" class="space-y-1 mt-1"><p class="text-xs text-gray-500 p-3">Memuat percakapan pribadi...</p></div>
                   </div>
-                  <div class="p-3"><button type="button" onclick="toggleRitualMembers()" class="w-full text-left text-xs text-blue-300 py-2"><i class="fa-solid fa-user-plus mr-2"></i>Mulai chat baru</button><div id="ritual-members-list" class="hidden max-h-[40vh] overflow-y-auto space-y-1 mt-2"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div></div>
+                  <div class="p-3"><button type="button" onclick="toggleRitualMembers()" class="w-full text-left text-xs text-blue-300 py-2"><i class="fa-solid fa-user-plus mr-2"></i>Mulai chat baru</button><div id="ritual-members-list" class="hidden max-h-[40vh] overflow-y-auto space-y-1 mt-2"><p class="text-xs text-gray-500 p-3">Memuat Crew...</p></div></div>
                 </aside>
                 <div id="chat-room-panel" class="hidden min-w-0">
                   <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
+                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
                     <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="dm-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
                     <div id="dm-typing-indicator" class="px-3 min-h-4 text-[10px] text-blue-300 bg-black/60" aria-live="polite"></div>
-                    <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
+                    <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih Crew terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
                     <div id="group-chat-header" class="gh-group-chat-header bg-gradient-to-r from-red-950 to-blue-950"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span></div>
@@ -584,7 +584,7 @@
               </div>
               <div id="chat-tools-modal" class="hidden fixed inset-0 z-[150] bg-black/80 p-3 items-center justify-center"><div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-4"><div class="flex items-center justify-between mb-3"><h3 id="chat-tools-title" class="font-mystery text-white">RITUAL CREW</h3><button type="button" onclick="closeChatTools()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div><div id="chat-tools-content" class="space-y-3"></div></div></div>
               <div id="ghoust-ai-modal" class="hidden fixed inset-0 z-[151] bg-black/80 p-3 items-center justify-center"><div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-blue-900 bg-[#101015] p-4"><div class="flex items-center justify-between mb-3"><div><h3 class="font-mystery text-white">GHOUSTORY AI</h3><p class="text-[10px] text-blue-300">Asisten RITUAL CREW · panggil juga dengan @ghoust</p></div><button type="button" onclick="closeGhoustAI()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div><div id="ghoust-ai-history" class="bg-black/60 border border-gray-800 rounded-xl p-3 min-h-24 max-h-64 overflow-y-auto text-sm text-gray-200 whitespace-pre-wrap mb-3">Tanyakan ide, jadwal, ringkasan, atau data produksi Ghoustory.</div><form onsubmit="askGhoustAI(event)" class="flex gap-2"><input id="ghoust-ai-input" maxlength="2000" class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm" placeholder="Tanya GHOUSTORY AI..."><button class="bg-blue-800 rounded-full px-4"><i class="fa-solid fa-paper-plane"></i></button></form></div></div>
-              <p class="text-[10px] text-gray-500 mt-2 text-center">Pesan RITUAL CREW disinkronkan antaranggota.</p>
+              <p class="text-[10px] text-gray-500 mt-2 text-center">Pesan RITUAL CREW disinkronkan antarCrew.</p>
             </section>
 
             <!-- 1. GRIMOIRE -->
@@ -777,7 +777,7 @@
                 </div>
             </section>
 
-            <!-- 5. MARKAS TIM -->
+            <!-- 5. MARKAS CREW -->
             <section id="page-tim" class="page-section max-w-5xl mx-auto">
                 
                 <div class="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
@@ -989,7 +989,7 @@
       <div class="mb-4"><h2 class="text-xl font-bold">Crew Hub</h2><p class="text-xs text-gray-400 mt-1">Pilih kotak untuk melihat daftar data dari setiap fitur.</p></div>
       <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
         <button onclick="openCrewSummaryList('jadwal')" class="crew-hub-tile glass-panel rounded-xl p-2 border border-yellow-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-calendar-days text-xl text-yellow-300 mb-2"></i><b id="crew-summary-schedules" class="text-xl text-yellow-300">0</b><span class="text-[10px] text-gray-300 mt-1">Jadwal shooting</span></button>
-        <button onclick="openCrewSummaryList('members')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-blue-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-users text-xl text-blue-300 mb-2"></i><b id="crew-summary-members" class="text-xl text-blue-300">0</b><span class="text-[10px] text-gray-300 mt-1">Anggota Crew</span></button>
+        <button onclick="openCrewSummaryList('members')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-blue-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-users text-xl text-blue-300 mb-2"></i><b id="crew-summary-members" class="text-xl text-blue-300">0</b><span class="text-[10px] text-gray-300 mt-1">Crew</span></button>
         <button onclick="openCrewSummaryList('production')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-green-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-list-check text-xl text-green-300 mb-2"></i><b id="crew-summary-production" class="text-xl text-green-300">0</b><span class="text-[10px] text-gray-300 mt-1">Tugas produksi</span></button>
         <button onclick="openCrewSummaryList('cash')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-red-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-wallet text-xl text-red-300 mb-2"></i><b id="crew-summary-cash" class="text-xl text-red-300">0</b><span class="text-[10px] text-gray-300 mt-1">Data kas</span></button>
         <button onclick="openCrewSummaryList('scripts')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-purple-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-file-lines text-xl text-purple-300 mb-2"></i><b id="crew-summary-scripts" class="text-xl text-purple-300">0</b><span class="text-[10px] text-gray-300 mt-1">Naskah</span></button>
@@ -1000,7 +1000,7 @@
         <button onclick="openCrewSummaryList('segments')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-amber-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-box-archive text-xl text-amber-300 mb-2"></i><b id="crew-summary-segments" class="text-xl text-amber-300">0</b><span class="text-[10px] text-gray-300 mt-1">Arsip segmen</span></button>
       </div>
       <div class="glass-panel rounded-xl p-4 mt-4"><h3 class="font-bold text-sm mb-3">Aktivitas terdekat</h3><div id="crew-summary-upcoming" class="space-y-2 text-xs text-gray-300">Memuat ringkasan...</div></div>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4"><button onclick="showPage('tim')" class="rounded-xl border border-yellow-900 bg-yellow-950/30 p-3 text-xs">Buka Markas Tim</button><button onclick="showPage('grimoire')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Grimoire</button><button onclick="showPage('analisis')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Analisis</button></div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4"><button onclick="showPage('tim')" class="rounded-xl border border-yellow-900 bg-yellow-950/30 p-3 text-xs">Buka Markas Crew</button><button onclick="showPage('grimoire')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Grimoire</button><button onclick="showPage('analisis')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Analisis</button></div>
     </section>
 
             <section id="page-anda" class="page-section max-w-3xl mx-auto">
@@ -1039,7 +1039,7 @@
 
         <div id="online-crew-modal" class="hidden fixed inset-0 z-[220] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="online-crew-title">
           <div class="w-full max-w-md rounded-2xl border border-green-900/60 bg-[#10131b] p-4 max-h-[80vh] flex flex-col">
-            <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Crew sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status anggota...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Crew sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status Crew...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="online-crew-list" class="overflow-y-auto space-y-2 min-h-0"><p class="text-xs text-gray-500 py-4 text-center">Belum ada data online.</p></div>
           </div>
         </div>
@@ -1048,13 +1048,13 @@
           <div class="w-full max-w-md max-h-[85vh] rounded-2xl border border-red-900/70 bg-[#10131b] flex flex-col overflow-hidden">
             <div class="p-4 bg-gradient-to-r from-red-950 to-blue-950 border-b border-gray-800">
               <div class="flex items-start justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0"><span class="w-12 h-12 rounded-full bg-black/30 border border-red-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-users text-xl text-red-200"></i></span><div class="min-w-0"><h3 id="ritual-group-info-title" class="font-bold text-white">RITUAL CREW</h3><p class="text-[10px] text-gray-300">Info grup dan daftar anggota</p></div></div>
+                <div class="flex items-center gap-3 min-w-0"><span class="w-12 h-12 rounded-full bg-black/30 border border-red-800 flex items-center justify-center shrink-0"><i class="fa-solid fa-users text-xl text-red-200"></i></span><div class="min-w-0"><h3 id="ritual-group-info-title" class="font-bold text-white">RITUAL CREW</h3><p class="text-[10px] text-gray-300">Info grup dan daftar Crew</p></div></div>
                 <button type="button" onclick="closeRitualGroupInfo()" class="w-9 h-9 rounded-full border border-gray-600 text-gray-300 shrink-0" aria-label="Tutup info grup"><i class="fa-solid fa-xmark"></i></button>
               </div>
-              <div class="flex items-center justify-between mt-4 text-xs"><span class="text-gray-300">Anggota grup</span><b id="ritual-group-member-count" class="text-blue-200">Memuat...</b></div>
+              <div class="flex items-center justify-between mt-4 text-xs"><span class="text-gray-300">Crew dalam grup</span><b id="ritual-group-member-count" class="text-blue-200">Memuat...</b></div>
             </div>
-            <div class="p-3 overflow-y-auto min-h-0 space-y-2"><div class="flex items-center justify-between px-1"><h4 class="text-xs font-semibold text-gray-300">Anggota RITUAL CREW</h4><button type="button" onclick="loadRitualMembers()" class="text-[10px] text-blue-300"><i class="fa-solid fa-rotate mr-1"></i>Perbarui</button></div><div id="ritual-group-members" class="space-y-2"><p class="text-xs text-gray-500 p-4 text-center">Memuat anggota...</p></div></div>
-            <div class="p-3 border-t border-gray-800 text-[10px] text-gray-500">Hanya admin utama yang dapat mengeluarkan anggota. Akses akun dan workspace tetap aktif.</div>
+            <div class="p-3 overflow-y-auto min-h-0 space-y-2"><div class="flex items-center justify-between px-1"><h4 class="text-xs font-semibold text-gray-300">Crew RITUAL CREW</h4><button type="button" onclick="loadRitualMembers()" class="text-[10px] text-blue-300"><i class="fa-solid fa-rotate mr-1"></i>Perbarui</button></div><div id="ritual-group-members" class="space-y-2"><p class="text-xs text-gray-500 p-4 text-center">Memuat Crew...</p></div></div>
+            <div class="p-3 border-t border-gray-800 text-[10px] text-gray-500">Hanya admin utama yang dapat mengeluarkan Crew. Akses akun dan workspace tetap aktif.</div>
           </div>
         </div>
 
@@ -1195,12 +1195,12 @@
         </div>
     </div>
 
-    <!-- PASSWORD GATE: MARKAS TIM -->
+    <!-- PASSWORD GATE: MARKAS CREW -->
     <div id="markas-tim-lock" class="hidden fixed inset-0 z-[130] flex items-center justify-center p-5" style="background:rgba(3,5,12,.94);backdrop-filter:blur(10px);" role="dialog" aria-modal="true" aria-labelledby="markas-tim-lock-title">
         <div class="w-full max-w-sm rounded-2xl border border-red-800/70 bg-gradient-to-br from-gray-950 via-[#111827] to-blue-950 p-6 text-center shadow-[0_0_45px_rgba(185,28,28,.22)]">
             <img src="image_2.png" alt="Ghoustory" class="h-16 w-16 object-contain mx-auto mb-4" onerror="this.style.display='none'">
             <p class="text-[10px] tracking-[.28em] text-blue-300 font-bold mb-2">GHOUSTORY CONTROL ROOM</p>
-            <h2 id="markas-tim-lock-title" class="font-mystery text-xl font-bold text-white mb-2">MARKAS TIM</h2>
+            <h2 id="markas-tim-lock-title" class="font-mystery text-xl font-bold text-white mb-2">MARKAS CREW</h2>
             <p class="text-xs text-gray-400 mb-5">Masukkan password untuk membuka ruang internal Crew.</p>
             <form onsubmit="event.preventDefault(); verifyMarkasTimPassword();" class="space-y-3">
                 <input id="markas-tim-password" type="password" autocomplete="off" placeholder="Masukkan password" class="w-full rounded-xl border border-gray-700 bg-black/70 px-4 py-3 text-center text-white tracking-widest outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
@@ -1575,8 +1575,8 @@
             activeProfile = profile;
             const fallback = activeUser?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
             const avatar = profile?.avatar_url || fallback;
-            const nickname = profile?.nickname || activeUser?.user_metadata?.full_name || activeUser?.email || "Anggota";
-            const role = profile?.role || "Anggota";
+            const nickname = profile?.nickname || activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
+            const role = profile?.role || "Crew";
             const headerAvatar = document.getElementById('user-avatar');
             if (headerAvatar) headerAvatar.src = avatar;
             const headerName = document.getElementById('user-name-display');
@@ -1608,7 +1608,7 @@
             const photoSection = document.getElementById('profile-photo-section');
             if (!modal) return;
             photoSection?.classList.remove('hidden');
-            title.textContent = mode === 'register' ? 'DAFTAR ANGGOTA' : 'EDIT PROFIL';
+            title.textContent = mode === 'register' ? 'DAFTAR CREW' : 'EDIT PROFIL';
             subtitle.textContent = mode === 'register' ? 'Lengkapi profil sebelum memasuki Control Room.' : 'Perbarui identitasmu di Ghoustory.';
             name.value = activeProfile?.nickname || '';
             const legacyRoleMap = { 'Admin':'Admin Media Sosial', 'Host':'Host', 'Editor':'Video Editor', 'Kameramen':'Kameramen', 'Produser':'Produser', 'Penulis':'Penulis Naskah', 'Desainer':'Graphic Designer', 'Audio':'Audio Engineer / Soundman' };
@@ -1774,7 +1774,7 @@
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Tim','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
@@ -3266,7 +3266,7 @@
 
         const CREW_SUMMARY_CONFIG={
           jadwal:{title:'Jadwal shooting',items:()=>crewSchedules||[],name:x=>x.title||'Jadwal tanpa judul',detail:x=>(x.event_date||'Tanggal belum ditentukan')+' · '+(x.event_time||'Jam belum ditentukan'),page:'tim',tab:'jadwal'},
-          members:{title:'Anggota Crew',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Anggota Crew',detail:x=>x.role||x.peran||'',page:'tim'},
+          members:{title:'Crew',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Crew',detail:x=>x.role||x.peran||'',page:'tim'},
           production:{title:'Tugas produksi',items:()=>db.production||[],name:x=>x.title||x.name||'Tugas produksi',detail:x=>x.status||'',page:'tim',tab:'produksi'},
           cash:{title:'Data kas',items:()=>db.kas||[],name:x=>x.title||x.keterangan||x.description||x.nama||'Transaksi kas',detail:x=>x.amount!==undefined?String(x.amount):x.nominal!==undefined?String(x.nominal):'',page:'tim',tab:'kas'},
           scripts:{title:'Naskah',items:()=>db.scriptDrafts||[],name:x=>x.title||'Naskah tanpa judul',detail:x=>x.updatedAt||x.createdAt||'',page:'grimoire',tab:'editor'},
@@ -3463,7 +3463,7 @@ async function loadChatMessages(){
           }).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_reactions"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids);groupReactions=data||[];renderChatMessages();}}).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_pins"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids);groupPins=data||[];renderChatMessages();}}).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
           if(groupPresenceChannel)await supabaseClient.removeChannel(groupPresenceChannel);
           groupPresenceChannel=supabaseClient.channel("ghoustory-group-presence",{config:{presence:{key:activeUser.id}}});
-          groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Anggota",typing:false});});
+          groupPresenceChannel.on("presence",{event:"sync"},()=>{const state=groupPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Crew");const el=document.getElementById("group-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeUser.user_metadata?.name||"Crew",typing:false});});
           if(isGroupRoomVisible())await markGroupMessagesRead();
         }
         function isGroupRoomVisible(){return !!activeUser&&document.getElementById("page-chat")?.classList.contains("page-active")&&!document.getElementById("group-chat-card")?.classList.contains("hidden")&&document.visibilityState==="visible";}
@@ -3480,13 +3480,13 @@ async function loadChatMessages(){
           if(error){console.warn("Status baca grup belum tersimpan:",error.message);return;}
           const now=new Date().toISOString();rows.forEach(r=>groupReads.push({...r,read_at:now}));renderChatMessages();updateGroupUnreadBadge();
         }
-        async function setGroupTyping(typing){if(!groupPresenceChannel||!activeUser)return;try{await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(groupTypingTimer)clearTimeout(groupTypingTimer);if(typing)groupTypingTimer=setTimeout(()=>setGroupTyping(false),1800);}
-        function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"anggota")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
+        async function setGroupTyping(typing){if(!groupPresenceChannel||!activeUser)return;try{await groupPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Crew",typing:!!typing});}catch(e){}if(groupTypingTimer)clearTimeout(groupTypingTimer);if(typing)groupTypingTimer=setTimeout(()=>setGroupTyping(false),1800);}
+        function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"Crew")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
         function clearGroupReply(){groupReplyTo=null;document.getElementById("group-reply-preview")?.classList.add("hidden");}
         async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
         async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function toggleGroupReaction(messageId,emoji){try{const old=groupReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_group_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_group_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",chatMessages.map(m=>m.id));groupReactions=data||[];renderChatMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
-        async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan anggota lain.");return;}const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data,error:readError}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));if(readError)throw readError;groupPins=data||[];renderChatMessages();focusPinnedBanner("group");}catch(e){alert("Pin gagal: "+(e.message||e));}}
+        async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan Crew lain.");return;}const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data,error:readError}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));if(readError)throw readError;groupPins=data||[];renderChatMessages();focusPinnedBanner("group");}catch(e){alert("Pin gagal: "+(e.message||e));}}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null,sender_name=null,notify=true}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
@@ -3507,7 +3507,7 @@ async function loadChatMessages(){
           const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input?.value.trim();
           if(!body||!activeUser||!button)return;
           const mention=/(^|\s)@ghoust\b/i.test(body);
-          const question=body.replace(/@ghoust\b/ig,"").replace(/\s+/g," ").trim()||"Ikut nimbrung dan bantu diskusi tim Ghoustory.";
+          const question=body.replace(/@ghoust\b/ig,"").replace(/\s+/g," ").trim()||"Ikut nimbrung dan bantu diskusi Crew Ghoustory.";
           button.disabled=true;
           try{
             await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});
@@ -3531,7 +3531,7 @@ async function loadChatMessages(){
           }
           button.disabled=false;
         }
-        // Direktori anggota, riwayat percakapan, dan pesan pribadi RITUAL CREW.
+        // Direktori Crew, riwayat percakapan, dan pesan pribadi RITUAL CREW.
         let ritualMembers=[],workspaceProfiles=[],isGhoustoryAdmin=false,isGhoustoryGroupMember=null,activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[],dmPresenceChannel=null,dmTypingTimer=null;
         async function loadDirectConversations(){
           const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
@@ -3544,7 +3544,7 @@ async function loadChatMessages(){
               const other=(people||[]).find(x=>x.user_id!==activeUser.id);if(!other)continue;
               const member=workspaceProfiles.find(x=>x.user_id===other.user_id);
               const {data:msgs,error:e2}=await supabaseClient.from("ghoustory_dm_messages").select("body,created_at,sender_id,deleted_at").eq("conversation_id",part.conversation_id).order("created_at",{ascending:false}).limit(1);if(e2)throw e2;
-              const last=msgs?.[0],nickname=member?.nickname||"Anggota";
+              const last=msgs?.[0],nickname=member?.nickname||"Crew";
               const avatar=member?.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(nickname)+"&background=172554&color=fff";
               const time=last?.created_at?new Date(last.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"";
               const {data:unreadMessages,error:e3}=await supabaseClient.from("ghoustory_dm_messages").select("id").eq("conversation_id",part.conversation_id).neq("sender_id",activeUser.id).is("deleted_at",null).order("created_at",{ascending:false}).limit(150);if(e3)throw e3;const unreadIds=(unreadMessages||[]).map(m=>m.id);let unreadCount=0;if(unreadIds.length){const {data:readRows,error:e4}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id").eq("user_id",activeUser.id).in("message_id",unreadIds);if(e4)throw e4;const readIds=new Set((readRows||[]).map(x=>String(x.message_id)));unreadCount=unreadIds.filter(id=>!readIds.has(String(id))).length;}
@@ -3561,10 +3561,10 @@ async function loadChatMessages(){
           const count=users.length;
           const badge=document.getElementById("header-online-count");if(badge)badge.textContent=String(count);
           const chatStatus=document.getElementById("chat-room-online-status");if(chatStatus)chatStatus.textContent=count===1?"1 Crew online":count+" Crew online";
-          const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" anggota sedang aktif";
+          const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" Crew sedang aktif";
           const list=document.getElementById("online-crew-list");if(!list)return;
           if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada Crew yang online.</p>';return;}
-          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Anggota Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
+          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
         }
         function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
         function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
@@ -3572,42 +3572,42 @@ async function loadChatMessages(){
           const dmBox=document.getElementById("ritual-members-list"),infoBox=document.getElementById("ritual-group-members");
           const members=ritualMembers||[];
           if(!members.length){
-            if(dmBox)dmBox.innerHTML='<p class="text-xs text-gray-500 p-3">Belum ada anggota RITUAL CREW.</p>';
-            if(infoBox)infoBox.innerHTML='<p class="text-xs text-gray-500 p-4 text-center">Belum ada anggota RITUAL CREW.</p>';
-            const count=document.getElementById("ritual-group-member-count");if(count)count.textContent="0 anggota";
+            if(dmBox)dmBox.innerHTML='<p class="text-xs text-gray-500 p-3">Belum ada Crew di RITUAL CREW.</p>';
+            if(infoBox)infoBox.innerHTML='<p class="text-xs text-gray-500 p-4 text-center">Belum ada Crew di RITUAL CREW.</p>';
+            const count=document.getElementById("ritual-group-member-count");if(count)count.textContent="0 Crew";
             return;
           }
           if(dmBox)dmBox.innerHTML=members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
-            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
+            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
           }).join("");
           if(infoBox)infoBox.innerHTML=members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Anggota")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
-            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari RITUAL CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"anggota")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
-            return '<div class="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-black/25"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-11 h-11 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Anggota")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Anggota")+'</small><small class="block text-[10px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+kickButton+'</div>';
+            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari RITUAL CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
+            return '<div class="flex items-center gap-3 p-3 rounded-xl border border-gray-800 bg-black/25"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-11 h-11 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[10px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+kickButton+'</div>';
           }).join("");
-          const count=document.getElementById("ritual-group-member-count");if(count)count.textContent=members.length+" anggota";
+          const count=document.getElementById("ritual-group-member-count");if(count)count.textContent=members.length+" Crew";
         }
         async function kickRitualCrewMember(userId){
-          if(!isGhoustoryAdmin)return alert("Hanya admin utama yang dapat mengeluarkan anggota grup.");
-          const member=ritualMembers.find(p=>p.user_id===userId);if(!member)return alert("Anggota tidak ditemukan.");
-          if(!confirm('Keluarkan '+(member.nickname||"anggota ini")+' dari RITUAL CREW? Akun dan akses aplikasi lainnya tetap aktif.'))return;
+          if(!isGhoustoryAdmin)return alert("Hanya admin utama yang dapat mengeluarkan Crew dalam grup.");
+          const member=ritualMembers.find(p=>p.user_id===userId);if(!member)return alert("Crew tidak ditemukan.");
+          if(!confirm('Keluarkan '+(member.nickname||"Crew ini")+' dari RITUAL CREW? Akun dan akses aplikasi lainnya tetap aktif.'))return;
           const {data,error}=await supabaseClient.rpc("kick_ghoustory_ritual_member",{p_user_id:userId});
-          if(error)return alert("Anggota gagal dikeluarkan: "+error.message);
-          if(data!==true)return alert("Anggota tersebut sudah tidak tergabung dalam RITUAL CREW.");
+          if(error)return alert("Crew gagal dikeluarkan: "+error.message);
+          if(data!==true)return alert("Crew tersebut sudah tidak tergabung dalam RITUAL CREW.");
           await loadRitualMembers();
-          alert((member.nickname||"Anggota")+' berhasil dikeluarkan dari RITUAL CREW. Akun aplikasi tetap aktif.');
+          alert((member.nickname||"Crew")+' berhasil dikeluarkan dari RITUAL CREW. Akun aplikasi tetap aktif.');
         }
         async function startRitualPresence(){
-          // Status online anggota mengikuti Presence global sejak aplikasi dibuka,
+          // Status online Crew mengikuti Presence global sejak aplikasi dibuka,
           // bukan hanya ketika pengguna sedang berada di halaman chat.
           renderRitualMembers();
         }
         async function loadRitualMembers(){
           const box=document.getElementById("ritual-members-list");if(!activeUser||!box)return;
-          box.innerHTML='<p class="text-xs text-gray-500 p-3">Memuat anggota...</p>';
+          box.innerHTML='<p class="text-xs text-gray-500 p-3">Memuat Crew...</p>';
           const [roster,profiles,admin,group]=await Promise.all([
             supabaseClient.from("ghoustory_ritual_crew_profiles").select("user_id,nickname,role,avatar_url,last_seen_at").order("nickname"),
             supabaseClient.from("ghoustory_profiles").select("user_id,nickname,role,avatar_url,last_seen_at").order("nickname"),
@@ -3615,13 +3615,13 @@ async function loadChatMessages(){
             supabaseClient.rpc("is_ghoustory_group_member")
           ]);
           const failed=[roster,profiles,admin,group].find(x=>x.error);
-          if(failed){box.textContent="Anggota gagal dimuat: "+failed.error.message;return;}
+          if(failed){box.textContent="Crew gagal dimuat: "+failed.error.message;return;}
           ritualMembers=roster.data||[];
           workspaceProfiles=profiles.data||[];
           isGhoustoryAdmin=admin.data===true;
           isGhoustoryGroupMember=group.data===true;
           if(typeof renderChatMessages==="function")renderChatMessages();
-          if(!ritualMembers.length){box.textContent="Belum ada anggota RITUAL CREW.";return;}
+          if(!ritualMembers.length){box.textContent="Belum ada Crew di RITUAL CREW.";return;}
           renderRitualMembers();
           await startRitualPresence();
           await loadDirectConversations();
@@ -3667,7 +3667,7 @@ async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=workspaceProfiles.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
           document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Pesan Pribadi";
-          document.getElementById("dm-subtitle").textContent=member.role||"Anggota RITUAL CREW";
+          document.getElementById("dm-subtitle").textContent=member.role||"Crew RITUAL CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
             const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
@@ -3692,13 +3692,13 @@ async function openDirectMessage(otherId){
             .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
           if(dmPresenceChannel)await supabaseClient.removeChannel(dmPresenceChannel);
           dmPresenceChannel=supabaseClient.channel("ghoustory-dm-presence-"+id,{config:{presence:{key:activeUser.id}}});
-          dmPresenceChannel.on("presence",{event:"sync"},()=>{const state=dmPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Anggota");const el=document.getElementById("dm-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeDmMember?.nickname||"Anggota",typing:false});});
+          dmPresenceChannel.on("presence",{event:"sync"},()=>{const state=dmPresenceChannel.presenceState();const names=Object.values(state).flat().filter(x=>x.user_id!==activeUser.id&&x.typing).map(x=>x.nickname||"Crew");const el=document.getElementById("dm-typing-indicator");if(el)el.textContent=names.length?names.join(", ")+" sedang mengetik…":"";}).subscribe(async state=>{if(state==="SUBSCRIBED")await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||activeDmMember?.nickname||"Crew",typing:false});});
         }
-        async function setDmTyping(typing){if(!dmPresenceChannel||!activeUser)return;try{await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Anggota",typing:!!typing});}catch(e){}if(dmTypingTimer)clearTimeout(dmTypingTimer);if(typing)dmTypingTimer=setTimeout(()=>setDmTyping(false),1800);}
+        async function setDmTyping(typing){if(!dmPresenceChannel||!activeUser)return;try{await dmPresenceChannel.track({user_id:activeUser.id,nickname:activeProfile?.nickname||"Crew",typing:!!typing});}catch(e){}if(dmTypingTimer)clearTimeout(dmTypingTimer);if(typing)dmTypingTimer=setTimeout(()=>setDmTyping(false),1800);}
         function renderDirectMessages(){
  const box=document.getElementById("dm-messages");if(!box)return;
  renderPinnedChatBanner("dm");
- if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
+ if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"Crew ini")+'!</p>';return;}
  const visible=dmMessages.filter(m=>!dmSearchTerm||String(m.body||"").toLowerCase().includes(dmSearchTerm.toLowerCase()));
  if(!visible.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Tidak ada pesan yang cocok.</p>';return;}
  box.innerHTML=visible.map((m,index)=>{
@@ -3771,7 +3771,7 @@ async function markDmMessagesRead(){
           if(type==="jadwal"){
             fields=chatCreateField("title","Nama kegiatan / shooting","Contoh: Shooting NGLENCER","text",true)+chatCreateField("narsum","Narasumber","Nama narasumber")+chatCreateField("segment","Segmen","Contoh: NGLENCER")+chatCreateField("loc","Lokasi","Lokasi shooting")+chatCreateField("date","Tanggal","Pilih tanggal","date",true)+chatCreateField("time","Jam","Contoh: 19:00 WIB");
           }else if(type==="kas"){
-            fields='<p class="text-xs text-gray-400">Isi nominal iuran anggota dan/atau pengeluaran. Nominal yang tidak digunakan boleh dikosongkan.</p>'+["Artdan","Yhola","Tio","Bila"].map((n,i)=>chatCreateField("member-"+i,"Iuran "+n,"Nominal rupiah","number")).join("")+chatCreateField("out-desc","Keterangan pengeluaran","Contoh: Konsumsi shooting")+chatCreateField("out-amount","Nominal pengeluaran","Nominal rupiah","number");
+            fields='<p class="text-xs text-gray-400">Isi nominal iuran Crew dan/atau pengeluaran. Nominal yang tidak digunakan boleh dikosongkan.</p>'+["Artdan","Yhola","Tio","Bila"].map((n,i)=>chatCreateField("member-"+i,"Iuran "+n,"Nominal rupiah","number")).join("")+chatCreateField("out-desc","Keterangan pengeluaran","Contoh: Konsumsi shooting")+chatCreateField("out-amount","Nominal pengeluaran","Nominal rupiah","number");
           }else if(type==="production") fields=chatCreateField("title","Nama konten / tugas","Judul konten","text",true);
           else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
           else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
@@ -3979,14 +3979,14 @@ async function markDmMessagesRead(){
 
     <div id="ghoustory-profile-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center">
       <form onsubmit="saveGhoustoryProfile(event)" class="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-5 shadow-2xl">
-        <div class="text-center mb-5"><div class="text-red-500 text-xs tracking-[.25em] mb-2">GHOUSTORY CONTROL ROOM</div><h2 id="profile-modal-title" class="font-mystery text-xl text-white">DAFTAR ANGGOTA</h2><p id="profile-modal-subtitle" class="text-xs text-gray-400 mt-2">Lengkapi profil sebelum memasuki Control Room.</p></div>
+        <div class="text-center mb-5"><div class="text-red-500 text-xs tracking-[.25em] mb-2">GHOUSTORY CONTROL ROOM</div><h2 id="profile-modal-title" class="font-mystery text-xl text-white">DAFTAR CREW</h2><p id="profile-modal-subtitle" class="text-xs text-gray-400 mt-2">Lengkapi profil sebelum memasuki Control Room.</p></div>
         <div id="profile-photo-section" class="flex flex-col items-center gap-2 mb-5">
           <img id="profile-photo-preview" src="" alt="Foto profil" class="w-24 h-24 rounded-full object-cover border-2 border-red-700 bg-gray-900">
           <label class="cursor-pointer text-xs text-blue-300 hover:text-blue-200"><i class="fa-solid fa-camera mr-1"></i> Ganti foto profil<input id="profile-photo-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden"></label>
           <p class="text-[10px] text-gray-500">Foto Google digunakan sebagai foto awal jika tersedia. Maksimal 5 MB.</p>
         </div>
         <label class="block text-xs text-gray-300 mb-1" for="profile-nickname">Nama panggilan *</label>
-        <input id="profile-nickname" required maxlength="40" autocomplete="nickname" class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Nama yang akan dilihat anggota lain">
+        <input id="profile-nickname" required maxlength="40" autocomplete="nickname" class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Nama yang akan dilihat Crew lain">
         <div class="mb-3">
           <div class="flex items-center justify-between gap-2 mb-2"><label class="block text-xs text-gray-300">Peran / Jobdesk *</label><span id="profile-role-count" class="text-[10px] text-blue-300">0/2 dipilih</span></div>
           <p class="text-[10px] text-gray-500 mb-3">Pilih minimal 1 dan maksimal 2 peran yang kamu jalankan.</p>
