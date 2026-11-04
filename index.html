@@ -2291,6 +2291,7 @@
             const t = document.getElementById('input-stok').value; const fmt = document.getElementById('stok-format').value;
             if(t) { db.stok.push({ id: Date.now(), text: t, format: fmt, status: "Siap Edit", segment: "Belum Ada" }); document.getElementById('input-stok').value=''; saveData(); renderStok(); }
         }
+        function editStok(id){const item=db.stok.find(x=>String(x.id)===String(id));if(!item)return;const text=prompt("Edit nama narasumber / judul stok:",item.text||"");if(text===null)return;if(!text.trim())return alert("Nama tidak boleh kosong.");const format=prompt("Edit format stok:",item.format||"🔦 Penelusuran");if(format===null)return;item.text=text.trim();item.format=format.trim()||item.format;item.updatedAt=new Date().toISOString();saveData();renderStok();}
         function hapusStok(id){if(!confirm('Hapus item stok ini?'))return;db.stok=db.stok.filter(x=>x.id!==id);saveData();renderStok();}
         function renderStok() {
             const c = document.getElementById('list-stok'); if(!c) return; c.innerHTML = '';
@@ -2298,7 +2299,7 @@
             db.stok.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
                     <div><b>👤 Narasumber: ${item.text}</b><div class="text-[10px] text-yellow-400">${item.format} | Status: ${item.status}</div></div>
-                    ${renderDoneControl('stok', item)}<button onclick="hapusStok(${item.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                    ${renderDoneControl('stok', item)}<button onclick="editStok(${item.id})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-white">Edit</button><button onclick="hapusStok(${item.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
                 </div>`;
             });
         }
