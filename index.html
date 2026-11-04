@@ -40,6 +40,12 @@
         
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .bottom-nav-item.active { color:#f87171; background:rgba(127,29,29,.18); }
+        #bottom-navigation .bottom-nav-item.active { color:#fff; background:linear-gradient(135deg,rgba(185,28,28,.72),rgba(30,64,175,.58)); box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
+        #bottom-navigation { transform:translateX(-50%); }
+        .feature-back-button { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:9999px; border:1px solid rgba(255,255,255,.14); background:rgba(20,24,35,.72); color:#fff; margin:0 0 12px; backdrop-filter:blur(12px); }
+        body { padding-bottom: 6.5rem; }
+        @media(min-width:768px){ body { padding-bottom: 7rem; } }
+
         .page-active { display: block; }
         .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
         .tab-content.active { display: block; }
@@ -277,7 +283,7 @@
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
                     <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Crew Hub</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
-                    <div onclick="showPage('chat')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-green-500"><i class="fa-solid fa-comments text-3xl mb-2 text-green-400"></i><h3 class="font-bold text-sm">Ritual Crew</h3><p class="text-[10px] text-gray-500 mt-1">Ruang obrolan Ghoustory</p></div>
+                    
                 </div>
             </section>
 
@@ -298,7 +304,7 @@
                 <div id="chat-room-panel" class="hidden min-w-0">
                   <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
+                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="w-9 h-9 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
                     <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -306,7 +312,7 @@
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><div class="min-w-0 flex-1"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div><span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
+                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="w-9 h-9 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div><span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
                     <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -530,23 +536,15 @@
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <label class="block text-gray-300 font-bold">Tugaskan kru (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
                           <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal & Penugasan</button>
-                        </div><div class="mt-4"><div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-yellow-500 uppercase">Agenda Crew Hub</h4><button onclick="refreshCrewHub()" class="text-xs text-blue-300">Segarkan</button></div><div class="rounded-xl border border-gray-800 bg-darkBg p-3 mb-3"><div class="flex items-center justify-between mb-3"><button onclick="changeCrewMonth(-1)" class="px-2 text-gray-400"><i class="fa-solid fa-chevron-left"></i></button><b id="crew-month-title" class="text-sm text-yellow-400">Kalender Crew Hub</b><button onclick="changeCrewMonth(1)" class="px-2 text-gray-400"><i class="fa-solid fa-chevron-right"></i></button></div><div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-500 mb-1"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div><div id="crew-calendar-grid" class="grid grid-cols-7 gap-1 text-[10px]"></div></div><div id="crew-schedule-list" class="space-y-3"><p class="text-xs text-gray-500">Memuat jadwal...</p></div></div>
-                                                <!-- Kalender Jadwal -->
-                        <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
-                            <div class="flex justify-between items-center mb-3">
-                                <button onclick="changeCalMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
-                                <h3 id="cal-month-title" class="font-mystery text-yellow-500 text-lg">Bulan</h3>
-                                <button onclick="changeCalMonth(1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button>
-                            </div>
-                            <div id="jadwal-weekdays" class="calendar-weekdays grid grid-cols-7 gap-1 text-center text-xs mb-1">
-                                <div class="text-red-500 font-bold py-1">Min</div><div class="text-gray-400 font-bold py-1">Sen</div><div class="text-gray-400 font-bold py-1">Sel</div><div class="text-gray-400 font-bold py-1">Rab</div><div class="text-gray-400 font-bold py-1">Kam</div><div class="text-gray-400 font-bold py-1">Jum</div><div class="text-gray-400 font-bold py-1">Sab</div>
-                            </div>
-                            <div id="jadwal-calendar-grid" class="grid grid-cols-7 gap-1 text-xs"></div>
+                        </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
+                          <div class="flex items-center justify-between mb-3">
+                            <button onclick="changeCrewMonth(-1)" class="px-3 py-2 text-gray-400" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+                            <b id="crew-month-title" class="text-sm text-yellow-400">Kalender Crew Hub</b>
+                            <button onclick="changeCrewMonth(1)" class="px-3 py-2 text-gray-400" aria-label="Bulan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+                          </div>
+                          <div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-500 mb-1"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div>
+                          <div id="crew-calendar-grid" class="grid grid-cols-7 gap-1 text-[10px]"></div>
                         </div>
-
-                        <!-- List Ringkasan Jadwal & Absen -->
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-4">Ringkasan Narasumber & Kru Absen</h4>
-                        <div id="list-ringkasan-jadwal" class="space-y-2"></div>
                     </div>
 
                     <!-- TAB STOK VIDEO -->
@@ -720,15 +718,14 @@
             </section>
 
         </main>
-        <div id="bottom-navigation" class="fixed bottom-0 inset-x-0 z-[80] border-t border-gray-800 bg-[#090b11]/95 backdrop-blur-xl px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
-          <div class="max-w-xl mx-auto grid grid-cols-4 gap-1">
-            <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-house text-lg"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Dashboard</span></button>
-            <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
-            <button data-bottom-nav="tim" onclick="navigateBottom('tim')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-calendar-days text-lg"></i><i id="nav-dot-tim" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Crew Hub</span></button>
-            <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-600"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
+        <div id="bottom-navigation" class="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-[80] w-[min(94vw,430px)] rounded-full border border-white/15 bg-[#111827]/65 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,.45)] px-3 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
+          <div class="grid grid-cols-4 gap-1">
+            <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house text-lg"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Home</span></button>
+            <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
+            <button data-bottom-nav="tim" onclick="navigateBottom('tim')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-calendar-days text-lg"></i><i id="nav-dot-tim" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Crew Hub</span></button>
+            <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
           </div>
         </div>
-
 
         <!-- FOOTER BAWAH -->
         <footer class="border-t border-gray-900 bg-black/80 py-4 px-4 text-xs text-gray-400 mt-auto">
@@ -806,10 +803,20 @@
         </div>
     </div>
 
+    <div id="kas-access-modal" class="hidden fixed inset-0 z-[190] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="kas-access-title">
+      <div class="w-full max-w-sm rounded-2xl border border-yellow-700 bg-[#10131b] p-5 shadow-2xl">
+        <div class="flex items-center gap-3 mb-3"><span class="w-10 h-10 rounded-full bg-yellow-950 text-yellow-300 flex items-center justify-center"><i class="fa-solid fa-lock"></i></span><div><h3 id="kas-access-title" class="font-bold text-white">Akses Kas & Monetisasi</h3><p class="text-[11px] text-gray-400">Masukkan password untuk membuka bagian Kas.</p></div></div>
+        <input id="kas-access-password" type="password" autocomplete="off" placeholder="Password" class="w-full rounded-xl bg-black border border-gray-700 p-3 text-sm text-white" onkeydown="if(event.key==='Enter')verifyKasAccess()">
+        <p id="kas-access-status" class="min-h-5 mt-2 text-xs text-red-300" aria-live="polite"></p>
+        <div class="flex gap-2 mt-2"><button type="button" onclick="closeKasAccess()" class="flex-1 rounded-xl border border-gray-700 py-2.5 text-sm text-gray-300">Batal</button><button type="button" onclick="verifyKasAccess()" class="flex-1 rounded-xl bg-yellow-700 py-2.5 text-sm font-bold text-white">Buka Kas</button></div>
+      </div>
+    </div>
     <section id="page-anda" class="page-section max-w-3xl mx-auto">
       <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
-        <div class="flex items-center gap-4 mb-6"><img id="anda-profile-avatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-red-700"><div><h2 id="anda-profile-name" class="text-xl font-bold">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300"></p><p id="anda-profile-email" class="text-[10px] text-gray-500"></p></div></div>
-        <div class="grid sm:grid-cols-2 gap-2"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Edit Profil</button><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Pengaturan Akun</button><button onclick="enableGhoustoryNotifications()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Pengaturan Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">Keluar</button></div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div class="flex items-center gap-4 min-w-0"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300"></p><p id="anda-profile-email" class="text-[10px] text-gray-500 break-all"></p></div></div>
+          <div class="grid grid-cols-2 gap-2 sm:w-[min(100%,300px)] shrink-0"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Edit Profil</button><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Pengaturan Akun</button><button onclick="enableGhoustoryNotifications()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-xs sm:text-sm text-red-300">Keluar</button></div>
+        </div>
       </div>
     </section>
     <div id="crew-reminder-bar" class="hidden fixed left-3 right-3 bottom-20 z-[75] rounded-xl border border-yellow-700 bg-yellow-950 p-3 text-xs text-yellow-100"><b>Pengingat Crew Hub</b><p id="crew-reminder-text" class="mt-1"></p><button onclick="showNextAttendancePrompt()" class="mt-2 underline font-bold">Konfirmasi sekarang</button></div>
@@ -1382,6 +1389,9 @@
                 window.ghoustoryNavDepth = depth;
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
+            if (pageId !== 'home' && pageId !== 'chat' && pageId !== 'anda' && !target.querySelector('.feature-back-button')) {
+                target.insertAdjacentHTML('afterbegin','<button type="button" class="feature-back-button" onclick="showPage(\'home\')" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>');
+            }
             if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId !== 'tim') markasTimUnlocked = false;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
@@ -1391,7 +1401,12 @@
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
         }
+        let kasTabUnlocked = false;
+        function openKasAccess(){const m=document.getElementById('kas-access-modal'),i=document.getElementById('kas-access-password'),s=document.getElementById('kas-access-status');if(!m)return;m.classList.remove('hidden');m.classList.add('flex');i.value='';s.textContent='';setTimeout(()=>i.focus(),80);}
+        function closeKasAccess(){const m=document.getElementById('kas-access-modal');m?.classList.add('hidden');m?.classList.remove('flex');const i=document.getElementById('kas-access-password');if(i)i.value='';}
+        function verifyKasAccess(){const i=document.getElementById('kas-access-password'),s=document.getElementById('kas-access-status');if(i.value==='kitakaya'){kasTabUnlocked=true;closeKasAccess();switchTab('tim','kas');}else{s.textContent='Password salah. Coba lagi.';i.select();}}
         function switchTab(feature, tabName) {
+            if(feature==='tim'&&tabName==='kas'&&!kasTabUnlocked){openKasAccess();return;}
             document.querySelectorAll(`[id^="tab-${feature}"]`).forEach(el => el.classList.remove('active'));
             document.querySelectorAll(`[id^="tabbtn-${feature}"]`).forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${feature}-${tabName}`).classList.add('active');
