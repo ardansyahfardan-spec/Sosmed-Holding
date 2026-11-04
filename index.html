@@ -22,6 +22,7 @@
     
     <!-- CDN Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     
     <script>
@@ -618,7 +619,7 @@
                                 <label class="block text-xs text-gray-400 mb-1">Atau unggah audio MP3 hasil ekstrak</label>
                                 <input id="video-analysis-title" type="text" maxlength="180" placeholder="Judul video (opsional)" class="w-full bg-darkCard border border-gray-700 rounded-lg p-3 text-sm text-white mb-2">
                                 <input id="video-analysis-file" type="file" accept=".mp3,audio/mpeg,audio/mp3" class="w-full text-xs text-gray-300 file:mr-2 file:rounded file:border-0 file:bg-red-900 file:px-3 file:py-2 file:text-white">
-                                <p class="text-[10px] text-gray-500 mt-1">Maksimal 17 MB. File MP3 tidak disimpan di Supabase.</p>
+                                <p class="text-[10px] text-gray-500 mt-1">Maksimal 50 MB. File MP3 disimpan sementara saat diproses, lalu dihapus otomatis.</p>
                                 <button id="video-analysis-run" onclick="analyzeVideoMp3()" class="w-full mt-2 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded text-sm"><i class="fa-solid fa-file-audio mr-1"></i> Analisis dari MP3</button>
                             </div>
                             <p id="video-analysis-status" class="text-xs text-gray-400" aria-live="polite">Masukkan link YouTube atau pilih MP3 untuk memulai.</p>
@@ -927,7 +928,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.18</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.19</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -2717,11 +2718,40 @@
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             await runVideoAnalysis('youtube',url);
         }
+        const MAX_VIDEO_ANALYSIS_MP3_BYTES = 50 * 1024 * 1024;
+        async function uploadVideoAnalysisMp3(file,statusEl) {
+            if(!window.tus?.Upload)throw new Error('Modul upload file besar belum termuat. Muat ulang aplikasi lalu coba lagi.');
+            const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
+            if(sessionError||!session?.access_token)throw new Error('Sesi login Supabase tidak ditemukan. Silakan login ulang.');
+            const path='shared/analysis-temp-'+Date.now()+'-'+Math.random().toString(36).slice(2,9)+'.mp3';
+            const endpoint='https://xnbqckfbrrmdjiemfwqf.storage.supabase.co/storage/v1/upload/resumable';
+            await new Promise((resolve,reject)=>{
+                const upload=new tus.Upload(file,{
+                    endpoint,
+                    retryDelays:[0,3000,5000,10000,20000],
+                    headers:{authorization:'Bearer '+session.access_token,apikey:SUPABASE_ANON_KEY},
+                    uploadDataDuringCreation:true,
+                    removeFingerprintOnSuccess:true,
+                    chunkSize:6*1024*1024,
+                    metadata:{bucketName:'vo-recordings',objectName:path,contentType:'audio/mpeg',cacheControl:'3600'},
+                    onError:error=>reject(new Error('Upload MP3 gagal: '+(error?.message||error))),
+                    onProgress:(uploaded,total)=>{if(statusEl)statusEl.textContent='Mengunggah MP3 ke penyimpanan sementara... '+Math.floor(uploaded/total*100)+'%';},
+                    onSuccess:()=>resolve()
+                });
+                upload.start();
+            });
+            const {data:signed,error:signedError}=await supabaseClient.storage.from('vo-recordings').createSignedUrl(path,3600);
+            if(signedError||!signed?.signedUrl){
+                await supabaseClient.storage.from('vo-recordings').remove([path]);
+                throw new Error('Gagal menyiapkan tautan audio sementara: '+(signedError?.message||'URL tidak tersedia.'));
+            }
+            return {path,url:signed.signedUrl};
+        }
         async function analyzeVideoMp3() {
             const input=document.getElementById('video-analysis-file'),file=input?.files?.[0];
             if(!file)return alert('Pilih file MP3 terlebih dahulu.');
             if(!/\.mp3$/i.test(file.name)&&!['audio/mpeg','audio/mp3'].includes(file.type))return alert('File harus berformat MP3.');
-            if(file.size>17*1024*1024)return alert('Ukuran MP3 maksimal 17 MB.');
+            if(file.size>MAX_VIDEO_ANALYSIS_MP3_BYTES)return alert('Ukuran MP3 maksimal 50 MB.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             await runVideoAnalysis('mp3',file);
         }
@@ -2729,8 +2759,8 @@
             const status=document.getElementById('video-analysis-status'),preview=document.getElementById('video-analysis-preview'),saveBtn=document.getElementById('video-analysis-save');
             const btn=document.getElementById(source==='youtube'?'video-analysis-youtube-run':'video-analysis-run');
             videoAnalysisDraft=null;preview.classList.add('hidden');saveBtn.classList.add('hidden');if(manageButton)setButtonBusy(btn,true);
-            status.textContent=source==='youtube'?'Mengambil caption YouTube dan menganalisis transkrip...':'Membaca audio MP3 dan mengirimkannya ke Gemini...';
-            let audioBase64='';
+            status.textContent=source==='youtube'?'Mengambil caption YouTube dan menganalisis transkrip...':'Menyiapkan upload MP3...';
+            let audioUrl='',audioPath='';
             try {
                 let title='',raw='';
                 if(source==='youtube') {
@@ -2738,15 +2768,16 @@
                     title='Analisis YouTube - '+value;
                 } else {
                     const file=value;
-                    audioBase64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(new Error('Gagal membaca file MP3.'));reader.readAsDataURL(file);});
-                    if(!audioBase64)throw new Error('File MP3 kosong atau tidak terbaca.');
                     title=document.getElementById('video-analysis-title').value.trim()||file.name.replace(/\.mp3$/i,'');
-                    raw=await callGhoulAI('video-audio-analysis',{title,audioBase64,mimeType:'audio/mpeg'});
+                    const uploaded=await uploadVideoAnalysisMp3(file,status);
+                    audioUrl=uploaded.url;audioPath=uploaded.path;
+                    status.textContent='MP3 berhasil diunggah. Gemini sedang mendengarkan dan menganalisis audio...';
+                    raw=await callGhoulAI('video-audio-analysis',{title,audioUrl,mimeType:'audio/mpeg'});
                 }
                 const data=parseVideoAnalysisJson(raw);
                 const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
                 if(!item.fullTranscript&&!item.indonesianTranscript)throw new Error('Transkrip tidak ditemukan pada hasil AI.');
-                if(item.indonesianTranscript){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioBase64:source==='mp3'?audioBase64:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}
+                if(item.indonesianTranscript){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioUrl:source==='mp3'?audioUrl:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}
                 videoAnalysisDraft=item;
                 preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
                 preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
@@ -2754,7 +2785,7 @@
             } catch(error) {
                 status.textContent='Analisis gagal: '+(error.message||error);
             } finally {
-                audioBase64='';
+                if(audioPath){const {error:removeError}=await supabaseClient.storage.from('vo-recordings').remove([audioPath]);if(removeError)console.warn('Audio sementara gagal dihapus:',removeError);}
                 const input=document.getElementById('video-analysis-file');if(input)input.value='';
                 if(manageButton)setButtonBusy(btn,false);
             }
