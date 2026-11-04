@@ -987,6 +987,7 @@
         let activeUser = null;
         let presenceChannel = null;
         let lastCloudSyncAt = null;
+        let lastAppStateUpdatedAt = null;
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
@@ -1012,7 +1013,7 @@
         async function syncSharedDataFromCloud() {
             const { data, error } = await supabaseClient
                 .from('app_state')
-                .select('data')
+                .select('data,updated_at')
                 .eq('id', 'ghoustory')
                 .maybeSingle();
 
@@ -1021,13 +1022,16 @@
             const cloudData = data?.data;
             if (cloudData && typeof cloudData === 'object' && Object.keys(cloudData).length > 0) {
                 db = normalizeDbData(cloudData);
+                lastAppStateUpdatedAt = data.updated_at || null;
             } else {
-                // Database baru: isi satu kali dari data lokal perangkat pertama yang melakukan setup.
                 db = normalizeDbData(db);
-                const { error: seedError } = await supabaseClient
+                const { data: seeded, error: seedError } = await supabaseClient
                     .from('app_state')
-                    .upsert({ id: 'ghoustory', data: db });
+                    .upsert({ id: 'ghoustory', data: db, updated_by: activeUser?.id || null })
+                    .select('updated_at')
+                    .single();
                 if (seedError) throw seedError;
+                lastAppStateUpdatedAt = seeded?.updated_at || null;
             }
 
             const purgedCompletedItems = await purgeCompletedItems();
@@ -1041,10 +1045,20 @@
         function queueSharedSave(snapshot) {
             sharedSaveQueue = sharedSaveQueue
                 .then(async () => {
-                    const { error } = await supabaseClient
+                    const nextUpdatedAt = new Date().toISOString();
+                    let query = supabaseClient
                         .from('app_state')
-                        .upsert({ id: 'ghoustory', data: snapshot });
+                        .update({ data: snapshot, updated_by: activeUser?.id || null, updated_at: nextUpdatedAt })
+                        .eq('id', 'ghoustory');
+                    if (lastAppStateUpdatedAt) query = query.eq('updated_at', lastAppStateUpdatedAt);
+                    const { data, error } = await query.select('updated_at').maybeSingle();
                     if (error) throw error;
+                    if (!data) {
+                        const latest = await supabaseClient.from('app_state').select('updated_at').eq('id', 'ghoustory').maybeSingle();
+                        if (!latest.error && latest.data?.updated_at) lastAppStateUpdatedAt = latest.data.updated_at;
+                        throw new Error('Data baru saja diubah dari perangkat lain. Muat ulang halaman sebelum menyimpan lagi agar perubahan Crew lain tidak tertimpa.');
+                    }
+                    lastAppStateUpdatedAt = data.updated_at || nextUpdatedAt;
                     lastCloudSyncAt = new Date();
                     window.__ghoustorySyncError = null;
                     updateFooterStatus();
