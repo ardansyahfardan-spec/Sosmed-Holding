@@ -1058,9 +1058,9 @@
             });
         });
 
-        async function masukKeAplikasi(user) {
+        async function masukKeAplikasi(user, resumeAfterInvite = false) {
             activeUser = user;
-            if (appOpening || document.getElementById('login-screen').style.display === 'none') return;
+            if (appOpening || (!resumeAfterInvite && document.getElementById('login-screen').style.display === 'none')) return;
             appOpening = true;
             const loginScreen = document.getElementById('login-screen');
             const welcomeScreen = document.getElementById('welcome-screen');
@@ -1072,6 +1072,18 @@
             if (welcomeStatus) welcomeStatus.textContent = 'Menghubungkan database bersama...';
 
             try {
+                const { data: groupAccess, error: groupAccessError } = await supabaseClient.rpc('check_ghoustory_group_access', { p_password: null });
+                if (groupAccessError) throw groupAccessError;
+                if (!groupAccess) {
+                    welcomeScreen.classList.add('hidden');
+                    welcomeScreen.classList.remove('flex');
+                    const inviteModal = document.getElementById('ghoustory-group-invite-modal');
+                    inviteModal?.classList.remove('hidden');
+                    inviteModal?.classList.add('flex');
+                    document.getElementById('ghoustory-group-invite-password')?.focus();
+                    appOpening = false;
+                    return;
+                }
                 await syncSharedDataFromCloud();
                 setupPresence(user);
                 lastCloudSyncAt = new Date();
@@ -1122,6 +1134,36 @@
                 loginScreen.style.display = 'flex';
                 loginScreen.style.opacity = '1';
                 appOpening = false;
+            }
+        }
+
+        async function submitGhoustoryGroupInvite(event) {
+            event.preventDefault();
+            if (!activeUser || appOpening) return;
+            const input = document.getElementById('ghoustory-group-invite-password');
+            const status = document.getElementById('ghoustory-group-invite-status');
+            const button = document.getElementById('ghoustory-group-invite-submit');
+            const password = input?.value || '';
+            if (!password) { if (status) status.textContent = 'Masukkan password grup terlebih dahulu.'; return; }
+            if (button) { button.disabled = true; button.textContent = 'Memeriksa...'; }
+            if (status) status.textContent = 'Memeriksa akses grup...';
+            try {
+                const { data, error } = await supabaseClient.rpc('check_ghoustory_group_access', { p_password: password });
+                if (error) throw error;
+                if (data !== true) {
+                    if (status) status.textContent = 'Password grup belum benar. Periksa kembali.';
+                    if (input) { input.value = ''; input.focus(); }
+                    return;
+                }
+                const modal = document.getElementById('ghoustory-group-invite-modal');
+                modal?.classList.add('hidden');
+                modal?.classList.remove('flex');
+                if (input) input.value = '';
+                await masukKeAplikasi(activeUser, true);
+            } catch (error) {
+                if (status) status.textContent = error?.message || 'Akses grup gagal diperiksa. Coba lagi.';
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Masuk ke Grup'; }
             }
         }
 
@@ -3154,6 +3196,21 @@ async function markDmMessagesRead(){
         }
       })();
     </script>
+    <div id="ghoustory-group-invite-modal" class="hidden fixed inset-0 z-[190] bg-black/95 backdrop-blur-sm p-5 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="ghoustory-group-invite-title">
+      <form onsubmit="submitGhoustoryGroupInvite(event)" class="w-full max-w-sm rounded-2xl border border-red-900 bg-gradient-to-br from-[#171015] via-[#101018] to-[#0b1422] p-6 shadow-[0_0_45px_rgba(185,28,28,.25)]">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-red-700/60 bg-red-950/60 text-red-300"><i class="fa-solid fa-users text-2xl"></i></div>
+        <div class="text-center">
+          <div class="text-[10px] tracking-[.25em] text-red-400 mb-2">GHOUSTORY CONTROL ROOM</div>
+          <h2 id="ghoustory-group-invite-title" class="font-mystery text-xl font-bold text-white">GERBANG GRUP</h2>
+          <p class="mt-2 text-sm leading-relaxed text-gray-300">Masukkan password undangan untuk bergabung dengan grup Ghoustory. Cukup sekali untuk akun ini.</p>
+        </div>
+        <label for="ghoustory-group-invite-password" class="block mt-5 mb-2 text-xs text-gray-300">Password grup</label>
+        <input id="ghoustory-group-invite-password" type="password" autocomplete="off" required maxlength="100" class="w-full rounded-xl border border-gray-700 bg-black px-4 py-3 text-base text-white" placeholder="Masukkan password grup">
+        <p id="ghoustory-group-invite-status" class="min-h-5 mt-3 text-xs text-yellow-300" role="status" aria-live="polite"></p>
+        <button id="ghoustory-group-invite-submit" type="submit" class="mt-2 w-full rounded-xl bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700">Masuk ke Grup</button>
+      </form>
+    </div>
+
     <div id="ghoustory-profile-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center">
       <form onsubmit="saveGhoustoryProfile(event)" class="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-5 shadow-2xl">
         <div class="text-center mb-5"><div class="text-red-500 text-xs tracking-[.25em] mb-2">GHOUSTORY CONTROL ROOM</div><h2 id="profile-modal-title" class="font-mystery text-xl text-white">DAFTAR ANGGOTA</h2><p id="profile-modal-subtitle" class="text-xs text-gray-400 mt-2">Lengkapi profil sebelum memasuki Control Room.</p></div>
