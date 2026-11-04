@@ -179,16 +179,31 @@ Pastikan angka berupa integer. Jika label metrik tidak jelas, jangan memaksakan 
         { text: prompt },
         { inline_data: { mime_type: imageMimeType, data: imageBase64 } },
       ];
-    } else if (task === "shorts-moment-finder") {
+    } else if (task === "subtitle-srt") {
+      const translatedTranscript = String(body.translatedTranscript || "").slice(0, 30000);
+      const audioBase64 = String(body.audioBase64 || "");
+      audioMimeType = String(body.mimeType || "audio/mpeg").split(";")[0].trim().toLowerCase();
+      if (!translatedTranscript.trim()) return json({ error: "Teks terjemahan kosong." }, 400);
+      if (audioBase64 && (audioMimeType !== "audio/mpeg" || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64) || audioBase64.length > 23_000_000)) {
+        return json({ error: "Data MP3 untuk penyelarasan subtitle tidak valid atau terlalu besar." }, 400);
+      }
+      prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${audioBase64 ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
+Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; jangan menampilkan satu cue terlalu lama; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
+Kembalikan HANYA JSON valid: {"segments":[{"start":"00:00:00.000","end":"00:00:02.400","text":"Teks subtitle"}],"timing":"aligned|estimated"}
+TERJEMAHAN:
+${translatedTranscript}`;
+      requestParts = [{ text: prompt }];
+      if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
+ else if (task === "shorts-moment-finder") {
       const audioBase64 = String(body.audioBase64 || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
       if (audioMimeType !== "audio/mpeg") return json({ error: "Shorts Moment Finder hanya menerima audio MP3." }, 400);
       if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
       if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
-      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan 5 sampai 10 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
+      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan TEPAT 5 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
 Kembalikan HANYA JSON valid dengan struktur:
 {"moments":[{"start":"00:00","end":"00:45","title":"Judul pendek yang kuat","hook":"Kalimat hook pembuka untuk teks/video","caption":"Caption singkat siap pakai","reason":"Mengapa bagian ini menarik untuk Shorts","quote":"Cuplikan ucapan persis/semirip mungkin untuk membantu editor menemukan bagian"}]}
-Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Durasi ideal tiap potongan 20–60 detik. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
+Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Setiap potongan WAJIB berdurasi maksimal 60 detik (ideal 20–55 detik). Pastikan end dikurangi start tidak lebih dari 60 detik. Keluarkan tepat 5 kandidat bila audio memungkinkan; jangan pernah mengembalikan lebih dari 5. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
       requestParts = [
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
@@ -219,7 +234,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const maxOutputTokens = task === "social-screenshot" ? 1000 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const maxOutputTokens = task === "social-screenshot" ? 1000 : task === "subtitle-srt" ? 7000 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     let response: Response | null = null;
     let activeModel = "";
 
