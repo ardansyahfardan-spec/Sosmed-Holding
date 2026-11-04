@@ -1248,7 +1248,7 @@
         async function saveAccountSettings(e){e.preventDefault();const email=document.getElementById('account-settings-email').value.trim(),password=document.getElementById('account-settings-password').value,status=document.getElementById('account-settings-status');const update={};if(email&&email!==activeUser?.email)update.email=email;if(password)update.password=password;if(!Object.keys(update).length){status.textContent='Tidak ada perubahan.';return;}status.textContent='Menyimpan...';try{const {error}=await supabaseClient.auth.updateUser(update);if(error)throw error;status.textContent='Pengaturan akun berhasil dikirim. Cek email jika diminta konfirmasi.';document.getElementById('account-settings-password').value='';}catch(err){status.textContent='Gagal: '+err.message;}}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
-        function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
+        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v13');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
         function openProfileModal(mode='edit') {
             profileModalMode = mode;
             const modal = document.getElementById('ghoustory-profile-modal');
@@ -1417,7 +1417,7 @@
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
-            const inside=pageId!=='home';if(logoEl)logoEl.classList.toggle('hidden',inside);if(backEl)backEl.classList.toggle('hidden',!inside);
+            const inside=pageId!=='home';if(logoEl)logoEl.classList.toggle('hidden',inside);if(backEl){backEl.classList.toggle('hidden',!inside);backEl.classList.toggle('order-first',inside);}
             if(pageId==='chat'){const chatTitle=document.querySelector('#chat-sidebar h2');if(chatTitle)chatTitle.textContent='RITUAL CREW';}
             if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId !== 'tim') markasTimUnlocked = false;
@@ -3024,7 +3024,7 @@ async function loadChatMessages(){
 async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=ritualMembers.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
-          document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";
+          document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Pesan Pribadi";
           document.getElementById("dm-subtitle").textContent=member.role||"Anggota RITUAL CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
@@ -3247,7 +3247,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=12",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=13",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3285,7 +3285,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=12',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=13',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
