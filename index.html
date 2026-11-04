@@ -531,28 +531,7 @@
                           <label class="block text-gray-300 font-bold">Tugaskan kru (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
                           <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal & Penugasan</button>
                         </div><div class="mt-4"><div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-yellow-500 uppercase">Agenda Crew Hub</h4><button onclick="refreshCrewHub()" class="text-xs text-blue-300">Segarkan</button></div><div id="crew-schedule-list" class="space-y-3"><p class="text-xs text-gray-500">Memuat jadwal...</p></div></div>
-                        <div class="hidden" aria-hidden="true">
-
-                            <h4 class="font-bold text-yellow-500 uppercase" id="jadwal-form-title"><i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting</h4>
-                            <input type="hidden" id="j-edit-id" value="">
-                            <input type="text" id="j-nama" placeholder="Nama Kegiatan (Cth: Survey Pabrik)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            <input type="text" id="j-narsum" placeholder="Nama Narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            <div class="grid grid-cols-2 gap-2">
-                                <select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400 font-bold outline-none"></select>
-                                <input type="text" id="j-lokasi" placeholder="Lokasi (Cth: Sidoarjo)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="date" id="j-tgl" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
-                                <input type="text" id="j-jam" placeholder="Jam (Cth: 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white">
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="saveJadwalLengkap()" class="flex-grow bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 rounded">Simpan Jadwal</button>
-                                <button onclick="resetJadwalForm()" id="btn-cancel-edit" class="bg-gray-800 px-3 py-2 rounded text-gray-400 hidden">Batal</button>
-                            </div>
-                        </div>
-                        
-                        </div>
-                        <!-- Kalender Jadwal -->
+                                                <!-- Kalender Jadwal -->
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
                                 <button onclick="changeCalMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
