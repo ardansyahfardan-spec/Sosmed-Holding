@@ -581,6 +581,7 @@
 
                     <!-- Kalender Tayang -->
                     <div id="tab-segmen-kalender" class="tab-content space-y-4">
+                        <div class="bg-black border border-orange-900/60 rounded-xl p-3 space-y-2"><div class="flex items-center justify-between"><h4 id="tayang-form-title" class="text-xs font-bold text-orange-400 uppercase">Tambah Jadwal Tayang</h4><button id="tayang-cancel-edit" onclick="resetTayangForm()" class="hidden text-[10px] text-gray-400 underline">Batal edit</button></div><input type="hidden" id="tayang-edit-id"><input id="tayang-title" placeholder="Judul video / konten" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><select id="tayang-segment" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-orange-300 text-xs"></select><input id="tayang-date" type="date" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"></div><label class="flex items-center gap-2 text-xs text-gray-300"><input id="tayang-agreed" type="checkbox" checked class="accent-green-500"> Sudah disepakati</label><button onclick="saveTayangManual()" class="w-full bg-orange-800 hover:bg-orange-700 text-white font-bold py-2.5 rounded text-xs"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Jadwal Tayang</button></div>
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
                                 <button onclick="changeTayangMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
@@ -619,7 +620,7 @@
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
-                          <div class="grid grid-cols-2 gap-2"><div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div>
+                          <div class="grid grid-cols-2 gap-2"><div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div></div>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
                             <button onclick="changeCrewMonth(-1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
@@ -971,7 +972,6 @@
       </div>
     </div>
     
-    <div id="crew-reminder-bar" class="hidden fixed left-3 right-3 bottom-20 z-[75] rounded-xl border border-yellow-700 bg-yellow-950 p-3 text-xs text-yellow-100"><b>Pengingat Crew Hub</b><p id="crew-reminder-text" class="mt-1"></p><button onclick="showNextAttendancePrompt()" class="mt-2 underline font-bold">Konfirmasi sekarang</button></div>
     <div id="attendance-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center" role="dialog" aria-modal="true">
       <div class="w-full max-w-md rounded-2xl border border-yellow-700 bg-[#10131b] p-5">
         <div class="text-[10px] font-bold tracking-widest text-yellow-400 mb-2">KONFIRMASI WAJIB · H-7</div><h2 class="text-xl font-bold">Konfirmasi Kehadiran</h2><p id="attendance-schedule-title" class="text-xs text-gray-400 my-3"></p>
@@ -1901,13 +1901,13 @@
             const tgl = document.getElementById('setuju-tgl').value;
             if(!tgl) return alert("Pilih tanggal tayang!");
 
-            db.tayang.push({ id: Date.now(), title: judul, segment: seg, date: tgl, agreed: true });
+            db.tayang.push({ id: 'tayang-'+Date.now(), title: judul, segment: seg, date: tgl, agreed: true });
             saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipilih dan di-plot ke kalender tayang!");
         }
 
         // ARSIP SEGMEN
         function populateSegmentOptions() {
-            const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen')];
+            const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen'), document.getElementById('tayang-segment')];
             sels.forEach(sel => {
                 if(!sel) return; sel.innerHTML = '';
                 db.segmenList.forEach(sg => { sel.innerHTML += `<option value="${sg.nama}">${sg.nama} - ${sg.tagline}</option>`; });
@@ -2012,49 +2012,30 @@
         function changeTayangMonth(dir) { tayangMonth+=dir; if(tayangMonth>11){tayangMonth=0;tayangYear++;} if(tayangMonth<0){tayangMonth=11;tayangYear--;} renderTayangCal(); }
         
         function renderTayangCal() {
-            const grid = document.getElementById('tayang-calendar-grid'); if(!grid) return;
-            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            document.getElementById('tayang-month-title').innerText = `${monthNames[tayangMonth]} ${tayangYear}`;
-
-            grid.innerHTML = '';
-            const firstDay = new Date(tayangYear, tayangMonth, 1).getDay();
-            const daysInMonth = new Date(tayangYear, tayangMonth + 1, 0).getDate();
-            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`;
-
-            const listDetail = document.getElementById('list-tayang-detail'); listDetail.innerHTML = '';
-
-            for(let day=1; day<=daysInMonth; day++) {
-                const dateStr = `${tayangYear}-${String(tayangMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                const items = db.tayang.filter(t => t.date === dateStr);
-                
-                let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
-                items.forEach(it => {
-                    dayHtml += `<div class="mt-0.5 bg-orange-950 text-orange-300 text-[8px] p-0.5 rounded truncate">📺 ${it.title}</div>`;
-                    listDetail.innerHTML += `<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex justify-between items-center">
-                        <div class="min-w-0"><b>${it.title}</b><div class="text-[10px] text-orange-400">${it.segment} | 📅 ${it.date}</div><label class="text-[10px] ${it.agreed === false ? 'text-gray-500' : 'text-green-400'} block mt-1"><input type="checkbox" ${it.agreed === false ? '' : 'checked'} onchange="setTayangAgreed(${Number(it.id)},this.checked)" class="accent-green-500 mr-1"> Disepakati</label></div>
-                        <div class="flex gap-1">
-                            ${renderDoneControl('tayang', it)}
-                            <button onclick="editTayang(${it.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
-                            <button onclick="hapusTayang(${it.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
-                        </div>
-                    </div>`;
-                });
-                dayHtml += `</div>`; grid.innerHTML += dayHtml;
+            const grid=document.getElementById('tayang-calendar-grid');if(!grid)return;
+            const monthNames=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+            const title=document.getElementById('tayang-month-title');if(title)title.innerText=`${monthNames[tayangMonth]} ${tayangYear}`;
+            grid.innerHTML='';const firstDay=new Date(tayangYear,tayangMonth,1).getDay(),daysInMonth=new Date(tayangYear,tayangMonth+1,0).getDate();
+            for(let i=0;i<firstDay;i++)grid.insertAdjacentHTML('beforeend','<div class="bg-black/20 p-2 rounded"></div>');
+            const listDetail=document.getElementById('list-tayang-detail');if(!listDetail)return;listDetail.innerHTML='';
+            for(let day=1;day<=daysInMonth;day++){
+              const dateStr=`${tayangYear}-${String(tayangMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,items=(db.tayang||[]).filter(t=>t.date===dateStr);
+              let dayHtml=`<button type="button" onclick="selectTayangDate('${dateStr}')" class="w-full text-left bg-black/60 p-1 rounded min-h-[45px] border border-gray-800 hover:border-orange-700"><span class="text-gray-500 font-bold">${day}</span>`;
+              items.forEach(it=>{dayHtml+=`<span class="block mt-0.5 bg-orange-950 text-orange-300 text-[8px] p-0.5 rounded truncate">${escapeHtml(it.title||'Tanpa judul')}</span>`;});
+              grid.insertAdjacentHTML('beforeend',dayHtml+'</button>');
+              items.forEach(it=>listDetail.insertAdjacentHTML('beforeend',`<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex flex-wrap justify-between gap-2 items-center"><div class="min-w-0 flex-1"><b>${escapeHtml(it.title||'Tanpa judul')}</b><div class="text-[10px] text-orange-400">${escapeHtml(it.segment||'-')} | 📅 ${escapeHtml(it.date||'-')}</div><label class="text-[10px] ${it.agreed===false?'text-gray-500':'text-green-400'} block mt-1"><input type="checkbox" ${it.agreed===false?'':'checked'} onchange="setTayangAgreed('${String(it.id).replace(/'/g,'')}',this.checked)" class="accent-green-500 mr-1"> Disepakati</label></div><div class="flex gap-1">${renderDoneControl('tayang',it)}<button onclick="editTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button><button onclick="hapusTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button></div></div>`));
             }
-            if(listDetail.innerHTML === '') listDetail.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
+            if(!listDetail.innerHTML)listDetail.innerHTML='<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
         }
+        function selectTayangDate(date){resetTayangForm();document.getElementById('tayang-date').value=date;document.getElementById('tayang-title')?.focus();}
+        function resetTayangForm(){['tayang-edit-id','tayang-title','tayang-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('tayang-segment').value='';document.getElementById('tayang-agreed').checked=true;document.getElementById('tayang-form-title').textContent='Tambah Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.add('hidden');}
+        function saveTayangManual(){const id=document.getElementById('tayang-edit-id').value,title=document.getElementById('tayang-title').value.trim(),segment=document.getElementById('tayang-segment').value,date=document.getElementById('tayang-date').value,agreed=document.getElementById('tayang-agreed').checked;if(!title)return alert('Judul video wajib diisi.');if(!date)return alert('Pilih tanggal tayang.');if(id){const item=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!item)return alert('Jadwal tayang tidak ditemukan.');Object.assign(item,{title,segment,date,agreed});}else{db.tayang=db.tayang||[];db.tayang.push({id:'tayang-'+Date.now(),title,segment,date,agreed});}saveData();resetTayangForm();renderTayangCal();renderSegmenGrid();alert('Jadwal tayang berhasil disimpan.');}
         function setTayangAgreed(id, agreed) {
             const item = db.tayang.find(v => Number(v.id) === Number(id)); if(!item) return;
             item.agreed = agreed; saveData(); renderTayangCal(); renderSegmenGrid();
         }
-        function hapusTayang(id) { if(!confirm('Hapus jadwal tayang ini?'))return; db.tayang = db.tayang.filter(t => t.id !== id); saveData(); renderTayangCal(); }
-        function editTayang(id) {
-            const t = db.tayang.find(x => x.id === id);
-            if(t) {
-                const newTitle = prompt("Edit Judul Video:", t.title);
-                if(newTitle) { t.title = newTitle; saveData(); renderTayangCal(); }
-            }
-        }
+        function hapusTayang(id){if(!confirm('Hapus jadwal tayang ini?'))return;db.tayang=(db.tayang||[]).filter(t=>String(t.id)!==String(id));saveData();renderTayangCal();renderSegmenGrid();}
+        function editTayang(id){const t=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!t)return;document.getElementById('tayang-edit-id').value=t.id;document.getElementById('tayang-title').value=t.title||'';document.getElementById('tayang-segment').value=t.segment||'';document.getElementById('tayang-date').value=t.date||'';document.getElementById('tayang-agreed').checked=t.agreed!==false;document.getElementById('tayang-form-title').textContent='Edit Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.remove('hidden');document.getElementById('tayang-form-title').scrollIntoView({behavior:'smooth',block:'center'});}
 
         // JADWAL & ABSENSI & STOK
         let currMonth = new Date().getMonth(); let currYear = new Date().getFullYear();
@@ -2092,11 +2073,9 @@
         function editJadwal(id) {
             const sch = db.jadwal.find(j => j.id === id);
             if (sch) {
-                const values = {'j-edit-id':sch.id,'j-nama':sch.title,'j-narsum':sch.narsum || '', 'j-lokasi':sch.loc || '', 'j-tgl':sch.date || '', 'j-jam':sch.time || ''};
+                const values = {'j-edit-id':'legacy:'+sch.id,'j-nama':sch.title,'j-narsum':sch.narsum || '', 'j-lokasi':sch.loc || '', 'j-tgl':sch.date || '', 'j-jam':sch.time || ''};
                 Object.entries(values).forEach(([key, value]) => { const el = document.getElementById(key); if (el) el.value = value; });
-                const title = document.getElementById('jadwal-form-title'); if (title) title.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Jadwal Shooting';
-                document.getElementById('btn-cancel-edit')?.classList.remove('hidden');
-                switchTab('tim', 'jadwal');
+                const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Edit Jadwal & Absensi';document.getElementById('crew-schedule-cancel')?.classList.remove('hidden');switchTab('tim','jadwal');document.getElementById('crew-schedule-form')?.scrollIntoView({behavior:'smooth',block:'start'});
             }
         }
         function hapusJadwal(id) { if(!confirm('Hapus jadwal shooting ini?'))return; db.jadwal = db.jadwal.filter(j => j.id !== id); saveData(); renderJadwalCal(); }
@@ -2123,9 +2102,9 @@
                 let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
                 schedules.forEach(sch => {
                     let totalHadir = 0; let kruTidakHadir = [];
-                    KRU_NAMES.forEach(k => { if(sch.absen[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${sch.absen[k].alasan||'tanpa alasan'})`); });
+                    KRU_NAMES.forEach(k => { if(sch.absen?.[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${sch.absen?.[k]?.alasan||'tanpa alasan'})`); });
 
-                    dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-0.5 bg-red-950 text-red-300 text-[8px] p-0.5 rounded cursor-pointer truncate">🎥 ${sch.title} (${totalHadir}/5)</div>`;
+                    dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-0.5 bg-red-950 text-red-300 text-[8px] p-0.5 rounded cursor-pointer truncate">🎥 ${escapeHtml(sch.title)} (${totalHadir}/5)</div><div class="flex gap-1 mt-1"><button onclick="editJadwal(${sch.id})" class="text-[8px] bg-gray-800 text-yellow-300 px-1 rounded">Edit</button><button onclick="hapusJadwal(${sch.id})" class="text-[8px] bg-red-950 text-red-200 px-1 rounded">Hapus</button></div>`;
                     
                     ringkasanList.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-xs text-white flex flex-col gap-2">
                         <div class="flex justify-between items-center">
@@ -2582,13 +2561,17 @@
             if(!parsed||typeof parsed!=='object')throw new Error('Format hasil AI tidak valid.');
             return parsed;
         }
+        function parseMomentSeconds(value){const p=String(value||'').split(':').map(Number);if(!p.length||p.some(n=>!Number.isFinite(n)))return null;return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:p[0];}
+        function formatMomentTime(total){const n=Math.max(0,Math.floor(total)),h=Math.floor(n/3600),m=Math.floor(n%3600/60),sec=n%60;return h>0?[h,m,sec].map(x=>String(x).padStart(2,'0')).join(':'):[m,sec].map(x=>String(x).padStart(2,'0')).join(':');}
+        function normalizeVideoMoments(items){return items.slice(0,5).map(m=>{const a=parseMomentSeconds(m.start),b=parseMomentSeconds(m.end);return {start:String(m.start||''),end:a!==null&&b!==null&&b-a>60?formatMomentTime(a+60):String(m.end||''),title:String(m.title||''),hook:String(m.hook||''),caption:String(m.caption||''),reason:String(m.reason||''),quote:String(m.quote||''),timestampConfidence:String(m.timestampConfidence||'perlu dicek')};});}
+        function downloadSubtitleSrt(encodedText,encodedTitle){const text=decodeURIComponent(encodedText||'').trim();if(!text)return alert('Terjemahan kosong, tidak ada subtitle untuk diunduh.');const sentences=text.replace(/\r/g,'').split(/(?<=[.!?。])\s+|\n+/).map(x=>x.trim()).filter(Boolean),chunks=[];for(const sentence of sentences){let rest=sentence;while(rest.length>100){let cut=rest.lastIndexOf(' ',100);if(cut<45)cut=100;chunks.push(rest.slice(0,cut).trim());rest=rest.slice(cut).trim();}if(rest)chunks.push(rest);}let cursor=0;const stamp=n=>{const ms=Math.floor(n*1000),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),sec=Math.floor(ms%60000/1000),mill=ms%1000;return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':')+','+String(mill).padStart(3,'0');};const srt=chunks.map((line,i)=>{const dur=Math.max(2,Math.min(7,Math.ceil(line.length/14))),entry=(i+1)+'\n'+stamp(cursor)+' --> '+stamp(cursor+dur)+'\n'+line;cursor+=dur;return entry;}).join('\n\n');const blob=new Blob([new Uint8Array([239,187,191]),srt],{type:'application/x-subrip;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(decodeURIComponent(encodedTitle||'subtitle').replace(/[\\/:*?"<>|]+/g,'').trim()||'subtitle')+'.srt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
         function videoMomentMarkup(moment,index) {
             const esc=escapeHtml;
             return '<div class="bg-black border border-gray-800 rounded-lg p-3 mb-2"><div class="flex flex-wrap justify-between gap-2"><b class="text-sm text-white">'+(index+1)+'. '+esc(moment.title||'Kandidat Shorts')+'</b><span class="text-[11px] text-blue-300 font-bold">'+esc(moment.start||'--:--')+' – '+esc(moment.end||'--:--')+'</span></div><p class="text-xs text-red-200 mt-2">Hook: '+esc(moment.hook||'—')+'</p><p class="text-xs text-gray-300 mt-1">Caption: '+esc(moment.caption||'—')+'</p><p class="text-[11px] text-gray-500 mt-1">'+esc(moment.reason||'')+' · Timestamp: '+esc(moment.timestampConfidence||'perlu dicek')+'</p><p class="text-[11px] text-gray-400 mt-2 italic">“'+esc(moment.quote||'')+'”</p></div>';
         }
         function videoAnalysisMarkup(item) {
             const esc=escapeHtml,moments=Array.isArray(item.moments)?item.moments:[];
-            return '<div class="space-y-3"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Bahasa terdeteksi</div><b class="text-sm text-white">'+esc(item.detectedLanguage||'Tidak diketahui')+'</b></div><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Jumlah kandidat Shorts</div><b class="text-sm text-white">'+moments.length+' bagian</b></div></div><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Transkrip asli</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.fullTranscript||'Tidak tersedia')+'</pre></details><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Terjemahan Bahasa Indonesia</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.indonesianTranscript||'Tidak tersedia')+'</pre></details><div><b class="text-sm text-white">Ringkasan cerita</b><ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-gray-300">'+(Array.isArray(item.summary)?item.summary.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>—</li>')+'</ul></div><div><b class="text-sm text-white">Rekomendasi potongan Shorts</b><div class="mt-2">'+moments.map((m,i)=>videoMomentMarkup(m,i)).join('')+'</div></div></div>';
+            return '<div class="space-y-3"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Bahasa terdeteksi</div><b class="text-sm text-white">'+esc(item.detectedLanguage||'Tidak diketahui')+'</b></div><div class="bg-black rounded-lg p-3"><div class="text-[10px] text-gray-500 mb-1">Timestamp menarik</div><b class="text-sm text-white">'+moments.length+' / 5 bagian · maks. 1 menit</b></div></div><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Transkrip asli</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.fullTranscript||'Tidak tersedia')+'</pre></details><details class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer text-sm font-bold text-white">Terjemahan Bahasa Indonesia</summary><pre class="whitespace-pre-wrap text-xs text-gray-300 mt-3 font-sans">'+esc(item.indonesianTranscript||'Tidak tersedia')+'</pre><button onclick="downloadSubtitleSrt(\''+encodeURIComponent(item.indonesianTranscript||'')+'\',\''+encodeURIComponent(item.title||'subtitle')+'\')" class="mt-3 bg-blue-800 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded"><i class="fa-solid fa-download mr-1"></i> Unduh Terjemahan (.SRT)</button><p class="text-[10px] text-yellow-500 mt-2">Waktu subtitle otomatis berupa perkiraan; cek sinkronisasi sebelum publikasi.</p></details><div><b class="text-sm text-white">Ringkasan cerita</b><ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-gray-300">'+(Array.isArray(item.summary)?item.summary.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>—</li>')+'</ul></div><div><b class="text-sm text-white">Rekomendasi potongan Shorts</b><div class="mt-2">'+moments.map((m,i)=>videoMomentMarkup(m,i)).join('')+'</div></div></div>';
         }
         async function runCombinedYoutubeAnalysis() {
             const url=document.getElementById('ai-yt-link')?.value.trim();
@@ -2651,7 +2634,7 @@
                     raw=await callGhoulAI('video-audio-analysis',{title,audioBase64,mimeType:'audio/mpeg'});
                 }
                 const data=parseVideoAnalysisJson(raw);
-                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:Array.isArray(data.moments)?data.moments.slice(0,12).map(m=>({start:String(m.start||''),end:String(m.end||''),title:String(m.title||''),hook:String(m.hook||''),caption:String(m.caption||''),reason:String(m.reason||''),quote:String(m.quote||''),timestampConfidence:String(m.timestampConfidence||'perlu dicek')})):[],createdAt:new Date().toISOString()};
+                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),createdAt:new Date().toISOString()};
                 if(!item.fullTranscript&&!item.indonesianTranscript)throw new Error('Transkrip tidak ditemukan pada hasil AI.');
                 videoAnalysisDraft=item;
                 preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
@@ -3018,8 +3001,9 @@
         function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');}
         async function saveCrewSchedule(){
           if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
-          const id=document.getElementById('j-edit-id').value||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value;
+          const rawId=document.getElementById('j-edit-id').value,id=rawId||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value;
           if(!title||!date)return alert('Nama kegiatan dan tanggal wajib diisi.');
+          if(String(rawId).startsWith('legacy:')){const legacyId=String(rawId).slice(7),legacy=(db.jadwal||[]).find(j=>String(j.id)===legacyId);if(!legacy)return alert('Jadwal & Absensi tidak ditemukan.');Object.assign(legacy,{title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,loc:document.getElementById('j-lokasi').value.trim(),date,time:document.getElementById('j-jam').value.trim()});saveData();resetCrewScheduleForm();renderJadwalCal();alert('Jadwal & Absensi berhasil diperbarui.');return;}
           const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),event_date:date,event_time:document.getElementById('j-jam').value.trim(),created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString(),status:old?.status||'scheduled'};
           const x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert('Jadwal gagal disimpan: '+x.error.message);
           try{await insertChatMessage({body:'📅 Jadwal Crew Hub baru/diperbarui: '+title+' · '+date+'. Semua Crew dapat melihat jadwal dan mengonfirmasi kehadiran.',message_type:'system',notify:true});}catch(noticeError){console.warn('Jadwal tersimpan, tetapi pesan grup gagal:',noticeError);}
@@ -3034,14 +3018,7 @@
         async function submitCrewAttendance(){const id=document.getElementById('attendance-schedule-id').value,v=document.getElementById('attendance-choice').value,reason=document.getElementById('attendance-reason').value.trim();if(!v)return alert('Pilih Hadir atau Tidak hadir.');if(v==='not_attending'&&!reason)return alert('Alasan wajib diisi.');const {error}=await supabaseClient.from('ghoustory_attendance_responses').upsert({schedule_id:id,user_id:activeUser.id,response:v,reason:v==='not_attending'?reason:null,proposed_date:document.getElementById('attendance-proposed-date').value||null,proposed_time:document.getElementById('attendance-proposed-time').value||null,responded_at:new Date().toISOString()});if(error)return alert(error.message);document.getElementById('attendance-modal').classList.add('hidden');document.getElementById('attendance-modal').classList.remove('flex');await refreshCrewHub();checkCrewAttendancePrompts();}
         function checkCrewAttendancePrompts(){if(!activeUser)return;activeAttendanceQueue=crewSchedules.filter(s=>crewDaysLeft(s.event_date)<=7&&crewDaysLeft(s.event_date)>=0&&!crewAttendance.some(a=>a.schedule_id===s.id&&a.user_id===activeUser.id));updateCrewReminderBar();if(activeAttendanceQueue.length)openCrewAttendance(activeAttendanceQueue[0].id);}
         function showNextAttendancePrompt(){if(activeAttendanceQueue.length)openCrewAttendance(activeAttendanceQueue[0].id);}
-        function updateCrewReminderBar(){
-          const pending=crewSchedules.filter(s=>crewDaysLeft(s.event_date)<=7&&crewDaysLeft(s.event_date)>=0&&!crewAttendance.some(a=>a.schedule_id===s.id&&a.user_id===activeUser?.id));
-          const imminent=crewSchedules.filter(s=>[0,1].includes(crewDaysLeft(s.event_date)));
-          const bar=document.getElementById('crew-reminder-bar');if(!bar)return;
-          const visible=pending.length||imminent.length;bar.classList.toggle('hidden',!visible);
-          document.getElementById('crew-reminder-text').textContent=pending.length?pending.length+' jadwal perlu konfirmasi kehadiran (dibuka mulai H-7). '+(imminent.length?'Ada jadwal H-1 / hari ini.':''):imminent.map(s=>s.title+(crewDaysLeft(s.event_date)===0?' berlangsung hari ini':' berlangsung besok')).join(' · ');
-          document.getElementById('nav-dot-tim')?.classList.toggle('hidden',!visible);
-        }
+        function updateCrewReminderBar(){const pending=crewSchedules.some(s=>crewDaysLeft(s.event_date)<=7&&crewDaysLeft(s.event_date)>=0&&!crewAttendance.some(a=>a.schedule_id===s.id&&a.user_id===activeUser?.id));document.getElementById('crew-reminder-bar')?.classList.add('hidden');document.getElementById('nav-dot-tim')?.classList.toggle('hidden',!pending);}
         async function proposeCrewChange(id){const reason=prompt('Alasan perubahan jadwal:');if(!reason?.trim())return;const date=prompt('Tanggal usulan baru (YYYY-MM-DD):');if(!date)return;const time=prompt('Jam usulan (opsional):')||null;const {error}=await supabaseClient.from('ghoustory_schedule_change_requests').insert({schedule_id:id,proposed_by:activeUser.id,reason:reason.trim(),proposed_date:date,proposed_time:time});if(error)return alert(error.message);await createCrewNotifications(crewProfiles.map(p=>p.user_id),'Usulan perubahan jadwal',reason.trim()+' · '+date,'schedule','crewhub');try{await insertChatMessage({body:'🗳️ Ada usulan perubahan jadwal Crew Hub. Buka Crew Hub untuk melihat usulan dan memberikan suara.',message_type:'system',notify:true});}catch(noticeError){console.warn(noticeError);}alert('Usulan terkirim. Semua Crew dapat memberikan suara.');}
         async function crewVote(id){const {data,error}=await supabaseClient.from('ghoustory_schedule_change_requests').select('*').eq('schedule_id',id).eq('status','voting').order('created_at',{ascending:false});if(error)return alert(error.message);if(!data?.length)return alert('Belum ada usulan voting aktif.');const r=data[0],v=await supabaseClient.from('ghoustory_schedule_change_votes').select('*').eq('request_id',r.id);if(v.error)return alert(v.error.message);const choice=prompt('Usulan: '+r.reason+'\nTanggal: '+r.proposed_date+' '+(r.proposed_time||'')+'\nSetuju: '+v.data.filter(x=>x.vote==='approve').length+' · Tolak: '+v.data.filter(x=>x.vote==='reject').length+'\nKetik SETUJU atau TOLAK:');if(!choice)return;const vote=choice.toLowerCase()==='setuju'?'approve':choice.toLowerCase()==='tolak'?'reject':null;if(!vote)return alert('Pilihan hanya Setuju atau Tolak.');const x=await supabaseClient.from('ghoustory_schedule_change_votes').upsert({request_id:r.id,user_id:activeUser.id,vote,voted_at:new Date().toISOString()});if(x.error)return alert(x.error.message);const {data:all}=await supabaseClient.from('ghoustory_schedule_change_votes').select('*').eq('request_id',r.id);const total=crewProfiles.length||ritualMembers.length,yes=all.filter(x=>x.vote==='approve').length,no=all.filter(x=>x.vote==='reject').length;if(yes>total/2){await supabaseClient.from('ghoustory_schedules').update({event_date:r.proposed_date,event_time:r.proposed_time,updated_at:new Date().toISOString()}).eq('id',id);await supabaseClient.from('ghoustory_schedule_change_requests').update({status:'approved'}).eq('id',r.id);await createCrewNotifications(crewProfiles.map(p=>p.user_id),'Voting perubahan jadwal disetujui','Jadwal telah diperbarui ke '+r.proposed_date+' '+(r.proposed_time||''),'schedule','crewhub');alert('Mayoritas setuju. Jadwal diperbarui.');}else if(all.length>=total){await supabaseClient.from('ghoustory_schedule_change_requests').update({status:'rejected'}).eq('id',r.id);await createCrewNotifications(crewProfiles.map(p=>p.user_id),'Voting perubahan jadwal ditolak','Jadwal lama tetap berlaku.','schedule','crewhub');alert('Voting selesai tanpa mayoritas setuju. Jadwal lama tetap berlaku; usulan baru bisa diajukan.');}else alert('Suara tersimpan. Setuju '+yes+' · Tolak '+no);}
         
