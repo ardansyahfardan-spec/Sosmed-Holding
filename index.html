@@ -3319,7 +3319,7 @@ async function loadChatMessages(){
               rows.push({id:part.conversation_id,user_id:other.user_id,nickname,avatar,last:last?.deleted_at?"Pesan dihapus":last?.body||"Belum ada pesan",created_at:last?.created_at||"",time});
             }
             rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(\\''+x.user_id+'\\')" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><img src="'+escapeHtml(x.avatar)+'" alt="Foto profil '+escapeHtml(x.nickname)+'" loading="lazy" onerror="this.onerror=null;this.src=\\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\\'" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[11px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span><small class="shrink-0 self-start text-[10px] text-gray-500">'+escapeHtml(x.time)+'</small></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(&quot;'+x.user_id+'&quot;)" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><img src="'+escapeHtml(x.avatar)+'" alt="Foto profil '+escapeHtml(x.nickname)+'" loading="lazy" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[11px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span><small class="shrink-0 self-start text-[10px] text-gray-500">'+escapeHtml(x.time)+'</small></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
             if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
           }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
         }
@@ -3595,7 +3595,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=30",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=31",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3637,7 +3637,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=29',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=31',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
