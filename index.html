@@ -298,7 +298,7 @@
 #gh-chat-message-menu .gh-chat-menu-actions button i{width:16px;color:#cbd5e1}
 #gh-chat-message-menu .gh-chat-menu-actions button.danger,#gh-chat-message-menu .gh-chat-menu-actions button.danger i{color:#fca5a5}
 
-/* Mobile layout cleanup v1.0.14: consistent field sizing and no horizontal overflow. */
+/* Mobile layout cleanup v1.0.15: consistent field sizing and no horizontal overflow. */
 @media (max-width: 640px) {
   #main-app .page-section,
   #main-app .page-section > .glass-panel,
@@ -666,7 +666,7 @@
 
                     <!-- Kalender Tayang -->
                     <div id="tab-segmen-kalender" class="tab-content space-y-4">
-                        <div class="bg-black border border-orange-900/60 rounded-xl p-3 space-y-2"><div class="flex items-center justify-between"><h4 id="tayang-form-title" class="text-xs font-bold text-orange-400 uppercase">Tambah Jadwal Tayang</h4><button id="tayang-cancel-edit" onclick="resetTayangForm()" class="hidden text-[10px] text-gray-400 underline">Batal edit</button></div><input type="hidden" id="tayang-edit-id"><input id="tayang-title" placeholder="Judul video / konten" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><select id="tayang-segment" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-orange-300 text-xs"></select><input id="tayang-date" type="date" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"></div><label class="flex items-center gap-2 text-xs text-gray-300"><input id="tayang-agreed" type="checkbox" checked class="accent-green-500"> Sudah disepakati</label><button onclick="saveTayangManual()" class="w-full bg-orange-800 hover:bg-orange-700 text-white font-bold py-2.5 rounded text-xs"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Jadwal Tayang</button></div>
+                        <div class="bg-black border border-orange-900/60 rounded-xl p-3 space-y-2"><div class="flex items-center justify-between"><h4 id="tayang-form-title" class="text-xs font-bold text-orange-400 uppercase">Tambah Jadwal Tayang</h4><button id="tayang-cancel-edit" onclick="resetTayangForm()" class="hidden text-[10px] text-gray-400 underline">Batal edit</button></div><input type="hidden" id="tayang-edit-id"><input id="tayang-title" placeholder="Judul video / konten" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><select id="tayang-segment" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-orange-300 text-xs"></select><input id="tayang-date" type="date" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"></div><div><label for="tayang-time" class="block text-[10px] text-gray-400 mb-1">Jam Tayang</label><input id="tayang-time" type="time" required class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs"></div><label class="flex items-center gap-2 text-xs text-gray-300"><input id="tayang-agreed" type="checkbox" checked class="accent-green-500"> Sudah disepakati</label><button onclick="saveTayangManual()" class="w-full bg-orange-800 hover:bg-orange-700 text-white font-bold py-2.5 rounded text-xs"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Jadwal Tayang</button></div>
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
                                 <button onclick="changeTayangMonth(-1)" class="text-gray-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
@@ -925,7 +925,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.14</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.15</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -1004,7 +1004,7 @@
                 </div>
                 <div>
                     <label class="text-gray-400 block mb-1">Tanggal Tayang</label>
-                    <input type="date" id="setuju-tgl" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                    <input type="date" id="setuju-tgl" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><label for="setuju-jam" class="text-gray-400 block mt-2 mb-1">Jam Tayang</label><input type="time" id="setuju-jam" required class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                 </div>
                 <button onclick="submitSetujuTayang()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 rounded">Konfirmasi & Plot Tayang</button>
             </div>
@@ -1992,9 +1992,11 @@
             const judul = document.getElementById('setuju-judul').value;
             const seg = document.getElementById('setuju-segmen').value;
             const tgl = document.getElementById('setuju-tgl').value;
+            const jam = document.getElementById('setuju-jam').value;
             if(!tgl) return alert("Pilih tanggal tayang!");
+            if(!jam) return alert("Pilih jam tayang!");
 
-            db.tayang.push({ id: 'tayang-'+Date.now(), title: judul, segment: seg, date: tgl, agreed: true });
+            db.tayang.push({ id: 'tayang-'+Date.now(), title: judul, segment: seg, date: tgl, time: jam, agreed: true });
             saveData(); renderTayangCal(); closeModalSetuju(); alert("Berhasil dipilih dan di-plot ke kalender tayang!");
         }
 
@@ -2104,6 +2106,8 @@
         let tayangMonth = new Date().getMonth(); let tayangYear = new Date().getFullYear();
         function changeTayangMonth(dir) { tayangMonth+=dir; if(tayangMonth>11){tayangMonth=0;tayangYear++;} if(tayangMonth<0){tayangMonth=11;tayangYear--;} renderTayangCal(); }
         
+        function getTayangTime(item){return item.time||'23:59';}
+        function isTayangPassed(item){const dateTime=new Date((item.date||'')+'T'+getTayangTime(item)+':00');return !Number.isNaN(dateTime.getTime())&&Date.now()>=dateTime.getTime();}
         function renderTayangCal() {
             const grid=document.getElementById('tayang-calendar-grid');if(!grid)return;
             const monthNames=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -2114,21 +2118,21 @@
             for(let day=1;day<=daysInMonth;day++){
               const dateStr=`${tayangYear}-${String(tayangMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,items=(db.tayang||[]).filter(t=>t.date===dateStr);
               let dayHtml=`<button type="button" onclick="selectTayangDate('${dateStr}')" class="w-full text-left bg-black/60 p-1 rounded min-h-[45px] border border-gray-800 hover:border-orange-700"><span class="text-gray-500 font-bold">${day}</span>`;
-              items.forEach(it=>{dayHtml+=`<span class="block mt-0.5 bg-orange-950 text-orange-300 text-[8px] p-0.5 rounded truncate">${escapeHtml(it.title||'Tanpa judul')}</span>`;});
+              items.forEach(it=>{const passed=isTayangPassed(it);dayHtml+=`<span class="block mt-0.5 ${passed?'bg-green-950 text-green-300':'bg-orange-950 text-orange-300'} text-[8px] p-0.5 rounded truncate">${escapeHtml(getTayangTime(it))} ${passed?'✓':''} ${escapeHtml(it.title||'Tanpa judul')}</span>`;});
               grid.insertAdjacentHTML('beforeend',dayHtml+'</button>');
-              items.forEach(it=>listDetail.insertAdjacentHTML('beforeend',`<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex flex-wrap justify-between gap-2 items-center"><div class="min-w-0 flex-1"><b>${escapeHtml(it.title||'Tanpa judul')}</b><div class="text-[10px] text-orange-400">${escapeHtml(it.segment||'-')} | 📅 ${escapeHtml(it.date||'-')}</div><label class="text-[10px] ${it.agreed===false?'text-gray-500':'text-green-400'} block mt-1"><input type="checkbox" ${it.agreed===false?'':'checked'} onchange="setTayangAgreed('${String(it.id).replace(/'/g,'')}',this.checked)" class="accent-green-500 mr-1"> Disepakati</label></div><div class="flex gap-1">${renderDoneControl('tayang',it)}<button onclick="editTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button><button onclick="hapusTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button></div></div>`));
+              items.forEach(it=>{const passed=isTayangPassed(it),time=getTayangTime(it);listDetail.insertAdjacentHTML('beforeend',`<div class="bg-black border border-gray-800 p-2.5 rounded text-xs text-white flex flex-wrap justify-between gap-2 items-center"><div class="min-w-0 flex-1"><b>${escapeHtml(it.title||'Tanpa judul')}</b><div class="text-[10px] text-orange-400">${escapeHtml(it.segment||'-')} | 📅 ${escapeHtml(it.date||'-')} | 🕒 ${escapeHtml(time)}</div><span class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded ${passed?'bg-green-950 text-green-300':'bg-orange-950 text-orange-300'}">${passed?'Sudah tayang':'Terjadwal'}</span><label class="text-[10px] ${it.agreed===false?'text-gray-500':'text-green-400'} block mt-1"><input type="checkbox" ${it.agreed===false?'':'checked'} onchange="setTayangAgreed('${String(it.id).replace(/'/g,'')}',this.checked)" class="accent-green-500 mr-1"> Disepakati</label></div><div class="flex gap-1"><button onclick="editTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button><button onclick="hapusTayang('${String(it.id).replace(/'/g,'')}')" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button></div></div>`);});
             }
             if(!listDetail.innerHTML)listDetail.innerHTML='<div class="text-xs text-gray-500 py-2">Belum ada jadwal tayang.</div>';
         }
         function selectTayangDate(date){resetTayangForm();document.getElementById('tayang-date').value=date;document.getElementById('tayang-title')?.focus();}
-        function resetTayangForm(){['tayang-edit-id','tayang-title','tayang-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('tayang-segment').value='';document.getElementById('tayang-agreed').checked=true;document.getElementById('tayang-form-title').textContent='Tambah Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.add('hidden');}
-        function saveTayangManual(){const id=document.getElementById('tayang-edit-id').value,title=document.getElementById('tayang-title').value.trim(),segment=document.getElementById('tayang-segment').value,date=document.getElementById('tayang-date').value,agreed=document.getElementById('tayang-agreed').checked;if(!title)return alert('Judul video wajib diisi.');if(!date)return alert('Pilih tanggal tayang.');if(id){const item=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!item)return alert('Jadwal tayang tidak ditemukan.');Object.assign(item,{title,segment,date,agreed});}else{db.tayang=db.tayang||[];db.tayang.push({id:'tayang-'+Date.now(),title,segment,date,agreed});}saveData();resetTayangForm();renderTayangCal();renderSegmenGrid();alert('Jadwal tayang berhasil disimpan.');}
+        function resetTayangForm(){['tayang-edit-id','tayang-title','tayang-date','tayang-time'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('tayang-segment').value='';document.getElementById('tayang-agreed').checked=true;document.getElementById('tayang-form-title').textContent='Tambah Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.add('hidden');}
+        function saveTayangManual(){const id=document.getElementById('tayang-edit-id').value,title=document.getElementById('tayang-title').value.trim(),segment=document.getElementById('tayang-segment').value,date=document.getElementById('tayang-date').value,time=document.getElementById('tayang-time').value,agreed=document.getElementById('tayang-agreed').checked;if(!title)return alert('Judul video wajib diisi.');if(!date)return alert('Pilih tanggal tayang.');if(!time)return alert('Pilih jam tayang.');if(id){const item=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!item)return alert('Jadwal tayang tidak ditemukan.');Object.assign(item,{title,segment,date,time,agreed});}else{db.tayang=db.tayang||[];db.tayang.push({id:'tayang-'+Date.now(),title,segment,date,time,agreed});}saveData();resetTayangForm();renderTayangCal();renderSegmenGrid();alert('Jadwal tayang berhasil disimpan.');}
         function setTayangAgreed(id, agreed) {
             const item = (db.tayang||[]).find(v => String(v.id) === String(id)); if(!item) return;
             item.agreed = agreed; saveData(); renderTayangCal(); renderSegmenGrid();
         }
         function hapusTayang(id){if(!confirm('Hapus jadwal tayang ini?'))return;db.tayang=(db.tayang||[]).filter(t=>String(t.id)!==String(id));saveData();renderTayangCal();renderSegmenGrid();}
-        function editTayang(id){const t=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!t)return;document.getElementById('tayang-edit-id').value=t.id;document.getElementById('tayang-title').value=t.title||'';document.getElementById('tayang-segment').value=t.segment||'';document.getElementById('tayang-date').value=t.date||'';document.getElementById('tayang-agreed').checked=t.agreed!==false;document.getElementById('tayang-form-title').textContent='Edit Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.remove('hidden');document.getElementById('tayang-form-title').scrollIntoView({behavior:'smooth',block:'center'});}
+        function editTayang(id){const t=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!t)return;document.getElementById('tayang-edit-id').value=t.id;document.getElementById('tayang-title').value=t.title||'';document.getElementById('tayang-segment').value=t.segment||'';document.getElementById('tayang-date').value=t.date||'';document.getElementById('tayang-time').value=t.time||'23:59';document.getElementById('tayang-agreed').checked=t.agreed!==false;document.getElementById('tayang-form-title').textContent='Edit Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.remove('hidden');document.getElementById('tayang-form-title').scrollIntoView({behavior:'smooth',block:'center'});}
 
         // JADWAL & ABSENSI & STOK
         let currMonth = new Date().getMonth(); let currYear = new Date().getFullYear();
@@ -3585,7 +3589,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=27",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=28",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3627,7 +3631,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=27',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=28',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
