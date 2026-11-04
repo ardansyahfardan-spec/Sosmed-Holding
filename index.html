@@ -286,6 +286,17 @@
 #page-chat.chat-room-open #direct-chat-card>div:first-child,#page-chat.chat-room-open #group-chat-card>div:first-child{min-height:3.75rem!important;gap:.65rem!important;padding:.65rem .85rem!important;align-items:center!important}
 #page-chat.chat-room-open #direct-chat-card>div:first-child>div,#page-chat.chat-room-open #group-chat-card>div:first-child>div{min-width:0!important;flex:1 1 auto!important}
 #page-chat.chat-room-open #dm-status,#page-chat.chat-room-open #chat-connection{flex:0 0 auto!important;white-space:nowrap!important}
+
+/* WhatsApp-style message interactions */
+#page-chat .gh-chat-bubble{transition:transform .18s ease;will-change:transform;touch-action:pan-y}
+#gh-chat-message-menu{position:fixed;z-index:99999;background:#202631;border:1px solid #46505f;border-radius:14px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.55);color:#f8fafc}
+#gh-chat-message-menu .gh-chat-menu-reactions{display:flex;justify-content:space-between;gap:3px;padding:2px 2px 8px;border-bottom:1px solid #3b4553}
+#gh-chat-message-menu .gh-chat-menu-reactions button{font-size:22px;padding:4px;border-radius:9px}
+#gh-chat-message-menu .gh-chat-menu-reactions button:active,#gh-chat-message-menu .gh-chat-menu-actions button:active{background:#374151}
+#gh-chat-message-menu .gh-chat-menu-actions{display:flex;flex-direction:column;padding-top:5px}
+#gh-chat-message-menu .gh-chat-menu-actions button{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 9px;font-size:13px;border-radius:8px}
+#gh-chat-message-menu .gh-chat-menu-actions button i{width:16px;color:#cbd5e1}
+#gh-chat-message-menu .gh-chat-menu-actions button.danger,#gh-chat-message-menu .gh-chat-menu-actions button.danger i{color:#fca5a5}
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -3046,12 +3057,28 @@
         function saveChatCache(){try{localStorage.setItem(chatCacheKey(),JSON.stringify(chatMessages.slice(-150)));}catch(e){console.warn("Cache chat lokal tidak tersedia",e);}}
         function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
         
+function closeChatMessageMenu(){document.getElementById("gh-chat-message-menu")?.remove();}
+function runChatMessageAction(action,id,room){
+ closeChatMessageMenu();
+ if(room==="dm"){if(action==="reply")setDmReply(id);else if(action==="edit")editDmMessage(id);else if(action==="delete")deleteDmMessage(id);else if(action==="pin")toggleDmPin(id);else if(action.startsWith("react:"))toggleDmReaction(id,action.slice(6));}
+ else{if(action==="reply")setGroupReply(id);else if(action==="edit")editGroupMessage(id);else if(action==="delete")deleteGroupMessage(id);else if(action==="pin")toggleGroupPin(id);else if(action.startsWith("react:"))toggleGroupReaction(id,action.slice(6));}
+}
+function openChatMessageMenu(bubble){
+ if(!bubble)return;closeChatMessageMenu();const id=bubble.dataset.messageId,room=bubble.dataset.chatRoom,own=bubble.dataset.own==="1",pinned=bubble.dataset.pinned==="1";if(!id)return;
+ const menu=document.createElement("div");menu.id="gh-chat-message-menu";menu.className="gh-chat-message-menu";const reactions=["❤️","😂","😮","😢","🙏","👍"];
+ menu.innerHTML='<div class="gh-chat-menu-reactions">'+reactions.map(e=>'<button type="button" aria-label="Reaksi '+e+'" onclick="runChatMessageAction(\'react:'+e+'\',\''+id+'\',\''+room+'\')">'+e+'</button>').join("")+'</div><div class="gh-chat-menu-actions"><button type="button" onclick="runChatMessageAction(\'reply\',\''+id+'\',\''+room+'\')"><i class="fa-solid fa-reply"></i> Balas</button><button type="button" onclick="runChatMessageAction(\'pin\',\''+id+'\',\''+room+'\')"><i class="fa-solid fa-thumbtack"></i> '+(pinned?'Lepas pin':'Sematkan')+'</button>'+(own?'<button type="button" onclick="runChatMessageAction(\'edit\',\''+id+'\',\''+room+'\')"><i class="fa-solid fa-pen"></i> Edit</button><button class="danger" type="button" onclick="runChatMessageAction(\'delete\',\''+id+'\',\''+room+'\')"><i class="fa-solid fa-trash"></i> Hapus</button>':'')+'</div>';
+ document.body.appendChild(menu);const rect=bubble.getBoundingClientRect(),w=Math.min(280,window.innerWidth-24);menu.style.width=w+"px";menu.style.left=Math.max(12,Math.min(window.innerWidth-w-12,rect.left+(rect.width-w)/2))+"px";menu.style.top=Math.max(12,rect.top-menu.offsetHeight-12)+"px";
+ requestAnimationFrame(()=>{const r=menu.getBoundingClientRect();if(r.bottom>window.innerHeight-12)menu.style.top=Math.max(12,Math.min(window.innerHeight-r.height-12,rect.bottom+10))+"px";});
+ setTimeout(()=>document.addEventListener("pointerdown",function outside(ev){if(!menu.contains(ev.target)){closeChatMessageMenu();document.removeEventListener("pointerdown",outside);}}, {once:true}),0);
+}
 function enableChatSwipeActions(box){
- if(!box||box.dataset.swipeReady==="1")return;box.dataset.swipeReady="1";
- let startX=0,startY=0,target=null;
- box.addEventListener("touchstart",e=>{const b=e.target.closest(".gh-chat-bubble");if(!b)return;const t=e.touches[0];startX=t.clientX;startY=t.clientY;target=b.closest(".gh-chat-row");},{passive:true});
- box.addEventListener("touchend",e=>{if(!target)return;const t=e.changedTouches[0],dx=t.clientX-startX,dy=t.clientY-startY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25){box.querySelectorAll(".gh-chat-row.actions-open").forEach(x=>{if(x!==target)x.classList.remove("actions-open")});target.classList.toggle("actions-open",!target.classList.contains("actions-open"));}target=null;},{passive:true});
- box.addEventListener("click",e=>{if(e.target.closest(".gh-chat-swipe-actions"))return;const row=e.target.closest(".gh-chat-row");if(row&&row.classList.contains("actions-open")&&!e.target.closest("button"))row.classList.remove("actions-open");});
+ if(!box||box.dataset.swipeReady==="1")return;box.dataset.swipeReady="1";let startX=0,startY=0,target=null,dragging=false,longTimer=null,longPressed=false;
+ const reset=()=>{if(longTimer)clearTimeout(longTimer);longTimer=null;target=null;dragging=false;};
+ box.addEventListener("touchstart",e=>{const b=e.target.closest(".gh-chat-bubble");if(!b||e.target.closest("button"))return;closeChatMessageMenu();const t=e.touches[0];startX=t.clientX;startY=t.clientY;target=b;dragging=false;longPressed=false;longTimer=setTimeout(()=>{if(target&&!dragging){longPressed=true;openChatMessageMenu(target);}},520);},{passive:true});
+ box.addEventListener("touchmove",e=>{if(!target)return;const t=e.touches[0],dx=t.clientX-startX,dy=t.clientY-startY;if(Math.abs(dx)>8||Math.abs(dy)>8){if(longTimer)clearTimeout(longTimer);longTimer=null;}if(dx>8&&dx>Math.abs(dy)*1.15){dragging=true;target.style.transition="none";target.style.transform="translateX("+Math.min(76,dx)+"px)";}},{passive:true});
+ box.addEventListener("touchend",()=>{if(!target)return;const b=target,dx=parseFloat((b.style.transform.match(/-?[\\d.]+/)||[])[0]||"0");b.style.transition="transform .18s ease";b.style.transform="";if(!longPressed&&dx>54)runChatMessageAction("reply",b.dataset.messageId,b.dataset.chatRoom);reset();},{passive:true});
+ box.addEventListener("touchcancel",()=>{if(target){target.style.transition="transform .18s ease";target.style.transform="";}reset();},{passive:true});
+ box.addEventListener("contextmenu",e=>{const b=e.target.closest(".gh-chat-bubble");if(b){e.preventDefault();openChatMessageMenu(b);}});
 }
 
 function renderChatMessages(){
@@ -3070,8 +3097,8 @@ function renderChatMessages(){
   const pinned=groupPins.some(p=>p.message_id===msg.id);
   const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
   const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
-  const actions='<div class="gh-chat-swipe-actions"><button type="button" onclick="setGroupReply(\''+msg.id+'\')"><i class="fa-solid fa-reply mr-1"></i>Balas</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleGroupPin(\''+msg.id+'\')" class="gh-action-pin">'+(pinned?'★':'☆')+'</button>'+(own&&!msg.deleted_at?'<button type="button" onclick="editGroupMessage(\''+msg.id+'\')">Edit</button><button type="button" onclick="deleteGroupMessage(\''+msg.id+'\')" class="gh-action-delete">Hapus</button>':"")+'</div>';
-  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
+  const actions="";
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
  }).join("");
  enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
 }
@@ -3268,8 +3295,8 @@ async function openDirectMessage(otherId){
   const counts=dmReactions.filter(r=>r.message_id===m.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
   const reactions=Object.entries(counts).map(([e,n])=>'<button type="button" onclick="toggleDmReaction(\''+m.id+'\',\''+e+'\')" class="text-xs rounded-full bg-gray-800 px-2 py-1">'+e+' '+n+'</button>').join("");
   const pinned=dmPins.some(p=>p.message_id===m.id);
-  const actions='<div class="gh-chat-swipe-actions"><button type="button" onclick="setDmReply(\''+m.id+'\')"><i class="fa-solid fa-reply mr-1"></i>Balas</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleDmPin(\''+m.id+'\')" class="gh-action-pin">'+(pinned?'★':'☆')+'</button>'+(own&&!m.deleted_at?'<button type="button" onclick="editDmMessage(\''+m.id+'\')">Edit</button><button type="button" onclick="deleteDmMessage(\''+m.id+'\')" class="gh-action-delete">Hapus</button>':"")+'</div>';
-  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
+  const actions="";
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
  }).join("");
  enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
 }
