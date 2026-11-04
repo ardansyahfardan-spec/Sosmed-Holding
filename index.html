@@ -1092,11 +1092,7 @@
                 setupPresence(user);
                 lastCloudSyncAt = new Date();
                 updateFooterStatus();
-                // Pasang foto dan nama asli dari Google
-                document.getElementById('user-avatar').src = user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
-                const accountName = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Pengguna Google";
-                document.getElementById('user-name-display').innerText = accountName;
-                document.getElementById('user-menu-account-name').innerText = accountName;
+                // Profil diterapkan setelah data profil tersimpan dibaca; elemen avatar lama tidak lagi dipakai.
 
                 const { data: savedProfile, error: profileError } = await supabaseClient
                     .from('ghoustory_profiles').select('*').eq('user_id', user.id).maybeSingle();
