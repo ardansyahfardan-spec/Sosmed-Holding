@@ -786,7 +786,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.1</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.2</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -1350,7 +1350,7 @@
         function closeAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
-        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v20');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
+        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v21');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
         function openProfileModal(mode='edit') {
             profileModalMode = mode;
             const modal = document.getElementById('ghoustory-profile-modal');
@@ -3425,23 +3425,27 @@ async function markDmMessagesRead(){
         async function handleGhoustoryPushDeepLink(){
           const params=new URLSearchParams(window.location.search);
           if(params.get("chat")!=="1")return;
+          const room=params.get("room")||(params.get("conversation_id")?"dm":"group");
+          const conversationId=params.get("conversation_id");
           try{
             showPage("chat");
             await loadRitualMembers();
-            const conversationId=params.get("conversation_id");
-            if(conversationId){
+            if(room==="dm"&&conversationId){
               const {data:people,error}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",conversationId);
               if(error)throw error;
               const other=(people||[]).find(p=>p.user_id!==activeUser?.id);
-              if(other)await openDirectMessage(other.user_id);
-            }else{
+              if(!other)throw new Error("Percakapan pribadi tidak ditemukan atau akses tidak tersedia.");
+              await openDirectMessage(other.user_id);
+            }else if(room==="group"){
               openGroupRoom();
+            }else{
+              throw new Error("Kategori notifikasi tidak dikenali.");
             }
             window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=14',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=15',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
