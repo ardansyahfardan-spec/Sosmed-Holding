@@ -290,6 +290,14 @@
 #page-chat.chat-room-open #direct-chat-card>div:first-child>div,#page-chat.chat-room-open #group-chat-card>div:first-child>div{min-width:0!important;flex:1 1 auto!important}
 #page-chat.chat-room-open #dm-status,#page-chat.chat-room-open #chat-connection{flex:0 0 auto!important;white-space:nowrap!important}
 
+/* Header room grup: tombol kembali, identitas/online, dan koneksi punya kolom sendiri. */
+#page-chat.chat-room-open #group-chat-header.gh-group-chat-header{display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important;min-height:68px!important;padding:10px 14px!important}
+#page-chat.chat-room-open #group-chat-header .chat-room-back{width:40px!important;height:40px!important;min-width:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 40px!important;margin:0!important;padding:0!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:50%!important;background:rgba(0,0,0,.3)!important;color:#fff!important}
+#page-chat.chat-room-open #group-chat-header .gh-group-chat-heading{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:2px!important;min-width:0!important;flex:1 1 auto!important}
+#page-chat.chat-room-open #group-chat-header .gh-group-chat-heading h2{margin:0!important;line-height:1.2!important;white-space:nowrap!important}
+#page-chat.chat-room-open #group-chat-header .gh-online-status{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;color:#86efac!important;font-size:10px!important;line-height:1.25!important;white-space:nowrap!important}
+#page-chat.chat-room-open #group-chat-header .gh-chat-connection{justify-self:end!important;display:inline-flex!important;align-items:center!important;max-width:108px!important;padding:5px 8px!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:999px!important;background:rgba(0,0,0,.22)!important;color:#d1d5db!important;font-size:9px!important;line-height:1.2!important;white-space:nowrap!important}
+@media(max-width:380px){#page-chat.chat-room-open #group-chat-header.gh-group-chat-header{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;padding:9px 10px!important}#page-chat.chat-room-open #group-chat-header .chat-room-back{width:36px!important;height:36px!important;min-width:36px!important;flex-basis:36px!important}#page-chat.chat-room-open #group-chat-header .gh-chat-connection{max-width:78px!important;padding:4px 6px!important;font-size:8px!important}}
 /* WhatsApp-style message interactions */
 #page-chat .gh-chat-bubble{transition:transform .18s ease;will-change:transform;touch-action:pan-y}
 #gh-chat-message-menu{position:fixed;z-index:99999;background:#202631;border:1px solid #46505f;border-radius:14px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.55);color:#f8fafc}
@@ -484,7 +492,7 @@
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="block text-[10px] text-green-300 text-left hover:text-green-200">0 online</button></div><span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
+                    <div id="group-chat-header" class="gh-group-chat-header bg-gradient-to-r from-red-950 to-blue-950"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span></div>
                     <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -928,7 +936,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.19</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.20</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -2747,6 +2755,64 @@
             }
             return {path,url:signed.signedUrl};
         }
+
+        function encodeVideoAudioChunk(audioBuffer,startFrame,endFrame) {
+            const lame=window.lamejs||window.LameJS;
+            if(!lame?.Mp3Encoder)throw new Error('Encoder MP3 belum termuat. Muat ulang aplikasi lalu coba lagi.');
+            const channels=Math.min(2,audioBuffer.numberOfChannels),encoder=new lame.Mp3Encoder(channels,audioBuffer.sampleRate,128);
+            const left=audioBuffer.getChannelData(0),right=channels===2?audioBuffer.getChannelData(1):null,parts=[],block=1152;
+            for(let offset=startFrame;offset<endFrame;offset+=block){
+                const length=Math.min(block,endFrame-offset),l=new Int16Array(length),r=channels===2?new Int16Array(length):null;
+                for(let j=0;j<length;j++){l[j]=Math.max(-1,Math.min(1,left[offset+j]))*32767;if(r)r[j]=Math.max(-1,Math.min(1,right[offset+j]))*32767;}
+                const encoded=channels===2?encoder.encodeBuffer(l,r):encoder.encodeBuffer(l);
+                if(encoded?.length)parts.push(new Uint8Array(encoded));
+            }
+            const flushed=encoder.flush();if(flushed?.length)parts.push(new Uint8Array(flushed));
+            return new Blob(parts,{type:'audio/mpeg'});
+        }
+        async function processLongMp3InChunks(file,title,statusEl) {
+            const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+            if(!AudioContextClass)throw new Error('Browser ini tidak mendukung pemrosesan audio. Gunakan Chrome versi terbaru.');
+            if(!window.lamejs?.Mp3Encoder&&!window.LameJS?.Mp3Encoder)throw new Error('Encoder MP3 belum termuat. Muat ulang aplikasi.');
+            let audioContext,audioBuffer;
+            try{
+                audioContext=new AudioContextClass();
+                audioBuffer=await audioContext.decodeAudioData(await file.arrayBuffer());
+            }catch(error){throw new Error('MP3 tidak dapat dibaca browser. Pastikan file tidak rusak dan coba lagi.');}
+            finally{if(audioContext)try{await audioContext.close();}catch(_){}}
+            const sampleRate=audioBuffer.sampleRate,chunkFrames=240*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
+            if(total>60)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
+            const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory',results=[];
+            for(let index=0;index<total;index++){
+                const startFrame=index*chunkFrames,endFrame=Math.min(audioBuffer.length,startFrame+chunkFrames),offsetSeconds=Math.floor(startFrame/sampleRate);
+                if(statusEl)statusEl.textContent='Menyiapkan bagian '+(index+1)+'/'+total+' · mengubah audio menjadi MP3...';
+                const blob=encodeVideoAudioChunk(audioBuffer,startFrame,endFrame);
+                if(!blob.size)throw new Error('Bagian audio '+(index+1)+' gagal dikonversi.');
+                const chunkFile=new File([blob],base+'-part-'+String(index+1).padStart(2,'0')+'.mp3',{type:'audio/mpeg'});
+                let uploaded=null;
+                try{
+                    if(statusEl)statusEl.textContent='Mengunggah bagian '+(index+1)+'/'+total+'...';
+                    uploaded=await uploadVideoAnalysisMp3(chunkFile,statusEl);
+                    if(statusEl)statusEl.textContent='AI menganalisis bagian '+(index+1)+'/'+total+' · transkrip dan terjemahan...';
+                    const raw=await callGhoulAI('video-audio-chunk-analysis',{title, audioUrl:uploaded.url, mimeType:'audio/mpeg', offsetSeconds, chunkNumber:index+1, totalChunks:total});
+                    const part=parseVideoAnalysisJson(raw);
+                    if(!String(part.fullTranscript||'').trim()&&!String(part.indonesianTranscript||'').trim())throw new Error('Bagian '+(index+1)+' tidak menghasilkan transkrip.');
+                    results.push({offsetSeconds,detectedLanguage:String(part.detectedLanguage||''),fullTranscript:String(part.fullTranscript||''),indonesianTranscript:String(part.indonesianTranscript||''),summary:Array.isArray(part.summary)?part.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(part.moments)?part.moments:[])});
+                }finally{
+                    if(uploaded?.path){const {error}=await supabaseClient.storage.from('vo-recordings').remove([uploaded.path]);if(error)console.warn('Audio bagian sementara gagal dihapus:',error);}
+                }
+            }
+            if(statusEl)statusEl.textContent='Menggabungkan '+total+' bagian dan memilih 5 momen terbaik...';
+            const synthesisRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:results.map(x=>({offsetSeconds:x.offsetSeconds,summary:x.summary,moments:x.moments}))});
+            const synthesis=parseVideoAnalysisJson(synthesisRaw);
+            return {
+                detectedLanguage:[...new Set(results.map(x=>x.detectedLanguage).filter(Boolean))].join(' + ')||'Tidak diketahui',
+                fullTranscript:results.map((x,i)=>'['+formatMomentTime(x.offsetSeconds)+']\n'+x.fullTranscript).join('\n\n'),
+                indonesianTranscript:results.map((x,i)=>'['+formatMomentTime(x.offsetSeconds)+']\n'+x.indonesianTranscript).join('\n\n'),
+                summary:Array.isArray(synthesis.summary)?synthesis.summary:results.flatMap(x=>x.summary).slice(0,12),
+                moments:normalizeVideoMoments(Array.isArray(synthesis.moments)?synthesis.moments:[])
+            };
+        }
         async function analyzeVideoMp3() {
             const input=document.getElementById('video-analysis-file'),file=input?.files?.[0];
             if(!file)return alert('Pilih file MP3 terlebih dahulu.');
@@ -2769,15 +2835,13 @@
                 } else {
                     const file=value;
                     title=document.getElementById('video-analysis-title').value.trim()||file.name.replace(/\.mp3$/i,'');
-                    const uploaded=await uploadVideoAnalysisMp3(file,status);
-                    audioUrl=uploaded.url;audioPath=uploaded.path;
-                    status.textContent='MP3 berhasil diunggah. Gemini sedang mendengarkan dan menganalisis audio...';
-                    raw=await callGhoulAI('video-audio-analysis',{title,audioUrl,mimeType:'audio/mpeg'});
+                    const data=await processLongMp3InChunks(file,title,status);
+                    raw=JSON.stringify(data);
                 }
                 const data=parseVideoAnalysisJson(raw);
                 const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
                 if(!item.fullTranscript&&!item.indonesianTranscript)throw new Error('Transkrip tidak ditemukan pada hasil AI.');
-                if(item.indonesianTranscript){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioUrl:source==='mp3'?audioUrl:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}
+                if(item.indonesianTranscript&&item.indonesianTranscript.length<=30000){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioUrl:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}else if(item.indonesianTranscript.length>30000){item.subtitleTiming='estimated';}
                 videoAnalysisDraft=item;
                 preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
                 preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
@@ -3103,7 +3167,7 @@
           vo:{title:'Catatan VO',items:()=>db.vo||[],name:x=>x.title||'Catatan VO',detail:x=>(x.teks||'').slice(0,90),page:'ghoustnote',tab:'vo'},
           mitos:{title:'Ide / Mitos',items:()=>db.mitos||[],name:x=>x.text||x.title||'Ide / Mitos',detail:x=>x.research||'',page:'grimoire',tab:'mitos'},
           metadata:{title:'Metadata',items:()=>db.metadata||[],name:x=>x.title||x.name||x.keyword||'Metadata',detail:x=>x.description||'',page:'grimoire',tab:'editor'},
-          segments:{title:'Arsip segmen',items:()=>db.segmenList||[],name:x=>x.title||x.name||'Arsip segmen',detail:x=>x.description||'',page:'ghoustnote',tab:'arsip'}
+          segments:{title:'Arsip segmen',items:()=>db.segmenList||[],name:x=>x.nama||x.title||x.name||'Arsip segmen',detail:x=>x.tagline||x.desc||x.description||'',page:'segmen',tab:'kumpulan'}
         };
         function openCrewSummaryList(type){
           const cfg=CREW_SUMMARY_CONFIG[type];if(!cfg)return;
@@ -3236,7 +3300,7 @@ function enableChatSwipeActions(box){
         }
 function renderChatMessages(){
  const box=document.getElementById("chat-messages");if(!box)return;
- const visible=chatMessages.filter(m=>!groupSearchTerm||[m.body,m.sender_name,m.data_title].some(v=>String(v||"").toLowerCase().includes(groupSearchTerm.toLowerCase())));
+ const visible=chatMessages.filter(m=>!m.deleted_at&&(!groupSearchTerm||[m.body,m.sender_name,m.data_title].some(v=>String(v||"").toLowerCase().includes(groupSearchTerm.toLowerCase()))));
  if(!visible.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">'+(groupSearchTerm?'Tidak ada pesan yang cocok.':'Belum ada pesan. Mulai obrolan dengan Crew!')+'</div>';return;}
  box.innerHTML=visible.map((msg,index)=>{
   const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data",own=msg.sender_id===activeUser?.id&&!isAI,who=escapeHtml(msg.sender_name||"Crew"),when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
