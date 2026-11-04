@@ -224,13 +224,17 @@
 
 
 /* Crew Hub: rapat, ringkas, dan semua kotak berukuran seragam */
-main.compact-page-top{padding-top:0!important}
-#page-crewhub,#page-anda{margin-top:-1.6rem!important}
-@media(max-width:640px){#page-crewhub,#page-anda{margin-top:-1.85rem!important}}
+/* Crew Hub & Anda dimulai tepat di bawah header */
+main.compact-page-top{padding-top:0!important;margin-top:0!important}
+main.compact-page-top>#page-crewhub,
+main.compact-page-top>#page-anda{margin-top:-.65rem!important;position:relative!important;top:-.35rem!important}
+@media(max-width:640px){
+  main.compact-page-top>#page-crewhub,
+  main.compact-page-top>#page-anda{margin-top:-.85rem!important;top:-.45rem!important}
+}
 #page-crewhub>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media(min-width:640px){#page-crewhub>.grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(min-width:900px){#page-crewhub>.grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
-#page-crewhub,#page-anda{margin-top:-1.6rem!important}
 #page-crewhub>.mb-4{margin-bottom:.55rem!important}
 #page-crewhub .crew-hub-tile{height:78px!important;min-height:78px!important;max-height:78px!important;gap:0!important;padding:.35rem!important}
 #page-crewhub .crew-hub-tile>i{font-size:.9rem!important;margin:0 0 .18rem!important}
@@ -257,7 +261,7 @@ main.compact-page-top{padding-top:0!important}
         <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center border border-red-900/50 shadow-[0_0_40px_rgba(185,28,28,0.2)]">
             <img src="image_2.png" alt="Logo" class="h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.8)]" onerror="this.style.display='none'">
             <h1 class="text-xl font-mystery font-bold tracking-widest text-white mb-1">Ghoustory Control Room</h1>
-            <p class="text-xs text-gray-400 mb-6">Autorisasi Sutradara & Kru Operasional</p>
+            <p class="text-xs text-gray-400 mb-6">Autorisasi Sutradara & Crew Operasional</p>
             
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition text-sm shadow-lg">
                 <i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google
@@ -294,7 +298,7 @@ main.compact-page-top{padding-top:0!important}
               <button id="header-back-button" type="button" onclick="goHeaderBack()" class="hidden w-10 h-10 shrink-0 rounded-full border border-white/15 bg-white/5 text-white" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
             <div class="flex items-center gap-2">
-              <button id="header-online-button" type="button" onclick="openOnlineCrewModal()" class="relative w-9 h-9 shrink-0 rounded-full border border-green-900/70 bg-green-950/30 text-green-300" aria-label="Lihat kru yang online" title="Kru online"><i class="fa-solid fa-signal text-xs"></i><span id="header-online-count" class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-green-600 text-white text-[9px] leading-4 font-bold">0</span></button>
+              <button id="header-online-button" type="button" onclick="openOnlineCrewModal()" class="relative w-9 h-9 shrink-0 rounded-full border border-green-900/70 bg-green-950/30 text-green-300" aria-label="Lihat Crew yang online" title="Crew online"><i class="fa-solid fa-signal text-xs"></i><span id="header-online-count" class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-green-600 text-white text-[9px] leading-4 font-bold">0</span></button>
               <button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
               <button onclick="openQuickScript()" class="w-10 h-10 rounded-full border border-red-800/70 bg-gradient-to-br from-red-950 to-blue-950 text-white" aria-label="Tulis naskah" title="Tulis naskah"><i class="fa-solid fa-pen-to-square"></i></button>
               <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
@@ -566,7 +570,7 @@ main.compact-page-top{padding-top:0!important}
                           <input id="j-nama" placeholder="Nama kegiatan / shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
-                          <label class="block text-gray-300 font-bold">Tugaskan kru (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
+                          <label class="block text-gray-300 font-bold">Tugaskan Crew (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
                           <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal & Penugasan</button>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
@@ -594,7 +598,7 @@ main.compact-page-top{padding-top:0!important}
 
                     <!-- TRACKER PRODUKSI KONTEN -->
                     <div id="tab-tim-produksi" class="tab-content space-y-3">
-                        <div class="bg-black border border-gray-800 rounded-xl p-3"><h4 class="text-sm font-bold text-yellow-500 mb-1">Content Production Tracker</h4><p class="text-[11px] text-gray-400">Semua kru yang login dapat memperbarui status produksi konten.</p></div>
+                        <div class="bg-black border border-gray-800 rounded-xl p-3"><h4 class="text-sm font-bold text-yellow-500 mb-1">Content Production Tracker</h4><p class="text-[11px] text-gray-400">Semua Crew yang login dapat memperbarui status produksi konten.</p></div>
                         <div id="list-production-tracker" class="space-y-2"></div>
                     </div>
 
@@ -761,7 +765,7 @@ main.compact-page-top{padding-top:0!important}
 
         <div id="online-crew-modal" class="hidden fixed inset-0 z-[220] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="online-crew-title">
           <div class="w-full max-w-md rounded-2xl border border-green-900/60 bg-[#10131b] p-4 max-h-[80vh] flex flex-col">
-            <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Kru sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status anggota...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Crew sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status anggota...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="online-crew-list" class="overflow-y-auto space-y-2 min-h-0"><p class="text-xs text-gray-500 py-4 text-center">Belum ada data online.</p></div>
           </div>
         </div>
@@ -775,7 +779,7 @@ main.compact-page-top{padding-top:0!important}
               <div class="flex justify-between gap-3"><span>Kas</span><b id="footer-kas" class="text-green-400">Rp 0</b></div>
               <div class="flex justify-between gap-3"><span>Stok</span><b id="footer-stok" class="text-yellow-400">0 Video</b></div>
               <div class="flex justify-between gap-3"><span>AI</span><b id="footer-ai" class="text-blue-300">Gemini siap</b></div>
-              <div class="flex justify-between gap-3"><span>Kru online</span><b id="footer-online" class="text-green-300">0 akun</b></div>
+              <div class="flex justify-between gap-3"><span>Crew online</span><b id="footer-online" class="text-green-300">0 akun</b></div>
               <div id="footer-online-names" class="text-[11px] text-gray-500"></div>
               <div class="flex justify-between gap-3"><span>Sinkronisasi</span><b id="footer-synced">-</b></div>
             </div>
@@ -829,7 +833,7 @@ main.compact-page-top{padding-top:0!important}
     <div id="modal-absen" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
         <div class="glass-panel p-5 rounded-xl w-full max-w-sm border border-yellow-500">
             <div class="flex justify-between items-start mb-4">
-                <h3 class="font-bold text-yellow-500 text-lg">Detail & Absensi Kru</h3>
+                <h3 class="font-bold text-yellow-500 text-lg">Detail & Absensi Crew</h3>
                 <button onclick="closeModalAbsen()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div id="absen-detail-info" class="text-xs text-white mb-4 bg-black p-3 rounded border border-gray-800"></div>
@@ -852,7 +856,7 @@ main.compact-page-top{padding-top:0!important}
       <div class="mb-4"><h2 class="text-xl font-bold">Crew Hub</h2><p class="text-xs text-gray-400 mt-1">Pilih kotak untuk melihat daftar data dari setiap fitur.</p></div>
       <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
         <button onclick="openCrewSummaryList('jadwal')" class="crew-hub-tile glass-panel rounded-xl p-2 border border-yellow-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-calendar-days text-xl text-yellow-300 mb-2"></i><b id="crew-summary-schedules" class="text-xl text-yellow-300">0</b><span class="text-[10px] text-gray-300 mt-1">Jadwal shooting</span></button>
-        <button onclick="openCrewSummaryList('members')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-blue-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-users text-xl text-blue-300 mb-2"></i><b id="crew-summary-members" class="text-xl text-blue-300">0</b><span class="text-[10px] text-gray-300 mt-1">Anggota kru</span></button>
+        <button onclick="openCrewSummaryList('members')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-blue-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-users text-xl text-blue-300 mb-2"></i><b id="crew-summary-members" class="text-xl text-blue-300">0</b><span class="text-[10px] text-gray-300 mt-1">Anggota Crew</span></button>
         <button onclick="openCrewSummaryList('production')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-green-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-list-check text-xl text-green-300 mb-2"></i><b id="crew-summary-production" class="text-xl text-green-300">0</b><span class="text-[10px] text-gray-300 mt-1">Tugas produksi</span></button>
         <button onclick="openCrewSummaryList('cash')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-red-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-wallet text-xl text-red-300 mb-2"></i><b id="crew-summary-cash" class="text-xl text-red-300">0</b><span class="text-[10px] text-gray-300 mt-1">Data kas</span></button>
         <button onclick="openCrewSummaryList('scripts')" class="crew-hub-tile glass-panel rounded-lg p-1.5 border border-purple-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-file-lines text-xl text-purple-300 mb-2"></i><b id="crew-summary-scripts" class="text-xl text-purple-300">0</b><span class="text-[10px] text-gray-300 mt-1">Naskah</span></button>
@@ -1455,7 +1459,7 @@ main.compact-page-top{padding-top:0!important}
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan kru'],tim:['Markas Tim','Ruang operasional'],crewhub:['Crew Hub','Ringkasan tim'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Tim','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
@@ -2025,7 +2029,7 @@ main.compact-page-top{padding-top:0!important}
                             </div>
                         </div>
                         <div class="text-[10px] text-red-400 bg-red-950/30 p-1.5 rounded border border-red-900/50">
-                            <b>Kru Tidak Hadir:</b> ${kruTidakHadir.length > 0 ? kruTidakHadir.join(', ') : 'Semua Hadir Nihil'}
+                            <b>Crew Tidak Hadir:</b> ${kruTidakHadir.length > 0 ? kruTidakHadir.join(', ') : 'Semua Hadir Nihil'}
                         </div>
                     </div>`;
                 });
@@ -2086,7 +2090,7 @@ main.compact-page-top{padding-top:0!important}
             if (!nextTitle.trim()) return alert("Judul konten tidak boleh kosong.");
             item.title = nextTitle.trim();
             item.updatedAt = new Date().toISOString();
-            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Kru";
+            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
             saveData();
             renderProductionTracker();
         }
@@ -2103,7 +2107,7 @@ main.compact-page-top{padding-top:0!important}
             if (!item || !PRODUCTION_STAGES.includes(status)) return;
             item.status = status;
             item.updatedAt = new Date().toISOString();
-            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Kru";
+            item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
             saveData();
             renderProductionTracker();
         }
@@ -2116,7 +2120,7 @@ main.compact-page-top{padding-top:0!important}
             }
             el.innerHTML = db.production.map(item => {
                 const opts = PRODUCTION_STAGES.map(stage => '<option value="' + stage + '" ' + (item.status === stage ? 'selected' : '') + '>' + stage + '</option>').join('');
-                return '<div class="bg-black border border-gray-800 rounded-lg p-3 space-y-2"><div class="flex justify-between items-start gap-2"><b class="text-sm text-white flex-1">' + escapeHtml(item.title || 'Konten') + '</b><div class="flex items-center gap-2">' + renderDoneControl('production', item) + '<button type="button" onclick="editProductionItem(' + Number(item.id) + ')" class="text-[10px] text-blue-300 hover:text-blue-200 px-1"><i class="fa-solid fa-pen"></i> Edit</button><button type="button" onclick="deleteProductionItem(' + Number(item.id) + ')" class="text-[10px] text-red-400 hover:text-red-300 px-1"><i class="fa-solid fa-trash"></i> Hapus</button></div></div><div class="text-[10px] text-gray-500">Diubah oleh: ' + escapeHtml(item.updatedBy || 'Kru') + '</div><select aria-label="Status produksi" onchange="updateProductionStatus(' + Number(item.id) + ', this.value)" class="w-full bg-darkCard border border-yellow-800 rounded p-2 text-xs text-yellow-200">' + opts + '</select><div class="text-[10px] text-gray-500">Diperbarui: ' + escapeHtml(item.updatedAt ? new Date(item.updatedAt).toLocaleString("id-ID") : "-") + '</div></div>';
+                return '<div class="bg-black border border-gray-800 rounded-lg p-3 space-y-2"><div class="flex justify-between items-start gap-2"><b class="text-sm text-white flex-1">' + escapeHtml(item.title || 'Konten') + '</b><div class="flex items-center gap-2">' + renderDoneControl('production', item) + '<button type="button" onclick="editProductionItem(' + Number(item.id) + ')" class="text-[10px] text-blue-300 hover:text-blue-200 px-1"><i class="fa-solid fa-pen"></i> Edit</button><button type="button" onclick="deleteProductionItem(' + Number(item.id) + ')" class="text-[10px] text-red-400 hover:text-red-300 px-1"><i class="fa-solid fa-trash"></i> Hapus</button></div></div><div class="text-[10px] text-gray-500">Diubah oleh: ' + escapeHtml(item.updatedBy || 'Crew') + '</div><select aria-label="Status produksi" onchange="updateProductionStatus(' + Number(item.id) + ', this.value)" class="w-full bg-darkCard border border-yellow-800 rounded p-2 text-xs text-yellow-200">' + opts + '</select><div class="text-[10px] text-gray-500">Diperbarui: ' + escapeHtml(item.updatedAt ? new Date(item.updatedAt).toLocaleString("id-ID") : "-") + '</div></div>';
             }).join('');
         }
         // STATUS CLOUD, AI, DAN KRU ONLINE
@@ -2148,7 +2152,7 @@ main.compact-page-top{padding-top:0!important}
                 const avatarWrap = document.getElementById("online-avatars");
                 if (avatarWrap) {
                     avatarWrap.innerHTML = onlineUsers.map(entry => {
-                        const name = entry.name || "Kru";
+                        const name = entry.name || "Crew";
                         const photo = entry.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
                         return '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(name) + '" title="' + escapeHtml(name) + '" class="w-7 h-7 rounded-full object-cover border-2 border-darkBg shadow">';
                     }).join("");
@@ -2156,7 +2160,7 @@ main.compact-page-top{padding-top:0!important}
                 const countEl = document.getElementById("footer-online");
                 const namesEl = document.getElementById("footer-online-names");
                 if (countEl) countEl.textContent = onlineUsers.length + " akun";
-                if (namesEl) namesEl.textContent = onlineUsers.length ? "· " + onlineUsers.map(entry => entry.name || "Kru").join(", ") : "";
+                if (namesEl) namesEl.textContent = onlineUsers.length ? "· " + onlineUsers.map(entry => entry.name || "Crew").join(", ") : "";
             });
             presenceChannel.subscribe(async status => {
                 if (status === "SUBSCRIBED") {
@@ -2165,7 +2169,7 @@ main.compact-page-top{padding-top:0!important}
                         const { data } = await supabaseClient.from("ghoustory_profiles").select("nickname,role,avatar_url").eq("user_id", user.id).maybeSingle();
                         profile = data || null;
                     }
-                    const displayName = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || "Kru";
+                    const displayName = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || "Crew";
                     await presenceChannel.track({ user_id: user.id, name: displayName, role: profile?.role || "", avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
                     const touchLastSeen = async () => {
                         const stamp = new Date().toISOString();
@@ -2185,7 +2189,7 @@ main.compact-page-top{padding-top:0!important}
             if(!narsumName) return alert("Nama narasumber kosong!");
             const id = Date.now();
             db.stok.push({ id, text: narsumName, format: "🔦 Penelusuran", status: "Siap Edit", segment: "Belum Ada" });
-            db.production.unshift({ id, title: narsumName, status: "Selesai Shooting", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), updatedBy: activeUser?.user_metadata?.full_name || activeUser?.email || "Kru" });
+            db.production.unshift({ id, title: narsumName, status: "Selesai Shooting", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), updatedBy: activeUser?.user_metadata?.full_name || activeUser?.email || "Crew" });
             saveData(); renderStok(); renderProductionTracker(); switchTab('tim', 'produksi'); alert(`Shooting selesai! "${narsumName}" masuk ke Stok & Tracker Produksi.`);
         }
         function addStok() {
@@ -2257,7 +2261,7 @@ main.compact-page-top{padding-top:0!important}
             const details = [...members, ...(out > 0 ? [{label:ketOut, amount:out, type:'out'}] : [])];
             if(!details.length) return;
             const masuk = members.reduce((s,x) => s+x.amount, 0);
-            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), desc: 'Transaksi Kas Kru', details, amount: masuk-out });
+            db.kas.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), desc: 'Transaksi Kas Crew', details, amount: masuk-out });
             ['cicil-artdan','cicil-yhola','cicil-tio','cicil-bila','kas-ket-out','kas-val-out'].forEach(id => document.getElementById(id).value = id.includes('cicil')?0:'');
             saveData(); renderKas();
         }
@@ -2849,7 +2853,7 @@ main.compact-page-top{padding-top:0!important}
 
         const CREW_SUMMARY_CONFIG={
           jadwal:{title:'Jadwal shooting',items:()=>crewSchedules||[],name:x=>x.title||'Jadwal tanpa judul',detail:x=>(x.event_date||'Tanggal belum ditentukan')+' · '+(x.event_time||'Jam belum ditentukan'),page:'tim',tab:'jadwal'},
-          members:{title:'Anggota kru',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Anggota kru',detail:x=>x.role||x.peran||'',page:'tim'},
+          members:{title:'Anggota Crew',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Anggota Crew',detail:x=>x.role||x.peran||'',page:'tim'},
           production:{title:'Tugas produksi',items:()=>db.production||[],name:x=>x.title||x.name||'Tugas produksi',detail:x=>x.status||'',page:'tim',tab:'produksi'},
           cash:{title:'Data kas',items:()=>db.kas||[],name:x=>x.title||x.keterangan||x.description||x.nama||'Transaksi kas',detail:x=>x.amount!==undefined?String(x.amount):x.nominal!==undefined?String(x.nominal):'',page:'tim',tab:'kas'},
           scripts:{title:'Naskah',items:()=>db.scriptDrafts||[],name:x=>x.title||'Naskah tanpa judul',detail:x=>x.updatedAt||x.createdAt||'',page:'grimoire',tab:'editor'},
@@ -2891,13 +2895,13 @@ main.compact-page-top{padding-top:0!important}
         }
         function renderCrewHub(){
           const list=document.getElementById('crew-schedule-list');if(!list)return;
-          const sel=document.getElementById('j-crew-assignees');if(sel){const selected=new Set([...sel.selectedOptions].map(o=>o.value));sel.innerHTML=crewProfiles.map(p=>'<option value="'+p.user_id+'">'+escapeHtml(p.nickname||'Kru')+' · '+escapeHtml(p.role||'')+'</option>').join('');[...sel.options].forEach(o=>o.selected=selected.has(o.value));}
+          const sel=document.getElementById('j-crew-assignees');if(sel){const selected=new Set([...sel.selectedOptions].map(o=>o.value));sel.innerHTML=crewProfiles.map(p=>'<option value="'+p.user_id+'">'+escapeHtml(p.nickname||'Crew')+' · '+escapeHtml(p.role||'')+'</option>').join('');[...sel.options].forEach(o=>o.selected=selected.has(o.value));}
           if(!crewSchedules.length){list.innerHTML='<p class="text-xs text-gray-500">Belum ada jadwal Crew Hub.</p>';return;}
-          list.innerHTML=crewSchedules.map(s=>{const assigned=crewAssignments.filter(a=>a.schedule_id===s.id),responses=crewAttendance.filter(a=>a.schedule_id===s.id),mine=assigned.some(a=>a.user_id===activeUser.id),my=responses.find(a=>a.user_id===activeUser.id),d=crewDaysLeft(s.event_date);const people=assigned.map(a=>{const p=crewProfiles.find(x=>x.user_id===a.user_id),r=responses.find(x=>x.user_id===a.user_id);return '<div class="flex justify-between gap-2 py-1 border-b border-gray-800 text-[10px]"><span>'+escapeHtml(p?.nickname||'Kru')+'</span><span class="'+(r?.response==='attending'?'text-green-400':r?.response==='not_attending'?'text-red-400':'text-yellow-400')+'">'+(r?.response==='attending'?'Hadir':r?.response==='not_attending'?'Tidak hadir':'Belum menjawab')+(r?.reason?' · '+escapeHtml(r.reason):'')+'</span></div>';}).join('');return '<article class="rounded-xl border border-gray-800 bg-black/60 p-3 mb-3"><div class="flex justify-between gap-2"><div><b class="text-sm">'+escapeHtml(s.title)+'</b><p class="text-[10px] text-gray-400">'+new Date(s.event_date+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+escapeHtml(s.event_time||'')+' · '+escapeHtml(s.location||'')+'</p></div><span class="text-[10px] text-yellow-400">H-'+d+'</span></div><div class="mt-2 rounded-lg bg-gray-950 p-2"><b class="text-[10px] text-gray-400">STATUS KRU</b>'+people+'</div><div class="flex flex-wrap gap-2 mt-3">'+(mine&&!my?'<button onclick="openCrewAttendance(\''+s.id+'\')" class="rounded-lg bg-yellow-700 px-3 py-2 text-[10px]">Konfirmasi</button>':'')+(mine?'<button onclick="proposeCrewChange(\''+s.id+'\')" class="rounded-lg bg-blue-900 px-3 py-2 text-[10px]">Usulkan perubahan</button>':'')+'<button onclick="crewVote(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Voting / hasil</button><button onclick="editCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Edit</button></div></article>';}).join('');
+          list.innerHTML=crewSchedules.map(s=>{const assigned=crewAssignments.filter(a=>a.schedule_id===s.id),responses=crewAttendance.filter(a=>a.schedule_id===s.id),mine=assigned.some(a=>a.user_id===activeUser.id),my=responses.find(a=>a.user_id===activeUser.id),d=crewDaysLeft(s.event_date);const people=assigned.map(a=>{const p=crewProfiles.find(x=>x.user_id===a.user_id),r=responses.find(x=>x.user_id===a.user_id);return '<div class="flex justify-between gap-2 py-1 border-b border-gray-800 text-[10px]"><span>'+escapeHtml(p?.nickname||'Crew')+'</span><span class="'+(r?.response==='attending'?'text-green-400':r?.response==='not_attending'?'text-red-400':'text-yellow-400')+'">'+(r?.response==='attending'?'Hadir':r?.response==='not_attending'?'Tidak hadir':'Belum menjawab')+(r?.reason?' · '+escapeHtml(r.reason):'')+'</span></div>';}).join('');return '<article class="rounded-xl border border-gray-800 bg-black/60 p-3 mb-3"><div class="flex justify-between gap-2"><div><b class="text-sm">'+escapeHtml(s.title)+'</b><p class="text-[10px] text-gray-400">'+new Date(s.event_date+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+escapeHtml(s.event_time||'')+' · '+escapeHtml(s.location||'')+'</p></div><span class="text-[10px] text-yellow-400">H-'+d+'</span></div><div class="mt-2 rounded-lg bg-gray-950 p-2"><b class="text-[10px] text-gray-400">STATUS KRU</b>'+people+'</div><div class="flex flex-wrap gap-2 mt-3">'+(mine&&!my?'<button onclick="openCrewAttendance(\''+s.id+'\')" class="rounded-lg bg-yellow-700 px-3 py-2 text-[10px]">Konfirmasi</button>':'')+(mine?'<button onclick="proposeCrewChange(\''+s.id+'\')" class="rounded-lg bg-blue-900 px-3 py-2 text-[10px]">Usulkan perubahan</button>':'')+'<button onclick="crewVote(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Voting / hasil</button><button onclick="editCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Edit</button></div></article>';}).join('');
         }
         async function saveCrewSchedule(){
           const id=document.getElementById('j-edit-id').value||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value,chosen=[...document.getElementById('j-crew-assignees').selectedOptions].map(o=>o.value);
-          if(!title||!date)return alert('Nama kegiatan dan tanggal wajib diisi.');if(!chosen.length)return alert('Pilih minimal satu kru.');
+          if(!title||!date)return alert('Nama kegiatan dan tanggal wajib diisi.');if(!chosen.length)return alert('Pilih minimal satu Crew.');
           const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value,segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value,event_date:date,event_time:document.getElementById('j-jam').value,created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
           let x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert(x.error.message);
           x=await supabaseClient.from('ghoustory_schedule_assignments').delete().eq('schedule_id',id);if(x.error)return alert(x.error.message);
@@ -2943,9 +2947,9 @@ main.compact-page-top{padding-top:0!important}
         function renderChatMessages(){
  const box=document.getElementById("chat-messages");if(!box)return;
  const visible=chatMessages.filter(m=>!groupSearchTerm||[m.body,m.sender_name,m.data_title].some(v=>String(v||"").toLowerCase().includes(groupSearchTerm.toLowerCase())));
- if(!visible.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">'+(groupSearchTerm?'Tidak ada pesan yang cocok.':'Belum ada pesan. Mulai obrolan dengan kru!')+'</div>';return;}
+ if(!visible.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">'+(groupSearchTerm?'Tidak ada pesan yang cocok.':'Belum ada pesan. Mulai obrolan dengan Crew!')+'</div>';return;}
  box.innerHTML=visible.map(msg=>{
-  const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data",own=msg.sender_id===activeUser?.id&&!isAI,who=escapeHtml(msg.sender_name||"Kru"),when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
+  const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data",own=msg.sender_id===activeUser?.id&&!isAI,who=escapeHtml(msg.sender_name||"Crew"),when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
   const quoted=msg.reply_to?chatMessages.find(x=>x.id===msg.reply_to):null;
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
   let body=escapeHtml(msg.deleted_at?"Pesan dihapus":msg.body||"");
@@ -3004,7 +3008,7 @@ async function loadChatMessages(){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
             sender_id:activeUser.id,
-            sender_name:sender_name||(activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Kru"),
+            sender_name:sender_name||(activeUser.user_metadata?.full_name||activeUser.user_metadata?.name||activeUser.email||"Crew"),
             sender_avatar:sender_name==="GHOUSTORY AI"?"":(activeUser.user_metadata?.avatar_url||""),
             body:String(body||"").slice(0,4000),message_type,data_type,data_id,data_title,reply_to
           }).select("id").single();
@@ -3065,11 +3069,11 @@ async function loadChatMessages(){
           const users=Array.isArray(ritualOnlineUsers)?ritualOnlineUsers:[];
           const count=users.length;
           const badge=document.getElementById("header-online-count");if(badge)badge.textContent=String(count);
-          const chatStatus=document.getElementById("chat-room-online-status");if(chatStatus)chatStatus.textContent=count===1?"1 kru online":count+" kru online";
+          const chatStatus=document.getElementById("chat-room-online-status");if(chatStatus)chatStatus.textContent=count===1?"1 Crew online":count+" Crew online";
           const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" anggota sedang aktif";
           const list=document.getElementById("online-crew-list");if(!list)return;
-          if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada kru yang online.</p>';return;}
-          list.innerHTML=users.map(u=>{const name=u.name||"Kru";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Anggota kru")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
+          if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada Crew yang online.</p>';return;}
+          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Anggota Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
         }
         function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
         function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
@@ -3241,7 +3245,7 @@ async function markDmMessagesRead(){
             db.kas.push(item);summary="Transaksi kas tercatat: "+details.map(x=>x.label+" Rp "+Number(x.amount).toLocaleString("id-ID")).join(", ");
           }else if(type==="production"){
             const title=val("title");if(!title)return alert("Nama tugas wajib diisi.");
-            item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Kru"};db.production.unshift(item);summary="Tugas produksi dibuat: "+title;
+            item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Crew"};db.production.unshift(item);summary="Tugas produksi dibuat: "+title;
           }else if(type==="notulen"){
             const topic=val("title");if(!topic)return alert("Judul notulen wajib diisi.");
             item={id:now,topic,raw:document.getElementById("chat-create-content")?.value||"",source:"Dibuat dari RITUAL CREW"};db.notulen.unshift(item);summary="Notulen dibuat: "+topic;
