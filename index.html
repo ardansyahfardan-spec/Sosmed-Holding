@@ -1389,7 +1389,7 @@
         function closeAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
-        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v22');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
+        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v23');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
         function openProfileModal(mode='edit') {
             profileModalMode = mode;
             const modal = document.getElementById('ghoustory-profile-modal');
@@ -3450,7 +3450,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=17",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=18",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3492,7 +3492,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=16',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=18',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
