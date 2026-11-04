@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ghoustory-control-room-v28';
+const CACHE_NAME = 'ghoustory-control-room-v29';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
