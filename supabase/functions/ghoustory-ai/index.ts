@@ -61,7 +61,6 @@ async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, api
     headers: {
       "X-Goog-Upload-Offset": "0",
       "X-Goog-Upload-Command": "upload, finalize",
-      "Content-Length": String(audioBytes.length),
     },
     body: audioBytes,
     signal: AbortSignal.timeout(90000),
