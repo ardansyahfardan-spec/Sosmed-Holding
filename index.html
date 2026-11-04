@@ -1868,6 +1868,7 @@
 
         // ANALISIS AI & TOMBOL DISETUJUI
         async function generateMetadata(){const link=document.getElementById('ai-yt-link').value.trim(),btn=document.querySelector('button[onclick="generateMetadata()"]');if(!link)return alert('Masukkan link YouTube.');setButtonBusy(btn,true);try{const text=await callGhoulAI('metadata',{url:link});db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+link.slice(0,45),aiText:text,url:link});saveData();renderMetadataList();switchTab('analisis','arsip');}catch(e){alert('Gagal membuat metadata: '+e.message);}finally{setButtonBusy(btn,false);}}
+        function editMetadata(i){const item=db.metadata[i];if(!item)return;const title=prompt("Edit judul metadata:",item.title||"");if(title===null)return;if(!title.trim())return alert("Judul wajib diisi.");const aiText=prompt("Edit isi metadata AI:",item.aiText||"");if(aiText===null)return;item.title=title.trim();item.aiText=aiText;item.updatedAt=new Date().toISOString();saveData();renderMetadataList();}
         function deleteMetadata(id){if(!confirm('Hapus metadata ini?'))return;db.metadata=db.metadata.filter(x=>x.id!==id);saveData();renderMetadataList();}
 
         function copyMetadataText(i) { if (db.metadata[i]) copyTextSafe(db.metadata[i].aiText); }
@@ -1880,6 +1881,7 @@
                     <div><b class="text-blue-400">${item.title}</b><div class="text-xs text-gray-400">${item.aiText.substring(0,40)}...</div></div>
                     <div class="flex gap-1">
                         ${renderDoneControl('metadata', item)}
+                        <button onclick="editMetadata(${i})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-yellow-100">Edit</button>
                         <button onclick="openModalSetuju(${i})" class="text-xs bg-orange-700 hover:bg-orange-600 px-2.5 py-1 rounded text-white font-bold">Disepakati</button>
                         <button onclick="copyMetadataText(${i})" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300">Salin</button>
                         <button onclick="deleteMetadata(${item.id})" class="text-xs bg-red-950 px-2 py-1 rounded text-red-200">Hapus</button>
