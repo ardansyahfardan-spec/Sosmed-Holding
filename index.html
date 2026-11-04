@@ -86,11 +86,15 @@
         .page-section table { display: block; width: 100%; overflow-x: auto; }
         #jadwal-calendar-grid, #tayang-calendar-grid,
         #jadwal-weekdays, #tayang-weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-        .calendar-weekdays > div { min-width: 0; white-space: nowrap; text-align: center; overflow: hidden; }
+         .calendar-weekdays > div { min-width: 0; white-space: nowrap; text-align: center; overflow: hidden; }
+        #crew-calendar-grid > div,#jadwal-calendar-grid > div,#tayang-calendar-grid > div { min-width:0; overflow:hidden; }
+        .ghoul-calendar-event { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        @media(max-width:640px){#crew-calendar-grid,#jadwal-calendar-grid,#tayang-calendar-grid{gap:3px!important}#crew-calendar-grid>div,#jadwal-calendar-grid>div,#tayang-calendar-grid>div{min-height:42px!important;padding:3px!important;border-radius:7px!important;font-size:10px!important}#crew-calendar-grid .ghoul-calendar-event,#jadwal-calendar-grid .ghoul-calendar-event,#tayang-calendar-grid .ghoul-calendar-event{font-size:0!important;height:5px!important;width:5px!important;border-radius:50%!important;padding:0!important;margin:3px auto 0!important;background:#ef4444!important}#crew-calendar-grid>div>span,#jadwal-calendar-grid>div>span,#tayang-calendar-grid>div>span{font-size:10px!important}}
         #welcome-screen { background: radial-gradient(ellipse at center, rgba(127,29,29,.22), transparent 58%), #050505; }
         #welcome-screen .welcome-logo { width: min(58vw, 230px); max-height: 28vh; object-fit: contain; }
 
         @media (max-width: 640px) {
+            input, select, textarea { font-size:16px !important; }
             nav { padding: 0.65rem !important; }
             nav > .container { flex-wrap: wrap; }
             nav > .container > div:first-child { gap: 0.45rem; }
@@ -258,13 +262,14 @@
         
         <nav class="border-b border-red-900/70 bg-darkBg/95 backdrop-blur p-3 sm:p-4 sticky top-0 z-40 shadow-md">
           <div class="container mx-auto flex justify-between items-center gap-3">
-            <div class="flex items-center gap-2 cursor-pointer min-w-0" onclick="showPage('home')">
-              <img src="ghoustory-logo.png" alt="Ghoustory" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null;this.src='image_2.png'">
-              <div class="leading-tight"><div class="font-mystery font-bold text-white text-sm sm:text-base">Ghoustory</div><div class="text-[10px] text-red-400 tracking-[.16em] uppercase">Control Room</div></div>
+            <div id="header-identity" class="flex items-center gap-2 min-w-0">
+              <img id="header-brand-logo" src="ghoustory-logo.png" alt="Ghoustory" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null;this.src='image_2.png'">
+              <div class="leading-tight min-w-0"><div id="header-page-title" class="font-mystery font-bold text-white text-sm sm:text-base truncate">Ghoustory</div><div id="header-page-subtitle" class="text-[10px] text-red-400 tracking-[.16em] uppercase">Control Room</div></div>
+              <button id="header-back-button" type="button" onclick="goHeaderBack()" class="hidden w-10 h-10 shrink-0 rounded-full border border-white/15 bg-white/5 text-white" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
-              <button onclick="openQuickScript()" class="rounded-full bg-gradient-to-r from-red-800 to-blue-800 px-3 py-2 text-xs font-bold text-white"><i class="fa-solid fa-file-pen mr-1"></i><span class="hidden sm:inline">Tulis Naskah</span><span class="sm:hidden">Naskah</span></button>
+              <button onclick="openQuickScript()" class="w-10 h-10 rounded-full border border-red-800/70 bg-gradient-to-br from-red-950 to-blue-950 text-white" aria-label="Tulis naskah" title="Tulis naskah"><i class="fa-solid fa-pen-to-square"></i></button>
               <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
             </div>
           </div>
@@ -281,7 +286,7 @@
                     <div onclick="showPage('ghoustnote')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
                     <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata & AI</h3></div>
                     <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
-                    <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Crew Hub</h3></div>
+                    <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Tim</h3></div>
                     <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
                     
                 </div>
@@ -296,7 +301,7 @@
                   <div class="p-3 border-b border-gray-800"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i><input id="chat-list-search" type="search" oninput="filterChatList(this.value)" placeholder="Cari percakapan..." class="w-full bg-black border border-gray-800 rounded-full pl-9 pr-3 py-2.5 text-xs text-white"></div></div>
                   <div class="p-3 border-b border-gray-800">
                     <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Percakapan</div>
-                    <button type="button" onclick="openGroupRoom()" data-chat-name="ritual crew" class="chat-list-row w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/60 to-blue-950/60 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-gradient-to-br from-red-800 to-blue-900 flex items-center justify-center"><i class="fa-solid fa-users text-white text-lg"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">RITUAL CREW</b><small class="text-[10px] text-gray-400">Grup obrolan seluruh kru</small></span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button>
+                    <button type="button" onclick="openGroupRoom()" data-chat-name="ritual crew" class="chat-list-row w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/60 to-blue-950/60 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-black border border-red-800/70 overflow-hidden flex items-center justify-center"><img id="ritual-group-avatar" src="ghoustory-logo.png" alt="Logo Ritual Crew" class="w-full h-full object-contain p-1" onerror="this.onerror=null;this.src='image_2.png'"></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">RITUAL CREW</b><small class="text-[10px] text-gray-400">Grup obrolan seluruh kru</small></span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button>
                     <div id="dm-conversations-list" class="space-y-1 mt-1"><p class="text-xs text-gray-500 p-3">Memuat percakapan pribadi...</p></div>
                   </div>
                   <div class="p-3"><button type="button" onclick="toggleRitualMembers()" class="w-full text-left text-xs text-blue-300 py-2"><i class="fa-solid fa-user-plus mr-2"></i>Mulai chat baru</button><div id="ritual-members-list" class="hidden max-h-[40vh] overflow-y-auto space-y-1 mt-2"><p class="text-xs text-gray-500 p-3">Memuat anggota...</p></div></div>
@@ -811,11 +816,23 @@
         <div class="flex gap-2 mt-2"><button type="button" onclick="closeKasAccess()" class="flex-1 rounded-xl border border-gray-700 py-2.5 text-sm text-gray-300">Batal</button><button type="button" onclick="verifyKasAccess()" class="flex-1 rounded-xl bg-yellow-700 py-2.5 text-sm font-bold text-white">Buka Kas</button></div>
       </div>
     </div>
+    <div id="account-settings-modal" class="hidden fixed inset-0 z-[205] bg-black/90 p-4 items-center justify-center"><form onsubmit="saveAccountSettings(event)" class="w-full max-w-md rounded-2xl border border-blue-900 bg-[#10131b] p-5"><div class="flex justify-between items-center mb-4"><h3 class="font-bold">Pengaturan Akun</h3><button type="button" onclick="closeAccountSettings()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><label class="block text-xs text-gray-400 mb-1">Email akun</label><input id="account-settings-email" type="email" autocomplete="email" class="w-full rounded-lg bg-black border border-gray-700 p-3 text-white text-base mb-3"><label class="block text-xs text-gray-400 mb-1">Password baru (opsional)</label><input id="account-settings-password" type="password" minlength="8" autocomplete="new-password" class="w-full rounded-lg bg-black border border-gray-700 p-3 text-white text-base" placeholder="Minimal 8 karakter"><p id="account-settings-status" class="text-xs text-gray-400 mt-3"></p><div class="flex gap-2 mt-4"><button type="button" onclick="closeAccountSettings()" class="flex-1 border border-gray-700 rounded-lg p-3 text-sm">Batal</button><button type="submit" class="flex-1 bg-blue-800 rounded-lg p-3 text-sm font-bold">Simpan</button></div></form></div>
+    <div id="notification-settings-modal" class="hidden fixed inset-0 z-[206] bg-black/90 p-4 items-center justify-center"><div class="w-full max-w-md rounded-2xl border border-red-900 bg-[#10131b] p-5"><div class="flex justify-between items-center mb-4"><h3 class="font-bold">Pengaturan Notifikasi</h3><button type="button" onclick="closeNotificationSettings()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button></div><p class="text-xs text-gray-400 mb-4">Pilih gaya pemberitahuan untuk perangkat ini.</p><label class="flex items-center gap-3 rounded-xl border border-gray-800 p-3 mb-2"><input type="radio" name="ghoustory-notif-style" value="vibrate" class="w-4 h-4"><span><b class="block text-sm">Getar</b><small class="text-xs text-gray-500">Gunakan getaran jika didukung perangkat.</small></span></label><label class="flex items-center gap-3 rounded-xl border border-gray-800 p-3"><input type="radio" name="ghoustory-notif-style" value="ring" class="w-4 h-4"><span><b class="block text-sm">Dering</b><small class="text-xs text-gray-500">Mengikuti bunyi notifikasi bawaan perangkat/browser.</small></span></label><div class="flex gap-2 mt-4"><button type="button" onclick="closeNotificationSettings()" class="flex-1 border border-gray-700 rounded-lg p-3 text-sm">Batal</button><button onclick="saveNotificationSettings()" class="flex-1 bg-red-800 rounded-lg p-3 text-sm font-bold">Simpan</button></div></div></div>
+    <section id="page-crewhub" class="page-section max-w-5xl mx-auto">
+      <div class="mb-4"><h2 class="text-xl font-bold">Ringkasan Crew Hub</h2><p class="text-xs text-gray-400 mt-1">Ikhtisar aktivitas dari seluruh fitur Ghoustory.</p></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="glass-panel rounded-xl p-4 border border-yellow-900/60"><div class="text-[10px] text-gray-400">Jadwal shooting</div><b id="crew-summary-schedules" class="text-2xl text-yellow-300">0</b></div>
+        <div class="glass-panel rounded-xl p-4 border border-blue-900/60"><div class="text-[10px] text-gray-400">Anggota kru</div><b id="crew-summary-members" class="text-2xl text-blue-300">0</b></div>
+        <div class="glass-panel rounded-xl p-4 border border-green-900/60"><div class="text-[10px] text-gray-400">Tugas produksi</div><b id="crew-summary-production" class="text-2xl text-green-300">0</b></div>
+        <div class="glass-panel rounded-xl p-4 border border-red-900/60"><div class="text-[10px] text-gray-400">Data kas</div><b id="crew-summary-cash" class="text-2xl text-red-300">0</b></div>
+      </div><div class="glass-panel rounded-xl p-4 mt-4"><h3 class="font-bold text-sm mb-3">Aktivitas terdekat</h3><div id="crew-summary-upcoming" class="space-y-2 text-xs text-gray-300">Memuat ringkasan...</div></div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4"><button onclick="showPage('tim')" class="rounded-xl border border-yellow-900 bg-yellow-950/30 p-3 text-xs">Buka Markas Tim</button><button onclick="showPage('grimoire')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Grimoire</button><button onclick="showPage('analisis')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Analisis</button></div>
+    </section>
     <section id="page-anda" class="page-section max-w-3xl mx-auto">
       <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-          <div class="flex items-center gap-4 min-w-0"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300"></p><p id="anda-profile-email" class="text-[10px] text-gray-500 break-all"></p></div></div>
-          <div class="grid grid-cols-2 gap-2 sm:w-[min(100%,300px)] shrink-0"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Edit Profil</button><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Pengaturan Akun</button><button onclick="enableGhoustoryNotifications()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm">Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-xs sm:text-sm text-red-300">Keluar</button></div>
+        <div class="flex flex-col gap-5">
+          <div class="flex items-center gap-4 min-w-0 rounded-xl bg-black/30 border border-gray-800 p-4"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold break-words">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300 mt-1"></p><p id="anda-profile-email" class="text-[11px] text-gray-500 break-all mt-1"></p></div></div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-user-pen block text-lg mb-1"></i>Edit Profil</button><button onclick="openAccountSettings()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-gear block text-lg mb-1"></i>Pengaturan Akun</button><button onclick="openNotificationSettings()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-xs sm:text-sm text-red-300"><i class="fa-solid fa-right-from-bracket block text-lg mb-1"></i>Keluar</button></div>
         </div>
       </div>
     </section>
@@ -1220,12 +1237,18 @@
             const menuName = document.getElementById('user-menu-account-name');
             if (menuName) menuName.innerText = nickname + " · " + role;
             const navAvatar=document.getElementById('nav-profile-avatar'), andaAvatar=document.getElementById('anda-profile-avatar');
-            if(navAvatar)navAvatar.src=avatar;if(andaAvatar)andaAvatar.src=avatar;
+            if(navAvatar)navAvatar.src=avatar;if(andaAvatar)andaAvatar.src=avatar;const groupAvatar=document.getElementById('ritual-group-avatar');if(groupAvatar)groupAvatar.src='ghoustory-logo.png';
             const an=document.getElementById('anda-profile-name'),ar=document.getElementById('anda-profile-role'),ae=document.getElementById('anda-profile-email');
             if(an)an.textContent=nickname;if(ar)ar.textContent=role;if(ae)ae.textContent=activeUser?.email||'';
 
         }
 
+        function openAccountSettings(){const m=document.getElementById('account-settings-modal');document.getElementById('account-settings-email').value=activeUser?.email||'';document.getElementById('account-settings-password').value='';document.getElementById('account-settings-status').textContent='Perubahan email mungkin memerlukan konfirmasi melalui email.';m?.classList.remove('hidden');m?.classList.add('flex');}
+        function closeAccountSettings(){const m=document.getElementById('account-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
+        async function saveAccountSettings(e){e.preventDefault();const email=document.getElementById('account-settings-email').value.trim(),password=document.getElementById('account-settings-password').value,status=document.getElementById('account-settings-status');const update={};if(email&&email!==activeUser?.email)update.email=email;if(password)update.password=password;if(!Object.keys(update).length){status.textContent='Tidak ada perubahan.';return;}status.textContent='Menyimpan...';try{const {error}=await supabaseClient.auth.updateUser(update);if(error)throw error;status.textContent='Pengaturan akun berhasil dikirim. Cek email jika diminta konfirmasi.';document.getElementById('account-settings-password').value='';}catch(err){status.textContent='Gagal: '+err.message;}}
+        function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
+        function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
+        function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
         function openProfileModal(mode='edit') {
             profileModalMode = mode;
             const modal = document.getElementById('ghoustory-profile-modal');
@@ -1389,17 +1412,22 @@
                 window.ghoustoryNavDepth = depth;
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
-            if (pageId !== 'home' && pageId !== 'chat' && pageId !== 'anda' && !target.querySelector('.feature-back-button')) {
-                target.insertAdjacentHTML('afterbegin','<button type="button" class="feature-back-button" onclick="showPage(\'home\')" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>');
-            }
+            target.querySelector('.feature-back-button')?.remove();
+            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan kru'],tim:['Markas Tim','Ruang operasional'],crewhub:['Crew Hub','Ringkasan tim'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
+            const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
+            if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
+            const inside=pageId!=='home';if(logoEl)logoEl.classList.toggle('hidden',inside);if(backEl)backEl.classList.toggle('hidden',!inside);
+            if(pageId==='chat'){const chatTitle=document.querySelector('#chat-sidebar h2');if(chatTitle)chatTitle.textContent='RITUAL CREW';}
             if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId !== 'tim') markasTimUnlocked = false;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
             target.classList.add('page-active');
             window.ghoustoryNavCurrentPage = pageId;
-            updateBottomNavigation(pageId==='tim'?'tim':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
+            updateBottomNavigation(pageId==='crewhub'?'tim':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
+            if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
         let kasTabUnlocked = false;
         function openKasAccess(){const m=document.getElementById('kas-access-modal'),i=document.getElementById('kas-access-password'),s=document.getElementById('kas-access-status');if(!m)return;m.classList.remove('hidden');m.classList.add('flex');i.value='';s.textContent='';setTimeout(()=>i.focus(),80);}
@@ -2757,11 +2785,12 @@
             }
         }
 
-        function navigateBottom(page){if(page==='tim')markasTimUnlocked=true;showPage(page);}
+        function navigateBottom(page){if(page==='tim'){showPage('crewhub');return;}showPage(page);}
+        function goHeaderBack(){const current=document.querySelector('.page-section.page-active')?.id?.replace('page-','')||'home';if(current==='chat'&&document.getElementById('page-chat')?.classList.contains('chat-room-open')){showChatInbox();return;}showPage('home');}
         function updateBottomNavigation(page){document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.bottomNav===page));}
         function openQuickScript(){showPage('grimoire');switchTab('grimoire','editor');setTimeout(()=>document.getElementById('script-title')?.focus(),100);}
         function toggleGlobalSearch(){const p=document.getElementById('global-search-panel');p?.classList.toggle('hidden');if(!p?.classList.contains('hidden'))document.getElementById('global-search-input')?.focus();}
-        function runGlobalSearch(v){const q=(v||'').toLowerCase(),b=document.getElementById('global-search-results');if(!b)return;const items=[['Dashboard','home'],['Chat','chat'],['Crew Hub','tim'],['Profil Anda','anda'],['Editor Naskah & Teleprompter','grimoire'],['Ghoustnote','ghoustnote'],['Analisis AI','analisis'],['Arsip Segmen','segmen'],['Radar Analitik','radar']].filter(x=>x.join(' ').toLowerCase().includes(q));b.innerHTML=items.map(x=>'<button class="block w-full text-left p-2 hover:bg-gray-800" onclick="showPage(\''+x[1]+'\');toggleGlobalSearch()">'+x[0]+'</button>').join('')||'<p class="p-2 text-gray-500">Tidak ditemukan.</p>';b.classList.remove('hidden');}
+        function runGlobalSearch(v){const q=(v||'').toLowerCase(),b=document.getElementById('global-search-results');if(!b)return;const items=[['Dashboard','home'],['Chat','chat'],['Markas Tim','tim'],['Crew Hub','crewhub'],['Profil Anda','anda'],['Editor Naskah & Teleprompter','grimoire'],['Ghoustnote','ghoustnote'],['Analisis AI','analisis'],['Arsip Segmen','segmen'],['Radar Analitik','radar']].filter(x=>x.join(' ').toLowerCase().includes(q));b.innerHTML=items.map(x=>'<button class="block w-full text-left p-2 hover:bg-gray-800" onclick="showPage(\''+x[1]+'\');toggleGlobalSearch()">'+x[0]+'</button>').join('')||'<p class="p-2 text-gray-500">Tidak ditemukan.</p>';b.classList.remove('hidden');}
         let crewSchedules=[],crewProfiles=[],crewAssignments=[],crewAttendance=[],activeAttendanceQueue=[];
         let crewCalendarMonth=new Date().getMonth(),crewCalendarYear=new Date().getFullYear();
         function changeCrewMonth(delta){crewCalendarMonth+=delta;if(crewCalendarMonth<0){crewCalendarMonth=11;crewCalendarYear--;}if(crewCalendarMonth>11){crewCalendarMonth=0;crewCalendarYear++;}renderCrewCalendar();}
@@ -2771,9 +2800,16 @@
           title.textContent=months[crewCalendarMonth]+' '+crewCalendarYear;grid.innerHTML='';
           const offset=new Date(crewCalendarYear,crewCalendarMonth,1).getDay(),days=new Date(crewCalendarYear,crewCalendarMonth+1,0).getDate();
           for(let i=0;i<offset;i++)grid.insertAdjacentHTML('beforeend','<div class="min-h-12 rounded bg-black/30"></div>');
-          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<div class="min-h-12 rounded border border-gray-800 bg-black/50 p-1"><span class="text-gray-400">'+d+'</span>'+events.map(s=>'<div class="mt-1 rounded bg-red-950 px-1 py-0.5 text-[8px] leading-tight text-red-200 break-words">'+escapeHtml(s.title)+'</div>').join('')+'</div>');}
+          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<div class="min-h-12 rounded border border-gray-800 bg-black/50 p-1"><span class="text-gray-400">'+d+'</span>'+events.map(s=>'<div class="ghoul-calendar-event mt-1 rounded bg-red-950 px-1 py-0.5 text-[8px] leading-tight text-red-200" title="'+escapeHtml(s.title)+'">'+escapeHtml(s.title)+'</div>').join('')+'</div>');}
         }
 
+        function renderCrewSummary(){
+          const put=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v);};
+          put('crew-summary-schedules',crewSchedules.length);put('crew-summary-members',crewProfiles.length);put('crew-summary-production',Array.isArray(db.production)?db.production.length:0);put('crew-summary-cash',Array.isArray(db.kas)?db.kas.length:0);
+          const box=document.getElementById('crew-summary-upcoming');if(!box)return;
+          const now=new Date().toISOString().slice(0,10),up=crewSchedules.filter(x=>x.event_date>=now).sort((a,b)=>a.event_date.localeCompare(b.event_date)).slice(0,5);
+          box.innerHTML=up.length?up.map(x=>'<div class="flex items-center justify-between gap-3 rounded-lg bg-black/40 border border-gray-800 p-3"><span class="min-w-0"><b class="block">'+escapeHtml(x.title)+'</b><small class="text-gray-500">'+escapeHtml(x.event_date)+' · '+escapeHtml(x.event_time||'Jam belum ditentukan')+'</small></span><span class="text-yellow-300 shrink-0">Shooting</span></div>').join(''):'<p class="text-gray-500">Belum ada jadwal mendatang.</p>';
+        }
         function crewDaysLeft(d){const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(d+'T00:00:00')-n)/86400000);}
         async function refreshCrewHub(){
           if(!activeUser)return;
