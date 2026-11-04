@@ -2073,7 +2073,7 @@
         function editJadwal(id) {
             const sch = db.jadwal.find(j => j.id === id);
             if (sch) {
-                const values = {'j-edit-id':'legacy:'+sch.id,'j-nama':sch.title,'j-narsum':sch.narsum || '', 'j-lokasi':sch.loc || '', 'j-tgl':sch.date || '', 'j-jam':sch.time || ''};
+                const values = {'j-edit-id':'legacy:'+sch.id,'j-nama':sch.title,'j-narsum':sch.narsum || '', 'j-segmen':sch.segment || '', 'j-lokasi':sch.loc || '', 'j-tgl':sch.date || '', 'j-jam':sch.time || ''};
                 Object.entries(values).forEach(([key, value]) => { const el = document.getElementById(key); if (el) el.value = value; });
                 const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Edit Jadwal & Absensi';document.getElementById('crew-schedule-cancel')?.classList.remove('hidden');switchTab('tim','jadwal');document.getElementById('crew-schedule-form')?.scrollIntoView({behavior:'smooth',block:'start'});
             }
