@@ -2814,14 +2814,14 @@
 
         const CREW_SUMMARY_CONFIG={
           jadwal:{title:'Jadwal shooting',items:()=>crewSchedules||[],name:x=>x.title||'Jadwal tanpa judul',detail:x=>(x.event_date||'Tanggal belum ditentukan')+' · '+(x.event_time||'Jam belum ditentukan'),page:'tim',tab:'jadwal'},
-          members:{title:'Anggota kru',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Anggota kru',detail:x=>x.role||x.peran||'',page:'tim',tab:'anggota'},
+          members:{title:'Anggota kru',items:()=>crewProfiles||[],name:x=>x.nickname||x.name||x.full_name||'Anggota kru',detail:x=>x.role||x.peran||'',page:'tim'},
           production:{title:'Tugas produksi',items:()=>db.production||[],name:x=>x.title||x.name||'Tugas produksi',detail:x=>x.status||'',page:'tim',tab:'produksi'},
           cash:{title:'Data kas',items:()=>db.kas||[],name:x=>x.title||x.keterangan||x.description||x.nama||'Transaksi kas',detail:x=>x.amount!==undefined?String(x.amount):x.nominal!==undefined?String(x.nominal):'',page:'tim',tab:'kas'},
           scripts:{title:'Naskah',items:()=>db.scriptDrafts||[],name:x=>x.title||'Naskah tanpa judul',detail:x=>x.updatedAt||x.createdAt||'',page:'grimoire',tab:'editor'},
-          notulen:{title:'Notulen',items:()=>db.notulen||[],name:x=>x.topic||x.title||'Notulen',detail:x=>x.date||'',page:'tim',tab:'notulen'},
+          notulen:{title:'Notulen',items:()=>db.notulen||[],name:x=>x.topic||x.title||'Notulen',detail:x=>x.date||'',page:'tim'},
           vo:{title:'Catatan VO',items:()=>db.vo||[],name:x=>x.title||'Catatan VO',detail:x=>(x.teks||'').slice(0,90),page:'ghoustnote',tab:'vo'},
           mitos:{title:'Ide / Mitos',items:()=>db.mitos||[],name:x=>x.text||x.title||'Ide / Mitos',detail:x=>x.research||'',page:'grimoire',tab:'mitos'},
-          metadata:{title:'Metadata',items:()=>db.metadata||[],name:x=>x.title||x.name||x.keyword||'Metadata',detail:x=>x.description||'',page:'grimoire',tab:'metadata'},
+          metadata:{title:'Metadata',items:()=>db.metadata||[],name:x=>x.title||x.name||x.keyword||'Metadata',detail:x=>x.description||'',page:'grimoire',tab:'editor'},
           segments:{title:'Arsip segmen',items:()=>db.segmenList||[],name:x=>x.title||x.name||'Arsip segmen',detail:x=>x.description||'',page:'ghoustnote',tab:'arsip'}
         };
         function openCrewSummaryList(type){
