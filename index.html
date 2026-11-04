@@ -2133,6 +2133,8 @@
         }
         function hapusTayang(id){if(!confirm('Hapus jadwal tayang ini?'))return;db.tayang=(db.tayang||[]).filter(t=>String(t.id)!==String(id));saveData();renderTayangCal();renderSegmenGrid();}
         function editTayang(id){const t=(db.tayang||[]).find(x=>String(x.id)===String(id));if(!t)return;document.getElementById('tayang-edit-id').value=t.id;document.getElementById('tayang-title').value=t.title||'';document.getElementById('tayang-segment').value=t.segment||'';document.getElementById('tayang-date').value=t.date||'';document.getElementById('tayang-time').value=t.time||'23:59';document.getElementById('tayang-agreed').checked=t.agreed!==false;document.getElementById('tayang-form-title').textContent='Edit Jadwal Tayang';document.getElementById('tayang-cancel-edit').classList.remove('hidden');document.getElementById('tayang-form-title').scrollIntoView({behavior:'smooth',block:'center'});}
+        // Perbarui label otomatis saat waktu tayang terlewati tanpa perlu reload halaman.
+        setInterval(()=>{const tab=document.getElementById('tab-segmen-kalender');if(tab?.classList.contains('active'))renderTayangCal();},30000);
 
         // JADWAL & ABSENSI & STOK
         let currMonth = new Date().getMonth(); let currYear = new Date().getFullYear();
