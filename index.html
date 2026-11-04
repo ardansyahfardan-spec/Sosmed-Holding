@@ -3363,6 +3363,7 @@ async function loadChatMessages(){
           const {data,error}=await supabaseClient.from("ghoustory_profiles").select("user_id,nickname,role,avatar_url,last_seen_at").order("nickname");
           if(error){box.textContent="Anggota gagal dimuat: "+error.message;return;}
           ritualMembers=data||[];
+          if(typeof renderChatMessages==="function")renderChatMessages();
           if(!ritualMembers.length){box.textContent="Belum ada anggota terdaftar.";return;}
           renderRitualMembers();
           await startRitualPresence();
