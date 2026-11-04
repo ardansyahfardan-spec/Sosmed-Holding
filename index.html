@@ -39,6 +39,7 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .bottom-nav-item.active { color:#f87171; background:rgba(127,29,29,.18); }
         .page-active { display: block; }
         .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
         .tab-content.active { display: block; }
@@ -249,33 +250,22 @@
     <!-- MAIN APP -->
     <div id="main-app" class="flex-grow flex flex-col opacity-0 transition-opacity duration-1000 hidden">
         
-        <!-- Navbar -->
-        <nav class="border-b border-red-900 bg-darkBg p-4 sticky top-0 z-40 shadow-md">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
-                    <img src="image_2.png" alt="Logo" class="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]" onerror="this.style.display='none'">
-                    <h1 class="text-lg sm:text-xl font-mystery font-bold tracking-widest text-white hover:text-ghoulRed transition">Ghoustory <span class="text-ghoulRed">Control Room</span></h1>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div id="online-avatars" class="flex items-center -space-x-2" aria-label="Anggota yang sedang online"></div>
-                    <div class="flex items-center gap-2 bg-darkCard border border-gray-800 px-3 py-1 rounded-full">
-                        <img id="user-avatar" src="" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-red-500">
-                        <span id="user-name-display" class="text-xs text-gray-300 font-semibold hidden md:inline">Loading...</span>
-                    </div>
-                    <div class="relative">
-                        <button onclick="toggleUserMenu()" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs">
-                            <div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div>
-                            <button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800"><i class="fa-solid fa-user-pen mr-2 text-red-400"></i> Edit Profil</button>
-                            <button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800"><i class="fa-solid fa-gear mr-2 text-blue-400"></i> Pengaturan Akun</button>
-                            <button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800 border-t border-gray-800"><i class="fa-solid fa-right-from-bracket mr-2"></i> Log out</button>
-                        </div>
-                    </div>
-                </div>
+        <nav class="border-b border-red-900/70 bg-darkBg/95 backdrop-blur p-3 sm:p-4 sticky top-0 z-40 shadow-md">
+          <div class="container mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-2 cursor-pointer min-w-0" onclick="showPage('home')">
+              <img src="ghoustory-logo.png" alt="Ghoustory" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null;this.src='image_2.png'">
+              <div class="leading-tight"><div class="font-mystery font-bold text-white text-sm sm:text-base">Ghoustory</div><div class="text-[10px] text-red-400 tracking-[.16em] uppercase">Control Room</div></div>
             </div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
+              <button onclick="openQuickScript()" class="rounded-full bg-gradient-to-r from-red-800 to-blue-800 px-3 py-2 text-xs font-bold text-white"><i class="fa-solid fa-file-pen mr-1"></i><span class="hidden sm:inline">Tulis Naskah</span><span class="sm:hidden">Naskah</span></button>
+              <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
+            </div>
+          </div>
+          <div id="global-search-panel" class="hidden container mx-auto pt-3"><input id="global-search-input" type="search" oninput="runGlobalSearch(this.value)" placeholder="Cari fitur, percakapan, atau naskah..." class="w-full rounded-xl bg-black border border-gray-700 px-4 py-3 text-sm text-white"><div id="global-search-results" class="hidden mt-2 rounded-xl border border-gray-800 bg-darkCard p-2 text-xs"></div></div>
         </nav>
 
-        <main class="container mx-auto px-2 sm:px-4 py-6 flex-grow overflow-y-auto">
+        <main class="container mx-auto px-2 sm:px-4 pt-3 pb-24 flex-grow overflow-y-auto">
 
             <!-- HOME -->
             <section id="page-home" class="page-section page-active">
@@ -533,7 +523,16 @@
                     
                     <!-- TAB JADWAL & ABSENSI -->
                     <div id="tab-tim-jadwal" class="tab-content active space-y-4">
-                        <div class="bg-black p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
+                        <div id="crew-schedule-form" class="bg-black p-4 rounded-xl border border-yellow-800/70 space-y-2 text-xs">
+                          <h4 class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id">
+                          <input id="j-nama" placeholder="Nama kegiatan / shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                          <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
+                          <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
+                          <label class="block text-gray-300 font-bold">Tugaskan kru (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
+                          <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal & Penugasan</button>
+                        </div><div class="mt-4"><div class="flex justify-between items-center mb-2"><h4 class="text-xs font-bold text-yellow-500 uppercase">Agenda Crew Hub</h4><button onclick="refreshCrewHub()" class="text-xs text-blue-300">Segarkan</button></div><div id="crew-schedule-list" class="space-y-3"><p class="text-xs text-gray-500">Memuat jadwal...</p></div></div>
+                        <div class="hidden" aria-hidden="true">
+
                             <h4 class="font-bold text-yellow-500 uppercase" id="jadwal-form-title"><i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting</h4>
                             <input type="hidden" id="j-edit-id" value="">
                             <input type="text" id="j-nama" placeholder="Nama Kegiatan (Cth: Survey Pabrik)" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
@@ -552,6 +551,7 @@
                             </div>
                         </div>
                         
+                        </div>
                         <!-- Kalender Jadwal -->
                         <div class="bg-darkBg border border-gray-800 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-3">
@@ -741,6 +741,15 @@
             </section>
 
         </main>
+        <div id="bottom-navigation" class="fixed bottom-0 inset-x-0 z-[80] border-t border-gray-800 bg-[#090b11]/95 backdrop-blur-xl px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
+          <div class="max-w-xl mx-auto grid grid-cols-4 gap-1">
+            <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-house text-lg"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Dashboard</span></button>
+            <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
+            <button data-bottom-nav="tim" onclick="navigateBottom('tim')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><i class="fa-solid fa-calendar-days text-lg"></i><i id="nav-dot-tim" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Crew Hub</span></button>
+            <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-xl py-1.5 text-gray-500"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-600"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
+          </div>
+        </div>
+
 
         <!-- FOOTER BAWAH -->
         <footer class="border-t border-gray-900 bg-black/80 py-4 px-4 text-xs text-gray-400 mt-auto">
@@ -818,6 +827,22 @@
         </div>
     </div>
 
+    <section id="page-anda" class="page-section max-w-3xl mx-auto">
+      <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
+        <div class="flex items-center gap-4 mb-6"><img id="anda-profile-avatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-red-700"><div><h2 id="anda-profile-name" class="text-xl font-bold">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300"></p><p id="anda-profile-email" class="text-[10px] text-gray-500"></p></div></div>
+        <div class="grid sm:grid-cols-2 gap-2"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Edit Profil</button><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Pengaturan Akun</button><button onclick="enableGhoustoryNotifications()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm">Pengaturan Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">Keluar</button></div>
+      </div>
+    </section>
+    <div id="crew-reminder-bar" class="hidden fixed left-3 right-3 bottom-20 z-[75] rounded-xl border border-yellow-700 bg-yellow-950 p-3 text-xs text-yellow-100"><b>Pengingat Crew Hub</b><p id="crew-reminder-text" class="mt-1"></p><button onclick="showNextAttendancePrompt()" class="mt-2 underline font-bold">Konfirmasi sekarang</button></div>
+    <div id="attendance-modal" class="hidden fixed inset-0 z-[180] bg-black/95 p-4 items-center justify-center" role="dialog" aria-modal="true">
+      <div class="w-full max-w-md rounded-2xl border border-yellow-700 bg-[#10131b] p-5">
+        <div class="text-[10px] font-bold tracking-widest text-yellow-400 mb-2">KONFIRMASI WAJIB · H-7</div><h2 class="text-xl font-bold">Konfirmasi Kehadiran</h2><p id="attendance-schedule-title" class="text-xs text-gray-400 my-3"></p>
+        <input type="hidden" id="attendance-schedule-id"><input type="hidden" id="attendance-choice">
+        <div class="grid grid-cols-2 gap-3"><button data-attendance-choice="attending" onclick="selectAttendanceChoice('attending')" class="rounded-xl border border-green-800 bg-green-950/40 p-4 text-green-300 font-bold">✓ HADIR</button><button data-attendance-choice="not_attending" onclick="selectAttendanceChoice('not_attending')" class="rounded-xl border border-red-800 bg-red-950/40 p-4 text-red-300 font-bold">✕ TIDAK HADIR</button></div>
+        <div id="attendance-absence-fields" class="hidden mt-4 space-y-2"><textarea id="attendance-reason" rows="3" class="w-full rounded-lg bg-black border border-gray-700 p-3 text-sm" placeholder="Alasan tidak bisa hadir (wajib)"></textarea><div class="grid grid-cols-2 gap-2"><input id="attendance-proposed-date" type="date" class="rounded-lg bg-black border border-gray-700 p-2 text-xs"><input id="attendance-proposed-time" placeholder="Jam alternatif" class="rounded-lg bg-black border border-gray-700 p-2 text-xs"></div></div>
+        <button onclick="submitCrewAttendance()" class="mt-5 w-full rounded-xl bg-yellow-700 py-3 text-sm font-bold">Kirim Konfirmasi</button><p class="text-[10px] text-gray-500 mt-3 text-center">Pop-up wajib dijawab sebelum melanjutkan.</p>
+      </div>
+    </div>
     <!-- TELEPROMPTER OVERLAY -->
     <div id="teleprompter-overlay" class="fixed inset-0 bg-black z-50 hidden flex-col">
         <div class="p-3 border-b border-gray-800 bg-darkBg flex justify-between items-center z-50 flex-wrap gap-2">
@@ -1109,6 +1134,8 @@
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').style.opacity = '0';
                 refreshAllLists();
+                showPage('chat'); updateBottomNavigation('chat');
+                refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
                 setTimeout(() => handleGhoustoryPushDeepLink(), 1200);
                 setTimeout(() => {
                     welcomeScreen.style.opacity = '0';
@@ -1210,6 +1237,11 @@
             if (headerName) headerName.innerText = nickname;
             const menuName = document.getElementById('user-menu-account-name');
             if (menuName) menuName.innerText = nickname + " · " + role;
+            const navAvatar=document.getElementById('nav-profile-avatar'), andaAvatar=document.getElementById('anda-profile-avatar');
+            if(navAvatar)navAvatar.src=avatar;if(andaAvatar)andaAvatar.src=avatar;
+            const an=document.getElementById('anda-profile-name'),ar=document.getElementById('anda-profile-role'),ae=document.getElementById('anda-profile-email');
+            if(an)an.textContent=nickname;if(ar)ar.textContent=role;if(ae)ae.textContent=activeUser?.email||'';
+
         }
 
         function openProfileModal(mode='edit') {
@@ -1380,6 +1412,9 @@
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
             target.classList.add('page-active');
             window.ghoustoryNavCurrentPage = pageId;
+            updateBottomNavigation(pageId==='tim'?'tim':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
+            if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
+            if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
         }
         function switchTab(feature, tabName) {
             document.querySelectorAll(`[id^="tab-${feature}"]`).forEach(el => el.classList.remove('active'));
@@ -2732,6 +2767,45 @@
                 alert('Untuk memasang aplikasi:\n1. Buka halaman ini di Google Chrome.\n2. Tekan menu titik tiga (⋮).\n3. Pilih “Install app” atau “Tambahkan ke layar utama”.');
             }
         }
+
+        function navigateBottom(page){if(page==='tim')markasTimUnlocked=true;showPage(page);}
+        function updateBottomNavigation(page){document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.bottomNav===page));}
+        function openQuickScript(){showPage('grimoire');switchTab('grimoire','editor');setTimeout(()=>document.getElementById('script-title')?.focus(),100);}
+        function toggleGlobalSearch(){const p=document.getElementById('global-search-panel');p?.classList.toggle('hidden');if(!p?.classList.contains('hidden'))document.getElementById('global-search-input')?.focus();}
+        function runGlobalSearch(v){const q=(v||'').toLowerCase(),b=document.getElementById('global-search-results');if(!b)return;const items=[['Dashboard','home'],['Chat','chat'],['Crew Hub','tim'],['Profil Anda','anda'],['Editor Naskah & Teleprompter','grimoire'],['Ghoustnote','ghoustnote'],['Analisis AI','analisis'],['Arsip Segmen','segmen'],['Radar Analitik','radar']].filter(x=>x.join(' ').toLowerCase().includes(q));b.innerHTML=items.map(x=>'<button class="block w-full text-left p-2 hover:bg-gray-800" onclick="showPage(\''+x[1]+'\');toggleGlobalSearch()">'+x[0]+'</button>').join('')||'<p class="p-2 text-gray-500">Tidak ditemukan.</p>';b.classList.remove('hidden');}
+        let crewSchedules=[],crewProfiles=[],crewAssignments=[],crewAttendance=[],activeAttendanceQueue=[];
+        function crewDaysLeft(d){const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(d+'T00:00:00')-n)/86400000);}
+        async function refreshCrewHub(){
+          if(!activeUser)return;
+          const [s,a,p,t]=await Promise.all([supabaseClient.from('ghoustory_schedules').select('*').order('event_date'),supabaseClient.from('ghoustory_schedule_assignments').select('*'),supabaseClient.from('ghoustory_profiles').select('user_id,nickname,role,avatar_url'),supabaseClient.from('ghoustory_attendance_responses').select('*')]);
+          for(const x of [s,a,p,t])if(x.error)throw x.error;
+          crewSchedules=s.data||[];crewAssignments=a.data||[];crewProfiles=p.data||[];crewAttendance=t.data||[];renderCrewHub();updateCrewReminderBar();
+        }
+        function renderCrewHub(){
+          const list=document.getElementById('crew-schedule-list');if(!list)return;
+          const sel=document.getElementById('j-crew-assignees');if(sel){const selected=new Set([...sel.selectedOptions].map(o=>o.value));sel.innerHTML=crewProfiles.map(p=>'<option value="'+p.user_id+'">'+escapeHtml(p.nickname||'Kru')+' · '+escapeHtml(p.role||'')+'</option>').join('');[...sel.options].forEach(o=>o.selected=selected.has(o.value));}
+          if(!crewSchedules.length){list.innerHTML='<p class="text-xs text-gray-500">Belum ada jadwal Crew Hub.</p>';return;}
+          list.innerHTML=crewSchedules.map(s=>{const assigned=crewAssignments.filter(a=>a.schedule_id===s.id),responses=crewAttendance.filter(a=>a.schedule_id===s.id),mine=assigned.some(a=>a.user_id===activeUser.id),my=responses.find(a=>a.user_id===activeUser.id),d=crewDaysLeft(s.event_date);const people=assigned.map(a=>{const p=crewProfiles.find(x=>x.user_id===a.user_id),r=responses.find(x=>x.user_id===a.user_id);return '<div class="flex justify-between gap-2 py-1 border-b border-gray-800 text-[10px]"><span>'+escapeHtml(p?.nickname||'Kru')+'</span><span class="'+(r?.response==='attending'?'text-green-400':r?.response==='not_attending'?'text-red-400':'text-yellow-400')+'">'+(r?.response==='attending'?'Hadir':r?.response==='not_attending'?'Tidak hadir':'Belum menjawab')+(r?.reason?' · '+escapeHtml(r.reason):'')+'</span></div>';}).join('');return '<article class="rounded-xl border border-gray-800 bg-black/60 p-3 mb-3"><div class="flex justify-between gap-2"><div><b class="text-sm">'+escapeHtml(s.title)+'</b><p class="text-[10px] text-gray-400">'+new Date(s.event_date+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+escapeHtml(s.event_time||'')+' · '+escapeHtml(s.location||'')+'</p></div><span class="text-[10px] text-yellow-400">H-'+d+'</span></div><div class="mt-2 rounded-lg bg-gray-950 p-2"><b class="text-[10px] text-gray-400">STATUS KRU</b>'+people+'</div><div class="flex flex-wrap gap-2 mt-3">'+(mine&&!my?'<button onclick="openCrewAttendance(\''+s.id+'\')" class="rounded-lg bg-yellow-700 px-3 py-2 text-[10px]">Konfirmasi</button>':'')+(mine?'<button onclick="proposeCrewChange(\''+s.id+'\')" class="rounded-lg bg-blue-900 px-3 py-2 text-[10px]">Usulkan perubahan</button>':'')+'<button onclick="crewVote(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Voting / hasil</button><button onclick="editCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-[10px]">Edit</button></div></article>';}).join('');
+        }
+        async function saveCrewSchedule(){
+          const id=document.getElementById('j-edit-id').value||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value,chosen=[...document.getElementById('j-crew-assignees').selectedOptions].map(o=>o.value);
+          if(!title||!date)return alert('Nama kegiatan dan tanggal wajib diisi.');if(!chosen.length)return alert('Pilih minimal satu kru.');
+          const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value,segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value,event_date:date,event_time:document.getElementById('j-jam').value,created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
+          let x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert(x.error.message);
+          x=await supabaseClient.from('ghoustory_schedule_assignments').delete().eq('schedule_id',id);if(x.error)return alert(x.error.message);
+          x=await supabaseClient.from('ghoustory_schedule_assignments').insert(chosen.map(user_id=>({schedule_id:id,user_id})));if(x.error)return alert(x.error.message);
+          document.getElementById('j-edit-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');await refreshCrewHub();alert('Jadwal dan penugasan tersimpan.');
+        }
+        function editCrewSchedule(id){const s=crewSchedules.find(x=>x.id===id);if(!s)return;document.getElementById('j-edit-id').value=id;document.getElementById('j-nama').value=s.title||'';document.getElementById('j-narsum').value=s.narsum||'';document.getElementById('j-lokasi').value=s.location||'';document.getElementById('j-tgl').value=s.event_date;document.getElementById('j-jam').value=s.event_time||'';const ids=new Set(crewAssignments.filter(a=>a.schedule_id===id).map(a=>a.user_id));[...document.getElementById('j-crew-assignees').options].forEach(o=>o.selected=ids.has(o.value));document.getElementById('crew-schedule-form').scrollIntoView({behavior:'smooth'});}
+        function openCrewAttendance(id){const s=crewSchedules.find(x=>x.id===id);if(!s)return;document.getElementById('attendance-schedule-id').value=id;document.getElementById('attendance-schedule-title').textContent=s.title+' · '+s.event_date;document.getElementById('attendance-choice').value='';document.getElementById('attendance-reason').value='';document.getElementById('attendance-proposed-date').value='';document.getElementById('attendance-proposed-time').value='';document.getElementById('attendance-absence-fields').classList.add('hidden');document.getElementById('attendance-modal').classList.remove('hidden');document.getElementById('attendance-modal').classList.add('flex');}
+        function selectAttendanceChoice(v){document.getElementById('attendance-choice').value=v;document.getElementById('attendance-absence-fields').classList.toggle('hidden',v!=='not_attending');document.querySelectorAll('[data-attendance-choice]').forEach(b=>b.classList.toggle('ring-2',b.dataset.attendanceChoice===v));}
+        async function submitCrewAttendance(){const id=document.getElementById('attendance-schedule-id').value,v=document.getElementById('attendance-choice').value,reason=document.getElementById('attendance-reason').value.trim();if(!v)return alert('Pilih Hadir atau Tidak hadir.');if(v==='not_attending'&&!reason)return alert('Alasan wajib diisi.');const {error}=await supabaseClient.from('ghoustory_attendance_responses').upsert({schedule_id:id,user_id:activeUser.id,response:v,reason:v==='not_attending'?reason:null,proposed_date:document.getElementById('attendance-proposed-date').value||null,proposed_time:document.getElementById('attendance-proposed-time').value||null,responded_at:new Date().toISOString()});if(error)return alert(error.message);document.getElementById('attendance-modal').classList.add('hidden');document.getElementById('attendance-modal').classList.remove('flex');await refreshCrewHub();checkCrewAttendancePrompts();}
+        function checkCrewAttendancePrompts(){if(!activeUser)return;activeAttendanceQueue=crewSchedules.filter(s=>crewDaysLeft(s.event_date)<=7&&crewDaysLeft(s.event_date)>=0&&crewAssignments.some(a=>a.schedule_id===s.id&&a.user_id===activeUser.id)&&!crewAttendance.some(a=>a.schedule_id===s.id&&a.user_id===activeUser.id));updateCrewReminderBar();if(activeAttendanceQueue.length)openCrewAttendance(activeAttendanceQueue[0].id);}
+        function showNextAttendancePrompt(){if(activeAttendanceQueue.length)openCrewAttendance(activeAttendanceQueue[0].id);}
+        function updateCrewReminderBar(){const pending=crewSchedules.filter(s=>crewDaysLeft(s.event_date)<=7&&crewDaysLeft(s.event_date)>=0&&crewAssignments.some(a=>a.schedule_id===s.id&&a.user_id===activeUser?.id)&&!crewAttendance.some(a=>a.schedule_id===s.id&&a.user_id===activeUser?.id));const bar=document.getElementById('crew-reminder-bar');if(!bar)return;bar.classList.toggle('hidden',!pending.length);document.getElementById('crew-reminder-text').textContent=pending.length+' jadwal perlu konfirmasi mulai H-7.';document.getElementById('nav-dot-tim')?.classList.toggle('hidden',!pending.length);}
+        async function proposeCrewChange(id){const reason=prompt('Alasan perubahan jadwal:');if(!reason?.trim())return;const date=prompt('Tanggal usulan baru (YYYY-MM-DD):');if(!date)return;const time=prompt('Jam usulan (opsional):')||null;const {error}=await supabaseClient.from('ghoustory_schedule_change_requests').insert({schedule_id:id,proposed_by:activeUser.id,reason:reason.trim(),proposed_date:date,proposed_time:time});if(error)return alert(error.message);alert('Usulan terkirim kepada kru yang ditugaskan.');}
+        async function crewVote(id){const {data,error}=await supabaseClient.from('ghoustory_schedule_change_requests').select('*').eq('schedule_id',id).eq('status','voting').order('created_at',{ascending:false});if(error)return alert(error.message);if(!data?.length)return alert('Belum ada usulan voting aktif.');const r=data[0],v=await supabaseClient.from('ghoustory_schedule_change_votes').select('*').eq('request_id',r.id);if(v.error)return alert(v.error.message);const choice=prompt('Usulan: '+r.reason+'\nTanggal: '+r.proposed_date+' '+(r.proposed_time||'')+'\nSetuju: '+v.data.filter(x=>x.vote==='approve').length+' · Tolak: '+v.data.filter(x=>x.vote==='reject').length+'\nKetik SETUJU atau TOLAK:');if(!choice)return;const vote=choice.toLowerCase()==='setuju'?'approve':choice.toLowerCase()==='tolak'?'reject':null;if(!vote)return alert('Pilihan hanya Setuju atau Tolak.');const x=await supabaseClient.from('ghoustory_schedule_change_votes').upsert({request_id:r.id,user_id:activeUser.id,vote,voted_at:new Date().toISOString()});if(x.error)return alert(x.error.message);const {data:all}=await supabaseClient.from('ghoustory_schedule_change_votes').select('*').eq('request_id',r.id);const total=crewAssignments.filter(a=>a.schedule_id===id).length,yes=all.filter(x=>x.vote==='approve').length,no=all.filter(x=>x.vote==='reject').length;if(yes>total/2){await supabaseClient.from('ghoustory_schedules').update({event_date:r.proposed_date,event_time:r.proposed_time,updated_at:new Date().toISOString()}).eq('id',id);await supabaseClient.from('ghoustory_schedule_change_requests').update({status:'approved'}).eq('id',r.id);alert('Mayoritas setuju. Jadwal diperbarui.');}else if(no>=Math.ceil(total/2)&&no>yes){await supabaseClient.from('ghoustory_schedule_change_requests').update({status:'rejected'}).eq('id',r.id);alert('Usulan ditolak. Jadwal lama tetap berlaku.');}else alert('Suara tersimpan. Setuju '+yes+' · Tolak '+no);}
+        
         // CHAT KRU: sinkronisasi Supabase + cache lokal per akun/perangkat
         let chatChannel = null;
         let chatMessages = [], groupSearchTerm = "", groupReactions = [], groupPins = [], groupReads = [], groupPresenceChannel = null, groupTypingTimer = null, groupReplyTo = null;
