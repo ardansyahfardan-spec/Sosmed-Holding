@@ -1885,23 +1885,19 @@
         }
 
         function resetJadwalForm() {
-            document.getElementById('j-edit-id').value = '';
-            document.getElementById('j-nama').value = ''; document.getElementById('j-narsum').value = ''; document.getElementById('j-lokasi').value = ''; document.getElementById('j-tgl').value = ''; document.getElementById('j-jam').value = '';
-            document.getElementById('jadwal-form-title').innerHTML = '<i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting';
-            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            const setValue = (id, value = '') => { const el = document.getElementById(id); if (el) el.value = value; };
+            setValue('j-edit-id'); setValue('j-nama'); setValue('j-narsum'); setValue('j-lokasi'); setValue('j-tgl'); setValue('j-jam');
+            const title = document.getElementById('jadwal-form-title'); if (title) title.innerHTML = '<i class="fa-solid fa-plus"></i> Tambah Jadwal Shooting';
+            document.getElementById('btn-cancel-edit')?.classList.add('hidden');
         }
 
         function editJadwal(id) {
             const sch = db.jadwal.find(j => j.id === id);
-            if(sch) {
-                document.getElementById('j-edit-id').value = sch.id;
-                document.getElementById('j-nama').value = sch.title;
-                document.getElementById('j-narsum').value = sch.narsum || '';
-                document.getElementById('j-lokasi').value = sch.loc || '';
-                document.getElementById('j-tgl').value = sch.date || '';
-                document.getElementById('j-jam').value = sch.time || '';
-                document.getElementById('jadwal-form-title').innerHTML = '<i class="fa-solid fa-pen"></i> Edit Jadwal Shooting';
-                document.getElementById('btn-cancel-edit').classList.remove('hidden');
+            if (sch) {
+                const values = {'j-edit-id':sch.id,'j-nama':sch.title,'j-narsum':sch.narsum || '', 'j-lokasi':sch.loc || '', 'j-tgl':sch.date || '', 'j-jam':sch.time || ''};
+                Object.entries(values).forEach(([key, value]) => { const el = document.getElementById(key); if (el) el.value = value; });
+                const title = document.getElementById('jadwal-form-title'); if (title) title.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Jadwal Shooting';
+                document.getElementById('btn-cancel-edit')?.classList.remove('hidden');
                 switchTab('tim', 'jadwal');
             }
         }
@@ -1910,14 +1906,17 @@
         function renderJadwalCal() {
             const grid = document.getElementById('jadwal-calendar-grid'); if(!grid) return;
             const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            document.getElementById('cal-month-title').innerText = `${monthNames[currMonth]} ${currYear}`;
+            const monthTitle = document.getElementById('cal-month-title');
+            const ringkasanList = document.getElementById('list-ringkasan-jadwal');
+            if (!monthTitle || !ringkasanList) return;
+            monthTitle.innerText = `${monthNames[currMonth]} ${currYear}`;
 
             grid.innerHTML = '';
             const firstDay = new Date(currYear, currMonth, 1).getDay();
             const daysInMonth = new Date(currYear, currMonth + 1, 0).getDate();
             for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-black/20 p-2 rounded"></div>`;
 
-            const ringkasanList = document.getElementById('list-ringkasan-jadwal'); ringkasanList.innerHTML = '';
+            ringkasanList.innerHTML = '';
 
             for(let day=1; day<=daysInMonth; day++) {
                 const dateStr = `${currYear}-${String(currMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
