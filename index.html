@@ -1035,6 +1035,7 @@
             }
 
             const purgedCompletedItems = await purgeCompletedItems();
+            window.__ghoustorySyncConflict = false;
             sharedSyncReady = true;
             if (purgedCompletedItems) saveData();
             if (document.getElementById('script-editor')) {
@@ -1045,6 +1046,7 @@
         function queueSharedSave(snapshot) {
             sharedSaveQueue = sharedSaveQueue
                 .then(async () => {
+                    if (window.__ghoustorySyncConflict) throw new Error('Data berubah di perangkat lain. Muat ulang halaman sebelum menyimpan lagi.');
                     const nextUpdatedAt = new Date().toISOString();
                     let query = supabaseClient
                         .from('app_state')
@@ -1056,6 +1058,7 @@
                     if (!data) {
                         const latest = await supabaseClient.from('app_state').select('updated_at').eq('id', 'ghoustory').maybeSingle();
                         if (!latest.error && latest.data?.updated_at) lastAppStateUpdatedAt = latest.data.updated_at;
+                        window.__ghoustorySyncConflict = true;
                         throw new Error('Data baru saja diubah dari perangkat lain. Muat ulang halaman sebelum menyimpan lagi agar perubahan Crew lain tidak tertimpa.');
                     }
                     lastAppStateUpdatedAt = data.updated_at || nextUpdatedAt;
