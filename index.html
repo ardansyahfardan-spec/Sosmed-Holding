@@ -89,7 +89,7 @@
          .calendar-weekdays > div { min-width: 0; white-space: nowrap; text-align: center; overflow: hidden; }
         #crew-calendar-grid > div,#jadwal-calendar-grid > div,#tayang-calendar-grid > div { min-width:0; overflow:hidden; }
         .ghoul-calendar-event { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        @media(max-width:640px){#crew-calendar-grid,#jadwal-calendar-grid,#tayang-calendar-grid{gap:3px!important}#crew-calendar-grid>div,#jadwal-calendar-grid>div,#tayang-calendar-grid>div{min-height:42px!important;padding:3px!important;border-radius:7px!important;font-size:10px!important}#crew-calendar-grid .ghoul-calendar-event,#jadwal-calendar-grid .ghoul-calendar-event,#tayang-calendar-grid .ghoul-calendar-event{font-size:0!important;height:5px!important;width:5px!important;border-radius:50%!important;padding:0!important;margin:3px auto 0!important;background:#ef4444!important}#crew-calendar-grid>div>span,#jadwal-calendar-grid>div>span,#tayang-calendar-grid>div>span{font-size:10px!important}}
+        @media(max-width:640px){#crew-calendar-grid,#jadwal-calendar-grid,#tayang-calendar-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important;width:100%!important}#crew-calendar-grid>div,#crew-calendar-grid>button,#jadwal-calendar-grid>div,#tayang-calendar-grid>div{box-sizing:border-box!important;min-width:0!important;min-height:48px!important;padding:4px 2px!important;border-radius:7px!important;font-size:10px!important}#crew-calendar-grid .ghoul-calendar-event,#jadwal-calendar-grid .ghoul-calendar-event,#tayang-calendar-grid .ghoul-calendar-event{font-size:0!important;height:6px!important;width:6px!important;border-radius:50%!important;padding:0!important;margin:4px auto 0!important;background:#ef4444!important}#crew-calendar-grid>div>span,#crew-calendar-grid>button>span,#jadwal-calendar-grid>div>span,#tayang-calendar-grid>div>span{font-size:10px!important}#crew-weekdays{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important}#crew-weekdays>div{min-width:0!important;font-size:10px!important;text-align:center!important}}
         #welcome-screen { background: radial-gradient(ellipse at center, rgba(127,29,29,.22), transparent 58%), #050505; }
         #welcome-screen .welcome-logo { width: min(58vw, 230px); max-height: 28vh; object-fit: contain; }
 
@@ -614,19 +614,19 @@
                     <!-- TAB JADWAL & ABSENSI -->
                     <div id="tab-tim-jadwal" class="tab-content active space-y-4">
                         <div id="crew-schedule-form" class="bg-black p-4 rounded-xl border border-yellow-800/70 space-y-2 text-xs">
-                          <h4 class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id">
+                          <h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id">
                           <input id="j-nama" placeholder="Nama kegiatan / shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
-                          <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button>
+                          <div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
                             <button onclick="changeCrewMonth(-1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
                             <h3 id="crew-month-title" class="font-mystery text-yellow-400 text-lg">Bulan</h3>
                             <button onclick="changeCrewMonth(1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
                           </div>
-                          <div class="calendar-weekdays grid grid-cols-7 gap-1 text-center text-xs mb-1"><div class="text-red-500 font-bold py-1">Min</div><div class="text-gray-400 font-bold py-1">Sen</div><div class="text-gray-400 font-bold py-1">Sel</div><div class="text-gray-400 font-bold py-1">Rab</div><div class="text-gray-400 font-bold py-1">Kam</div><div class="text-gray-400 font-bold py-1">Jum</div><div class="text-gray-400 font-bold py-1">Sab</div></div>
+                          <div id="crew-weekdays" class="calendar-weekdays grid grid-cols-7 gap-1 text-center text-xs mb-1"><div class="text-red-500 font-bold py-1">Min</div><div class="text-gray-400 font-bold py-1">Sen</div><div class="text-gray-400 font-bold py-1">Sel</div><div class="text-gray-400 font-bold py-1">Rab</div><div class="text-gray-400 font-bold py-1">Kam</div><div class="text-gray-400 font-bold py-1">Jum</div><div class="text-gray-400 font-bold py-1">Sab</div></div>
                           <div id="crew-calendar-grid" class="grid grid-cols-7 gap-1 text-[10px]"></div>
                         </div>
                     </div>
@@ -835,7 +835,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.6</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.7</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -1400,7 +1400,7 @@
         function closeAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
-        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v24');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
+        async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v25');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
         function openProfileModal(mode='edit') {
             profileModalMode = mode;
             const modal = document.getElementById('ghoustory-profile-modal');
@@ -2961,7 +2961,7 @@
           title.textContent=months[crewCalendarMonth]+' '+crewCalendarYear;grid.innerHTML='';
           const offset=new Date(crewCalendarYear,crewCalendarMonth,1).getDay(),days=new Date(crewCalendarYear,crewCalendarMonth+1,0).getDate();
           for(let i=0;i<offset;i++)grid.insertAdjacentHTML('beforeend','<div class="bg-black/20 p-2 rounded min-h-[45px]"></div>');
-          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">'+d+'</span>'+events.map(s=>'<div class="mt-0.5 bg-yellow-950 text-yellow-300 text-[8px] p-0.5 rounded truncate" title="'+escapeHtml(s.title)+'">'+escapeHtml(s.title)+'</div>').join('')+'</div>');}
+          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<button type="button" class="crew-calendar-day bg-black/60 p-1 rounded min-h-[48px] border border-gray-800 text-center hover:border-yellow-600 focus:outline-none focus:ring-1 focus:ring-yellow-500" onclick="selectCrewCalendarDate(\\''+date+'\\')" aria-label="Buat jadwal tanggal '+date+'"><span class="block text-gray-300 font-bold">'+d+'</span>'+events.map(s=>'<span class="block mt-1 mx-auto h-1.5 w-1.5 rounded-full bg-yellow-400" title="'+escapeHtml(s.title)+'"></span>').join('')+'</button>');}
         }
 
         const CREW_SUMMARY_CONFIG={
@@ -3482,7 +3482,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=19",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=20",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
