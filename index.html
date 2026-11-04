@@ -619,7 +619,7 @@
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
-                          <div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div>
+                          <div class="grid grid-cols-2 gap-2"><div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
                             <button onclick="changeCrewMonth(-1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
@@ -2961,7 +2961,7 @@
           title.textContent=months[crewCalendarMonth]+' '+crewCalendarYear;grid.innerHTML='';
           const offset=new Date(crewCalendarYear,crewCalendarMonth,1).getDay(),days=new Date(crewCalendarYear,crewCalendarMonth+1,0).getDate();
           for(let i=0;i<offset;i++)grid.insertAdjacentHTML('beforeend','<div class="bg-black/20 p-2 rounded min-h-[45px]"></div>');
-          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<button type="button" class="crew-calendar-day bg-black/60 p-1 rounded min-h-[48px] border border-gray-800 text-center hover:border-yellow-600 focus:outline-none focus:ring-1 focus:ring-yellow-500" onclick="selectCrewCalendarDate(\\''+date+'\\')" aria-label="Buat jadwal tanggal '+date+'"><span class="block text-gray-300 font-bold">'+d+'</span>'+events.map(s=>'<span class="block mt-1 mx-auto h-1.5 w-1.5 rounded-full bg-yellow-400" title="'+escapeHtml(s.title)+'"></span>').join('')+'</button>');}
+          for(let d=1;d<=days;d++){const date=crewCalendarYear+'-'+String(crewCalendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),events=crewSchedules.filter(s=>s.event_date===date);grid.insertAdjacentHTML('beforeend','<button type="button" class="crew-calendar-day bg-black/60 p-1 rounded min-h-[48px] border border-gray-800 text-center hover:border-yellow-600 focus:outline-none focus:ring-1 focus:ring-yellow-500" onclick="selectCrewCalendarDate(\''+date+'\')" aria-label="Buat jadwal tanggal '+date+'"><span class="block text-gray-300 font-bold">'+d+'</span>'+events.map(s=>'<span class="block mt-1 mx-auto h-1.5 w-1.5 rounded-full bg-yellow-400" title="'+escapeHtml(s.title)+'"></span>').join('')+'</button>');}
         }
 
         const CREW_SUMMARY_CONFIG={
@@ -3524,7 +3524,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=19',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=20',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
