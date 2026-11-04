@@ -1017,7 +1017,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.26</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.27</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -1602,7 +1602,6 @@
             const title = document.getElementById('profile-modal-title');
             const subtitle = document.getElementById('profile-modal-subtitle');
             const name = document.getElementById('profile-nickname');
-            const role = document.getElementById('profile-role');
             const other = document.getElementById('profile-role-other');
             const preview = document.getElementById('profile-photo-preview');
             const file = document.getElementById('profile-photo-file');
@@ -1613,10 +1612,15 @@
             title.textContent = mode === 'register' ? 'DAFTAR ANGGOTA' : 'EDIT PROFIL';
             subtitle.textContent = mode === 'register' ? 'Lengkapi profil sebelum memasuki Control Room.' : 'Perbarui identitasmu di Ghoustory.';
             name.value = activeProfile?.nickname || '';
-            const knownRoles = ['Admin','Host','Editor','Kameramen','Produser','Penulis','Desainer','Audio','Lainnya'];
-            role.value = knownRoles.includes(activeProfile?.role) ? activeProfile.role : (activeProfile?.role ? 'Lainnya' : '');
-            other.value = role.value === 'Lainnya' ? (activeProfile?.role || '') : '';
-            other.classList.toggle('hidden', role.value !== 'Lainnya');
+            const knownRoles = ['Admin','Host','Editor','Kameramen','Produser','Penulis','Desainer','Audio'];
+            const savedRoles = String(activeProfile?.role || '').split(/\s*[·,]\s*/).filter(Boolean);
+            const customRole = savedRoles.find(value => !knownRoles.includes(value));
+            const selectedRoles = savedRoles.filter(value => knownRoles.includes(value));
+            if (customRole) selectedRoles.push('Lainnya');
+            document.querySelectorAll('input[name="profile-role-option"]').forEach(input => { input.checked = selectedRoles.includes(input.value); });
+            other.value = customRole || '';
+            other.classList.toggle('hidden', !selectedRoles.includes('Lainnya'));
+            syncProfileRoleSelection();
             preview.src = activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
             file.value = '';
             save.textContent = mode === 'register' ? 'Simpan & Masuk' : 'Simpan Perubahan';
@@ -1637,10 +1641,13 @@
             const button = document.getElementById('profile-save-button');
             const status = document.getElementById('profile-save-status');
             const nickname = document.getElementById('profile-nickname').value.trim();
-            const selectedRole = document.getElementById('profile-role').value;
-            const role = selectedRole === 'Lainnya' ? document.getElementById('profile-role-other').value.trim() : selectedRole;
+            const selectedRoles = Array.from(document.querySelectorAll('input[name="profile-role-option"]:checked')).map(input => input.value);
+            const roleValues = selectedRoles.map(value => value === 'Lainnya' ? document.getElementById('profile-role-other').value.trim() : value).filter(Boolean);
+            const role = [...new Set(roleValues)].join(' · ');
             const file = document.getElementById('profile-photo-file').files?.[0];
-            if (!nickname || !role) { status.textContent = 'Nama panggilan dan peran wajib diisi.'; return; }
+            if (!nickname || !role || selectedRoles.length < 1) { status.textContent = 'Nama panggilan dan minimal satu peran wajib diisi.'; return; }
+            if (selectedRoles.length > 2) { status.textContent = 'Maksimal pilih 2 peran.'; return; }
+            if (selectedRoles.includes('Lainnya') && !document.getElementById('profile-role-other').value.trim()) { status.textContent = 'Tulis nama peran tambahanmu.'; return; }
             if (file && (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5*1024*1024)) {
                 status.textContent = 'Foto harus JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.'; return;
             }
@@ -1682,8 +1689,21 @@
             } finally { button.disabled = false; }
         }
 
+        function syncProfileRoleSelection(changedInput=null) {
+            const inputs = Array.from(document.querySelectorAll('input[name="profile-role-option"]'));
+            const selected = inputs.filter(input => input.checked);
+            if (changedInput?.checked && selected.length > 2) {
+                changedInput.checked = false;
+                alert('Maksimal pilih 2 peran.');
+            }
+            const current = inputs.filter(input => input.checked);
+            const count = document.getElementById('profile-role-count');
+            if (count) count.textContent = current.length + '/2 dipilih';
+            inputs.forEach(input => { input.disabled = !input.checked && current.length >= 2; });
+            document.getElementById('profile-role-other')?.classList.toggle('hidden', !current.some(input => input.value === 'Lainnya'));
+        }
         document.addEventListener('change', event => {
-            if (event.target?.id === 'profile-role') document.getElementById('profile-role-other')?.classList.toggle('hidden', event.target.value !== 'Lainnya');
+            if (event.target?.name === 'profile-role-option') syncProfileRoleSelection(event.target);
             if (event.target?.id === 'profile-photo-file') {
                 const file = event.target.files?.[0];
                 if (file) document.getElementById('profile-photo-preview').src = URL.createObjectURL(file);
@@ -3880,7 +3900,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=44",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=45",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3975,11 +3995,22 @@ async function markDmMessagesRead(){
         </div>
         <label class="block text-xs text-gray-300 mb-1" for="profile-nickname">Nama panggilan *</label>
         <input id="profile-nickname" required maxlength="40" autocomplete="nickname" class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Nama yang akan dilihat anggota lain">
-        <label class="block text-xs text-gray-300 mb-1" for="profile-role">Peran *</label>
-        <select id="profile-role" required class="w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-3">
-          <option value="">Pilih peran</option><option>Admin</option><option>Host</option><option>Editor</option><option>Kameramen</option><option>Produser</option><option>Penulis</option><option>Desainer</option><option>Audio</option><option value="Lainnya">Lainnya</option>
-        </select>
-        <input id="profile-role-other" maxlength="60" class="hidden w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mb-4" placeholder="Tulis peranmu">
+        <div class="mb-3">
+          <div class="flex items-center justify-between gap-2 mb-2"><label class="block text-xs text-gray-300">Peran / Jobdesk *</label><span id="profile-role-count" class="text-[10px] text-blue-300">0/2 dipilih</span></div>
+          <p class="text-[10px] text-gray-500 mb-3">Pilih maksimal 2 peran yang kamu jalankan.</p>
+          <div class="grid grid-cols-2 gap-2" id="profile-role-options">
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Admin" class="accent-red-600">Admin</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Host" class="accent-red-600">Host</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Editor" class="accent-red-600">Editor</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Kameramen" class="accent-red-600">Kameramen</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Produser" class="accent-red-600">Produser</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Penulis" class="accent-red-600">Penulis</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Desainer" class="accent-red-600">Desainer</label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Audio" class="accent-red-600">Audio</label>
+            <label class="col-span-2 flex items-center gap-2 rounded-lg border border-gray-800 bg-black/40 p-2 text-xs text-gray-200"><input type="checkbox" name="profile-role-option" value="Lainnya" class="accent-red-600">Lainnya</label>
+          </div>
+          <input id="profile-role-other" maxlength="60" class="hidden w-full rounded-lg bg-black border border-gray-700 px-3 py-3 text-sm text-white mt-2" placeholder="Tulis peran tambahanmu">
+        </div>
         <p id="profile-save-status" class="text-xs text-yellow-300 min-h-5 mb-3" role="status"></p>
         <button id="profile-save-button" type="submit" class="w-full rounded-lg bg-red-700 hover:bg-red-600 py-3 text-sm font-semibold text-white">Simpan & Masuk</button>
         <button type="button" onclick="closeProfileModal()" class="w-full mt-2 rounded-lg border border-gray-700 py-3 text-xs text-gray-400">Tutup</button>
