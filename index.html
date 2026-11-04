@@ -300,7 +300,10 @@
               <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
             </div>
           </div>
-          <div id="global-search-panel" class="hidden container mx-auto pt-3"><input id="global-search-input" type="search" oninput="runGlobalSearch(this.value)" placeholder="Cari fitur, percakapan, atau naskah..." class="w-full rounded-xl bg-black border border-gray-700 px-4 py-3 text-sm text-white"><div id="global-search-results" class="hidden mt-2 rounded-xl border border-gray-800 bg-darkCard p-2 text-xs"></div></div>
+          <div id="notification-popover" class="hidden absolute right-3 sm:right-6 top-full mt-2 w-[min(92vw,390px)] max-h-[70vh] overflow-hidden rounded-2xl border border-red-900/70 bg-[#10131b] shadow-2xl z-[100]">
+            <div class="flex items-center justify-between gap-3 p-3 border-b border-gray-800"><div><b class="text-sm text-white">Notifikasi</b><p id="notification-subtitle" class="text-[10px] text-gray-400">Pemberitahuan untukmu</p></div><button type="button" onclick="loadGhoustoryNotifications()" class="w-8 h-8 rounded-full border border-gray-700 text-gray-300" aria-label="Muat ulang notifikasi"><i class="fa-solid fa-rotate text-xs"></i></button></div>
+            <div id="notification-list" class="overflow-y-auto max-h-[58vh] p-2"><p class="text-xs text-gray-500 text-center p-5">Memuat notifikasi...</p></div>
+          </div>
         </nav>
 
         <main class="container mx-auto px-2 sm:px-4 pt-3 pb-24 flex-grow overflow-y-auto">
