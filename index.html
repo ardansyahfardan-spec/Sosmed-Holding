@@ -224,6 +224,9 @@
 
 
 /* Crew Hub: rapat, ringkas, dan semua kotak berukuran seragam */
+main.compact-page-top{padding-top:0!important}
+#page-crewhub,#page-anda{margin-top:-1.6rem!important}
+@media(max-width:640px){#page-crewhub,#page-anda{margin-top:-1.85rem!important}}
 #page-crewhub>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media(min-width:640px){#page-crewhub>.grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(min-width:900px){#page-crewhub>.grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
@@ -291,6 +294,7 @@
               <button id="header-back-button" type="button" onclick="goHeaderBack()" class="hidden w-10 h-10 shrink-0 rounded-full border border-white/15 bg-white/5 text-white" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
             <div class="flex items-center gap-2">
+              <button id="header-online-button" type="button" onclick="openOnlineCrewModal()" class="relative w-9 h-9 shrink-0 rounded-full border border-green-900/70 bg-green-950/30 text-green-300" aria-label="Lihat kru yang online" title="Kru online"><i class="fa-solid fa-signal text-xs"></i><span id="header-online-count" class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-green-600 text-white text-[9px] leading-4 font-bold">0</span></button>
               <button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
               <button onclick="openQuickScript()" class="w-10 h-10 rounded-full border border-red-800/70 bg-gradient-to-br from-red-950 to-blue-950 text-white" aria-label="Tulis naskah" title="Tulis naskah"><i class="fa-solid fa-pen-to-square"></i></button>
               <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
@@ -340,7 +344,7 @@
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih anggota terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="GHOUSTORY AI" aria-label="GHOUSTORY AI" class="w-10 h-10 shrink-0 rounded-full bg-blue-900 border border-blue-700 text-white"><i class="fa-solid fa-robot"></i></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><p class="text-[10px] text-gray-300">Obrolan bersama tim</p></div><span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
+                    <div class="bg-gradient-to-r from-red-950 to-blue-950 p-3 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h2 class="font-mystery text-lg text-white"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW</h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="block text-[10px] text-green-300 text-left hover:text-green-200">0 online</button></div><span id="chat-connection" class="text-[10px] text-gray-300">Menghubungkan...</span></div>
                     <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -752,6 +756,13 @@
             <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
             <button data-bottom-nav="tim" onclick="navigateBottom('tim')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-calendar-days text-lg"></i><i id="nav-dot-tim" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Crew Hub</span></button>
             <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
+          </div>
+        </div>
+
+        <div id="online-crew-modal" class="hidden fixed inset-0 z-[220] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="online-crew-title">
+          <div class="w-full max-w-md rounded-2xl border border-green-900/60 bg-[#10131b] p-4 max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between mb-3"><div><h3 id="online-crew-title" class="font-bold text-white">Kru sedang online</h3><p id="online-crew-subtitle" class="text-[10px] text-gray-400">Memuat status anggota...</p></div><button type="button" onclick="closeOnlineCrewModal()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="online-crew-list" class="overflow-y-auto space-y-2 min-h-0"><p class="text-xs text-gray-500 py-4 text-center">Belum ada data online.</p></div>
           </div>
         </div>
 
@@ -1377,7 +1388,7 @@
             const channels=[presenceChannel,ritualPresenceChannel,groupPresenceChannel,dmPresenceChannel].filter(Boolean);
             presenceChannel=null;ritualPresenceChannel=null;groupPresenceChannel=null;dmPresenceChannel=null;
             await Promise.all(channels.map(ch=>supabaseClient.removeChannel(ch)));
-            ritualOnlineIds=new Set();
+            ritualOnlineIds=new Set();ritualOnlineUsers=[];updateOnlineCrewIndicators();
         }
         async function logoutApp() {
             if(confirm("Yakin ingin log out dari akun Google?")) {
@@ -1434,6 +1445,7 @@
         function showPage(pageId, navOptions = {}) {
             const target = document.getElementById('page-' + pageId);
             if (!target) return;
+            document.querySelector('#main-app main')?.classList.toggle('compact-page-top', pageId === 'crewhub' || pageId === 'anda');
             if(pageId!=='chat')document.getElementById('main-app')?.classList.remove('chat-room-mode');
             if (pageId === 'tim' && !markasTimUnlocked) { openMarkasTimLock(); return; }
             const current = document.querySelector('.page-section.page-active')?.id?.replace('page-','') || 'home';
@@ -2129,7 +2141,9 @@
                 const state = presenceChannel.presenceState();
                 const onlineUsers = Object.values(state).flat()
                     .filter((entry, index, all) => all.findIndex(x => x.user_id === entry.user_id) === index);
+                ritualOnlineUsers = onlineUsers;
                 ritualOnlineIds = new Set(onlineUsers.map(entry => entry.user_id).filter(Boolean));
+                updateOnlineCrewIndicators();
                 if (typeof renderRitualMembers === "function") renderRitualMembers();
                 const avatarWrap = document.getElementById("online-avatars");
                 if (avatarWrap) {
@@ -3046,7 +3060,19 @@ async function loadChatMessages(){
             if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
           }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
         }
-        let ritualPresenceChannel=null,ritualHeartbeatTimer=null,ritualOnlineIds=new Set();
+        let ritualPresenceChannel=null,ritualHeartbeatTimer=null,ritualOnlineIds=new Set(),ritualOnlineUsers=[];
+        function updateOnlineCrewIndicators(){
+          const users=Array.isArray(ritualOnlineUsers)?ritualOnlineUsers:[];
+          const count=users.length;
+          const badge=document.getElementById("header-online-count");if(badge)badge.textContent=String(count);
+          const chatStatus=document.getElementById("chat-room-online-status");if(chatStatus)chatStatus.textContent=count===1?"1 kru online":count+" kru online";
+          const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" anggota sedang aktif";
+          const list=document.getElementById("online-crew-list");if(!list)return;
+          if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada kru yang online.</p>';return;}
+          list.innerHTML=users.map(u=>{const name=u.name||"Kru";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Anggota kru")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
+        }
+        function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
+        function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
         function renderRitualMembers(){
           const box=document.getElementById("ritual-members-list");if(!box)return;
           if(!ritualMembers.length){box.textContent="Belum ada anggota terdaftar.";return;}
