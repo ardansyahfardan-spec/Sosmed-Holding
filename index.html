@@ -221,7 +221,7 @@
 #page-chat .gh-chat-row{display:flex;width:100%;margin:2px 0;align-items:flex-end}
 #page-chat .gh-chat-row.is-own{justify-content:flex-end}
 #page-chat .gh-chat-row.is-other{justify-content:flex-start}
-#page-chat .gh-chat-row.same-sender{margin-top:0}
+#page-chat .gh-chat-row.same-sender{margin-top:0}\n#page-chat .gh-chat-avatar{width:28px;height:28px;min-width:28px;object-fit:cover;border-radius:999px;border:1px solid rgba(96,165,250,.55);box-shadow:0 2px 8px rgba(0,0,0,.35);margin:0 6px 3px}\n#page-chat .gh-chat-row.same-sender .gh-chat-avatar{visibility:hidden}
 #page-chat .gh-chat-bubble{position:relative;max-width:min(82%,520px);padding:7px 10px 5px;border:0!important;border-radius:14px!important;box-shadow:0 1px 1px rgba(0,0,0,.22);overflow-wrap:anywhere}
 #page-chat .gh-chat-bubble.is-own{background:#7f1d1d!important;border-radius:14px 4px 14px 14px!important}
 #page-chat .gh-chat-bubble.is-other{background:#252a32!important;border-radius:4px 14px 14px 14px!important}
@@ -925,7 +925,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.17</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.18</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -3196,6 +3196,11 @@ function enableChatSwipeActions(box){
  box.addEventListener("contextmenu",e=>{const b=e.target.closest(".gh-chat-bubble");if(b){e.preventDefault();openChatMessageMenu(b);}});
 }
 
+        function getGhoustoryChatAvatar(userId,storedAvatar,name){
+          const member=ritualMembers.find(p=>p.user_id===userId);
+          const profileAvatar=userId===activeUser?.id?activeProfile?.avatar_url:member?.avatar_url;
+          return profileAvatar||storedAvatar||"https://ui-avatars.com/api/?name="+encodeURIComponent(name||"Crew")+"&background=172554&color=fff";
+        }
 function renderChatMessages(){
  const box=document.getElementById("chat-messages");if(!box)return;
  const visible=chatMessages.filter(m=>!groupSearchTerm||[m.body,m.sender_name,m.data_title].some(v=>String(v||"").toLowerCase().includes(groupSearchTerm.toLowerCase())));
@@ -3206,14 +3211,15 @@ function renderChatMessages(){
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
   let body=escapeHtml(msg.deleted_at?"Pesan dihapus":msg.body||"");
   if(!msg.deleted_at&&isShared){const cfg=CHAT_COLLECTIONS[msg.data_type],item=getChatLinkedItem(msg),title=escapeHtml(item?(cfg?.title(item)||msg.data_title):msg.data_title||"Data"),desc=item?(item.date?new Date(item.date+"T00:00:00").toLocaleDateString("id-ID")+(item.time?" · "+item.time:""):item.status||item.segment||item.topic||"Data tersimpan di fitur terkait"):"Data asli sudah dihapus atau tidak tersedia.";body='<div class="rounded-xl border border-blue-900 bg-blue-950/40 p-3 min-w-[210px]"><div class="text-[10px] text-blue-300 font-bold mb-1">DATA DIBAGIKAN</div><div class="font-semibold text-white text-sm">'+title+'</div><div class="text-[11px] text-gray-300 mt-1">'+escapeHtml(desc)+'</div>'+(item?'<button onclick="openSharedChatData(\''+escapeHtml(msg.data_type)+'\',\''+escapeHtml(msg.data_id)+'\')" class="mt-3 text-xs bg-blue-800 px-3 py-2 rounded-lg">Lihat data asli</button>':'<div class="text-[10px] text-gray-500 mt-2">Referensi tidak lagi tersedia.</div>')+'</div>';}else if(!isShared){body=body.replace(/(^|\\s)(@[A-Za-z0-9_.-]+)/g,'$1<span class="text-blue-300 font-semibold">$2</span>');body='<div class="text-sm text-white whitespace-pre-wrap break-words">'+body+'</div>';}
-  const bubble=isAI?"bg-blue-950/70 border border-blue-700":isShared?"bg-gray-900 border border-blue-900":own?"bg-red-950 border border-red-800":"bg-gray-900 border border-gray-800";
   const counts=groupReactions.filter(r=>r.message_id===msg.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
   const reactions=Object.entries(counts).map(([e,n])=>'<button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\''+e+'\')" class="text-xs rounded-full bg-gray-800 border border-gray-700 px-2 py-1">'+e+' '+n+'</button>').join("");
   const pinned=groupPins.some(p=>p.message_id===msg.id);
   const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
   const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
-  const actions="";
-  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own&&!msg.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';
+  const avatarUrl=getGhoustoryChatAvatar(msg.sender_id,msg.sender_avatar,msg.sender_name);
+  const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil '+who+'" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
+  return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!isAI&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own&&!msg.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div><div class="gh-chat-reactions">'+reactions+'</div></div>'+(!samePrev&&!isAI&&own?avatarHtml:'')+'</div>';
  }).join("");
  enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
 }
@@ -3413,8 +3419,10 @@ async function openDirectMessage(otherId){
   const counts=dmReactions.filter(r=>r.message_id===m.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
   const reactions=Object.entries(counts).map(([e,n])=>'<button type="button" onclick="toggleDmReaction(\''+m.id+'\',\''+e+'\')" class="text-xs rounded-full bg-gray-800 px-2 py-1">'+e+' '+n+'</button>').join("");
   const pinned=dmPins.some(p=>p.message_id===m.id);
-  const actions="";
-  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own&&!m.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div><div class="gh-chat-reactions">'+reactions+'</div>'+actions+'</div></div>';
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";
+  const avatarUrl=own?(activeProfile?.avatar_url||activeUser?.user_metadata?.avatar_url||getGhoustoryChatAvatar(activeUser?.id,"",activeProfile?.nickname||"Anda")):(activeDmMember?.avatar_url||getGhoustoryChatAvatar(m.sender_id,"",activeDmMember?.nickname||"Crew"));
+  const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
+  return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own&&!m.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div><div class="gh-chat-reactions">'+reactions+'</div></div>'+(!samePrev&&own?avatarHtml:'')+'</div>';
  }).join("");
  enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
 }
@@ -3595,7 +3603,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=31",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=32",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3637,7 +3645,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=31',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=32',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
