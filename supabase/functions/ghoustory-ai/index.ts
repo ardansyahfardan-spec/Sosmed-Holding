@@ -194,7 +194,7 @@ TERJEMAHAN:
 ${translatedTranscript}`;
       requestParts = [{ text: prompt }];
       if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
- else if (task === "shorts-moment-finder") {
+    } else if (task === "shorts-moment-finder") {
       const audioBase64 = String(body.audioBase64 || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
       if (audioMimeType !== "audio/mpeg") return json({ error: "Shorts Moment Finder hanya menerima audio MP3." }, 400);
