@@ -169,6 +169,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
+  let uploadedGeminiFileName = "";
   try {
     console.log("[ghoustory-ai] stage=reading_request");
     const body = await req.json();
@@ -361,7 +362,7 @@ Pastikan semua nilai views berupa integer. Jika label metrik utama tidak jelas, 
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
       const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey);
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
-      (globalThis as any).__ghoustoryUploadedGeminiFile = uploadedAudio.name;
+      uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten untuk kanal horor Indonesia Ghoustory. Dengarkan seluruh file MP3 ini. Audio dapat menggunakan bahasa Jawa (termasuk dialek Jawa Timur/Sidoarjo), bahasa Indonesia, atau campuran. Judul/keterangan: ${title}.
 
 TUGAS:
@@ -509,7 +510,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
 
     console.log("[ghoustory-ai] stage=gemini_response status=" + response.status);
     const responseText = await response.text();
-    const uploadedGeminiFile = String((globalThis as any).__ghoustoryUploadedGeminiFile || "");
+    const uploadedGeminiFile = uploadedGeminiFileName;
     if (uploadedGeminiFile) {
       try {
         await fetch("https://generativelanguage.googleapis.com/v1beta/" + uploadedGeminiFile, {
@@ -520,7 +521,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       } catch (cleanupError) {
         console.warn("[ghoustory-ai] temporary Gemini file cleanup failed:", cleanupError);
       }
-      delete (globalThis as any).__ghoustoryUploadedGeminiFile;
+      uploadedGeminiFileName = "";
     }
     console.log("[ghoustory-ai] stage=response_body_received chars=" + responseText.length);
     let result: Record<string, any>;
