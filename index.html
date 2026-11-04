@@ -2207,14 +2207,17 @@
             const item = db.production.find(x => String(x.id) === String(id));
             if (!item) return;
             if (!confirm('Hapus "' + (item.title || "Konten") + '" dari Tracker Produksi?')) return;
+            const linked=db.production.find(x=>String(x.id)===String(id));
             db.production = db.production.filter(x => String(x.id) !== String(id));
+            if(linked?.sourceScheduleId) db.stok=db.stok.filter(x=>String(x.sourceScheduleId)!==String(linked.sourceScheduleId));
             saveData();
-            renderProductionTracker();
+            renderProductionTracker();renderStok();
         }
         function updateProductionStatus(id, status) {
             const item = db.production.find(x => String(x.id) === String(id));
             if (!item || !PRODUCTION_STAGES.includes(status)) return;
             item.status = status;
+            if(item.sourceScheduleId){const linkedStock=db.stok.find(x=>String(x.sourceScheduleId)===String(item.sourceScheduleId));if(linkedStock)linkedStock.status=status;}
             item.updatedAt = new Date().toISOString();
             item.updatedBy = activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
             saveData();
