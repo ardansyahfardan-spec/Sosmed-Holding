@@ -570,7 +570,7 @@ main.compact-page-top>#page-anda{margin-top:-.65rem!important;position:relative!
                           <input id="j-nama" placeholder="Nama kegiatan / shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
-                          <label class="block text-gray-300 font-bold">Tugaskan Crew (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun kru dari daftar.</p>
+                          <label class="block text-gray-300 font-bold">Tugaskan Crew (akun masing-masing)</label><select id="j-crew-assignees" multiple size="4" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></select><p class="text-[10px] text-gray-500">Pilih beberapa akun Crew dari daftar.</p>
                           <button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal & Penugasan</button>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
@@ -878,7 +878,7 @@ main.compact-page-top>#page-anda{margin-top:-.65rem!important;position:relative!
     <section id="page-anda" class="page-section max-w-3xl mx-auto">
       <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
         <div class="flex flex-col gap-5">
-          <div class="flex items-center gap-4 min-w-0 rounded-xl bg-black/30 border border-gray-800 p-4"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold break-words">Profil Kru</h2><p id="anda-profile-role" class="text-xs text-blue-300 mt-1"></p><p id="anda-profile-email" class="text-[11px] text-gray-500 break-all mt-1"></p></div></div>
+          <div class="flex items-center gap-4 min-w-0 rounded-xl bg-black/30 border border-gray-800 p-4"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold break-words">Profil Crew</h2><p id="anda-profile-role" class="text-xs text-blue-300 mt-1"></p><p id="anda-profile-email" class="text-[11px] text-gray-500 break-all mt-1"></p></div></div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-user-pen block text-lg mb-1"></i>Edit Profil</button><button onclick="openNotificationSettings()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-xs sm:text-sm text-red-300"><i class="fa-solid fa-right-from-bracket block text-lg mb-1"></i>Keluar</button></div>
         </div>
       </div>
@@ -918,7 +918,7 @@ main.compact-page-top>#page-anda{margin-top:-.65rem!important;position:relative!
             <img src="image_2.png" alt="Ghoustory" class="h-16 w-16 object-contain mx-auto mb-4" onerror="this.style.display='none'">
             <p class="text-[10px] tracking-[.28em] text-blue-300 font-bold mb-2">GHOUSTORY CONTROL ROOM</p>
             <h2 id="markas-tim-lock-title" class="font-mystery text-xl font-bold text-white mb-2">MARKAS TIM</h2>
-            <p class="text-xs text-gray-400 mb-5">Masukkan password untuk membuka ruang internal kru.</p>
+            <p class="text-xs text-gray-400 mb-5">Masukkan password untuk membuka ruang internal Crew.</p>
             <form onsubmit="event.preventDefault(); verifyMarkasTimPassword();" class="space-y-3">
                 <input id="markas-tim-password" type="password" autocomplete="off" placeholder="Masukkan password" class="w-full rounded-xl border border-gray-700 bg-black/70 px-4 py-3 text-center text-white tracking-widest outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
                 <p id="markas-tim-lock-status" class="min-h-[18px] text-xs text-red-400" role="status" aria-live="polite"></p>
@@ -3443,7 +3443,7 @@ async function markDmMessagesRead(){
       <div class="w-full max-w-sm rounded-2xl border border-red-800/70 bg-gradient-to-br from-[#171015] via-[#101018] to-[#0b1422] p-6 text-center shadow-[0_0_45px_rgba(185,28,28,.22)]">
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-red-700/60 bg-red-950/60 text-red-300"><i class="fa-solid fa-bell text-2xl"></i></div>
         <h2 id="ghoustory-notification-title" class="font-mystery text-xl font-bold text-white">Izinkan notifikasi?</h2>
-        <p class="mt-2 text-sm leading-relaxed text-gray-300">Aktifkan notifikasi agar pesan dari kru tetap bisa kamu terima meskipun Ghoustory sedang tidak dibuka.</p>
+        <p class="mt-2 text-sm leading-relaxed text-gray-300">Aktifkan notifikasi agar pesan dari Crew tetap bisa kamu terima meskipun Ghoustory sedang tidak dibuka.</p>
         <div class="mt-5 grid grid-cols-2 gap-3">
           <button type="button" onclick="acceptGhoustoryNotificationPrompt()" class="rounded-xl bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700">Ya</button>
           <button type="button" onclick="acceptGhoustoryNotificationPrompt()" class="rounded-xl border border-blue-600 bg-blue-950/70 px-4 py-3 text-sm font-bold text-white hover:bg-blue-900">Tidak</button>
