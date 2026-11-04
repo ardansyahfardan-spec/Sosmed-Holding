@@ -297,6 +297,91 @@
 #gh-chat-message-menu .gh-chat-menu-actions button{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 9px;font-size:13px;border-radius:8px}
 #gh-chat-message-menu .gh-chat-menu-actions button i{width:16px;color:#cbd5e1}
 #gh-chat-message-menu .gh-chat-menu-actions button.danger,#gh-chat-message-menu .gh-chat-menu-actions button.danger i{color:#fca5a5}
+
+/* Mobile layout cleanup v1.0.13: consistent field sizing and no horizontal overflow. */
+@media (max-width: 640px) {
+  #main-app .page-section,
+  #main-app .page-section > .glass-panel,
+  #main-app .page-section .tab-content,
+  #main-app .page-section .glass-panel {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  #main-app .page-section .grid,
+  #main-app .page-section .flex {
+    min-width: 0 !important;
+  }
+  #main-app .page-section .grid > *,
+  #main-app .page-section .flex > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  #main-app .page-section input:not([type="checkbox"]):not([type="radio"]),
+  #main-app .page-section select,
+  #main-app .page-section textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 42px;
+  }
+  #main-app .page-section button {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 40px;
+    line-height: 1.25;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  #main-app .page-section .overflow-x-auto,
+  #main-app .page-section table {
+    max-width: 100% !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form {
+    padding: .85rem !important;
+    gap: .65rem !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form > input:not([type="hidden"]) {
+    display: block;
+    margin: 0 !important;
+    padding: .75rem !important;
+    border-radius: .65rem !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form > .grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: .6rem !important;
+    width: 100% !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form > .grid > .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form > .grid button {
+    width: 100% !important;
+    padding-left: .4rem !important;
+    padding-right: .4rem !important;
+    font-size: 11px !important;
+  }
+  #tab-tim-jadwal #crew-schedule-form p {
+    line-height: 1.5 !important;
+  }
+  #tab-tim-jadwal #crew-schedule-list article {
+    min-width: 0 !important;
+    overflow-wrap: anywhere;
+  }
+  #tab-tim-jadwal #crew-schedule-list article .flex {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: .5rem !important;
+  }
+  #tab-tim-jadwal #crew-schedule-list article button {
+    flex: 1 1 125px !important;
+  }
+  #tab-tim-jadwal #crew-calendar-grid > *,
+  #tab-tim-jadwal #crew-weekdays > * {
+    min-width: 0 !important;
+  }
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -616,7 +701,7 @@
                     <div id="tab-tim-jadwal" class="tab-content active space-y-4">
                         <div id="crew-schedule-form" class="bg-black p-4 rounded-xl border border-yellow-800/70 space-y-2 text-xs">
                           <h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id">
-                          <input id="j-nama" placeholder="Nama kegiatan / shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
+                          <input id="j-nama" placeholder="Premis Cerita" aria-label="Premis Cerita" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" placeholder="Jam (contoh 20:00 WIB)" class="bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
@@ -840,7 +925,7 @@
             <p class="text-[10px] text-gray-500 mb-3">Informasi versi Ghoustory Control Room.</p>
             <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
               <div><b class="block text-sm text-white">Ghoustory Control Room</b><small class="text-[10px] text-gray-400">Pembaruan terakhir · 4 November 2026</small></div>
-              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.12</span>
+              <span class="shrink-0 rounded-full border border-blue-800/70 bg-blue-950/50 px-3 py-1 text-xs font-bold text-blue-200">v1.0.13</span>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs"><span class="text-gray-400">Status versi</span><span class="text-green-300"><i class="fa-solid fa-circle-check mr-1"></i>Versi terbaru</span></div>
             <button type="button" onclick="openAppUpdateHistory()" class="mt-3 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2.5 text-left text-xs text-gray-200 flex items-center justify-between"><span><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-300"></i>Riwayat Pembaruan</span><i class="fa-solid fa-chevron-right text-gray-500"></i></button>
@@ -3040,7 +3125,7 @@
         async function saveCrewSchedule(){
           if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
           const rawId=document.getElementById('j-edit-id').value,id=rawId||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value;
-          if(!title||!date)return alert('Nama kegiatan dan tanggal wajib diisi.');
+          if(!title||!date)return alert('Premis Cerita dan tanggal wajib diisi.');
           if(String(rawId).startsWith('legacy:')){const legacyId=String(rawId).slice(7),legacy=(db.jadwal||[]).find(j=>String(j.id)===legacyId);if(!legacy)return alert('Jadwal & Absensi tidak ditemukan.');Object.assign(legacy,{title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,loc:document.getElementById('j-lokasi').value.trim(),date,time:document.getElementById('j-jam').value.trim()});saveData();resetCrewScheduleForm();renderJadwalCal();alert('Jadwal & Absensi berhasil diperbarui.');return;}
           const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),event_date:date,event_time:document.getElementById('j-jam').value.trim(),created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString(),status:old?.status||'scheduled'};
           const x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert('Jadwal gagal disimpan: '+x.error.message);
@@ -3500,7 +3585,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=25",{scope:"./"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=26",{scope:"./"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -3542,7 +3627,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=25',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=26',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
