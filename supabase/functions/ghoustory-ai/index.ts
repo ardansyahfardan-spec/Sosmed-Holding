@@ -13,6 +13,113 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+
+function youtubeVideoId(input: string): string {
+  const u = new URL(input);
+  const host = u.hostname.toLowerCase().replace(/^www\./, "");
+  if (!["youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be", "youtube-nocookie.com"].includes(host)) throw new Error("Masukkan tautan YouTube yang valid.");
+  let id = host === "youtu.be" ? u.pathname.split("/").filter(Boolean)[0] || "" : (u.searchParams.get("v") || "");
+  if (!id) { const parts = u.pathname.split("/").filter(Boolean); if (["embed", "shorts", "live", "v"].includes(parts[0] || "")) id = parts[1] || ""; }
+  if (!/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error("ID video YouTube tidak dikenali. Periksa kembali tautannya.");
+  return id;
+}
+function decodeCaptionText(value: string): string {
+  return value.replace(/<br\s*\/?\s*>/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/\s+/g, " ").trim();
+}
+function secondsLabel(value: number): string { const s=Math.max(0,Math.floor(value)); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
+async function getYoutubeTranscript(videoId: string): Promise<{ transcript: string; language: string }> {
+  const clients = [
+    { name: "WEB", version: "2.20261101.00.00", clientName: "WEB" },
+    { name: "ANDROID", version: "20.10.38", clientName: "ANDROID" },
+    { name: "IOS", version: "20.10.4", clientName: "IOS" },
+  ];
+  let lastReason = "";
+  let tracks: any[] = [];
+
+  for (const client of clients) {
+    try {
+      const response = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Origin": "https://www.youtube.com",
+          "Referer": "https://www.youtube.com/",
+          "User-Agent": client.name === "ANDROID"
+            ? "com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip"
+            : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
+        body: JSON.stringify({
+          videoId,
+          context: {
+            client: {
+              clientName: client.clientName,
+              clientVersion: client.version,
+              hl: "id",
+              gl: "ID",
+              ...(client.name === "ANDROID" ? { androidSdkVersion: 34 } : {}),
+            },
+          },
+          contentCheckOk: true,
+          racyCheckOk: true,
+        }),
+        signal: AbortSignal.timeout(16000),
+      });
+      if (!response.ok) {
+        lastReason = "YouTube player " + client.name + " merespons HTTP " + response.status;
+        continue;
+      }
+      const player = await response.json();
+      tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      if (tracks.length) break;
+      lastReason = String(player?.playabilityStatus?.reason || "Caption tidak dikembalikan oleh client " + client.name);
+    } catch (error) {
+      lastReason = error instanceof Error ? error.message : "Gagal menghubungi YouTube";
+    }
+  }
+
+  if (!tracks.length) {
+    throw new Error("Video publik ini belum berhasil dibaca melalui jalur caption YouTube. " +
+      (lastReason ? "Detail: " + lastReason + ". " : "") +
+      "Jika caption tersedia di YouTube tetapi tetap gagal, coba unggah MP3 sebagai alternatif.");
+  }
+
+  const chosen = tracks.find((t: any) => ["jv", "id"].includes(String(t.languageCode || "").toLowerCase()))
+    || tracks.find((t: any) => String(t.kind || "") === "asr")
+    || tracks[0];
+  if (!chosen.baseUrl) throw new Error("YouTube menemukan track caption, tetapi URL caption tidak tersedia.");
+
+  const captionResponse = await fetch(String(chosen.baseUrl), {
+    headers: {
+      "Referer": "https://www.youtube.com/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+    },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!captionResponse.ok) throw new Error("Caption ditemukan, tetapi gagal diunduh (HTTP " + captionResponse.status + ").");
+  const xml = await captionResponse.text();
+  const cues: Array<{ time: number; text: string }> = [];
+  const pattern = /<text\b([^>]*)>([\s\S]*?)<\/text>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = pattern.exec(xml)) !== null) {
+    const start = Number((m[1].match(/\bstart="([^"]+)"/) || [])[1]);
+    const text = decodeCaptionText(m[2].replace(/<[^>]+>/g, ""));
+    if (Number.isFinite(start) && text) cues.push({ time: start, text });
+  }
+  if (!cues.length) {
+    const p = /<p\b([^>]*)>([\s\S]*?)<\/p>/gi;
+    while ((m = p.exec(xml)) !== null) {
+      const ms = Number((m[1].match(/\bt="([^"]+)"/) || [])[1]);
+      const text = decodeCaptionText(m[2].replace(/<[^>]+>/g, ""));
+      if (Number.isFinite(ms) && text) cues.push({ time: ms / 1000, text });
+    }
+  }
+  if (!cues.length) throw new Error("Caption berhasil diakses, tetapi format transkripnya tidak dikenali.");
+  return {
+    transcript: cues.map(c => "[" + secondsLabel(c.time) + "] " + c.text).join("\n"),
+    language: String(chosen.languageCode || "tidak diketahui"),
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -39,7 +146,26 @@ Deno.serve(async (req) => {
     let requestParts: Array<Record<string, unknown>> = [];
     let audioMimeType = "";
 
-    if (task === "script") {
+    if (task === "ritual-chat") {
+      const message = String(body.message || "").slice(0, 2000);
+      const chatContext = JSON.stringify(body.chat || []).slice(0, 7000);
+      const appContext = JSON.stringify(body.context || {}).slice(0, 12000);
+      if (!message.trim()) return json({ error: "Pertanyaan untuk GHOUSTORY AI masih kosong." }, 400);
+      prompt = `Kamu adalah GHOUSTORY AI, asisten internal untuk tim produksi kanal horor Ghoustory. Jawab dalam bahasa Indonesia yang natural, ringkas, ramah, dan praktis. Kamu membantu diskusi, jadwal, produksi, naskah, VO, notulen, ide konten, dan operasional tim.
+PENTING:
+- Gunakan konteks aplikasi yang disediakan bila relevan. Jangan mengarang data yang tidak ada.
+- Jika data tidak ditemukan, katakan tidak ditemukan dan minta detail yang diperlukan.
+- Kamu tidak dapat menyimpan, mengedit, atau menghapus data secara langsung. Jika diminta melakukan tindakan, siapkan detailnya dan katakan bahwa pengguna perlu mengonfirmasi/menyimpannya melalui aplikasi.
+- Jangan mengungkap rahasia, token, kredensial, atau data pribadi yang tidak relevan.
+- Bedakan fakta, usulan, dan dugaan. Jangan mengklaim sudah mengubah jadwal atau data.
+RIWAYAT CHAT TERAKHIR:
+${chatContext}
+KONTEKS DATA GHOUSTORY:
+${appContext}
+PERTANYAAN:
+${message}
+Berikan jawaban yang langsung membantu tim. `;
+    } else if (task === "script") {
       const guest = String(body.guest || "Narasumber").slice(0, 160);
       const location = String(body.location || "lokasi misterius").slice(0, 240);
       const premise = String(body.premise || "pengalaman mistis").slice(0, 1200);
@@ -170,14 +296,45 @@ Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf 
       if (!imageBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64)) return json({ error: "Data screenshot kosong atau tidak valid." }, 400);
       if (imageBase64.length > 11_000_000) return json({ error: "Screenshot terlalu besar. Maksimal 8 MB." }, 413);
       const platformName = platform === "youtube" ? "YouTube Studio" : platform === "tiktok" ? "TikTok Analytics" : "Meta Business Suite";
-      prompt = `Baca screenshot Analytics ${platformName} untuk membantu pemilik kanal Ghoustory mencatat performa. Tanggal laporan yang dipilih pengguna: ${reportDate || "tidak ditentukan"}.
-Ekstrak HANYA angka yang benar-benar terlihat. Jangan menebak angka yang tertutup, terpotong, atau tidak ada. Perhatikan satuan K/M dan ubah menjadi angka penuh (misalnya 1,2 rb = 1200; 3,4 jt = 3400000). Jangan menjumlahkan metrik yang berbeda. Jika screenshot menampilkan periode, tulis periodenya sebagai title singkat. Untuk metrik yang tidak terlihat, isi 0.
+      prompt = `Baca screenshot Analytics ${platformName} untuk membantu pemilik kanal Ghoustory mencatat performa. Tanggal laporan yang dipilih pengguna (tanggal akhir/per tanggal screenshot): ${reportDate || "tidak ditentukan"}.
+Ekstrak HANYA angka yang benar-benar terlihat. Jangan menebak angka metrik utama yang tertutup, terpotong, atau tidak ada. Perhatikan satuan K/M dan ubah menjadi angka penuh (misalnya 1,2 rb = 1200; 3,4 jt = 3400000). Jangan menjumlahkan metrik yang berbeda. Jika screenshot menampilkan periode, tulis periodenya sebagai title singkat. Untuk metrik total yang tidak terlihat, isi 0.
+PENTING UNTUK GRAFIK 7 HARI:
+- Jika screenshot juga menampilkan grafik harian, baca titik/kolom pada grafik beserta skala sumbu Y dan label tanggal pada sumbu X.
+- Keluarkan data harian dalam dailyViews, satu objek per tanggal yang benar-benar bisa dipetakan. Format tanggal YYYY-MM-DD.
+- Tanggal laporan pengguna adalah tanggal akhir hanya jika cocok dengan grafik. Gunakan label tanggal/hari yang terlihat untuk memetakan tanggal. Jika label hanya nama hari, petakan mundur dari tanggal laporan hanya bila urutannya jelas.
+- Nilai grafik yang tidak menampilkan angka persis boleh diperkirakan dari posisi titik/kolom terhadap skala sumbu Y, tetapi tandai confidence "medium" atau "low". Jangan membuat titik yang tidak terlihat atau mengisi hari kosong dengan tebakan.
+- Jika tanggal atau skala tidak terbaca, kembalikan dailyViews sebagai [] untuk bagian yang tidak dapat dipastikan. Jangan mengarang tanggal/nilai.
+- Setiap item dailyViews berisi date, views, confidence ("high", "medium", atau "low").
 Kembalikan HANYA JSON valid tanpa markdown:
-{"title":"nama/periode laporan singkat","views":0,"likes":0,"comments":0,"shares":0,"followers":0,"reach":0}
-Pastikan angka berupa integer. Jika label metrik tidak jelas, jangan memaksakan pemetaan ke kolom lain.`;
-      requestParts = [
+{"title":"nama/periode laporan singkat","views":0,"likes":0,"comments":0,"shares":0,"followers":0,"reach":0,"dailyViews":[{"date":"YYYY-MM-DD","views":0,"confidence":"high"}]}
+Pastikan semua nilai views berupa integer. Jika label metrik utama tidak jelas, jangan memaksakan pemetaan ke kolom lain.`;      requestParts = [
         { text: prompt },
         { inline_data: { mime_type: imageMimeType, data: imageBase64 } },
+      ];
+    } else if (task === "video-audio-analysis") {
+      const audioBase64 = String(body.audioBase64 || "");
+      audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+      if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Fitur Analisis Video menerima file MP3." }, 400);
+      if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
+      if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
+      const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
+      prompt = `Kamu adalah editor transkrip dan produser konten untuk kanal horor Indonesia Ghoustory. Dengarkan seluruh file MP3 ini. Audio dapat menggunakan bahasa Jawa (termasuk dialek Jawa Timur/Sidoarjo), bahasa Indonesia, atau campuran. Judul/keterangan: ${title}.
+
+TUGAS:
+1. Kenali bahasa yang digunakan.
+2. Buat transkrip asli sedekat mungkin dengan ucapan pembicara. Jangan mengarang bagian yang tidak terdengar; tandai [tidak terdengar].
+3. Terjemahkan transkrip ke bahasa Indonesia yang natural dan mudah dipahami. Pertahankan nama, istilah lokal, slang, dan nuansa cerita; bila istilah Jawa tidak punya padanan tepat, pertahankan istilahnya dan jelaskan singkat.
+4. Buat ringkasan cerita dalam 3–6 poin.
+5. Temukan TEPAT 5 kandidat potongan YouTube Shorts terbaik. Pilih bagian dengan hook kuat, kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi, humor spontan, atau twist. Setiap potongan WAJIB maksimal 60 detik (ideal 20–55 detik), jangan memotong di tengah kalimat, dan pastikan konteksnya cukup. Jangan pernah memilih bagian lebih dari 60 detik.
+6. Untuk setiap kandidat Shorts berikan timestamp awal/akhir, judul singkat, hook pembuka, caption, alasan pemilihan, dan kutipan ucapan untuk membantu editor menemukan bagian.
+7. Timestamp harus dihitung dari awal audio. Jika hanya dapat diperkirakan, tandai jelas sebagai perkiraan. Jangan mengarang kutipan atau detail cerita.
+
+KELUARAN HANYA JSON VALID TANPA MARKDOWN dengan struktur:
+{"title":"...","detectedLanguage":"...","fullTranscript":"transkrip asli lengkap","indonesianTranscript":"terjemahan Indonesia lengkap","summary":["..."],"moments":[{"start":"00:00:00","end":"00:00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
+Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk ditranskrip seluruhnya, nyatakan bagian yang tidak tercakup secara jujur pada fullTranscript dan jangan berpura-pura lengkap.`;
+      requestParts = [
+        { text: prompt },
+        { inline_data: { mime_type: "audio/mpeg", data: audioBase64 } },
       ];
     } else if (task === "subtitle-srt") {
       const translatedTranscript = String(body.translatedTranscript || "").slice(0, 30000);
@@ -188,7 +345,7 @@ Pastikan angka berupa integer. Jika label metrik tidak jelas, jangan memaksakan 
         return json({ error: "Data MP3 untuk penyelarasan subtitle tidak valid atau terlalu besar." }, 400);
       }
       prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${audioBase64 ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
-Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; jangan menampilkan satu cue terlalu lama; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
+Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
 Kembalikan HANYA JSON valid: {"segments":[{"start":"00:00:00.000","end":"00:00:02.400","text":"Teks subtitle"}],"timing":"aligned|estimated"}
 TERJEMAHAN:
 ${translatedTranscript}`;
@@ -200,14 +357,22 @@ ${translatedTranscript}`;
       if (audioMimeType !== "audio/mpeg") return json({ error: "Shorts Moment Finder hanya menerima audio MP3." }, 400);
       if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
       if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
-      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan TEPAT 5 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
+      prompt = `Dengarkan audio cerita/video panjang untuk kanal YouTube horor Ghoustory. Percakapan dapat memakai bahasa Indonesia, bahasa Jawa, atau campuran keduanya. Temukan 5 sampai 10 potongan terbaik untuk dijadikan YouTube Shorts. Prioritaskan bagian yang punya konteks cukup dan payoff: kejadian mengejutkan, ketegangan, pengakuan, detail ganjil, reaksi emosional, humor spontan, atau twist. Jangan memotong di tengah kalimat dan jangan memilih bagian yang membutuhkan konteks panjang yang tidak tersedia.
 Kembalikan HANYA JSON valid dengan struktur:
 {"moments":[{"start":"00:00","end":"00:45","title":"Judul pendek yang kuat","hook":"Kalimat hook pembuka untuk teks/video","caption":"Caption singkat siap pakai","reason":"Mengapa bagian ini menarik untuk Shorts","quote":"Cuplikan ucapan persis/semirip mungkin untuk membantu editor menemukan bagian"}]}
-Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Setiap potongan WAJIB berdurasi maksimal 60 detik (ideal 20–55 detik). Pastikan end dikurangi start tidak lebih dari 60 detik. Keluarkan tepat 5 kandidat bila audio memungkinkan; jangan pernah mengembalikan lebih dari 5. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
+Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS. Durasi ideal tiap potongan 20–60 detik. Jangan mengarang isi cerita atau kutipan. Jika waktu tidak dapat dipastikan dari audio, berikan perkiraan dan tandai kata "perkiraan" pada reason. Urutkan berdasarkan potensi menarik penonton, bukan urutan waktu. Judul dan caption gunakan bahasa Indonesia natural. `;
       requestParts = [
         { text: prompt },
         { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
       ];
+    } else if (task === "youtube-video-analysis") {
+      const url=String(body.url||"").trim();let videoId="";
+      try{videoId=youtubeVideoId(url);}catch(error){return json({error:error instanceof Error?error.message:"Tautan YouTube tidak valid."},400);}
+      let videoTitle=String(body.title||"").slice(0,180);
+      try{const o=await fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent("https://www.youtube.com/watch?v="+videoId),{signal:AbortSignal.timeout(12000)});if(o.ok){const info=await o.json();if(!videoTitle)videoTitle=String(info.title||"");}}catch(_){}
+      let transcriptData:{transcript:string;language:string};
+      try{transcriptData=await getYoutubeTranscript(videoId);}catch(error){return json({error:error instanceof Error?error.message:"Transkrip YouTube tidak dapat diambil."},422);}
+      prompt="Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis transkrip caption YouTube berikut. Judul video: "+videoTitle+". Bahasa caption YouTube: "+transcriptData.language+".\n\nTRANSKRIP BERTIMESTAMP:\n"+transcriptData.transcript+"\n\nTUGAS:\n1. Kenali bahasa percakapan (bisa Jawa Timur/Sidoarjo, Indonesia, atau campuran). Caption otomatis bisa salah dengar; perbaiki hanya jika konteksnya kuat.\n2. Susun transkrip asli yang dirapikan tanpa mengubah makna. Jangan mengarang.\n3. Terjemahkan seluruh transkrip ke bahasa Indonesia natural. Pertahankan istilah lokal, nama, slang, dan nuansa cerita.\n4. Buat ringkasan cerita 3–6 poin.\n5. Temukan TEPAT 5 kandidat Shorts terbaik, masing-masing maksimal 60 detik (ideal 20–55 detik), pilih hook, ketegangan, kejutan, pengakuan, reaksi, humor, atau twist. Jangan pernah mengembalikan lebih dari 5 bagian.\n6. Timestamp wajib mengacu pada timestamp caption. Jangan mengarang waktu; tandai confidence medium/low bila batas perlu diperkirakan.\n7. Berikan judul, hook, caption, alasan, dan kutipan singkat untuk setiap kandidat.\nKELUARAN HANYA JSON VALID:\n{\"title\":\"...\",\"detectedLanguage\":\"...\",\"fullTranscript\":\"...\",\"indonesianTranscript\":\"...\",\"summary\":[\"...\"],\"moments\":[{\"start\":\"00:00:00\",\"end\":\"00:00:35\",\"title\":\"...\",\"hook\":\"...\",\"caption\":\"...\",\"reason\":\"...\",\"quote\":\"...\",\"timestampConfidence\":\"high|medium|low\"}]}\nJangan mengklaim transkrip lengkap bila ada bagian terpotong. Tandai bagian yang meragukan.";
     } else if (task === "metadata") {
       const url = String(body.url || "");
       let videoTitle = "";
@@ -234,7 +399,33 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const maxOutputTokens = task === "social-screenshot" ? 1000 : task === "subtitle-srt" ? 7000 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis";
+    const maxOutputTokens = structuredJsonTask ? 32000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const videoAnalysisSchema = {
+      type: "OBJECT",
+      properties: {
+        title: { type: "STRING" },
+        detectedLanguage: { type: "STRING" },
+        fullTranscript: { type: "STRING" },
+        indonesianTranscript: { type: "STRING" },
+        summary: { type: "ARRAY", items: { type: "STRING" }, maxItems: 12 },
+        moments: {
+          type: "ARRAY",
+          maxItems: 5,
+          items: {
+            type: "OBJECT",
+            properties: {
+              start: { type: "STRING" }, end: { type: "STRING" },
+              title: { type: "STRING" }, hook: { type: "STRING" },
+              caption: { type: "STRING" }, reason: { type: "STRING" },
+              quote: { type: "STRING" }, timestampConfidence: { type: "STRING" }
+            },
+            required: ["start", "end", "title", "hook", "caption", "reason", "quote", "timestampConfidence"]
+          }
+        }
+      },
+      required: ["title", "detectedLanguage", "fullTranscript", "indonesianTranscript", "summary", "moments"]
+    };
     let response: Response | null = null;
     let activeModel = "";
 
@@ -250,7 +441,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
           body: JSON.stringify({
             contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
-            generationConfig: { temperature: 0.75, maxOutputTokens },
+            generationConfig: { temperature: structuredJsonTask ? 0.3 : 0.75, maxOutputTokens, ...(structuredJsonTask ? { responseMimeType: "application/json", responseJsonSchema: videoAnalysisSchema } : {}) },
           }),
           signal: AbortSignal.timeout(110_000),
         });
@@ -297,11 +488,23 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       }, response.status);
     }
     console.log("[ghoustory-ai] stage=extracting_text");
-    const text = (result?.candidates?.[0]?.content?.parts || [])
+    const candidate = result?.candidates?.[0];
+    if (structuredJsonTask && candidate?.finishReason === "MAX_TOKENS") {
+      return json({ error: "Hasil transkrip terlalu panjang untuk satu kali keluaran AI. Coba audio yang lebih pendek." }, 502);
+    }
+    let text = (candidate?.content?.parts || [])
       .map((part: { text?: string }) => part.text || "")
       .join("\n")
       .trim();
     if (!text) return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
+    if (structuredJsonTask) {
+      try {
+        text = JSON.stringify(JSON.parse(text));
+      } catch (_) {
+        console.error("[ghoustory-ai] stage=structured_output_invalid task=" + task + " finishReason=" + String(candidate?.finishReason || "unknown"));
+        return json({ error: "Gemini belum menghasilkan JSON analisis yang utuh. Silakan coba sekali lagi." }, 502);
+      }
+    }
     const sources = (result?.candidates?.[0]?.groundingMetadata?.groundingChunks || [])
       .map((chunk: { web?: { uri?: string; title?: string } }) => chunk.web)
       .filter((web: { uri?: string } | undefined) => !!web?.uri)
