@@ -27,6 +27,51 @@ function decodeCaptionText(value: string): string {
   return value.replace(/<br\s*\/?\s*>/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/\s+/g, " ").trim();
 }
 function secondsLabel(value: number): string { const s=Math.max(0,Math.floor(value)); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
+async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string): Promise<{ uri: string; name: string }> {
+  const parsed = new URL(audioUrl);
+  const projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
+  if (parsed.origin !== projectUrl.origin || !parsed.pathname.includes("/storage/v1/object/sign/vo-recordings/")) {
+    throw new Error("Tautan audio sementara tidak valid.");
+  }
+  const audioResponse = await fetch(audioUrl, { signal: AbortSignal.timeout(90000) });
+  if (!audioResponse.ok) throw new Error("Gagal mengambil MP3 dari penyimpanan sementara (HTTP " + audioResponse.status + ").");
+  const declaredLength = Number(audioResponse.headers.get("content-length") || 0);
+  if (declaredLength > 50 * 1024 * 1024) throw new Error("Ukuran MP3 melebihi batas 50 MB.");
+  const audioBytes = new Uint8Array(await audioResponse.arrayBuffer());
+  if (!audioBytes.length) throw new Error("File MP3 kosong.");
+  if (audioBytes.length > 50 * 1024 * 1024) throw new Error("Ukuran MP3 melebihi batas 50 MB.");
+
+  const startResponse = await fetch("https://generativelanguage.googleapis.com/upload/v1beta/files?key=" + encodeURIComponent(apiKey), {
+    method: "POST",
+    headers: {
+      "X-Goog-Upload-Protocol": "resumable",
+      "X-Goog-Upload-Command": "start",
+      "X-Goog-Upload-Header-Content-Length": String(audioBytes.length),
+      "X-Goog-Upload-Header-Content-Type": "audio/mpeg",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ file: { display_name: displayName.slice(0, 180) } }),
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!startResponse.ok) throw new Error("Gemini gagal menyiapkan upload file (HTTP " + startResponse.status + ").");
+  const uploadUrl = startResponse.headers.get("x-goog-upload-url");
+  if (!uploadUrl) throw new Error("Gemini tidak memberikan alamat upload file.");
+  const finishResponse = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "X-Goog-Upload-Offset": "0",
+      "X-Goog-Upload-Command": "upload, finalize",
+      "Content-Length": String(audioBytes.length),
+    },
+    body: audioBytes,
+    signal: AbortSignal.timeout(90000),
+  });
+  if (!finishResponse.ok) throw new Error("Upload MP3 ke Gemini gagal (HTTP " + finishResponse.status + ").");
+  const uploaded = await finishResponse.json();
+  const file = uploaded?.file;
+  if (!file?.uri || !file?.name) throw new Error("Gemini tidak mengembalikan identitas file yang valid.");
+  return { uri: String(file.uri), name: String(file.name) };
+}
 async function getYoutubeTranscript(videoId: string): Promise<{ transcript: string; language: string }> {
   const clients = [
     { name: "WEB", version: "2.20261101.00.00", clientName: "WEB" },
@@ -282,10 +327,7 @@ KELUARAN HARUS DUA BAGIAN:
 ⏳ BELUM DIPUTUSKAN — hanya hal yang masih menggantung; jika tidak ada, tulis "—".
 
 Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf panjang, pengulangan, dan basa-basi. Jangan mengarang nama, keputusan, tanggal, PIC, atau tenggat. Bedakan usulan dari keputusan. Jika pembicara tidak dapat dikenali dengan yakin, jangan menebak identitasnya. Topik rapat: ${topic}. Pisahkan dengan heading TRANSKRIP dan NOTULEN.`;
-      requestParts = [
-        { text: prompt },
-        { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
-      ];
+      if (requestParts.length) requestParts[0] = { text: prompt };
     } else if (task === "social-screenshot") {
       const imageBase64 = String(body.imageBase64 || "");
       const imageMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -312,12 +354,14 @@ Pastikan semua nilai views berupa integer. Jika label metrik utama tidak jelas, 
         { inline_data: { mime_type: imageMimeType, data: imageBase64 } },
       ];
     } else if (task === "video-audio-analysis") {
-      const audioBase64 = String(body.audioBase64 || "");
+      const audioUrl = String(body.audioUrl || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Fitur Analisis Video menerima file MP3." }, 400);
-      if (!audioBase64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)) return json({ error: "Data MP3 kosong atau tidak valid." }, 400);
-      if (audioBase64.length > 23_000_000) return json({ error: "MP3 terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
+      if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey);
+      requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
+      (globalThis as any).__ghoustoryUploadedGeminiFile = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten untuk kanal horor Indonesia Ghoustory. Dengarkan seluruh file MP3 ini. Audio dapat menggunakan bahasa Jawa (termasuk dialek Jawa Timur/Sidoarjo), bahasa Indonesia, atau campuran. Judul/keterangan: ${title}.
 
 TUGAS:
@@ -332,17 +376,17 @@ TUGAS:
 KELUARAN HANYA JSON VALID TANPA MARKDOWN dengan struktur:
 {"title":"...","detectedLanguage":"...","fullTranscript":"transkrip asli lengkap","indonesianTranscript":"terjemahan Indonesia lengkap","summary":["..."],"moments":[{"start":"00:00:00","end":"00:00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
 Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk ditranskrip seluruhnya, nyatakan bagian yang tidak tercakup secara jujur pada fullTranscript dan jangan berpura-pura lengkap.`;
-      requestParts = [
-        { text: prompt },
-        { inline_data: { mime_type: "audio/mpeg", data: audioBase64 } },
-      ];
+      requestParts[0] = { text: prompt };
     } else if (task === "subtitle-srt") {
       const translatedTranscript = String(body.translatedTranscript || "").slice(0, 30000);
-      const audioBase64 = String(body.audioBase64 || "");
+      const audioUrl = String(body.audioUrl || "");
       audioMimeType = String(body.mimeType || "audio/mpeg").split(";")[0].trim().toLowerCase();
       if (!translatedTranscript.trim()) return json({ error: "Teks terjemahan kosong." }, 400);
-      if (audioBase64 && (audioMimeType !== "audio/mpeg" || !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64) || audioBase64.length > 23_000_000)) {
-        return json({ error: "Data MP3 untuk penyelarasan subtitle tidak valid atau terlalu besar." }, 400);
+      if (audioUrl) {
+        if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
+        const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey);
+        requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
+        (globalThis as any).__ghoustoryUploadedGeminiFile = uploadedAudio.name;
       }
       prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${audioBase64 ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
 Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
@@ -465,6 +509,19 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
 
     console.log("[ghoustory-ai] stage=gemini_response status=" + response.status);
     const responseText = await response.text();
+    const uploadedGeminiFile = String((globalThis as any).__ghoustoryUploadedGeminiFile || "");
+    if (uploadedGeminiFile) {
+      try {
+        await fetch("https://generativelanguage.googleapis.com/v1beta/" + uploadedGeminiFile, {
+          method: "DELETE",
+          headers: { "x-goog-api-key": apiKey },
+          signal: AbortSignal.timeout(10000),
+        });
+      } catch (cleanupError) {
+        console.warn("[ghoustory-ai] temporary Gemini file cleanup failed:", cleanupError);
+      }
+      delete (globalThis as any).__ghoustoryUploadedGeminiFile;
+    }
     console.log("[ghoustory-ai] stage=response_body_received chars=" + responseText.length);
     let result: Record<string, any>;
     try {
