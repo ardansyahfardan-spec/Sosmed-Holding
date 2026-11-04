@@ -215,6 +215,29 @@
 #page-chat .chat-composer>button{flex:0 0 auto}
 #page-chat .chat-compose-field{min-width:0}
 
+
+/* WhatsApp-inspired chat bubbles: clean, compact, and consistent across DM/group. */
+#page-chat #chat-messages,#page-chat #dm-messages{display:flex;flex-direction:column;gap:3px!important;padding:12px!important;background-color:#080b10!important}
+#page-chat .gh-chat-row{display:flex;width:100%;margin:2px 0;align-items:flex-end}
+#page-chat .gh-chat-row.is-own{justify-content:flex-end}
+#page-chat .gh-chat-row.is-other{justify-content:flex-start}
+#page-chat .gh-chat-row.same-sender{margin-top:0}
+#page-chat .gh-chat-bubble{position:relative;max-width:min(82%,520px);padding:7px 10px 5px;border:0!important;border-radius:14px!important;box-shadow:0 1px 1px rgba(0,0,0,.22);overflow-wrap:anywhere}
+#page-chat .gh-chat-bubble.is-own{background:#7f1d1d!important;border-radius:14px 4px 14px 14px!important}
+#page-chat .gh-chat-bubble.is-other{background:#252a32!important;border-radius:4px 14px 14px 14px!important}
+#page-chat .gh-chat-sender{font-size:11px;font-weight:700;color:#93c5fd;margin:0 0 3px;line-height:1.25}
+#page-chat .gh-chat-body{font-size:14px;line-height:1.42;color:#f8fafc;white-space:pre-wrap;overflow-wrap:anywhere}
+#page-chat .gh-chat-meta{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:3px;font-size:10px;line-height:1;color:#c4cbd5;white-space:nowrap}
+#page-chat .gh-chat-ticks{font-size:12px;letter-spacing:-2px;color:#9ca3af}
+#page-chat .gh-chat-ticks.is-read{color:#67d5f5}
+#page-chat .gh-chat-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;padding:2px 3px;font-size:10px;opacity:.88}
+#page-chat .gh-chat-actions button{padding:1px 0}
+#page-chat .gh-chat-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+#page-chat .gh-chat-reactions button{border-radius:999px;background:#171d27;border:1px solid #374151;padding:2px 7px;font-size:11px}
+#page-chat .gh-chat-bubble .gh-chat-quote{margin:0 0 6px;padding:5px 7px;border-left:3px solid #60a5fa;border-radius:5px;background:rgba(0,0,0,.2);font-size:11px;color:#d1d5db}
+#page-chat .gh-chat-bubble .gh-chat-shared{max-width:100%}
+@media(max-width:640px){#page-chat .gh-chat-bubble{max-width:88%}#page-chat .gh-chat-body{font-size:14px}#page-chat #chat-messages,#page-chat #dm-messages{padding:10px!important}}
+
 /* Fix sentuhan kolom pesan RITUAL CREW pada layar sentuh */
 #page-chat.chat-room-open #group-chat-card{position:relative!important;isolation:isolate}
 #page-chat.chat-room-open #group-chat-card .chat-composer{position:relative!important;z-index:100!important;pointer-events:auto!important;flex-shrink:0!important}
@@ -3010,7 +3033,7 @@
  const box=document.getElementById("chat-messages");if(!box)return;
  const visible=chatMessages.filter(m=>!groupSearchTerm||[m.body,m.sender_name,m.data_title].some(v=>String(v||"").toLowerCase().includes(groupSearchTerm.toLowerCase())));
  if(!visible.length){box.innerHTML='<div class="text-center text-xs text-gray-500 py-10">'+(groupSearchTerm?'Tidak ada pesan yang cocok.':'Belum ada pesan. Mulai obrolan dengan Crew!')+'</div>';return;}
- box.innerHTML=visible.map(msg=>{
+ box.innerHTML=visible.map((msg,index)=>{
   const isAI=msg.message_type==="ai",isShared=msg.message_type==="shared_data",own=msg.sender_id===activeUser?.id&&!isAI,who=escapeHtml(msg.sender_name||"Crew"),when=msg.created_at?new Date(msg.created_at).toLocaleString("id-ID",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}):"";
   const quoted=msg.reply_to?chatMessages.find(x=>x.id===msg.reply_to):null;
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
@@ -3023,7 +3046,7 @@
   const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
   const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
   const actions='<div class="flex gap-2 items-center mt-2 flex-wrap"><button type="button" onclick="setGroupReply(\''+msg.id+'\')" class="text-[10px] text-blue-300">Balas</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleGroupReaction(\''+msg.id+'\',\'👍\')">👍</button><button type="button" onclick="toggleGroupPin(\''+msg.id+'\')" class="text-[10px] '+(pinned?'text-yellow-300':'text-gray-400')+'">'+(pinned?'★ Disematkan':'☆ Pin')+'</button>'+(own&&!msg.deleted_at?'<button type="button" onclick="editGroupMessage(\''+msg.id+'\')" class="text-[10px] text-gray-300">Edit</button><button type="button" onclick="deleteGroupMessage(\''+msg.id+'\')" class="text-[10px] text-red-300">Hapus</button>':"")+'</div>';
-  return '<div class="flex '+(isAI?'justify-center':own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+bubble+'"><div class="text-[10px] font-bold text-blue-300 mb-1">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>'+quote+body+'<div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+'</div>'+readStatus+'<div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+actions+'</div></div>';
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+(isAI?'<i class="fa-solid fa-robot mr-1"></i>':"")+who+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'<div class="gh-chat-reactions">'+reactions+'</div>'+'<div class="gh-chat-actions">'+actions.replace(/<div class="flex gap-2 items-center mt-2 flex-wrap">|<\\/div>/g,"")+'</div></div></div>';
  }).join("");
  box.scrollTop=box.scrollHeight;
 }
@@ -3214,7 +3237,7 @@ async function openDirectMessage(otherId){
  if(!dmMessages.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Belum ada pesan. Sapa '+escapeHtml(activeDmMember?.nickname||"anggota ini")+'!</p>';return;}
  const visible=dmMessages.filter(m=>!dmSearchTerm||String(m.body||"").toLowerCase().includes(dmSearchTerm.toLowerCase()));
  if(!visible.length){box.innerHTML='<p class="text-xs text-gray-500 text-center py-10">Tidak ada pesan yang cocok.</p>';return;}
- box.innerHTML=visible.map(m=>{
+ box.innerHTML=visible.map((m,index)=>{
   const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
   const counts=dmReactions.filter(r=>r.message_id===m.id).reduce((o,r)=>(o[r.emoji]=(o[r.emoji]||0)+1,o),{});
@@ -3222,7 +3245,7 @@ async function openDirectMessage(otherId){
   const pinned=dmPins.some(p=>p.message_id===m.id);
   const actions='<div class="flex items-center justify-end gap-3 mt-1 text-[10px]"><button type="button" onclick="setDmReply(\''+m.id+'\')" class="text-blue-300">Balas</button>'+(own&&!m.deleted_at?'<button type="button" onclick="editDmMessage(\''+m.id+'\')" class="text-gray-300">Edit</button><button type="button" onclick="deleteDmMessage(\''+m.id+'\')" class="text-red-300">Hapus</button>':"")+'<button type="button" onclick="toggleDmPin(\''+m.id+'\')" class="text-yellow-300">'+(pinned?'★ Pin':'☆ Pin')+'</button></div>';
   const quick='<div class="flex gap-2 mt-1"><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'❤️\')">❤️</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'😂\')">😂</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'😱\')">😱</button><button type="button" onclick="toggleDmReaction(\''+m.id+'\',\'👍\')">👍</button></div>';
-  return '<div class="flex '+(own?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl px-3 py-2 '+(own?'bg-red-950 border border-red-800':'bg-gray-900 border border-gray-800')+'">'+quote+'<div class="text-sm text-white whitespace-pre-wrap break-words">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="text-[9px] text-gray-400 text-right mt-1">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+(own?' · '+(dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id)?'Dibaca':'Terkirim'):"")+'</div><div class="flex flex-wrap gap-1 mt-1">'+reactions+'</div>'+quick+actions+'</div></div>';
+  const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div><div class="gh-chat-reactions">'+reactions+'</div>'+quick+actions+'</div></div>';
  }).join("");
  box.scrollTop=box.scrollHeight;
 }
