@@ -1477,6 +1477,7 @@
             window.ghoustoryNavCurrentPage = pageId;
             updateBottomNavigation(pageId==='crewhub'?'tim':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
+            if(activeUser)loadGhoustoryNotifications();
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
@@ -2912,6 +2913,7 @@
           const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value,segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value,event_date:date,event_time:document.getElementById('j-jam').value,created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
           const x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert(x.error.message);
           try{await insertChatMessage({body:'📅 Jadwal Crew Hub baru/diperbarui: '+title+' · '+date+'. Semua Crew dapat melihat jadwal dan mengonfirmasi kehadiran.',message_type:'system',notify:true});}catch(noticeError){console.warn('Jadwal tersimpan, tetapi pesan grup gagal:',noticeError);}
+          await createCrewNotifications(crewProfiles.map(p=>p.user_id),'Jadwal Crew Hub diperbarui',title+' · '+date,'schedule','crewhub');
           document.getElementById('j-edit-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');await refreshCrewHub();alert('Jadwal tersimpan. Semua Crew dapat ikut.');
         }
         function editCrewSchedule(id){const s=crewSchedules.find(x=>x.id===id);if(!s)return;document.getElementById('j-edit-id').value=id;document.getElementById('j-nama').value=s.title||'';document.getElementById('j-narsum').value=s.narsum||'';document.getElementById('j-lokasi').value=s.location||'';document.getElementById('j-tgl').value=s.event_date;document.getElementById('j-jam').value=s.event_time||'';document.getElementById('crew-schedule-form').scrollIntoView({behavior:'smooth'});}
