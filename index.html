@@ -2367,6 +2367,7 @@
             db.kas = [{ id: Date.now(), date: new Date().toLocaleDateString('id-ID',{month:'short',day:'numeric'}), desc: "Saldo Pindahan", amount: total }];
             saveData(); renderKas();
         }
+        function editKas(id){const item=db.kas.find(x=>String(x.id)===String(id));if(!item)return;const desc=prompt("Edit keterangan transaksi:",item.desc||"");if(desc===null)return;if(!desc.trim())return alert("Keterangan wajib diisi.");const date=prompt("Edit tanggal transaksi:",item.date||"");if(date===null)return;if(!date.trim())return alert("Tanggal wajib diisi.");const fallback=[{label:item.desc||"Transaksi",amount:Math.abs(Number(item.amount)||0),type:Number(item.amount)>=0?"in":"out"}];const details=Array.isArray(item.details)&&item.details.length?item.details:fallback;const raw=prompt("Edit rincian transaksi (JSON). Setiap item wajib memiliki label, amount, dan type (in/out):",JSON.stringify(details,null,2));if(raw===null)return;let parsed;try{parsed=JSON.parse(raw);if(!Array.isArray(parsed)||!parsed.length||parsed.some(d=>!d||!String(d.label||"").trim()||!Number.isFinite(Number(d.amount))||Number(d.amount)<0||!["in","out"].includes(d.type)))throw Error("Format rincian tidak valid.");}catch(e){return alert("Rincian tidak valid: "+e.message);}item.desc=desc.trim();item.date=date.trim();item.details=parsed.map(d=>({label:String(d.label).trim(),amount:Number(d.amount),type:d.type}));item.amount=item.details.reduce((sum,d)=>sum+(d.type==="in"?d.amount:-d.amount),0);item.updatedAt=new Date().toISOString();saveData();renderKas();}
         function hapusKas(id){if(!confirm('Hapus transaksi kas ini?'))return;db.kas=db.kas.filter(x=>x.id!==id);saveData();renderKas();}
         function renderKas() {
             const c = document.getElementById('list-ledger');
@@ -2384,7 +2385,7 @@
                     if(isOut) totalKeluar += amount; else totalMasuk += amount;
                     rows.push({date:k.date||'-', label:d.label||k.desc||'Transaksi', amount, type:isOut?'out':'in'});
                 });
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${Number(k.amount||0).toLocaleString('id-ID')}</b><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${Number(k.amount||0).toLocaleString('id-ID')}</b><button onclick="editKas(${k.id})" class="text-yellow-400" title="Edit transaksi"><i class="fa-solid fa-pen"></i></button><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
             });
             document.getElementById('total-saldo-kas').innerText = `Rp ${total.toLocaleString('id-ID')}`;
             if(cetak) {
