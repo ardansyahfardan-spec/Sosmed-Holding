@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ghoustory-control-room-v12';
+const CACHE_NAME = 'ghoustory-control-room-v13';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -56,15 +56,12 @@ self.addEventListener('push', (event) => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; } catch (_) {}
   const title = payload.title || 'Ghoustory Control Room';
-  const options = {
-    body: payload.body || 'Kamu menerima pesan baru.',
-    icon: './icon-192.png',
-    badge: './apple-touch-icon%202.png',
-    tag: payload.tag || 'ghoustory-message',
-    renotify: true,
-    data: { url: payload.url || './' }
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    let style = 'vibrate';
+    try { const cache = await caches.open(CACHE_NAME); const pref = await cache.match('./notification-preferences.json'); if (pref) style = (await pref.json()).style || 'vibrate'; } catch (_) {}
+    const options = { body: payload.body || 'Kamu menerima pesan baru.', icon: './icon-192.png', badge: './apple-touch-icon%202.png', tag: payload.tag || 'ghoustory-message', renotify: true, ...(style === 'vibrate' ? { vibrate: [180, 90, 180] } : {}), data: { url: payload.url || './' } };
+    await self.registration.showNotification(title, options);
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {
