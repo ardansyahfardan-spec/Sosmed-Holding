@@ -67,8 +67,20 @@ async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, api
   });
   if (!finishResponse.ok) throw new Error("Upload MP3 ke Gemini gagal (HTTP " + finishResponse.status + ").");
   const uploaded = await finishResponse.json();
-  const file = uploaded?.file;
+  let file = uploaded?.file;
   if (!file?.uri || !file?.name) throw new Error("Gemini tidak mengembalikan identitas file yang valid.");
+  for (let attempt = 0; attempt < 10 && file.state && file.state !== "ACTIVE"; attempt++) {
+    if (file.state === "FAILED") throw new Error("Gemini gagal menyiapkan audio untuk dianalisis.");
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const stateResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/" + file.name, {
+      headers: { "x-goog-api-key": apiKey },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!stateResponse.ok) throw new Error("Status pemrosesan MP3 di Gemini tidak dapat diperiksa.");
+    const stateData = await stateResponse.json();
+    file = stateData?.file || stateData;
+  }
+  if (file.state && file.state !== "ACTIVE") throw new Error("Gemini masih memproses audio. Silakan coba lagi sebentar.");
   return { uri: String(file.uri), name: String(file.name) };
 }
 async function getYoutubeTranscript(videoId: string): Promise<{ transcript: string; language: string }> {
