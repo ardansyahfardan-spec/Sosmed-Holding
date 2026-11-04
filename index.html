@@ -777,6 +777,11 @@
         <div class="flex flex-col gap-5">
           <div class="flex items-center gap-4 min-w-0 rounded-xl bg-black/30 border border-gray-800 p-4"><img id="anda-profile-avatar" src="" class="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-red-700"><div class="min-w-0"><h2 id="anda-profile-name" class="text-xl font-bold break-words">Profil Crew</h2><p id="anda-profile-role" class="text-xs text-blue-300 mt-1"></p><p id="anda-profile-email" class="text-[11px] text-gray-500 break-all mt-1"></p></div></div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="openProfileModal('edit')" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-user-pen block text-lg mb-1"></i>Edit Profil</button><button onclick="openNotificationSettings()" class="rounded-xl border border-gray-700 bg-gray-900 p-3 text-xs sm:text-sm"><i class="fa-solid fa-bell block text-lg mb-1"></i>Notifikasi</button><button onclick="logoutApp()" class="rounded-xl border border-red-900 bg-red-950/40 p-3 text-xs sm:text-sm text-red-300"><i class="fa-solid fa-right-from-bracket block text-lg mb-1"></i>Keluar</button></div>
+          <div class="rounded-xl border border-gray-800 bg-black/30 p-4">
+            <h3 class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-gear text-blue-300 mr-2"></i>Pengaturan Akun</h3>
+            <p class="text-[10px] text-gray-500 mb-3">Kelola penyimpanan sementara pada perangkat ini.</p>
+            <button type="button" onclick="clearGhoustoryCache()" class="w-full flex items-center gap-3 rounded-xl border border-red-900/60 bg-red-950/20 p-3 text-left text-sm text-red-200"><i class="fa-solid fa-trash-can text-lg"></i><span><b class="block">Bersihkan Cache</b><small class="text-[10px] text-gray-400">Hapus file sementara aplikasi di perangkat ini.</small></span></button>
+          </div>
         </div>
       </div>
     </section>
@@ -1295,6 +1300,7 @@
 
         }
 
+        async function clearGhoustoryCache(){if(!confirm('Bersihkan cache aplikasi di perangkat ini? Data akun, chat, jadwal, Kas, dan Supabase tidak akan dihapus.'))return;try{if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ghoustory-control-room-')).map(k=>caches.delete(k)));}if(activeUser)localStorage.removeItem('ghoustory-chat-'+activeUser.id);alert('Cache sementara perangkat berhasil dibersihkan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){alert('Cache belum berhasil dibersihkan: '+e.message);}}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeNotificationSettings(){const m=document.getElementById('notification-settings-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         async function saveNotificationSettings(){const choice=document.querySelector('input[name="ghoustory-notif-style"]:checked')?.value||'vibrate';localStorage.setItem('ghoustory-notification-style',choice);try{if('caches' in window){const cache=await caches.open('ghoustory-control-room-v13');await cache.put('./notification-preferences.json',new Response(JSON.stringify({style:choice}),{headers:{'Content-Type':'application/json'}}));}}catch(e){console.warn('Preferensi push lokal:',e);}closeNotificationSettings();alert('Preferensi notifikasi disimpan pada perangkat ini.');}
