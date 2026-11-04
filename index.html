@@ -3445,7 +3445,7 @@ async function markDmMessagesRead(){
           }catch(error){console.warn("Tautan notifikasi tidak dapat dibuka:",error);}
         }
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js?v=15',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
+          navigator.serviceWorker.register('./sw.js?v=14',{scope:'./'}).catch(error=>console.warn('Service Worker:',error));
         }
 </script>
 
