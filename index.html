@@ -222,6 +222,19 @@
 #page-chat.chat-room-open #group-chat-card #chat-input{position:relative!important;z-index:101!important;pointer-events:auto!important;touch-action:manipulation!important}
 #page-chat.chat-room-open #group-chat-card #chat-input{display:block!important;min-width:0!important;opacity:1!important;-webkit-user-select:text!important;user-select:text!important}
 
+
+/* Crew Hub: compact dashboard tiles across phone/tablet/desktop */
+#page-crewhub .crew-hub-tile{min-height:104px;height:104px;max-height:104px;gap:0}
+#page-crewhub .crew-hub-tile>i{font-size:1.05rem;margin-bottom:.35rem}
+#page-crewhub .crew-hub-tile>b{font-size:1.1rem;line-height:1.2}
+#page-crewhub .crew-hub-tile>span{font-size:9px;line-height:1.2}
+@media(min-width:640px){#page-crewhub .crew-hub-tile{height:116px;min-height:116px;max-height:116px}}
+/* Chat room uses its own back button; hide the global header to prevent stacked back controls. */
+#main-app.chat-room-mode>nav{display:none!important}
+#page-chat.chat-room-open .chat-room-back{width:2.5rem!important;height:2.5rem!important;min-width:2.5rem!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 2.5rem!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:9999px!important;background:rgba(0,0,0,.28)!important;margin:0!important;padding:0!important;position:relative!important}
+#page-chat.chat-room-open #direct-chat-card>div:first-child,#page-chat.chat-room-open #group-chat-card>div:first-child{min-height:3.75rem!important;gap:.65rem!important;padding:.65rem .85rem!important;align-items:center!important}
+#page-chat.chat-room-open #direct-chat-card>div:first-child>div,#page-chat.chat-room-open #group-chat-card>div:first-child>div{min-width:0!important;flex:1 1 auto!important}
+#page-chat.chat-room-open #dm-status,#page-chat.chat-room-open #chat-connection{flex:0 0 auto!important;white-space:nowrap!important}
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -268,7 +281,7 @@
               <button id="header-back-button" type="button" onclick="goHeaderBack()" class="hidden w-10 h-10 shrink-0 rounded-full border border-white/15 bg-white/5 text-white" aria-label="Kembali"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
+              <button onclick="openSystemStatus()" class="w-9 h-9 shrink-0 rounded-full border border-gray-800 text-gray-400" aria-label="Status sistem" title="Status sistem"><i class="fa-solid fa-signal text-xs"></i></button><button onclick="toggleGlobalSearch()" class="w-10 h-10 rounded-full border border-gray-800 text-gray-300" aria-label="Pencarian"><i class="fa-solid fa-magnifying-glass"></i></button>
               <button onclick="openQuickScript()" class="w-10 h-10 rounded-full border border-red-800/70 bg-gradient-to-br from-red-950 to-blue-950 text-white" aria-label="Tulis naskah" title="Tulis naskah"><i class="fa-solid fa-pen-to-square"></i></button>
               <div class="relative"><button onclick="toggleUserMenu()" class="hidden"><i class="fa-solid fa-ellipsis-vertical"></i></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-darkCard border border-gray-800 rounded-lg shadow-xl overflow-hidden z-50 text-xs"><div class="px-4 py-3 border-b border-gray-800"><div class="text-[10px] text-gray-500 mb-1">AKUN GHOUSTORY</div><div id="user-menu-account-name" class="text-white font-semibold break-words">Memuat akun...</div></div><button onclick="openProfileModal('edit')" class="w-full text-left px-4 py-3 text-gray-200 hover:bg-gray-800">Edit Profil</button><button onclick="logoutApp()" class="w-full text-left px-4 py-3 text-red-400 border-t border-gray-800">Log out</button></div></div>
             </div>
@@ -309,7 +322,7 @@
                 <div id="chat-room-panel" class="hidden min-w-0">
                   <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="w-9 h-9 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
+                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih anggota untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
                     <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -732,25 +745,22 @@
           </div>
         </div>
 
-        <!-- FOOTER BAWAH -->
-        <footer class="border-t border-gray-900 bg-black/80 py-4 px-4 text-xs text-gray-400 mt-auto">
-            <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
-                <div class="flex items-center gap-3">
-                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                    <span class="font-mono text-[11px]">Aplikasi: <b id="sync-status" class="text-yellow-400">Menghubungkan...</b> | Waktu: <b id="live-clock" class="text-ghoulRed">00:00:00 WIB</b></span>
-                </div>
-                <div class="text-center font-mystery text-[11px] text-gray-500 truncate max-w-xs">
-                    👻 "Waspada bisikan di balik layar kendali..."
-                </div>
-                <div class="flex items-center gap-4 text-[11px]">
-                    <span>Kas: <b id="footer-kas" class="text-green-400">Rp 0</b></span>
-                    <span>Stok: <b id="footer-stok" class="text-yellow-400">0 Video</b></span>
-                    <span>AI: <b id="footer-ai" class="text-blue-300">Gemini siap</b></span>
-                    <span class="flex flex-wrap items-center gap-1">Kru online: <b id="footer-online" class="text-green-300">0 akun</b><span id="footer-online-names" class="text-gray-400"></span></span>
-                    <span>Sync: <b id="footer-synced">-</b></span>
-                </div>
+        <div id="system-status-modal" class="hidden fixed inset-0 z-[210] bg-black/90 p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="system-status-title">
+          <div class="w-full max-w-md rounded-2xl border border-red-900 bg-[#10131b] p-5">
+            <div class="flex items-center justify-between mb-4"><h3 id="system-status-title" class="font-bold">Status Sistem</h3><button type="button" onclick="closeSystemStatus()" class="w-9 h-9 rounded-full border border-gray-700 text-gray-300" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="space-y-3 text-xs text-gray-300">
+              <div class="flex justify-between gap-3"><span>Aplikasi</span><b id="sync-status" class="text-yellow-400">Menghubungkan...</b></div>
+              <div class="flex justify-between gap-3"><span>Waktu</span><b id="live-clock" class="text-red-300">00:00:00 WIB</b></div>
+              <div class="flex justify-between gap-3"><span>Kas</span><b id="footer-kas" class="text-green-400">Rp 0</b></div>
+              <div class="flex justify-between gap-3"><span>Stok</span><b id="footer-stok" class="text-yellow-400">0 Video</b></div>
+              <div class="flex justify-between gap-3"><span>AI</span><b id="footer-ai" class="text-blue-300">Gemini siap</b></div>
+              <div class="flex justify-between gap-3"><span>Kru online</span><b id="footer-online" class="text-green-300">0 akun</b></div>
+              <div id="footer-online-names" class="text-[11px] text-gray-500"></div>
+              <div class="flex justify-between gap-3"><span>Sinkronisasi</span><b id="footer-synced">-</b></div>
             </div>
-        </footer>
+            <p class="text-[10px] text-gray-500 mt-4">Informasi ini hanya ditampilkan saat dibutuhkan agar ruang kerja tetap rapi.</p>
+          </div>
+        </div>
     </div>
 
     <!-- MODAL PREVIEW / EDIT NOTULEN -->
@@ -820,7 +830,7 @@
     <section id="page-crewhub" class="page-section max-w-5xl mx-auto">
       <div class="mb-4"><h2 class="text-xl font-bold">Crew Hub</h2><p class="text-xs text-gray-400 mt-1">Pilih kotak untuk melihat daftar data dari setiap fitur.</p></div>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-        <button onclick="openCrewSummaryList('jadwal')" class="glass-panel aspect-square rounded-xl p-3 border border-yellow-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-calendar-days text-xl text-yellow-300 mb-2"></i><b id="crew-summary-schedules" class="text-xl text-yellow-300">0</b><span class="text-[10px] text-gray-300 mt-1">Jadwal shooting</span></button>
+        <button onclick="openCrewSummaryList('jadwal')" class="crew-hub-tile glass-panel rounded-xl p-2 border border-yellow-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-calendar-days text-xl text-yellow-300 mb-2"></i><b id="crew-summary-schedules" class="text-xl text-yellow-300">0</b><span class="text-[10px] text-gray-300 mt-1">Jadwal shooting</span></button>
         <button onclick="openCrewSummaryList('members')" class="glass-panel aspect-square rounded-xl p-3 border border-blue-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-users text-xl text-blue-300 mb-2"></i><b id="crew-summary-members" class="text-xl text-blue-300">0</b><span class="text-[10px] text-gray-300 mt-1">Anggota kru</span></button>
         <button onclick="openCrewSummaryList('production')" class="glass-panel aspect-square rounded-xl p-3 border border-green-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-list-check text-xl text-green-300 mb-2"></i><b id="crew-summary-production" class="text-xl text-green-300">0</b><span class="text-[10px] text-gray-300 mt-1">Tugas produksi</span></button>
         <button onclick="openCrewSummaryList('cash')" class="glass-panel aspect-square rounded-xl p-3 border border-red-900/60 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-wallet text-xl text-red-300 mb-2"></i><b id="crew-summary-cash" class="text-xl text-red-300">0</b><span class="text-[10px] text-gray-300 mt-1">Data kas</span></button>
@@ -3053,8 +3063,10 @@ async function loadChatMessages(){
           await loadDirectConversations();
         }
         
-         function showChatInbox(){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
-         function showChatRoom(kind,navOptions={}){const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");if(!navOptions.fromHistory&&window.ghoustoryNavReady&&!page?.classList.contains("chat-room-open")){const depth=(window.ghoustoryNavDepth||0)+1;window.ghoustoryNavDepth=depth;history.pushState({ghoustoryApp:true,page:"chat",chatRoom:kind,depth},"");}panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
+         function openSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
+        function closeSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
+        function showChatInbox(){document.getElementById("main-app")?.classList.remove("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
+         function showChatRoom(kind,navOptions={}){document.getElementById("main-app")?.classList.add("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");if(!navOptions.fromHistory&&window.ghoustoryNavReady&&!page?.classList.contains("chat-room-open")){const depth=(window.ghoustoryNavDepth||0)+1;window.ghoustoryNavDepth=depth;history.pushState({ghoustoryApp:true,page:"chat",chatRoom:kind,depth},"");}panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
          function openGroupRoom(){showChatRoom("group");loadChatMessages().then(markGroupMessagesRead);}
          function toggleRitualMembers(){document.getElementById("ritual-members-list")?.classList.toggle("hidden");}
          function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
