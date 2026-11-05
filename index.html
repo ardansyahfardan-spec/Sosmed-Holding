@@ -843,6 +843,44 @@ nav.sticky {
   #page-home .gcr-home-item { transition: none; }
 }
 
+
+/* HEADER POLISH — align the top bar with the dark + cream palette */
+#main-app > nav.sticky {
+  background: rgba(23,24,30,.97) !important;
+  border-bottom: 1px solid rgba(233,223,207,.10) !important;
+  box-shadow: 0 5px 18px rgba(0,0,0,.14) !important;
+}
+#header-page-title { color: #eee8dd !important; }
+#header-page-subtitle { color: #c18c82 !important; }
+#main-app > nav #header-online-button,
+#main-app > nav #header-notification-button {
+  border: 1px solid rgba(233,223,207,.13) !important;
+  background: #252730 !important;
+  color: #e9dfcf !important;
+  box-shadow: none !important;
+}
+#main-app > nav #header-online-button {
+  color: #a8c7b0 !important;
+}
+#main-app > nav #header-online-count {
+  background: #557d63 !important;
+}
+#main-app > nav button[aria-label="Tulis naskah"] {
+  border: 1px solid rgba(169,77,88,.30) !important;
+  background: #38272d !important;
+  color: #eadfd0 !important;
+  box-shadow: none !important;
+}
+#main-app > nav #header-notification-button:hover,
+#main-app > nav #header-online-button:hover,
+#main-app > nav button[aria-label="Tulis naskah"]:hover {
+  background: #30323c !important;
+}
+#main-app > nav #notification-popover {
+  background: #22242c !important;
+  border-color: rgba(233,223,207,.14) !important;
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
