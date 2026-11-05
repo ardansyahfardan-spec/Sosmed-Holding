@@ -6332,7 +6332,7 @@ const arenaModes={
   {q:'Aku adalah tokoh cerita rakyat Jawa Timur yang dikaitkan dengan Tambak Oso, Waru. Siapa aku?',a:['Jaka Tarub','Sarip Tambak Oso','Roro Jonggrang'],c:1},
   {q:'Aku adalah makhluk dalam cerita rakyat yang sering digambarkan sebagai penjaga tempat tertentu. Istilah umumku?',a:['Penunggu','Pujangga','Pelaut'],c:0},
   {q:'Aku adalah tradisi membersihkan makam menjelang Ramadan atau hari tertentu di sejumlah daerah Jawa.',a:['Sedekah laut','Nyadran','Kasada'],c:1}]},
- pencerita:{title:'Sang Pencerita',intro:'Racik cerita horor pendek dari kata-kata acak. Karya akan tampil di papan Arena untuk dibaca Crew.',prompt:'Buat cerita 80–500 karakter yang memuat tiga kata ini: LONCENG · SUMUR · JAM 03.00'},
+ pencerita:{title:'Sang Pencerita',intro:'Racik cerita horor pendek dari kata-kata acak untuk tantangan kreatif pribadi.',prompt:'Buat cerita 80–500 karakter yang memuat tiga kata ini: LONCENG · SUMUR · JAM 03.00'},
  tantangan:{title:'Tantangan Rahasia',intro:'Misi harian: satu teka-teki rahasia untuk seluruh Crew.',questions:[
   {q:'Aku bisa dipatahkan tanpa disentuh. Aku bisa diberikan, tetapi juga diingkari. Apakah aku?',a:['Janji','Cermin','Kaca'],c:0},
   {q:'Aku menyimpan suara masa lalu, tetapi tidak punya mulut. Apakah aku?',a:['Lentera','Rekaman','Peta'],c:1},
@@ -6373,21 +6373,21 @@ window.answerArena=function(choice){
 async function finishArenaGame(){
  const mode=arenaCurrent,game=arenaModes[mode],panel=$('arena-play-panel');
  panel.innerHTML=arenaBackHeader('HASIL PERMAINAN',game.title)+'<div class="text-center py-4"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-xl font-bold text-white mt-3">Tantangan Selesai</h3><p class="text-sm text-gray-400 mt-1">'+esc(game.title)+'</p><p class="text-4xl font-bold text-red-200 mt-3">'+arenaScore+' <span class="text-sm">Poin Jiwa</span></p><p class="text-xs text-gray-500 mt-2">Jawaban benar '+arenaAnswers.filter(a=>a.correct).length+' dari '+arenaAnswers.length+'</p><div id="arena-save-status" class="text-xs text-gray-400 mt-4">Menyimpan hasil...</div><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button></div>';
- await saveArenaResult(mode,arenaScore,{answers:arenaAnswers});
- const status=$('arena-save-status');if(status)status.textContent='Hasil tersimpan di klasemen Crew.';
+ const saved=await saveArenaResult(mode,arenaScore);
+ const status=$('arena-save-status');if(status)status.textContent=saved?'Skor tersimpan di klasemen. Detail sesi tidak disimpan.':'Skor belum tersimpan. Periksa koneksi lalu coba lagi.';
 }
 window.submitArenaStory=async function(){
  const input=$('arena-story-input'),story=(input?.value||'').trim(),panel=$('arena-play-panel');
  if(story.length<80){alert('Cerita minimal 80 karakter.');return;}
  const status=document.createElement('p');status.className='text-xs text-gray-400 mt-3';status.textContent='Mengirim cerita...';panel.appendChild(status);
- const ok=await saveArenaResult('pencerita',20,{story:story});
- status.textContent=ok?'Cerita tersimpan di papan Arena. Kamu mendapat 20 Poin Jiwa untuk partisipasi.':'Cerita belum berhasil disimpan. Coba lagi.';
+ const ok=await saveArenaResult('pencerita',20);
+ status.textContent=ok?'Partisipasi tercatat di klasemen. Kamu mendapat 20 Poin Jiwa. Cerita tidak disimpan.':'Skor belum berhasil disimpan. Coba lagi.';
 };
 window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view');if(p)p.classList.add('hidden');if(l)l.classList.remove('hidden');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
 window.playArenaAgain=function(){if(!arenaCurrent||!arenaModes[arenaCurrent])return;const mode=arenaCurrent;arenaCurrent=null;const p=$('arena-play-panel');if(p)p.innerHTML='';window.playArena(mode);};
-async function saveArenaResult(mode,score,details){
+async function saveArenaResult(mode,score){
  if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){alert('Sesi login belum siap. Silakan muat ulang lalu coba lagi.');return false;}
- const {error}=await supabaseClient.from('ghoustory_arena_results').insert({user_id:activeUser.id,game_mode:mode,score:score,details:details});
+ const {error}=await supabaseClient.from('ghoustory_arena_results').insert({user_id:activeUser.id,game_mode:mode,score:score,details:{}});
  if(error){console.error('Arena save error',error);alert('Hasil belum tersimpan: '+(error.message||'periksa koneksi'));return false;}
  await refreshArena();return true;
 }
@@ -6452,8 +6452,8 @@ window.arenaBankAnswer=function(i){
 window.arenaBankChoose=function(i){const x=(arenaBankPack.payload.suspects||[])[i],solution=String(arenaBankPack.payload.solution||'').toLowerCase();const ok=solution.includes(String(x.name).toLowerCase())||i===2;arenaAnswers.push({suspect:x.name,correct:ok});if(ok)arenaScore+=30;finishArenaGame();};
 window.arenaBankSurvive=function(i){const d=arenaBankPack.payload,x=d.events[arenaBankStep],v=x.choices[i];Object.entries(v.effect||{}).forEach(([k,n])=>arenaBankStats[k]=Math.max(0,Math.min(5,(arenaBankStats[k]||0)+n)));arenaAnswers.push({choice:v.label,feedback:v.feedback,stats:{...arenaBankStats}});arenaScore+=Math.max(0,10+arenaBankStats.health+arenaBankStats.sanity);arenaBankStep++;if(arenaBankStep<d.events.length&&arenaBankStats.health>0&&arenaBankStats.sanity>0){renderArenaBankGame();return;}finishArenaGame();};
 window.arenaBankRoute=function(i){const d=arenaBankPack.payload,v=d.routes[i];Object.entries(v.effect||{}).forEach(([k,n])=>arenaBankStats[k]=(arenaBankStats[k]||0)+n);arenaAnswers.push({route:v.name,reward:v.reward,risk:v.risk});arenaScore+=v.risk==='high'?25:15;arenaBankStep++;if(arenaBankStep<2){renderArenaBankGame();return;}finishArenaGame();};
-window.arenaBankSubmitStory=async function(){const story=($('arena-bank-story')?.value||'').trim();if(story.length<(arenaBankPack.payload.minimum_chars||80)){alert('Cerita masih terlalu pendek.');return;}arenaScore=20;await saveArenaResult('pencerita',arenaScore,{story,cards:arenaBankCards});const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('KARYA TERKIRIM','Sang Pencerita')+'<p class="text-sm text-gray-200">Cerita berhasil dikirim ke papan Arena. +20 Poin Jiwa.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
-window.arenaBankSubmitMission=async function(){const proof=($('arena-bank-proof')?.value||'').trim();if(proof.length<20){alert('Bukti misi minimal 20 karakter.');return;}arenaScore=30;await saveArenaResult('tantangan',arenaScore,{mission:arenaBankPack.payload.mission,proof});const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('MISI SELESAI','Tantangan Rahasia')+'<p class="text-sm text-gray-200">Bukti misi terkirim. +30 Poin Jiwa.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
+window.arenaBankSubmitStory=async function(){const story=($('arena-bank-story')?.value||'').trim();if(story.length<(arenaBankPack.payload.minimum_chars||80)){alert('Cerita masih terlalu pendek.');return;}arenaScore=20;await saveArenaResult('pencerita',arenaScore);const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('PARTISIPASI TERCATAT','Sang Pencerita')+'<p class="text-sm text-gray-200">Skor partisipasimu tercatat di klasemen. +20 Poin Jiwa. Cerita tidak disimpan.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
+window.arenaBankSubmitMission=async function(){const proof=($('arena-bank-proof')?.value||'').trim();if(proof.length<20){alert('Bukti misi minimal 20 karakter.');return;}arenaScore=30;await saveArenaResult('tantangan',arenaScore);const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('MISI SELESAI','Tantangan Rahasia')+'<p class="text-sm text-gray-200">Partisipasi tercatat di klasemen. +30 Poin Jiwa. Bukti misi tidak disimpan.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
 const arenaImageModes=["berkas","teka_teki","survival","relik","siapa_aku","pencerita","tantangan"];
 function arenaImageUrl(mode,ext="webp"){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+"."+ext;}
 window.loadArenaImages=function(){
