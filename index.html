@@ -630,7 +630,7 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
 #bottom-navigation{width:auto;min-width:260px;max-width:min(94vw,430px);padding:7px;border:1px solid rgba(255,255,255,.09);background:rgba(35,36,42,.94);border-radius:999px;box-shadow:0 12px 35px rgba(22,20,20,.2)}
 #bottom-navigation>div{display:flex;align-items:center;justify-content:center;gap:5px}
 #bottom-navigation .bottom-nav-item{min-width:48px;min-height:46px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:9px;padding:0 14px;border-radius:999px;color:#c5c2bd;transition:width .2s ease,background .2s ease,color .2s ease}
-#bottom-navigation .bottom-nav-item>span:nth-child(2){display:none;font-size:12px;font-weight:600;white-space:nowrap}
+#bottom-navigation .bottom-nav-item>span:nth-child(2){display:none;font-size:12px;font-weight:600;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important}
 #bottom-navigation .bottom-nav-item.active{color:#fff;background:#a94d58;box-shadow:none;padding:0 17px}
 #bottom-navigation .bottom-nav-item.active>span:nth-child(2){display:inline}
 #bottom-navigation .bottom-nav-item>span:first-child>i:first-child{font-size:17px}
@@ -2581,7 +2581,7 @@ nav.sticky {
           <div class="grid grid-cols-4 gap-1">
             <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house-crack text-lg" title="Ghouse"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Ghouse</span></button>
             <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Meeting Crew</span></button>
-            <button data-bottom-nav="lore" onclick="navigateBottom('lore')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-book-open text-lg"></i><i id="nav-dot-lore" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Lore</span></button>
+            <button data-bottom-nav="lore" onclick="navigateBottom('lore')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-book-open text-lg"></i><i id="nav-dot-lore" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]" style="text-transform:none!important;letter-spacing:normal!important">Lore</span></button>
             <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Sosok</span></button>
           </div>
         </div>
