@@ -573,6 +573,23 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
   #page-home>.grid>.glass-panel{transition:none}
 }
 
+
+/* HOME INTERACTION POLISH — keyboard focus and touch feedback */
+#page-home>.grid>.glass-panel{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#page-home>.grid>.glass-panel:focus-visible{
+  outline:2px solid rgba(100,139,194,.82)!important;
+  outline-offset:3px;
+  border-color:rgba(100,139,194,.55)!important;
+}
+#page-home>.grid>.glass-panel:active{transform:scale(.985)}
+@media(hover:none){
+  #page-home>.grid>.glass-panel:hover{transform:none}
+  #page-home>.grid>.glass-panel:active{
+    background:#242731!important;
+    border-color:rgba(130,145,177,.32)!important;
+  }
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -637,12 +654,12 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
             <section id="page-home" class="page-section page-active">
                 <h2 class="text-2xl font-mystery text-center mb-8">PILIH PORTAL DIMENSI</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-                    <div onclick="showPage('grimoire')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-skull text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Grimoire</h3></div>
-                    <div onclick="showPage('ghoustnote')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
-                    <div onclick="showPage('analisis')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata & AI</h3></div>
-                    <div onclick="showPage('segmen')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
-                    <div onclick="showPage('tim')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Crew</h3></div>
-                    <div onclick="showPage('radar')" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
+                    <div onclick="showPage('grimoire')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-skull text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Grimoire</h3></div>
+                    <div onclick="showPage('ghoustnote')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-ghoulRed"><i class="fa-solid fa-book-open text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Ghoustnote & VO</h3></div>
+                    <div onclick="showPage('analisis')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-blue-500"><i class="fa-brands fa-youtube text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Analisis Metadata & AI</h3></div>
+                    <div onclick="showPage('segmen')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-orange-500"><i class="fa-solid fa-layer-group text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Arsip Segmen</h3></div>
+                    <div onclick="showPage('tim')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-yellow-500"><i class="fa-solid fa-users-gear text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Markas Crew</h3></div>
+                    <div onclick="showPage('radar')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="glass-panel p-6 rounded-xl text-center cursor-pointer hover:border-purple-500"><i class="fa-solid fa-chart-line text-3xl mb-2 text-gray-500"></i><h3 class="font-bold text-sm">Radar Analitik</h3></div>
                     
                 </div>
             </section>
