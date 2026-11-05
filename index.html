@@ -581,91 +581,36 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
 }
 
 
-/* GHOUSTORY CONTROL ROOM — HOME REDESIGN PASS 3 */
-#page-home{padding:clamp(1rem,3vw,2.8rem) 0 2.5rem!important}
-#page-home .gcr-home-shell{width:min(100%,1120px);margin:0 auto}
-#page-home .gcr-home-hero{
-  position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;
-  min-height:clamp(250px,29vw,340px);padding:clamp(1.5rem,4.2vw,3.6rem);
-  border:1px solid rgba(255,255,255,.09);border-radius:28px;
-  background:linear-gradient(112deg,#20232c 0%,#1b1e26 58%,#20232a 100%);
-}
-#page-home .gcr-home-hero:before{content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#b95b67 0%,#526f9e 100%)}
-#page-home .gcr-home-hero:after{content:"";position:absolute;z-index:-1;width:420px;height:420px;right:-140px;top:-190px;border:1px solid rgba(255,255,255,.045);border-radius:50%;box-shadow:0 0 0 42px rgba(255,255,255,.012),0 0 0 84px rgba(255,255,255,.009)}
-#page-home .gcr-home-hero-copy{max-width:650px;position:relative;z-index:2}
-#page-home .gcr-home-eyebrow{display:flex;align-items:center;gap:.65rem;color:#aab0bd;font-size:.65rem;font-weight:700;letter-spacing:.2em}
-#page-home .gcr-home-live-dot{width:7px;height:7px;border-radius:50%;background:#b96a76;box-shadow:0 0 0 4px rgba(185,106,118,.12)}
-#page-home .gcr-home-eyebrow-divider{color:#596273}
-#page-home .gcr-home-hero h1{margin:1.15rem 0 .85rem;color:#f1f2f5;font-family:Inter,sans-serif;font-size:clamp(2rem,4.6vw,3.55rem);font-weight:650;letter-spacing:-.065em;line-height:1.08}
-#page-home .gcr-home-hero h1 span{color:#aab2c1}
-#page-home .gcr-home-hero-copy>p{max-width:490px;margin:0;color:#9ba2b0;font-size:clamp(.82rem,1.2vw,.98rem);line-height:1.75}
-#page-home .gcr-home-hero-foot{position:absolute;left:clamp(1.5rem,4.2vw,3.6rem);right:clamp(1.5rem,4.2vw,3.6rem);bottom:1.25rem;display:flex;justify-content:space-between;gap:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.08);color:#737d8e;font-size:.58rem;font-weight:700;letter-spacing:.16em}
-#page-home .gcr-home-hero-foot b{color:#d8dbe2;font-size:.75rem;margin-right:.35rem}
-#page-home .gcr-home-hero-foot i{margin-left:.35rem;color:#a66a76}
-#page-home .gcr-home-hero-mark{position:absolute;right:clamp(2rem,9vw,8rem);top:50%;width:190px;height:190px;transform:translateY(-54%);display:grid;place-items:center;opacity:.82}
-#page-home .gcr-home-mark-orbit{position:absolute;border:1px solid rgba(172,181,199,.16);border-radius:50%}
-#page-home .gcr-home-mark-orbit-one{inset:8px}
-#page-home .gcr-home-mark-orbit-two{inset:30px;border-style:dashed;border-color:rgba(185,91,103,.3)}
-#page-home .gcr-home-mark-core{width:82px;height:82px;display:grid;place-items:center;border-radius:26px;border:1px solid rgba(255,255,255,.12);background:#252a35;color:#bd8790;font-size:2rem;transform:rotate(-8deg)}
-#page-home .gcr-home-mark-caption{position:absolute;bottom:-3px;right:-12px;color:#8c95a5;font-size:.53rem;font-weight:700;letter-spacing:.2em;line-height:1.6;text-align:right}
-#page-home .gcr-home-section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin:clamp(2rem,4vw,3rem) 0 1rem}
-#page-home .gcr-home-kicker{color:#8f99aa;font-size:.58rem;font-weight:700;letter-spacing:.2em}
-#page-home .gcr-home-section-heading h2{margin:.35rem 0 0;color:#edf0f5;font-family:Inter,sans-serif;font-size:clamp(1.25rem,2vw,1.65rem);font-weight:600;letter-spacing:-.04em}
-#page-home .gcr-home-section-note{padding-bottom:.25rem;color:#747e8e;font-size:.72rem}
-#page-home .gcr-home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-#page-home .gcr-home-card{
-  position:relative;display:flex;min-height:190px;flex-direction:column;align-items:flex-start;
-  padding:1.15rem 1.2rem 1.25rem;border:1px solid rgba(255,255,255,.075);
-  border-radius:21px;background:#1b1e26;cursor:pointer;text-align:left;
-  transition:transform .18s ease,border-color .18s ease,background .18s ease;
-  -webkit-tap-highlight-color:transparent
-}
-#page-home .gcr-home-card:hover{transform:translateY(-3px);border-color:rgba(151,163,187,.28);background:#20242d}
-#page-home .gcr-home-card:focus-visible{outline:2px solid rgba(100,139,194,.82);outline-offset:3px}
-#page-home .gcr-home-card:active{transform:scale(.99)}
-#page-home .gcr-home-card-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-#page-home .gcr-home-number{color:#8c95a4;font-size:.65rem;font-weight:700;letter-spacing:.12em}
-#page-home .gcr-home-card-type{color:#788394;font-size:.52rem;font-weight:700;letter-spacing:.12em;text-align:right}
-#page-home .gcr-home-icon{width:43px;height:43px;margin:1.15rem 0 .9rem;display:grid;place-items:center;border:1px solid rgba(185,106,118,.19);border-radius:14px;background:rgba(185,106,118,.075);color:#c18a93;font-size:1.05rem}
-#page-home .gcr-home-card:nth-child(3n+2) .gcr-home-icon{border-color:rgba(100,139,194,.2);background:rgba(100,139,194,.08);color:#91a9cc}
-#page-home .gcr-home-card-main{display:flex;flex-direction:column;gap:.42rem;padding-right:1.2rem}
-#page-home .gcr-home-card-main b{color:#edf0f5;font-size:.95rem;font-weight:600;letter-spacing:-.015em;line-height:1.35}
-#page-home .gcr-home-card-main small{color:#8992a1;font-size:.72rem;line-height:1.6}
-#page-home .gcr-home-card-open{position:absolute;right:1.15rem;bottom:1.2rem;color:#707b8d;font-size:.7rem;transition:color .18s ease,transform .18s ease}
-#page-home .gcr-home-card:hover .gcr-home-card-open{color:#c18a93;transform:translate(2px,-2px)}
-#page-home .gcr-home-bottomline{display:flex;justify-content:space-between;gap:1rem;margin-top:1.6rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.065);color:#697384;font-size:.55rem;font-weight:700;letter-spacing:.16em}
-@media(min-width:768px){#page-home .gcr-home-card{min-height:202px}}
+/* GHOUSTORY CONTROL ROOM — SIMPLE HOME */
+#page-home{padding:1.5rem 0 2rem!important}
+#page-home .gcr-home-shell{width:min(100%,980px);margin:0 auto}
+#page-home .gcr-home-heading{margin:0 0 1.5rem;padding:0 0 1.25rem;border-bottom:1px solid rgba(255,255,255,.07)}
+#page-home .gcr-home-heading p{margin:0 0 .45rem;color:#a66b75;font-size:.62rem;font-weight:700;letter-spacing:.12em}
+#page-home .gcr-home-heading h1{margin:0;color:#f1f2f5;font-family:Inter,sans-serif;font-size:clamp(1.45rem,3vw,2rem);font-weight:600;letter-spacing:-.04em}
+#page-home .gcr-home-heading span{display:block;margin-top:.4rem;color:#9299a7;font-size:.82rem}
+#page-home .gcr-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#page-home .gcr-home-item{width:100%;min-height:82px;display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid rgba(255,255,255,.065);border-radius:16px;background:#1c1f27;text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease}
+#page-home .gcr-home-item:hover{background:#232630;border-color:rgba(255,255,255,.13)}
+#page-home .gcr-home-item:focus-visible{outline:2px solid rgba(105,139,190,.8);outline-offset:2px}
+#page-home .gcr-home-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;font-size:1rem}
+#page-home .gcr-home-icon.gcr-red{background:rgba(174,78,91,.12);color:#c17b84}
+#page-home .gcr-home-icon.gcr-blue{background:rgba(83,119,171,.14);color:#8da8ce}
+#page-home .gcr-home-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+#page-home .gcr-home-copy b{color:#edf0f5;font-size:.88rem;font-weight:600;line-height:1.3}
+#page-home .gcr-home-copy small{color:#9299a7;font-size:.72rem;line-height:1.4}
+#page-home .gcr-home-chevron{color:#737c8b;font-size:.68rem}
 @media(max-width:767px){
-  #page-home{padding-top:.7rem!important}
-  #page-home .gcr-home-hero{min-height:285px;padding:1.4rem 1.25rem 4.1rem;border-radius:23px}
-  #page-home .gcr-home-hero-copy{max-width:100%;padding-right:1.8rem}
-  #page-home .gcr-home-hero h1{font-size:clamp(1.8rem,8vw,2.5rem);margin:.95rem 0 .7rem}
-  #page-home .gcr-home-hero-copy>p{max-width:340px;font-size:.78rem;line-height:1.65}
-  #page-home .gcr-home-hero-mark{right:-35px;top:42%;width:145px;height:145px;opacity:.24}
-  #page-home .gcr-home-mark-core{width:64px;height:64px;font-size:1.5rem}
-  #page-home .gcr-home-hero-foot{left:1.25rem;right:1.25rem;bottom:1rem;font-size:.49rem;letter-spacing:.11em}
-  #page-home .gcr-home-section-heading{align-items:flex-start;flex-direction:column;gap:.3rem;margin:1.8rem 0 .9rem}
-  #page-home .gcr-home-section-note{font-size:.68rem}
-  #page-home .gcr-home-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  #page-home .gcr-home-card{min-height:188px;padding:.85rem .8rem 1rem;border-radius:17px}
-  #page-home .gcr-home-card-type{font-size:.44rem;letter-spacing:.07em}
-  #page-home .gcr-home-icon{width:38px;height:38px;margin:.95rem 0 .75rem;border-radius:12px}
-  #page-home .gcr-home-card-main{padding-right:.3rem}
-  #page-home .gcr-home-card-main b{font-size:.79rem}
-  #page-home .gcr-home-card-main small{font-size:.65rem;line-height:1.5}
-  #page-home .gcr-home-card-open{right:.8rem;bottom:.85rem;font-size:.62rem}
-  #page-home .gcr-home-bottomline{font-size:.44rem;letter-spacing:.1em}
+ #page-home{padding:.8rem 0 1.5rem!important}
+ #page-home .gcr-home-heading{margin-bottom:1rem;padding-bottom:1rem}
+ #page-home .gcr-home-heading span{font-size:.75rem}
+ #page-home .gcr-home-grid{grid-template-columns:1fr;gap:8px}
+ #page-home .gcr-home-item{min-height:72px;padding:10px 12px;border-radius:14px}
+ #page-home .gcr-home-icon{width:39px;height:39px;flex-basis:39px;border-radius:12px}
+ #page-home .gcr-home-copy b{font-size:.84rem}
+ #page-home .gcr-home-copy small{font-size:.68rem}
 }
-@media(max-width:380px){
-  #page-home .gcr-home-hero{min-height:270px}
-  #page-home .gcr-home-card{min-height:180px;padding:.75rem .68rem .9rem}
-  #page-home .gcr-home-card-type{font-size:.4rem}
-  #page-home .gcr-home-card-main b{font-size:.74rem}
-  #page-home .gcr-home-card-main small{font-size:.61rem}
-  #page-home .gcr-home-bottomline{letter-spacing:.06em}
-}
-@media(prefers-reduced-motion:reduce){#page-home .gcr-home-card{transition:none}}
-
+@media(prefers-reduced-motion:reduce){#page-home .gcr-home-item{transition:none}}
+ 
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -728,76 +673,48 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
 
             <!-- HOME -->
             <section id="page-home" class="page-section page-active">
-  <div class="gcr-home-shell">
-    <div class="gcr-home-hero">
-      <div class="gcr-home-hero-copy">
-        <div class="gcr-home-eyebrow"><span class="gcr-home-live-dot"></span> GHOUSTORY <span class="gcr-home-eyebrow-divider">/</span> WORKSPACE</div>
-        <h1>Ruang kendali<br><span>cerita dan produksi.</span></h1>
-        <p>Satu tempat untuk mengelola ide, produksi konten, Crew, dan perkembangan Ghoustory.</p>
-      </div>
-      <div class="gcr-home-hero-mark" aria-hidden="true">
-        <span class="gcr-home-mark-orbit gcr-home-mark-orbit-one"></span>
-        <span class="gcr-home-mark-orbit gcr-home-mark-orbit-two"></span>
-        <span class="gcr-home-mark-core"><i class="fa-solid fa-eye"></i></span>
-        <span class="gcr-home-mark-caption">CONTROL<br>ROOM</span>
-      </div>
-      <div class="gcr-home-hero-foot">
-        <span><b>06</b> PORTAL KERJA</span>
-        <span>SELECT A SPACE <i class="fa-solid fa-arrow-down"></i></span>
-      </div>
-    </div>
-
-    <div class="gcr-home-section-heading">
-      <div><span class="gcr-home-kicker">WORKSPACE DIRECTORY</span><h2>Pilih ruang kerja</h2></div>
-      <span class="gcr-home-section-note">Semua aktivitas, satu kendali.</span>
-    </div>
-
-    <div class="gcr-home-grid">
-      <div onclick="showPage('grimoire')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">01</span><span class="gcr-home-card-type">IDE & CATATAN</span></span>
-        <span class="gcr-home-icon"><i class="fa-solid fa-book-skull"></i></span>
-        <span class="gcr-home-card-main"><b>Grimoire</b><small>Ruang menyimpan ide, referensi, dan catatan kreatif.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-
-      <div onclick="showPage('ghoustnote')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">02</span><span class="gcr-home-card-type">NASKAH & VOICE OVER</span></span>
-        <span class="gcr-home-icon"><i class="fa-solid fa-book-open"></i></span>
-        <span class="gcr-home-card-main"><b>Ghoustnote & VO</b><small>Siapkan naskah dan kebutuhan voice over produksi.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-
-      <div onclick="showPage('analisis')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">03</span><span class="gcr-home-card-type">YOUTUBE & AI</span></span>
-        <span class="gcr-home-icon"><i class="fa-brands fa-youtube"></i></span>
-        <span class="gcr-home-card-main"><b>Analisis Metadata & AI</b><small>Kelola metadata dan dukungan analisis konten.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-
-      <div onclick="showPage('segmen')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">04</span><span class="gcr-home-card-type">PROGRAM KONTEN</span></span>
-        <span class="gcr-home-icon"><i class="fa-solid fa-layer-group"></i></span>
-        <span class="gcr-home-card-main"><b>Arsip Segmen</b><small>Atur konsep, ide program, dan arsip segmen.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-
-      <div onclick="showPage('tim')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">05</span><span class="gcr-home-card-type">KOLABORASI</span></span>
-        <span class="gcr-home-icon"><i class="fa-solid fa-users-gear"></i></span>
-        <span class="gcr-home-card-main"><b>Markas Crew</b><small>Tempat koordinasi, komunikasi, dan aktivitas Crew.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-
-      <div onclick="showPage('radar')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" class="gcr-home-card">
-        <span class="gcr-home-card-top"><span class="gcr-home-number">06</span><span class="gcr-home-card-type">PERFORMA</span></span>
-        <span class="gcr-home-icon"><i class="fa-solid fa-chart-line"></i></span>
-        <span class="gcr-home-card-main"><b>Radar Analitik</b><small>Pantau perkembangan dan performa kanal.</small></span>
-        <span class="gcr-home-card-open"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-      </div>
-    </div>
-    <div class="gcr-home-bottomline"><span>GHOUSTORY CONTROL ROOM</span><span>BUILT FOR THE STORIES THAT MATTER.</span></div>
-  </div>
-</section>
+              <div class="gcr-home-shell">
+                <header class="gcr-home-heading">
+                  <div>
+                    <p>GHOUSTORY CONTROL ROOM</p>
+                    <h1>Selamat datang.</h1>
+                    <span>Semua ruang kerja Ghoustory, dalam satu tempat.</span>
+                  </div>
+                </header>
+                <div class="gcr-home-grid" aria-label="Menu ruang kerja">
+                  <button type="button" onclick="showPage('grimoire')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-book-skull"></i></span>
+                    <span class="gcr-home-copy"><b>Grimoire</b><small>Ide, referensi, dan catatan kreatif</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                  <button type="button" onclick="showPage('ghoustnote')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-book-open"></i></span>
+                    <span class="gcr-home-copy"><b>Ghoustnote & VO</b><small>Naskah dan voice over produksi</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                  <button type="button" onclick="showPage('analisis')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-red"><i class="fa-brands fa-youtube"></i></span>
+                    <span class="gcr-home-copy"><b>Analisis Metadata & AI</b><small>Metadata dan analisis konten</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                  <button type="button" onclick="showPage('segmen')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="gcr-home-copy"><b>Arsip Segmen</b><small>Konsep dan program konten</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                  <button type="button" onclick="showPage('tim')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-users"></i></span>
+                    <span class="gcr-home-copy"><b>Markas Crew</b><small>Koordinasi dan aktivitas Crew</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                  <button type="button" onclick="showPage('radar')" class="gcr-home-item">
+                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="gcr-home-copy"><b>Radar Analitik</b><small>Perkembangan dan performa kanal</small></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
+                </div>
+              </div>
+            </section>
 
             <!-- CHAT KRU · INBOX DAN ROOM -->
             <section id="page-chat" class="page-section max-w-6xl mx-auto">
