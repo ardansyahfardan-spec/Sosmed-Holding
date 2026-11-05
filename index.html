@@ -611,6 +611,40 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
 }
 @media(prefers-reduced-motion:reduce){#page-home .gcr-home-item{transition:none}}
  
+
+/* GCR REDESIGN — HOME + MYSTICAL NAV */
+#page-home{background:#f3f0e9!important;color:#24252b!important;border-radius:26px;padding:clamp(1.25rem,3vw,2.4rem)!important;margin:1rem auto 2rem;max-width:1120px;min-height:calc(100vh - 11rem)}
+#page-home .gcr-home-shell{width:min(100%,980px);margin:0 auto}
+#page-home .gcr-home-heading{border-bottom:1px solid #ded9cf;padding-bottom:1.4rem;margin-bottom:1.6rem}
+#page-home .gcr-home-heading p{color:#a84b55;letter-spacing:.16em;font-size:.65rem}
+#page-home .gcr-home-heading h1{color:#24252b;font-size:clamp(1.65rem,3vw,2.25rem);font-weight:650;letter-spacing:-.055em}
+#page-home .gcr-home-heading span{color:#77766f;font-size:.86rem}
+#page-home .gcr-home-grid{gap:13px}
+#page-home .gcr-home-item{min-height:88px;background:#fffdfa;border:1px solid #e7e1d7;border-radius:19px;padding:15px 17px;box-shadow:0 3px 12px rgba(48,40,30,.035)}
+#page-home .gcr-home-item:hover{background:#fff;border-color:#d7c9c0;box-shadow:0 7px 20px rgba(48,40,30,.07);transform:translateY(-1px)}
+#page-home .gcr-home-icon,#page-home .gcr-home-icon.gcr-red,#page-home .gcr-home-icon.gcr-blue{background:#f0ece5;color:#55545a;border-radius:14px;font-size:1.08rem}
+#page-home .gcr-home-item:hover .gcr-home-icon{background:#f7e8e8;color:#a84b55}
+#page-home .gcr-home-copy b{color:#292a30;font-size:.91rem}
+#page-home .gcr-home-copy small{color:#858178;font-size:.74rem}
+#page-home .gcr-home-chevron{color:#aaa39a}
+#bottom-navigation{width:auto;min-width:260px;max-width:min(94vw,430px);padding:7px;border:1px solid rgba(255,255,255,.09);background:rgba(35,36,42,.94);border-radius:999px;box-shadow:0 12px 35px rgba(22,20,20,.2)}
+#bottom-navigation>div{display:flex;align-items:center;justify-content:center;gap:5px}
+#bottom-navigation .bottom-nav-item{min-width:48px;min-height:46px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:9px;padding:0 14px;border-radius:999px;color:#c5c2bd;transition:width .2s ease,background .2s ease,color .2s ease}
+#bottom-navigation .bottom-nav-item>span:nth-child(2){display:none;font-size:12px;font-weight:600;white-space:nowrap}
+#bottom-navigation .bottom-nav-item.active{color:#fff;background:#a94d58;box-shadow:none;padding:0 17px}
+#bottom-navigation .bottom-nav-item.active>span:nth-child(2){display:inline}
+#bottom-navigation .bottom-nav-item>span:first-child>i:first-child{font-size:17px}
+#bottom-navigation #nav-profile-avatar{width:22px;height:22px}
+@media(max-width:767px){
+ #page-home{margin:.45rem auto 1.5rem;border-radius:22px;min-height:calc(100vh - 10rem);padding:1.2rem!important}
+ #page-home .gcr-home-grid{grid-template-columns:1fr;gap:9px}
+ #page-home .gcr-home-item{min-height:76px;padding:11px 13px;border-radius:16px}
+ #bottom-navigation{bottom:max(.7rem,env(safe-area-inset-bottom));}
+}
+@media(min-width:768px){
+ #page-home{margin-top:1.4rem}
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -683,7 +717,7 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
                 </header>
                 <div class="gcr-home-grid" aria-label="Menu ruang kerja">
                   <button type="button" onclick="showPage('grimoire')" class="gcr-home-item">
-                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-book-skull"></i></span>
+                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-book-open"></i></span>
                     <span class="gcr-home-copy"><b>Grimoire</b><small>Ide, referensi, dan catatan kreatif</small></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
@@ -693,22 +727,22 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('analisis')" class="gcr-home-item">
-                    <span class="gcr-home-icon gcr-red"><i class="fa-brands fa-youtube"></i></span>
+                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-crystal-ball"></i></span>
                     <span class="gcr-home-copy"><b>Analisis Metadata & AI</b><small>Metadata dan analisis konten</small></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('segmen')" class="gcr-home-item">
-                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-scroll"></i></span>
                     <span class="gcr-home-copy"><b>Arsip Segmen</b><small>Konsep dan program konten</small></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('tim')" class="gcr-home-item">
-                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-users"></i></span>
+                    <span class="gcr-home-icon gcr-red"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
                     <span class="gcr-home-copy"><b>Markas Crew</b><small>Koordinasi dan aktivitas Crew</small></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('radar')" class="gcr-home-item">
-                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="gcr-home-icon gcr-blue"><i class="fa-solid fa-eye"></i></span>
                     <span class="gcr-home-copy"><b>Radar Analitik</b><small>Perkembangan dan performa kanal</small></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
