@@ -4825,6 +4825,12 @@ function enableChatSwipeActions(box){
           const profileAvatar=userId===activeUser?.id?activeProfile?.avatar_url:member?.avatar_url;
           return profileAvatar||storedAvatar||"https://ui-avatars.com/api/?name="+encodeURIComponent(name||"Crew")+"&background=172554&color=fff";
         }
+function scrollChatToLatest(room){
+ const box=document.getElementById(room==="dm"?"dm-messages":"chat-messages");
+ if(!box)return;
+ const move=()=>{box.scrollTop=box.scrollHeight;};
+ requestAnimationFrame(()=>{move();requestAnimationFrame(move);});
+}
 function renderChatMessages(){
  const box=document.getElementById("chat-messages");if(!box)return;
  renderPinnedChatBanner("group");updateGroupUnreadBadge();
@@ -4847,7 +4853,7 @@ function renderChatMessages(){
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil '+who+'" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own&&!msg.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+pinLabel+(!samePrev||isAI?'<div class="gh-chat-sender">'+who+(isAI?' <span class="ml-1 text-[9px] font-semibold text-blue-300 border border-blue-800 rounded-full px-1.5 py-0.5">AI Crew</span>':"")+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div><div class="gh-chat-reactions">'+reactions+'</div></div>'+(!samePrev&&!isAI&&own?avatarHtml:'')+'</div>';
  }).join("");
- enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
+ enableChatSwipeActions(box);scrollChatToLatest("group");
 }
 async function loadChatMessages(){
           if(!activeUser||chatLoadedForUser===activeUser.id)return;
@@ -5083,6 +5089,7 @@ async function loadChatMessages(){
             }
             showChatRoom("group");
             await loadChatMessages();
+            scrollChatToLatest("group");
             await markGroupMessagesRead();
           }catch(error){alert("Akses RITUAL CREW gagal diperiksa: "+(error.message||error));}
         }
@@ -5108,7 +5115,7 @@ async function openDirectMessage(otherId){
             let found=null;
             for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
             if(!found){const {data:c,error:e3}=await supabaseClient.from("ghoustory_dm_conversations").insert({created_by:activeUser.id}).select("id").single();if(e3)throw e3;const {error:e4}=await supabaseClient.from("ghoustory_dm_participants").insert([{conversation_id:c.id,user_id:activeUser.id,added_by:activeUser.id},{conversation_id:c.id,user_id:otherId,added_by:activeUser.id}]);if(e4)throw e4;found=c.id;}
-            activeDmConversation=found;activeDmMember=member;clearDmReply();await loadDirectMessages();await loadDirectConversations();
+            activeDmConversation=found;activeDmMember=member;clearDmReply();await loadDirectMessages();scrollChatToLatest("dm");await loadDirectConversations();
             document.getElementById("dm-input").disabled=false;document.getElementById("dm-send").disabled=false;document.getElementById("dm-input").placeholder="Kirim pesan pribadi...";
           }catch(e){box.textContent="Chat pribadi gagal dibuka: "+(e.message||e);document.getElementById("dm-status").textContent="Gagal";}
         }
@@ -5147,7 +5154,7 @@ async function openDirectMessage(otherId){
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own&&!m.deleted_at?'1':'0')+'" data-pinned="'+(pinned?'1':'0')+'">'+pinLabel+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div><div class="gh-chat-reactions">'+reactions+'</div></div>'+(!samePrev&&own?avatarHtml:'')+'</div>';
  }).join("");
- enableChatSwipeActions(box);box.scrollTop=box.scrollHeight;
+ enableChatSwipeActions(box);scrollChatToLatest("dm");
 }
 async function markDmMessagesRead(){
           if(!activeUser||!activeDmConversation)return;
