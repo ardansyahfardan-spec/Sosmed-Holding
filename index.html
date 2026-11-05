@@ -6404,7 +6404,7 @@ window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase
 window.malamTrialVote=function(force){
  const s=window.__malamTrial;if(!s||s.phase!=='voting'||(!s.selected&&!force))return;
  const alive=s.players.filter(p=>p.alive),target=s.selected;
- if(!alive.some(p=>p.id===target&&p.id!=='t0')){malamTrialNotice('Pilihan tidak valid.');return;}
+ if(target&&!alive.some(p=>p.id===target&&p.id!=='t0')){malamTrialNotice('Pilihan tidak valid.');return;}
  const tally={};const votes=[];
  const cast=(voter,choice)=>{if(choice&&alive.some(p=>p.id===choice&&choice!==voter.id)){tally[choice]=(tally[choice]||0)+1;votes.push({voter:voter.name,target:choice});}};
  if(target)cast(s.players[0],target);
