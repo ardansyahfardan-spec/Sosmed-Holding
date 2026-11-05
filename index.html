@@ -2295,12 +2295,12 @@ nav.sticky {
                     <!-- TAB JADWAL & ABSENSI -->
                     <div id="tab-tim-jadwal" class="tab-content active space-y-4">
                         <div id="crew-schedule-form" class="bg-black p-4 rounded-xl border border-yellow-800/70 space-y-2 text-xs">
-                          <h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id">
+                          <h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id"><input type="hidden" id="j-candidate-edit-id"><input type="hidden" id="j-candidate-promote-id">
                           <input id="j-nama" placeholder="Premis Cerita" aria-label="Premis Cerita" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-narsum" placeholder="Nama narasumber" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white">
                           <div class="grid grid-cols-2 gap-2"><select id="j-segmen" class="bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select><input id="j-lokasi" placeholder="Lokasi" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <div class="grid grid-cols-2 gap-2"><input id="j-tgl" type="date" class="bg-darkCard border border-gray-700 p-2 rounded text-white"><input id="j-jam" type="time" required aria-label="Jam shooting" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white"></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
-                          <div class="grid grid-cols-2 gap-2"><div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan Jadwal</button><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button></div></div>
+                          <div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan ke Almanak</button><button onclick="saveCrewCandidate()" class="w-full bg-indigo-900 border border-indigo-700 py-2.5 rounded font-bold text-indigo-100">Simpan Kandidat</button></div><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
                             <button onclick="changeCrewMonth(-1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
@@ -2313,6 +2313,11 @@ nav.sticky {
                         <div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex items-center justify-between gap-2 mb-3"><h3 class="font-bold text-sm text-yellow-400">Daftar Jadwal Shooting</h3><span class="text-[10px] text-gray-500">Edit atau hapus setelah disimpan</span></div>
                           <div id="crew-schedule-list" class="space-y-3"><p class="text-xs text-gray-500">Memuat jadwal shooting...</p></div>
+                        </div>
+                        <div class="mt-4 rounded-xl border border-indigo-900/70 bg-darkBg p-3">
+                          <div class="flex items-center justify-between gap-2 mb-2"><h3 class="font-bold text-sm text-indigo-300">Kandidat Narasumber</h3><span id="crew-candidate-count" class="text-[10px] text-gray-500">0 kandidat</span></div>
+                          <p class="text-[10px] text-gray-500 mb-3">Calon narasumber yang belum punya tanggal shooting. Simpan dulu di sini agar tidak terlupa, lalu masukkan ke Almanak saat sudah siap.</p>
+                          <div id="crew-candidate-list" class="space-y-3"><p class="text-xs text-gray-500">Memuat kandidat...</p></div>
                         </div>
                     </div>
 
@@ -4946,7 +4951,7 @@ nav.sticky {
         function renderGhoustoryNotifications(){const list=document.getElementById('notification-list');if(!list)return;const unread=ghoustoryNotifications.filter(n=>!n.read_at).length,badge=document.getElementById('header-notification-count'),sub=document.getElementById('notification-subtitle');if(badge){badge.textContent=unread>9?'9+':String(unread);badge.classList.toggle('hidden',!unread);}if(sub)sub.textContent=unread?unread+' belum dibaca':'Semua sudah dibaca';if(!ghoustoryNotifications.length){list.innerHTML='<p class="text-xs text-gray-500 text-center p-6">Belum ada notifikasi.</p>';return;}list.innerHTML=ghoustoryNotifications.map(n=>'<button type="button" onclick="openGhoustoryNotification(\''+n.id+'\')" class="w-full text-left rounded-xl p-3 mb-1 '+(n.read_at?'hover:bg-white/5':'bg-blue-950/35 border border-blue-900/50')+'"><div class="flex gap-2"><span class="mt-1 w-2 h-2 rounded-full '+(n.read_at?'bg-gray-700':'bg-red-500')+'"></span><span class="min-w-0 flex-1"><b class="block text-xs text-white">'+escapeHtml(n.title)+'</b><span class="block text-[11px] text-gray-300 mt-1">'+escapeHtml(n.body||'')+'</span><small class="block text-[9px] text-gray-500 mt-2">'+new Date(n.created_at).toLocaleString('id-ID')+'</small></span></div></button>').join('');}
         async function createCrewNotifications(recipientIds,title,body,type='general',target='chat'){const ids=[...new Set((recipientIds||[]).filter(id=>id&&id!==activeUser?.id))];if(!ids.length||!activeUser)return;const rows=ids.map(recipient_id=>({recipient_id,actor_id:activeUser.id,notification_type:type,title,body,target_url:target}));const {error}=await supabaseClient.from('ghoustory_notifications').insert(rows);if(error)console.warn('Notifikasi gagal dibuat:',error.message);}
         async function openGhoustoryNotification(id){const n=ghoustoryNotifications.find(x=>x.id===id);if(!n)return;if(!n.read_at){const {error}=await supabaseClient.from('ghoustory_notifications').update({read_at:new Date().toISOString()}).eq('id',id);if(!error)n.read_at=new Date().toISOString();}renderGhoustoryNotifications();if(n.target_url==='chat'){document.getElementById('notification-popover')?.classList.add('hidden');showPage('chat');openGroupRoom();}else if(n.target_url==='crewhub'){document.getElementById('notification-popover')?.classList.add('hidden');showPage('crewhub');}}
-        let crewSchedules=[],crewProfiles=[],crewAssignments=[],crewAttendance=[],activeAttendanceQueue=[];
+        let crewSchedules=[],crewCandidates=[],crewProfiles=[],crewAssignments=[],crewAttendance=[],activeAttendanceQueue=[];
         let crewCalendarMonth=new Date().getMonth(),crewCalendarYear=new Date().getFullYear();
         function changeCrewMonth(delta){crewCalendarMonth+=delta;if(crewCalendarMonth<0){crewCalendarMonth=11;crewCalendarYear--;}if(crewCalendarMonth>11){crewCalendarMonth=0;crewCalendarYear++;}renderCrewCalendar();}
         function renderCrewCalendar(){
@@ -4996,9 +5001,9 @@ nav.sticky {
         function crewDaysLeft(d){const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(d+'T00:00:00')-n)/86400000);}
         async function refreshCrewHub(){
           if(!activeUser)return;
-          const [s,a,p,t]=await Promise.all([supabaseClient.from('ghoustory_schedules').select('*').order('event_date'),supabaseClient.from('ghoustory_schedule_assignments').select('*'),supabaseClient.from('ghoustory_profiles').select('user_id,nickname,role,avatar_url'),supabaseClient.from('ghoustory_attendance_responses').select('*')]);
-          for(const x of [s,a,p,t])if(x.error)throw x.error;
-          crewSchedules=s.data||[];crewAssignments=a.data||[];crewProfiles=p.data||[];crewAttendance=t.data||[];renderCrewCalendar();renderCrewHub();updateCrewReminderBar();
+          const [s,c,a,p,t]=await Promise.all([supabaseClient.from('ghoustory_schedules').select('*').order('event_date'),supabaseClient.from('ghoustory_speaker_candidates').select('*').order('updated_at',{ascending:false}),supabaseClient.from('ghoustory_schedule_assignments').select('*'),supabaseClient.from('ghoustory_profiles').select('user_id,nickname,role,avatar_url'),supabaseClient.from('ghoustory_attendance_responses').select('*')]);
+          for(const x of [s,c,a,p,t])if(x.error)throw x.error;
+          crewSchedules=s.data||[];crewCandidates=c.data||[];crewAssignments=a.data||[];crewProfiles=p.data||[];crewAttendance=t.data||[];renderCrewCalendar();renderCrewHub();renderCrewCandidates();updateCrewReminderBar();
         }
         function renderCrewHub(){
           const list=document.getElementById('crew-schedule-list');if(!list)return;
@@ -5025,7 +5030,47 @@ nav.sticky {
           }).join('');
         }
         function selectCrewCalendarDate(date){resetCrewScheduleForm();document.getElementById('j-tgl').value=date;document.getElementById('crew-schedule-form')?.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('j-nama')?.focus({preventScroll:true});}
-        function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');}
+        function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';document.getElementById('j-candidate-edit-id').value='';document.getElementById('j-candidate-promote-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal / Kandidat Narasumber';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');}
+        async function saveCrewCandidate(){
+          if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
+          const editId=document.getElementById('j-candidate-edit-id').value,id=editId||String(Date.now()),title=document.getElementById('j-nama').value.trim();
+          if(!title)return alert('Isi topik atau premis narasumber terlebih dahulu.');
+          const old=crewCandidates.find(x=>String(x.id)===String(id));
+          const row={id,title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
+          const saved=await supabaseClient.from('ghoustory_speaker_candidates').upsert(row);
+          if(saved.error)return alert('Kandidat gagal disimpan: '+saved.error.message);
+          resetCrewScheduleForm();await refreshCrewHub();alert('Kandidat narasumber berhasil disimpan.');
+        }
+        function editCrewCandidate(id){
+          const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
+          resetCrewScheduleForm();document.getElementById('j-candidate-edit-id').value=c.id;
+          document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
+          document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
+          const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Edit Kandidat Narasumber';
+          document.getElementById('crew-schedule-cancel')?.classList.remove('hidden');
+          document.getElementById('crew-schedule-form').scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        function scheduleCrewCandidate(id){
+          const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
+          resetCrewScheduleForm();document.getElementById('j-candidate-promote-id').value=c.id;
+          document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
+          document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
+          const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Jadwalkan Kandidat ke Almanak';
+          document.getElementById('crew-schedule-cancel')?.classList.remove('hidden');
+          document.getElementById('crew-schedule-form').scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        async function deleteCrewCandidate(id){
+          const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c||!confirm('Hapus kandidat narasumber “'+(c.narsum||c.title)+'”?'))return;
+          const result=await supabaseClient.from('ghoustory_speaker_candidates').delete().eq('id',id);
+          if(result.error)return alert('Kandidat gagal dihapus: '+result.error.message);
+          await refreshCrewHub();
+        }
+        function renderCrewCandidates(){
+          const list=document.getElementById('crew-candidate-list'),count=document.getElementById('crew-candidate-count');if(!list)return;
+          const items=crewCandidates||[];if(count)count.textContent=items.length+' kandidat';
+          if(!items.length){list.innerHTML='<p class="text-xs text-gray-500">Belum ada kandidat narasumber. Tambahkan melalui formulir di atas.</p>';return;}
+          list.innerHTML=items.map(c=>'<article class="rounded-xl border border-indigo-900/60 bg-black/50 p-3"><div class="min-w-0"><b class="text-sm text-white">'+escapeHtml(c.narsum||'Nama belum diisi')+'</b><p class="text-xs text-indigo-200 mt-1">'+escapeHtml(c.title||'Topik belum diisi')+'</p><p class="text-[10px] text-gray-500 mt-1">'+escapeHtml(c.segment||'Segmen belum dipilih')+' · '+escapeHtml(c.location||'Lokasi belum ditentukan')+'</p></div><div class="grid grid-cols-2 gap-2 mt-3"><button onclick="scheduleCrewCandidate(\''+c.id+'\')" class="rounded-lg bg-yellow-800/80 px-3 py-2 text-xs font-semibold">Masukkan ke Almanak</button><button onclick="editCrewCandidate(\''+c.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-xs">Edit</button><button onclick="deleteCrewCandidate(\''+c.id+'\')" class="col-span-2 rounded-lg border border-red-900 bg-red-950/70 px-3 py-2 text-xs">Hapus Kandidat</button></div></article>').join('');
+        }
         async function saveCrewSchedule(){
           if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
           const rawId=document.getElementById('j-edit-id').value,id=rawId||String(Date.now()),title=document.getElementById('j-nama').value.trim(),date=document.getElementById('j-tgl').value;
@@ -5034,6 +5079,7 @@ nav.sticky {
           if(String(rawId).startsWith('legacy:')){const legacyId=String(rawId).slice(7),legacy=(db.jadwal||[]).find(j=>String(j.id)===legacyId);if(!legacy)return alert('Jadwal & Absensi tidak ditemukan.');Object.assign(legacy,{title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,loc:document.getElementById('j-lokasi').value.trim(),date,time});saveData();resetCrewScheduleForm();renderJadwalCal();alert('Jadwal & Absensi berhasil diperbarui.');return;}
           const old=crewSchedules.find(s=>s.id===id),row={id,title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),event_date:date,event_time:time,created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString(),status:old?.status||'scheduled'};
           const x=await supabaseClient.from('ghoustory_schedules').upsert(row);if(x.error)return alert('Jadwal gagal disimpan: '+x.error.message);
+          const promotedId=document.getElementById('j-candidate-promote-id').value;if(promotedId){const removed=await supabaseClient.from('ghoustory_speaker_candidates').delete().eq('id',promotedId);if(removed.error)return alert('Jadwal tersimpan, tetapi kandidat belum terhapus: '+removed.error.message);}
           try{await insertChatMessage({body:'📅 Jadwal Crew Hub baru/diperbarui: '+title+' · '+date+'. Semua Crew dapat melihat jadwal dan mengonfirmasi kehadiran.',message_type:'system',notify:true});}catch(noticeError){console.warn('Jadwal tersimpan, tetapi pesan grup gagal:',noticeError);}
           await createCrewNotifications(crewProfiles.map(p=>p.user_id),'Jadwal Crew Hub diperbarui',title+' · '+date,'schedule','crewhub');
           resetCrewScheduleForm();await refreshCrewHub();alert('Jadwal tersimpan. Semua Crew dapat melihat dan mengonfirmasi.');
