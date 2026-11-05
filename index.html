@@ -6234,7 +6234,7 @@ function toggleChatSearch(kind, forceOpen){
 #page-arena #arena-game-grid{
  display:grid!important;
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
- align-items:stretch!important;
+ align-items:start!important;
  gap:12px!important;
  width:100%!important;
  margin:0 0 18px!important;
@@ -6246,8 +6246,8 @@ function toggleChatSearch(kind, forceOpen){
  min-width:0!important;
  max-width:none!important;
  min-height:0!important;
- aspect-ratio:4/5!important;
- overflow:hidden!important;
+ aspect-ratio:auto!important;
+ overflow:visible!important;
  padding:0!important;
  border:0!important;
  border-radius:0!important;
@@ -6259,13 +6259,13 @@ function toggleChatSearch(kind, forceOpen){
 #page-arena #arena-game-grid>.arena-game-card:active{transform:scale(.985)!important}
 #page-arena #arena-game-grid>.arena-game-card:focus-visible{outline:3px solid rgba(96,165,250,.9);outline-offset:3px}
 #page-arena #arena-game-grid>.arena-game-card>.arena-game-art{
- position:absolute!important;
- inset:0!important;
+ position:relative!important;
+ inset:auto!important;
  display:block!important;
  width:100%!important;
- height:100%!important;
- max-width:none!important;
- object-fit:cover!important;
+ height:auto!important;
+ max-width:100%!important;
+ object-fit:contain!important;
  object-position:center!important;
  z-index:0!important;
  border-radius:0!important;
