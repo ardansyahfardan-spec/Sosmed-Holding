@@ -15,7 +15,7 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <title>Ghoustory Control Room</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -6144,6 +6144,10 @@ function toggleChatSearch(kind, forceOpen){
 </style>
 
 <style id="gh-arena-gaib-styles">
+/* Icon font consistency and alignment. */
+.fa-solid,.fas{font-weight:900}.fa-regular,.far{font-weight:400}.fa-brands{font-weight:400}
+#page-arena button .fa-solid,#page-arena button .fa-brands{width:1.15em;text-align:center;vertical-align:-.06em}
+
 #page-arena .arena-game-card{position:relative;display:flex;overflow:hidden;aspect-ratio:1/1;min-width:0;min-height:0;align-items:flex-end;justify-content:center;padding:0;border:0;border-radius:0;background:#08080c;text-align:center;isolation:isolate;transition:transform .18s ease}
 #page-arena .arena-game-card:hover{transform:translateY(-2px)}
 #page-arena .arena-game-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transition:transform .35s ease}
@@ -6245,7 +6249,7 @@ async function saveArenaResult(mode,score,details){
  await refreshArena();return true;
 }
 const arenaImageModes=["berkas","teka_teki","survival","relik","siapa_aku","pencerita","tantangan"];
-function arenaImageUrl(mode){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+".png";}
+function arenaImageUrl(mode,ext="webp"){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+"."+ext;}
 window.loadArenaImages=function(){
  document.querySelectorAll("#arena-game-grid .arena-game-card").forEach(card=>{
   const img=card.querySelector(".arena-game-art");if(!img)return;
@@ -6280,6 +6284,17 @@ window.malamResolveVote=async()=>{const {error}=await supabaseClient.rpc('malam_
 window.malamLoadMessages=async()=>{if(!malamRoomId)return;const {data,error}=await supabaseClient.from('malam_messages').select('nickname,body').eq('room_id',malamRoomId).order('created_at').limit(60);const b=document.getElementById('malam-chat-list');if(!b)return;b.innerHTML=error?'Chat belum dapat dimuat.':(data||[]).map(m=>'<div class="bg-gray-900 rounded-lg p-2"><b class="text-red-200 text-xs">'+esc(m.nickname)+'</b><p class="text-xs">'+esc(m.body)+'</p></div>').join('')||'Belum ada pesan.';};
 window.malamChat=async()=>{const i=document.getElementById('malam-chat-input'),body=(i?.value||'').trim();if(!body)return;const {error}=await supabaseClient.rpc('malam_send_chat',{p_room:malamRoomId,p_body:body});if(error)malamMsg(error.message);else{i.value='';malamLoadMessages();}};
 window.malamExit=async function(){const id=malamRoomId;if(id){const {error}=await supabaseClient.rpc('malam_leave_room',{p_room:id});if(error){malamMsg(error.message);return;}}if(malamChannel)supabaseClient.removeChannel(malamChannel);malamChannel=null;malamRoomId=null;malamHome();};
+async function compressArenaImage(sourceBlob){
+ const bitmap=await createImageBitmap(sourceBlob);
+ const maxSide=768,scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+ const width=Math.max(1,Math.round(bitmap.width*scale)),height=Math.max(1,Math.round(bitmap.height*scale));
+ const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;
+ const ctx=canvas.getContext("2d",{alpha:false});if(!ctx){bitmap.close?.();throw new Error("Peramban tidak mendukung kompresi gambar.");}
+ ctx.fillStyle="#08080c";ctx.fillRect(0,0,width,height);ctx.drawImage(bitmap,0,0,width,height);bitmap.close?.();
+ const optimized=await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Gagal mengompres gambar.")),"image/webp",0.82));
+ const ext=optimized.type==="image/webp"?"webp":optimized.type==="image/jpeg"?"jpg":"png";
+ return {blob:optimized,ext};
+}
 window.generateArenaImages=async function(){
  const btn=$("arena-generate-images"),status=$("arena-image-status");
  if(!btn||!status)return;
@@ -6287,22 +6302,24 @@ window.generateArenaImages=async function(){
  btn.disabled=true;btn.classList.add("opacity-50");let made=0,skipped=0;
  try{
   for(let i=0;i<arenaImageModes.length;i++){
-   const mode=arenaImageModes[i],path="games/"+mode+".png",url=arenaImageUrl(mode);
-   const existing=await fetch(url,{method:"HEAD",cache:"no-store"});
-   if(existing.ok){skipped++;status.textContent="Memeriksa ilustrasi "+(i+1)+"/8…";continue;}
+   const mode=arenaImageModes[i];let alreadyExists=false;
+   for(const ext of ["webp","jpg","png"]){const existing=await fetch(arenaImageUrl(mode,ext),{method:"HEAD",cache:"no-store"});if(existing.ok){alreadyExists=true;break;}}
+   if(alreadyExists){skipped++;status.textContent="Memeriksa ilustrasi "+(i+1)+"/8…";continue;}
    status.textContent="Gemini sedang membuat gambar "+(i+1)+"/8…";
    const {data,error}=await supabaseClient.functions.invoke("ghoustory-ai",{body:{task:"arena-image",mode}});
    if(error)throw error;
    if(!data?.imageBase64)throw new Error(data?.error||"Gemini tidak mengembalikan gambar untuk "+mode+".");
    const binary=atob(data.imageBase64),bytes=new Uint8Array(binary.length);
    for(let n=0;n<binary.length;n++)bytes[n]=binary.charCodeAt(n);
-   const blob=new Blob([bytes],{type:data.mimeType||"image/png"});
-   const {error:uploadError}=await supabaseClient.storage.from("arena-game-images").upload(path,blob,{contentType:data.mimeType||"image/png",cacheControl:"31536000",upsert:false});
+   const sourceBlob=new Blob([bytes],{type:data.mimeType||"image/png"});
+   status.textContent="Mengoptimalkan gambar "+(i+1)+"/8…";
+   const optimized=await compressArenaImage(sourceBlob),path="games/"+mode+"."+optimized.ext,url=arenaImageUrl(mode,optimized.ext);
+   const {error:uploadError}=await supabaseClient.storage.from("arena-game-images").upload(path,optimized.blob,{contentType:optimized.blob.type,cacheControl:"31536000",upsert:false});
    if(uploadError&&uploadError.statusCode!=="409")throw uploadError;
    made++;const card=document.querySelector('#arena-game-grid .arena-game-card[data-mode="'+mode+'"]'),img=card?.querySelector(".arena-game-art");
    if(img){img.onload=()=>card.classList.remove("no-art");img.onerror=()=>card.classList.add("no-art");img.src=url+"?v="+Date.now();}
   }
-  status.textContent=made?made+" gambar baru tersimpan. "+(skipped?skipped+" gambar sudah tersedia.":""): "Semua gambar sudah tersedia.";
+  status.textContent=made?made+" gambar baru tersimpan dalam ukuran ringan. "+(skipped?skipped+" gambar sudah tersedia.":""): "Semua gambar sudah tersedia.";
  }catch(error){console.error("Arena image generation error:",error);status.textContent="Gagal membuat gambar: "+(error.message||"periksa koneksi dan kuota Gemini.");}
  finally{btn.disabled=false;btn.classList.remove("opacity-50");}
 };
