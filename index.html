@@ -2433,37 +2433,40 @@ nav.sticky {
                   </div>
                 </div>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
-                  <i class="fa-solid fa-ghost text-xl text-red-300 mb-3"></i>
-                  <h3 class="font-bold text-sm text-[#eee8dd]">Bestiary</h3>
-                  <p class="text-[11px] text-gray-500 mt-1">Makhluk dalam folklor Nusantara</p>
-                </div>
-                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
-                  <i class="fa-solid fa-scroll text-xl text-red-300 mb-3"></i>
-                  <h3 class="font-bold text-sm text-[#eee8dd]">Folklore</h3>
-                  <p class="text-[11px] text-gray-500 mt-1">Legenda dan cerita rakyat daerah</p>
-                </div>
-                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
-                  <i class="fa-solid fa-house-chimney-crack text-xl text-red-300 mb-3"></i>
-                  <h3 class="font-bold text-sm text-[#eee8dd]">Haunted Places</h3>
-                  <p class="text-[11px] text-gray-500 mt-1">Lokasi, sejarah, dan kisah masyarakat</p>
-                </div>
-                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
-                  <i class="fa-solid fa-gem text-xl text-red-300 mb-3"></i>
-                  <h3 class="font-bold text-sm text-[#eee8dd]">Artifacts</h3>
-                  <p class="text-[11px] text-gray-500 mt-1">Benda pusaka dan tradisi terkait</p>
-                </div>
-                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28 col-span-2 sm:col-span-1">
-                  <i class="fa-solid fa-folder-open text-xl text-red-300 mb-3"></i>
-                  <h3 class="font-bold text-sm text-[#eee8dd]">Case Files</h3>
-                  <p class="text-[11px] text-gray-500 mt-1">Dokumentasi kisah dan pengalaman masyarakat</p>
-                </div>
+              <div class="rounded-xl border border-red-900/35 bg-red-950/20 p-3 sm:p-4 mb-4">
+                <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-compass text-red-300"></i><h3 class="text-sm font-bold text-[#eee8dd]">Arah kurasi LORE</h3></div>
+                <p class="text-xs text-gray-300 leading-relaxed">Menggali kisah dari desa, komunitas, dan daerah yang jarang mendapat sorotan. Cerita lokal dan underrated menjadi prioritas; kisah populer tetap bisa masuk jika punya nilai dokumentasi.</p>
+                <div class="flex flex-wrap gap-2 mt-3"><span class="text-[10px] rounded-full border border-red-900/50 bg-red-950/40 px-2.5 py-1 text-red-200">LOCAL FIRST</span><span class="text-[10px] rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-gray-300">SOURCE-BASED</span><span class="text-[10px] rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-gray-300">INDONESIA ONLY</span></div>
               </div>
-              <div class="rounded-xl border border-white/10 bg-white/[.025] p-4 mt-5">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="lore-category-grid">
+                <button type="button" data-lore-category="bestiary" onclick="openLoreCategory('bestiary')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                  <i class="fa-solid fa-ghost text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Bestiary</h3><p class="text-[11px] text-gray-500 mt-1">Makhluk dan sosok dalam folklor lokal</p>
+                </button>
+                <button type="button" data-lore-category="folklore" onclick="openLoreCategory('folklore')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                  <i class="fa-solid fa-scroll text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Folklore</h3><p class="text-[11px] text-gray-500 mt-1">Legenda, mitos, dan cerita tutur daerah</p>
+                </button>
+                <button type="button" data-lore-category="places" onclick="openLoreCategory('places')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                  <i class="fa-solid fa-house-chimney-crack text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Haunted Places</h3><p class="text-[11px] text-gray-500 mt-1">Tempat, sejarah, dan kisah warga</p>
+                </button>
+                <button type="button" data-lore-category="artifacts" onclick="openLoreCategory('artifacts')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                  <i class="fa-solid fa-gem text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Artifacts</h3><p class="text-[11px] text-gray-500 mt-1">Benda pusaka dan tradisi terkait</p>
+                </button>
+                <button type="button" data-lore-category="cases" onclick="openLoreCategory('cases')" aria-pressed="false" class="lore-category-card col-span-2 sm:col-span-1 text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                  <i class="fa-solid fa-folder-open text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Case Files</h3><p class="text-[11px] text-gray-500 mt-1">Kesaksian dan dokumentasi pengalaman</p>
+                </button>
+              </div>
+              <div class="mt-5 rounded-xl border border-white/10 bg-white/[.025] p-3.5 sm:p-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div class="min-w-0"><p class="text-[10px] tracking-[.18em] text-red-300 font-bold">KOLEKSI LORE</p><h3 id="lore-list-title" class="font-bold text-base text-[#eee8dd] mt-1">Semua kategori</h3><p id="lore-list-subtitle" class="text-[11px] text-gray-500 mt-1">Daftar entri yang lolos pemeriksaan sumber.</p></div>
+                  <span id="lore-entry-count" class="text-[10px] text-gray-400 rounded-full border border-white/10 px-2.5 py-1 self-start">0 entri</span>
+                </div>
+                <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 mb-3"><i class="fa-solid fa-magnifying-glass text-gray-500 text-xs"></i><input id="lore-search" type="search" oninput="renderLoreEntries()" placeholder="Cari cerita, daerah, atau kata kunci..." class="w-full min-w-0 bg-transparent outline-none text-xs text-[#eee8dd] placeholder:text-gray-600"></label>
+                <div id="lore-entry-list" class="space-y-2"><div class="rounded-lg border border-dashed border-white/10 p-5 text-center"><i class="fa-solid fa-book-open text-xl text-gray-600 mb-2"></i><p class="text-xs text-gray-400">Koleksi sedang disiapkan.</p><p class="text-[10px] text-gray-600 mt-1">Entri pertama akan ditampilkan setelah sumber dan dokumentasinya diverifikasi.</p></div></div>
+              </div>
+              <div class="rounded-xl border border-white/10 bg-white/[.025] p-4 mt-4">
                 <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-shield-halved text-red-300"></i><h3 class="text-sm font-bold text-[#eee8dd]">Standar sumber LORE</h3></div>
-                <p class="text-xs text-gray-400 leading-relaxed">Artikel tidak boleh berisi klaim rekaan. Cerita kepercayaan harus diberi konteks sebagai folklor atau kesaksian, bukan fakta ilmiah. Setiap entri akan melalui pemeriksaan sumber sebelum diterbitkan.</p>
-                <p class="text-[11px] text-gray-500 mt-3">Belum ada artikel yang diterbitkan. Koleksi akan ditampilkan setelah sistem sumber dan proses review disiapkan.</p>
+                <ul class="text-xs text-gray-400 leading-relaxed space-y-1.5 list-disc pl-4"><li>Utamakan sumber primer, arsip resmi, buku daerah, dan narasumber yang jelas identitas atau perannya.</li><li>Pisahkan fakta sejarah, folklor, kesaksian, dan hal yang belum terverifikasi.</li><li>Foto wajib memiliki asal-usul dan kredit; foto ilustrasi tidak boleh disebut dokumentasi asli.</li><li>Jangan menambahkan detail atau klaim yang tidak didukung sumber.</li></ul>
+                <div class="mt-4 pt-3 border-t border-white/10"><p class="text-[10px] font-bold tracking-wider text-gray-500 mb-2">PINTU MASUK RISET</p><div class="flex flex-col gap-2 text-xs"><a href="https://repositori.kemendikdasmen.go.id/view/subjects/PED007%3D2E5.html" target="_blank" rel="noopener" class="text-red-200 hover:text-red-100 underline underline-offset-2">Repositori cerita rakyat Kemendikdasmen <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a><a href="https://katalog.kemendikdasmen.go.id/isearch?collection%5B0%5D=Pustaka+Kemendikdasmen&facet_subject%5B0%5D=Cerita%2BRakyat&format%5B0%5D=Text&institution%5B0%5D=Sekretariat+Jenderal&qop=AND&rows=10&start=1&type=AllFields" target="_blank" rel="noopener" class="text-red-200 hover:text-red-100 underline underline-offset-2">Katalog pustaka cerita rakyat <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a></div></div>
               </div>
             </section>
 
@@ -3258,6 +3261,36 @@ nav.sticky {
             if(activeUser)loadGhoustoryNotifications();
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
+        }
+        // LORE archive navigation and search foundation. Entries stay empty until source-verified records are added.
+        const LORE_CATEGORY_LABELS={all:'Semua kategori',bestiary:'Bestiary',folklore:'Folklore',places:'Haunted Places',artifacts:'Artifacts',cases:'Case Files'};
+        let activeLoreCategory='all';
+        const loreEntries=[];
+        function openLoreCategory(category){
+            activeLoreCategory=LORE_CATEGORY_LABELS[category]?category:'all';
+            document.querySelectorAll('[data-lore-category]').forEach(button=>{
+                const active=button.dataset.loreCategory===activeLoreCategory;
+                button.setAttribute('aria-pressed',String(active));
+                button.classList.toggle('border-red-700/70',active);
+                button.classList.toggle('bg-red-950/25',active);
+            });
+            const title=document.getElementById('lore-list-title');
+            if(title)title.textContent=LORE_CATEGORY_LABELS[activeLoreCategory];
+            renderLoreEntries();
+            document.getElementById('lore-entry-list')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+        function renderLoreEntries(){
+            const list=document.getElementById('lore-entry-list');
+            if(!list)return;
+            const query=(document.getElementById('lore-search')?.value||'').trim().toLocaleLowerCase('id');
+            const items=loreEntries.filter(item=>(activeLoreCategory==='all'||item.category===activeLoreCategory)&&(!query||[item.title,item.region,item.summary,item.keywords].join(' ').toLocaleLowerCase('id').includes(query)));
+            const count=document.getElementById('lore-entry-count');
+            if(count)count.textContent=items.length+' entri';
+            if(!items.length){
+                list.innerHTML='<div class="rounded-lg border border-dashed border-white/10 p-5 text-center"><i class="fa-solid fa-book-open text-xl text-gray-600 mb-2"></i><p class="text-xs text-gray-400">'+(query?'Belum ada hasil untuk pencarian ini.':'Belum ada entri terverifikasi di kategori ini.')+'</p><p class="text-[10px] text-gray-600 mt-1">Kami mengutamakan cerita lokal yang jarang diangkat dan hanya menerbitkan entri dengan sumber yang dapat ditelusuri.</p></div>';
+                return;
+            }
+            list.innerHTML=items.map(item=>'<article class="rounded-lg border border-white/10 bg-black/20 p-3"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h4 class="text-sm font-bold text-[#eee8dd]">'+escapeHtml(item.title)+'</h4><p class="text-[10px] text-gray-500 mt-1">'+escapeHtml(item.region||'Lokasi belum dicatat')+'</p><p class="text-xs text-gray-400 mt-2">'+escapeHtml(item.summary||'')+'</p></div><span class="shrink-0 text-[9px] rounded-full border border-white/10 px-2 py-1 text-gray-400">'+escapeHtml(item.status||'Perlu ditinjau')+'</span></div></article>').join('');
         }
         let kasTabUnlocked = false;
         function openKasAccess(){const m=document.getElementById('kas-access-modal'),i=document.getElementById('kas-access-password'),s=document.getElementById('kas-access-status');if(!m)return;m.classList.remove('hidden');m.classList.add('flex');i.value='';s.textContent='';setTimeout(()=>i.focus(),80);}
