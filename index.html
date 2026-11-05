@@ -6255,6 +6255,69 @@ async function saveArenaResult(mode,score,details){
  if(error){console.error('Arena save error',error);alert('Hasil belum tersimpan: '+(error.message||'periksa koneksi'));return false;}
  await refreshArena();return true;
 }
+
+/* Arena Gaib: bank konten dan mini-game interaktif */
+let arenaBankPack=null,arenaBankStep=0,arenaBankClues=[],arenaBankStats={health:3,sanity:3,battery:2,supplies:2},arenaBankSeen=new Set(),arenaBankCards=[];
+const arenaLegacyPlay=window.playArena;
+async function arenaFetchPack(mode){
+ try{
+  const {data,error}=await supabaseClient.from('ghoustory_arena_content').select('id,title,content_type,payload,difficulty').eq('game_mode',mode).eq('is_active',true);
+  if(error)throw error;
+  if(data&&data.length){const fresh=data.filter(x=>!arenaBankSeen.has(x.id));const pool=fresh.length?fresh:data;const row=pool[Math.floor(Math.random()*pool.length)];arenaBankSeen.add(row.id);return row;}
+ }catch(e){console.warn('Bank Arena belum dapat dimuat:',e.message||e);}
+ return null;
+}
+window.playArena=async function(mode){
+ if(!arenaModes[mode])return;
+ arenaCurrent=mode;arenaIndex=0;arenaStep=0;arenaScore=0;arenaAnswers=[];
+ arenaBankStep=0;arenaBankClues=[];arenaBankStats={health:3,sanity:3,battery:2,supplies:2};arenaBankCards=[];arenaBankPack=null;
+ showArenaGamePage();
+ const panel=$('arena-play-panel');panel.innerHTML=arenaBackHeader('MENYIAPKAN MISI',arenaModes[mode].title)+'<p class="text-sm text-gray-400">Mengambil paket tantangan dari Bank Arena...</p>';
+ arenaBankPack=await arenaFetchPack(mode);
+ if(!arenaBankPack){arenaLegacyPlay(mode);return;}
+ renderArenaBankGame();
+};
+function arenaBankHeader(){return arenaBackHeader('PETUALANGAN INTERAKTIF',arenaBankPack?.title||arenaModes[arenaCurrent].title);}
+function arenaBankButton(label,action,sub=''){return '<button class="arena-answer w-full text-left mb-2" onclick="'+action+'"><b>'+esc(label)+'</b>'+(sub?'<div class="text-xs text-gray-400 mt-1">'+esc(sub)+'</div>':'')+'</button>';}
+function renderArenaBankGame(){
+ const p=$('arena-play-panel'),d=arenaBankPack.payload||{};let h=arenaBankHeader();
+ if(arenaCurrent==='berkas'){
+  h+='<p class="text-sm text-gray-300 mb-3">'+esc(d.brief||'Selidiki lokasi dan kumpulkan bukti.')+'</p><p class="text-xs text-red-300 mb-2">BUKTI '+arenaBankClues.length+'/'+(d.clues||[]).length+'</p>';
+  (d.clues||[]).forEach((x,i)=>h+=arenaBankButton(arenaBankClues.includes(i)?'✓ '+x.name:x.name,arenaBankClues.includes(i)?'void(0)':'arenaBankReveal('+i+')',arenaBankClues.includes(i)?x.detail:'Ketuk untuk memeriksa bukti'));
+  if(arenaBankClues.length===(d.clues||[]).length){h+='<p class="font-bold text-white mt-4 mb-2">Pilih siapa yang paling terkait dengan petunjuk ini.</p>';(d.suspects||[]).forEach((x,i)=>h+=arenaBankButton(x.name,'arenaBankChoose('+i+')',x.detail));}
+ }else if(arenaCurrent==='teka_teki'){
+  const x=(d.steps||[])[arenaBankStep];h+='<p class="text-xs text-blue-200 mb-2">RUANG '+(arenaBankStep+1)+' / '+(d.steps||[]).length+'</p><div class="rounded-xl border border-blue-900/40 bg-blue-950/20 p-4 mb-3 text-sm">'+esc(x?.clue||'')+'</div><b class="text-white">'+esc(x?.question||'')+'</b><div class="mt-3">';
+  (x?.options||[]).forEach((v,i)=>h+=arenaBankButton(v,'arenaBankAnswer('+i+')'));h+='</div><p class="text-xs text-gray-500">Petunjuk: '+esc(x?.hint||'')+'</p>';
+ }else if(arenaCurrent==='survival'){
+  const x=(d.events||[])[arenaBankStep];h+='<p class="text-sm text-gray-300 mb-3">'+esc(d.brief||'Bertahan sampai pagi.')+'</p><div class="grid grid-cols-4 gap-2 mb-4">'+[['health','Nyawa'],['sanity','Nalar'],['battery','Baterai'],['supplies','Bekal']].map(([k,n])=>'<div class="rounded-lg bg-black/30 border border-gray-800 p-2 text-center"><small class="text-gray-500">'+n+'</small><b class="block text-red-200">'+arenaBankStats[k]+'</b></div>').join('')+'</div><div class="rounded-xl border border-red-900/40 bg-red-950/20 p-4 mb-3">'+esc(x?.scene||'')+'</div>';
+  (x?.choices||[]).forEach((v,i)=>h+=arenaBankButton(v.label,'arenaBankSurvive('+i+')')); 
+ }else if(arenaCurrent==='relik'){
+  h+='<p class="text-sm text-gray-300 mb-3">'+esc(d.brief||'Pilih jalur ekspedisi menuju relik.')+'</p>';
+  (d.routes||[]).forEach((v,i)=>h+=arenaBankButton(v.name,'arenaBankRoute('+i+')','Risiko '+v.risk+' · '+v.reward));
+ }else if(arenaCurrent==='siapa_aku'){
+  h+='<p class="text-sm text-gray-300 mb-3">Buka petunjuk bertahap, lalu tebak identitasnya.</p>';
+  (d.clues||[]).forEach((v,i)=>h+=arenaBankButton(arenaBankClues.includes(i)?'✓ Petunjuk '+(i+1)+': '+v:'Buka petunjuk '+(i+1),arenaBankClues.includes(i)?'void(0)':'arenaBankReveal('+i+')'));
+  if(arenaBankClues.length) {(d.options||[]).forEach((v,i)=>h+=arenaBankButton(v,'arenaBankAnswer('+i+')'));}
+ }else if(arenaCurrent==='pencerita'){
+  const cards=d.cards||{};arenaBankCards=Object.keys(cards).map(k=>[k,(cards[k]||[])[Math.floor(Math.random()*(cards[k]||[]).length)]]);
+  h+='<p class="text-sm text-gray-300 mb-3">Racik cerita dari tiga kartu yang kamu dapat.</p><div class="grid grid-cols-3 gap-2 mb-4">'+arenaBankCards.map(([k,v])=>'<div class="rounded-xl border border-red-900/40 bg-red-950/20 p-3 text-center"><small class="text-gray-500">'+esc(k)+'</small><b class="block text-xs text-red-100 mt-1">'+esc(v)+'</b></div>').join('')+'</div><textarea id="arena-bank-story" maxlength="'+(d.maximum_chars||500)+'" placeholder="Tulis cerita horormu..."></textarea><button class="arena-primary mt-3" onclick="arenaBankSubmitStory()">Kirim Cerita</button>';
+ }else if(arenaCurrent==='tantangan'){
+  h+='<p class="text-xs tracking-widest text-red-300 mb-2">MISI RAHASIA</p><div class="rounded-xl border border-red-900/40 bg-red-950/20 p-4 text-white">'+esc(d.mission||'Selesaikan tantangan rahasia Crew.')+'</div><p class="text-xs text-gray-400 mt-3">Verifikasi: '+esc(d.proof||'Crew akan memverifikasi misimu.')+'</p><textarea id="arena-bank-proof" maxlength="500" placeholder="Ceritakan bukti penyelesaian misimu..."></textarea><button class="arena-primary mt-3" onclick="arenaBankSubmitMission()">Kirim Bukti Misi</button>';
+ }
+ p.innerHTML=h;
+}
+window.arenaBankReveal=function(i){if(!arenaBankClues.includes(i)){arenaBankClues.push(i);arenaScore+=5;}renderArenaBankGame();};
+window.arenaBankAnswer=function(i){
+ const d=arenaBankPack.payload||{},step=(d.steps||[])[arenaBankStep],answer=arenaCurrent==='teka_teki'?step?.answer:d.answer;
+ const ok=i===answer;arenaAnswers.push({choice:i,correct:ok});if(ok)arenaScore+=20;
+ if(arenaCurrent==='teka_teki'&&arenaBankStep+1<(d.steps||[]).length){arenaBankStep++;renderArenaBankGame();return;}
+ finishArenaGame();
+};
+window.arenaBankChoose=function(i){const x=(arenaBankPack.payload.suspects||[])[i],solution=String(arenaBankPack.payload.solution||'').toLowerCase();const ok=solution.includes(String(x.name).toLowerCase())||i===2;arenaAnswers.push({suspect:x.name,correct:ok});if(ok)arenaScore+=30;finishArenaGame();};
+window.arenaBankSurvive=function(i){const d=arenaBankPack.payload,x=d.events[arenaBankStep],v=x.choices[i];Object.entries(v.effect||{}).forEach(([k,n])=>arenaBankStats[k]=Math.max(0,Math.min(5,(arenaBankStats[k]||0)+n)));arenaAnswers.push({choice:v.label,feedback:v.feedback,stats:{...arenaBankStats}});arenaScore+=Math.max(0,10+arenaBankStats.health+arenaBankStats.sanity);arenaBankStep++;if(arenaBankStep<d.events.length&&arenaBankStats.health>0&&arenaBankStats.sanity>0){renderArenaBankGame();return;}finishArenaGame();};
+window.arenaBankRoute=function(i){const d=arenaBankPack.payload,v=d.routes[i];Object.entries(v.effect||{}).forEach(([k,n])=>arenaBankStats[k]=(arenaBankStats[k]||0)+n);arenaAnswers.push({route:v.name,reward:v.reward,risk:v.risk});arenaScore+=v.risk==='high'?25:15;arenaBankStep++;if(arenaBankStep<2){renderArenaBankGame();return;}finishArenaGame();};
+window.arenaBankSubmitStory=async function(){const story=($('arena-bank-story')?.value||'').trim();if(story.length<(arenaBankPack.payload.minimum_chars||80)){alert('Cerita masih terlalu pendek.');return;}arenaScore=20;await saveArenaResult('pencerita',arenaScore,{story,cards:arenaBankCards});const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('KARYA TERKIRIM','Sang Pencerita')+'<p class="text-sm text-gray-200">Cerita berhasil dikirim ke papan Arena. +20 Poin Jiwa.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
+window.arenaBankSubmitMission=async function(){const proof=($('arena-bank-proof')?.value||'').trim();if(proof.length<20){alert('Bukti misi minimal 20 karakter.');return;}arenaScore=30;await saveArenaResult('tantangan',arenaScore,{mission:arenaBankPack.payload.mission,proof});const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('MISI SELESAI','Tantangan Rahasia')+'<p class="text-sm text-gray-200">Bukti misi terkirim. +30 Poin Jiwa.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
 const arenaImageModes=["berkas","teka_teki","survival","relik","siapa_aku","pencerita","tantangan"];
 function arenaImageUrl(mode,ext="webp"){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+"."+ext;}
 window.loadArenaImages=function(){
