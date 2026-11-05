@@ -6250,9 +6250,9 @@ function toggleChatSearch(kind, forceOpen){
  overflow:hidden!important;
  padding:0!important;
  border:0!important;
- border-radius:16px!important;
- background:#090d18!important;
- box-shadow:0 7px 20px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.035)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
  transform:none!important;
  isolation:isolate;
 }
@@ -6268,7 +6268,7 @@ function toggleChatSearch(kind, forceOpen){
  object-fit:cover!important;
  object-position:center!important;
  z-index:0!important;
- border-radius:inherit;
+ border-radius:0!important;
 }
 #page-arena #arena-game-grid>.arena-game-card.no-art{
  background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.42),transparent 58%),linear-gradient(145deg,#281622,#0c0f18)!important;
@@ -6289,12 +6289,12 @@ function toggleChatSearch(kind, forceOpen){
 #page-arena button{min-width:0;max-width:100%;white-space:normal}
 @media(min-width:641px){
  #page-arena #arena-game-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
- #page-arena #arena-game-grid>.arena-game-card{border-radius:18px!important}
+ #page-arena #arena-game-grid>.arena-game-card{border-radius:0!important}
 }
 @media(max-width:360px){
  #page-arena{padding-inline:8px}
  #page-arena #arena-game-grid{gap:8px!important}
- #page-arena #arena-game-grid>.arena-game-card{border-radius:12px!important}
+ #page-arena #arena-game-grid>.arena-game-card{border-radius:0!important}
  #page-arena #arena-lobby-view>.grid.grid-cols-3{gap:5px!important}
 }
 
