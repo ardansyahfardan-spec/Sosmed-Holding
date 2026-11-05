@@ -6578,18 +6578,18 @@ window.handleArenaGameDeepLink=function(){
  }catch(error){console.warn('Gagal membuka tautan Arena:',error);}
 };
 window.malamCreateRoom=async function(){
- window.malamAudioStart();
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
+ window.malamAudioStart();
  const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;
  const {data,error}=await supabaseClient.rpc('malam_create_room',{p_nickname:n.trim()});
  if(error){malamMsg(error.message);return;}
  malamRoomId=data.room_id;sessionStorage.setItem('gh_malam_room',malamRoomId);malamSubscribe();malamLoadState();
 };
 window.malamJoinRoom=async function(){
- window.malamAudioStart();
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
  const code=(document.getElementById('malam-join-code')?.value||'').trim().toUpperCase();
  if(code.length!==6){malamMsg('Masukkan kode 6 karakter.');return;}
+ window.malamAudioStart();
  const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;
  const {data,error}=await supabaseClient.rpc('malam_join_room',{p_code:code,p_nickname:n.trim()});
  if(error){malamMsg(error.message);return;}
