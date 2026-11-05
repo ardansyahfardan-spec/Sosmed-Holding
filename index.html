@@ -5582,5 +5582,32 @@ function toggleChatSearch(kind, forceOpen){
 }
 </style>
 
+
+<style id="gh-welcome-red-glow-restoration">
+/* WELCOME SPLASH: restore the signature dramatic Ghoustory red glow */
+#welcome-screen{
+  background:
+    radial-gradient(ellipse 58% 48% at 50% 43%, rgba(190,24,43,.34) 0%, rgba(145,18,34,.22) 34%, rgba(95,12,26,.12) 56%, transparent 76%),
+    radial-gradient(ellipse 78% 70% at 50% 48%, rgba(120,12,28,.16), transparent 72%),
+    #09090d !important;
+}
+#welcome-screen .welcome-logo{
+  filter:
+    drop-shadow(0 0 12px rgba(220,35,55,.78))
+    drop-shadow(0 0 30px rgba(185,28,45,.58))
+    drop-shadow(0 0 58px rgba(145,18,34,.34)) !important;
+}
+#welcome-screen > div.font-mystery{
+  color:#f4e9df !important;
+  text-shadow:0 0 18px rgba(190,24,43,.26);
+}
+#welcome-screen > p{
+  color:#d7c9c2 !important;
+}
+#welcome-screen .text-red-400{color:#f08a91 !important}
+#welcome-screen .bg-red-600{background-color:#d12d43 !important}
+#welcome-screen .bg-red-700{background-color:#a91f35 !important}
+</style>
+
 </body>
 </html>
