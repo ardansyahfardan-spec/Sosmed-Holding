@@ -5114,8 +5114,8 @@ async function openDirectMessage(otherId){
         }
         async function loadDirectMessages(){
           if(!activeDmConversation)return;if(dmRealtimeChannel){await supabaseClient.removeChannel(dmRealtimeChannel);dmRealtimeChannel=null;}
-          const {data,error}=await supabaseClient.from("ghoustory_dm_messages").select("*").eq("conversation_id",activeDmConversation).order("created_at").limit(150);if(error)throw error;
-          dmMessages=data||[];const ids=dmMessages.map(m=>m.id);dmReads=[];dmReactions=[];dmPins=[];
+          const {data,error}=await supabaseClient.from("ghoustory_dm_messages").select("*").eq("conversation_id",activeDmConversation).order("created_at",{ascending:false}).limit(150);if(error)throw error;
+          dmMessages=(data||[]).reverse();const ids=dmMessages.map(m=>m.id);dmReads=[];dmReactions=[];dmPins=[];
           if(ids.length){const [reads,rx,pn]=await Promise.all([supabaseClient.from("ghoustory_dm_message_reads").select("message_id,user_id,read_at").in("message_id",ids),supabaseClient.from("ghoustory_dm_message_reactions").select("*").in("message_id",ids),supabaseClient.from("ghoustory_dm_message_pins").select("*").in("message_id",ids)]);if(reads.error)throw reads.error;if(rx.error)throw rx.error;if(pn.error)throw pn.error;dmReads=reads.data||[];dmReactions=rx.data||[];dmPins=pn.data||[];}
           await markDmMessagesRead();renderDirectMessages();const id=activeDmConversation;
           dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
