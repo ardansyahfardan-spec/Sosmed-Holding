@@ -6200,8 +6200,10 @@ function toggleChatSearch(kind, forceOpen){
 </style>
 
 <style id="gh-arena-mobile-grid-fix">
-#page-arena #arena-game-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;width:100%!important}
-#page-arena #arena-game-grid>.arena-game-card{width:100%!important;max-width:none!important;min-width:0!important;aspect-ratio:1/1!important}
+/* Arena Gaib: ukuran kartu mengikuti rasio asli artwork, bukan kotak 1:1. */
+#page-arena #arena-game-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:start!important;gap:10px!important;width:100%!important}
+#page-arena #arena-game-grid>.arena-game-card{display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;min-width:0!important;aspect-ratio:auto!important;overflow:visible!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+#page-arena #arena-game-grid>.arena-game-card>.arena-game-art{position:static!important;display:block!important;width:100%!important;height:auto!important;max-height:none!important;object-fit:unset!important;object-position:center!important;transform:none!important}
 @media(max-width:640px){#page-arena #arena-game-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}}
 @media(min-width:641px) and (max-width:1023px){#page-arena #arena-game-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 </style>
