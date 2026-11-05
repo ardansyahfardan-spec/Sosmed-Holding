@@ -6662,7 +6662,8 @@ window.malamCloseModal=function(){
 function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');}
- if(!prev||prev.key!==phaseKey)malamAudioPhase(s.room.phase);\n window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
+ if(!prev||prev.key!==phaseKey)malamAudioPhase(s.room.phase);
+ window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
  const p=document.getElementById('arena-play-panel'),r=s.room,ps=s.players||[];
  const me=ps.find(x=>x.user_id===activeUser.id),host=!!me?.is_host,alive=ps.filter(x=>x.is_alive);
  malamMyAlive=!!me?.is_alive;malamGameFinished=r.phase==='finished';
