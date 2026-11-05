@@ -2062,16 +2062,15 @@ nav.sticky {
               <div class="mb-5">
                 <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY CREW CHALLENGE</p>
                 <h2 class="text-2xl font-bold text-[#e9dfcf]">Arena Gaib</h2>
-                <p class="text-sm text-gray-400 mt-1">Sembilan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
+                <p class="text-sm text-gray-400 mt-1">Delapan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
               </div>
-              <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">9 MODE</span></div>
+              <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">8 MODE</span></div>
               
               <div id="arena-game-grid" class="grid grid-cols-2 gap-2 sm:gap-3">
                 <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Berkas%20terlarang.JPG"></button>
                 <button onclick="playArena('teka_teki')" class="arena-game-card" data-mode="teka_teki"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Teka%20teki%20arwah.JPG"></button>
                 <button onclick="playArena('survival')" class="arena-game-card" data-mode="survival"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Bertahan%20sampai%20pagi.JPG"></button>
                 <button onclick="playArena('relik')" class="arena-game-card" data-mode="relik"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Perburuan%20relik.JPG"></button>
-                <button onclick="playArena('turnamen')" class="arena-game-card no-art" data-mode="turnamen"><img class="arena-game-art" alt="" loading="lazy"></button>
                 <button onclick="playArena('siapa_aku')" class="arena-game-card" data-mode="siapa_aku"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Siapa%20aku%3F.JPG"></button>
                 <button onclick="playArena('pencerita')" class="arena-game-card" data-mode="pencerita"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Sang%20pencerita.JPG"></button>
                 <button onclick="playArena('tantangan')" class="arena-game-card" data-mode="tantangan"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Tantangan%20rahasia.JPG"></button>
@@ -2080,7 +2079,7 @@ nav.sticky {
               <div class="grid grid-cols-3 gap-2 mb-4">
                 <div class="rounded-xl border border-red-900/40 bg-gradient-to-br from-red-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POIN JIWAMU</p><b id="arena-my-score" class="text-xl text-red-200">—</b></div>
                 <div class="rounded-xl border border-blue-900/40 bg-gradient-to-br from-blue-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POSISIMU</p><b id="arena-my-rank" class="text-xl text-blue-200">—</b></div>
-                <div class="rounded-xl border border-gray-700 bg-gray-950 p-3"><p class="text-[9px] text-gray-400">MODE GAME</p><b class="text-xl text-white">09</b></div>
+                <div class="rounded-xl border border-gray-700 bg-gray-950 p-3"><p class="text-[9px] text-gray-400">MODE GAME</p><b class="text-xl text-white">08</b></div>
               </div>
               <div class="rounded-2xl border border-red-900/30 bg-gradient-to-r from-red-950/25 via-gray-950 to-blue-950/25 p-4 mb-5">
                 <div class="flex items-center justify-between gap-3"><div><h3 class="font-bold text-sm text-[#eee8dd]">Papan Klasemen Crew</h3><p class="text-[10px] text-gray-500 mt-1">Total Poin Jiwa dari seluruh mode permainan</p></div><button onclick="refreshArena()" class="rounded-lg border border-gray-700 px-3 py-2 text-xs text-gray-300"><i class="fa-solid fa-rotate mr-1"></i>Segarkan</button></div>
@@ -6182,12 +6181,6 @@ const arenaModes={
   {q:'Keris dalam tradisi Jawa dikenal sebagai...',a:['Senjata tikam tradisional dengan bilah khas','Alat musik tiup','Perisai dari rotan'],c:0},
   {q:'Naskah kuno yang ditulis pada daun lontar biasa disebut...',a:['Prasasti batu','Lontar','Gerabah'],c:1},
   {q:'Artefak berupa arca umumnya merupakan...',a:['Perhiasan kain','Alat pertanian','Karya pahatan berbentuk figur'],c:2}]},
- turnamen:{title:'Turnamen Crew',intro:'Babak kualifikasi: jawab lima pertanyaan untuk mencatat skor terbaik.',questions:[
-  {q:'Apa nama ilmu yang mempelajari cerita rakyat dan tradisi lisan?',a:['Folkloristik','Astronomi','Botani'],c:0},
-  {q:'Candi Pari berada di wilayah kabupaten...',a:['Gresik','Sidoarjo','Pasuruan'],c:1},
-  {q:'Dalam investigasi, kesaksian tunggal sebaiknya...',a:['Langsung dianggap fakta','Dihapus dari catatan','Diverifikasi dengan sumber lain'],c:2},
-  {q:'Apa istilah untuk cerita asal-usul suatu tempat atau fenomena?',a:['Legenda etiologis','Biografi','Laporan cuaca'],c:0},
-  {q:'Apa yang paling penting saat mendokumentasikan kisah misteri?',a:['Menambah dramatisasi','Membedakan fakta, cerita lisan, dan dugaan','Menghilangkan sumber'],c:1}]},
  siapa_aku:{title:'Siapa Aku?',intro:'Tebak sosok atau istilah dari petunjuknya.',questions:[
   {q:'Aku adalah tokoh cerita rakyat Jawa Timur yang dikaitkan dengan Tambak Oso, Waru. Siapa aku?',a:['Jaka Tarub','Sarip Tambak Oso','Roro Jonggrang'],c:1},
   {q:'Aku adalah makhluk dalam cerita rakyat yang sering digambarkan sebagai penjaga tempat tertentu. Istilah umumku?',a:['Penunggu','Pujangga','Pelaut'],c:0},
