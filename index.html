@@ -6276,7 +6276,7 @@ window.malamResolveNight=async()=>{const {error}=await supabaseClient.rpc('malam
 window.malamResolveVote=async()=>{const {error}=await supabaseClient.rpc('malam_resolve_vote',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamLoadMessages=async()=>{if(!malamRoomId)return;const {data,error}=await supabaseClient.from('malam_messages').select('nickname,body').eq('room_id',malamRoomId).order('created_at').limit(60);const b=document.getElementById('malam-chat-list');if(!b)return;b.innerHTML=error?'Chat belum dapat dimuat.':(data||[]).map(m=>'<div class="bg-gray-900 rounded-lg p-2"><b class="text-red-200 text-xs">'+esc(m.nickname)+'</b><p class="text-xs">'+esc(m.body)+'</p></div>').join('')||'Belum ada pesan.';};
 window.malamChat=async()=>{const i=document.getElementById('malam-chat-input'),body=(i?.value||'').trim();if(!body)return;const {error}=await supabaseClient.rpc('malam_send_chat',{p_room:malamRoomId,p_body:body});if(error)malamMsg(error.message);else{i.value='';malamLoadMessages();}};
-window.malamExit=function(){if(malamChannel)supabaseClient.removeChannel(malamChannel);malamChannel=null;malamRoomId=null;malamHome();};
+window.malamExit=async function(){const id=malamRoomId;if(id){const {error}=await supabaseClient.rpc('malam_leave_room',{p_room:id});if(error){malamMsg(error.message);return;}}if(malamChannel)supabaseClient.removeChannel(malamChannel);malamChannel=null;malamRoomId=null;malamHome();};
 window.generateArenaImages=async function(){
  const btn=$("arena-generate-images"),status=$("arena-image-status");
  if(!btn||!status)return;
