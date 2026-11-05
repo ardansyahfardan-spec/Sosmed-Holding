@@ -6329,8 +6329,8 @@ window.loadArenaImages=function(){
  });
 };
 let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false;
-/* AUDIO MALAM TERLARANG · gratis, berjalan lokal di browser */
-window.__malamAudioState={ctx:null,master:null,filter:null,oscillators:[],bgm:false,voice:false,lastPhase:'',timer:null,step:0};
+/* AUDIO MALAM TERLARANG · BGM MP3 milik pengguna + ducking saat pemandu */
+window.__malamAudioState={audio:null,bgm:false,voice:false,lastPhase:'',timer:null};
 window.malamAudioControls=function(){
  const a=window.__malamAudioState;
  return '<div class="flex items-center justify-center gap-2 mb-3" aria-label="Kontrol audio">'+
@@ -6341,52 +6341,39 @@ window.malamAudioRefreshControls=function(){
  const a=window.__malamAudioState,b=document.getElementById('malam-audio-bgm-state'),v=document.getElementById('malam-audio-voice-state');
  if(b)b.textContent=a.bgm?'ON':'OFF';if(v)v.textContent=a.voice?'ON':'OFF';
 };
-window.malamAudioPlayCelesta=function(freq,when,duration){
- const a=window.__malamAudioState,ctx=a.ctx;if(!ctx)return;
- const voice=(f,gain,detune=0)=>{
-  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(f,when);o.detune.value=detune;
-  g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(gain,when+.018);g.gain.exponentialRampToValueAtTime(.0001,when+duration);
-  o.connect(g);g.connect(a.master);o.start(when);o.stop(when+duration+.04);
- };
- voice(freq,.105);voice(freq*2.01,.025,-4);voice(freq*3.92,.009,3);
+window.malamAudioSetVolume=function(level){
+ const a=window.__malamAudioState;if(a.audio)a.audio.volume=level;
 };
-window.malamAudioMusicStep=function(){
- const a=window.__malamAudioState;if(!a.ctx||!a.bgm)return;
- const ctx=a.ctx,step=a.step%16,now=ctx.currentTime+.035;
- // Melodi orisinal bernuansa celesta: motif fantasi misterius, bukan lagu film.
- const melody=[880,1174.66,1396.91,1174.66,987.77,783.99,880,659.25,740,987.77,1174.66,987.77,880,659.25,740,587.33];
- const bass=[146.83,146.83,174.61,174.61,130.81,130.81,196,196];
- window.malamAudioPlayCelesta(melody[step],now,step%4===3?.72:.48);
- if(step%4===0){
-  const f=bass[Math.floor(step/2)%8],o=ctx.createOscillator(),g=ctx.createGain();
-  o.type='triangle';o.frequency.setValueAtTime(f/2,now);g.gain.setValueAtTime(.0001,now);g.gain.linearRampToValueAtTime(.045,now+.18);g.gain.exponentialRampToValueAtTime(.0001,now+1.35);o.connect(g);g.connect(a.master);o.start(now);o.stop(now+1.4);
- }
- a.step++;
+window.malamAudioStart=function(){
+ const a=window.__malamAudioState;
+ try{
+  if(!a.audio){
+   a.audio=new Audio('https://ardansyahfardan-spec.github.io/Sosmed-Holding/assets/audio/malam-terlarang/Bgm%20Malam%20terlarang.mp3');
+   a.audio.loop=true;a.audio.preload='auto';a.audio.volume=.34;
+   a.audio.addEventListener('error',()=>window.malamNotify?.('BGM TIDAK DAPAT DIMUAT','Periksa koneksi internet atau file musik di repo.','phase'));
+  }
+  a.voice=true;
+  if(!a.bgm){
+   const play=a.audio.play();
+   if(play&&typeof play.then==='function')play.then(()=>{a.bgm=true;window.malamAudioRefreshControls();}).catch(e=>{
+    console.warn('BGM gagal autoplay:',e);window.malamNotify?.('KETUK UNTUK MEMULAI BGM','Browser membatasi autoplay. Ketuk tombol BGM sekali jika musik belum terdengar.','phase');
+   });
+   else {a.bgm=true;window.malamAudioRefreshControls();}
+  }
+ }catch(e){console.warn('BGM gagal dimulai:',e);}
+ window.malamAudioRefreshControls();
 };
 window.malamAudioToggleBgm=async function(){
  const a=window.__malamAudioState;
- if(!a.bgm){
-  try{
-   const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Audio browser tidak didukung.');
-   if(!a.ctx){
-    const ctx=new Ctx(),master=ctx.createGain(),filter=ctx.createBiquadFilter();
-    filter.type='lowpass';filter.frequency.value=5200;filter.Q.value=.55;master.gain.value=0;filter.connect(master);master.connect(ctx.destination);
-    a.ctx=ctx;a.master=master;a.filter=filter;
-    // Lapisan string lembut sebagai alas orkestra.
-    [110,164.81,220].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=freq;g.gain.value=[.12,.055,.025][i];o.connect(g);g.connect(filter);o.start();a.oscillators.push(o);});
-   }
-   await a.ctx.resume();a.master.gain.setTargetAtTime(.72,a.ctx.currentTime,.9);a.bgm=true;a.step=0;
-   clearInterval(a.timer);window.malamAudioMusicStep();a.timer=setInterval(window.malamAudioMusicStep,380);
-  }catch(e){console.warn('BGM tidak dapat dimulai:',e);window.malamNotify?.('AUDIO TIDAK TERSEDIA',e.message||'Browser tidak mendukung audio.','phase');}
- }else{
-  a.bgm=false;clearInterval(a.timer);a.timer=null;if(a.master&&a.ctx)a.master.gain.setTargetAtTime(0,a.ctx.currentTime,.22);
- }
+ if(!a.audio){window.malamAudioStart();return;}
+ if(a.bgm){a.audio.pause();a.bgm=false;}
+ else{try{await a.audio.play();a.bgm=true;}catch(e){console.warn('BGM gagal diputar:',e);}}
  window.malamAudioRefreshControls();
 };
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');else window.speechSynthesis.cancel();
+ a.voice=!a.voice;if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');else{window.speechSynthesis.cancel();window.malamAudioSetVolume(.34);}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
@@ -6394,13 +6381,15 @@ window.malamAudioSpeak=function(text){
  try{
   window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='id-ID';u.rate=.86;u.pitch=.78;u.volume=1;
   const voices=window.speechSynthesis.getVoices()||[],idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
-  if(idVoice)u.voice=idVoice;window.speechSynthesis.speak(u);
- }catch(e){console.warn('VO gagal diputar:',e);}
+  if(idVoice)u.voice=idVoice;
+  u.onstart=()=>window.malamAudioSetVolume(.16);
+  u.onend=()=>window.malamAudioSetVolume(.34);
+  u.onerror=()=>window.malamAudioSetVolume(.34);
+  window.speechSynthesis.speak(u);
+ }catch(e){window.malamAudioSetVolume(.34);console.warn('VO gagal diputar:',e);}
 };
 window.malamAudioOnPhase=function(mode,phase,round,event,winner){
  const a=window.__malamAudioState,key=mode+':'+round+':'+phase;if(a.lastPhase===key)return;a.lastPhase=key;
- const chords={night:[110,164.81,220],discussion:[130.81,196,261.63],voting:[98,146.83,196],finished:[146.83,220,293.66]},chord=chords[phase];
- if(chord&&a.ctx&&a.bgm){a.oscillators.forEach((o,i)=>{try{o.frequency.setTargetAtTime(chord[i],a.ctx.currentTime,1.8);}catch(_){}});if(a.filter)a.filter.frequency.setTargetAtTime(phase==='voting'?3900:phase==='night'?3000:5200,a.ctx.currentTime,1.8);}
  const lines={
   night:'Malam telah tiba... Desa kembali sunyi. Semua warga, pejamkan mata. Biarkan malam menjalankan rahasianya.',
   discussion:'Fajar mulai menyingsing... Warga, bukalah mata kalian. Perhatikan kejadian semalam. Jangan mudah percaya pada siapa pun.',
@@ -6411,8 +6400,7 @@ window.malamAudioOnPhase=function(mode,phase,round,event,winner){
 };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
- a.voice=false;a.bgm=false;clearInterval(a.timer);a.timer=null;if(a.master&&a.ctx)a.master.gain.setTargetAtTime(0,a.ctx.currentTime,.12);
- a.lastPhase='';window.malamAudioRefreshControls();
+ a.voice=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
 };
 
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
@@ -6428,6 +6416,7 @@ window.malamTrialSetup=function(){
  document.getElementById('malam-trial-setup')?.remove();document.body.insertAdjacentHTML('beforeend',modal);
 };
 window.malamTrialStart=async function(total){
+ window.malamAudioStart();
  clearInterval(window.__malamTrialInterval);
  total=Math.max(4,Math.min(10,Number(total)||8));
  const names=['Kamu','Raka','Mira','Bimo','Sinta','Damar','Naya','Jati','Laras','Bagas'];
@@ -6589,6 +6578,7 @@ window.handleArenaGameDeepLink=function(){
  }catch(error){console.warn('Gagal membuka tautan Arena:',error);}
 };
 window.malamCreateRoom=async function(){
+ window.malamAudioStart();
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
  const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;
  const {data,error}=await supabaseClient.rpc('malam_create_room',{p_nickname:n.trim()});
@@ -6596,6 +6586,7 @@ window.malamCreateRoom=async function(){
  malamRoomId=data.room_id;sessionStorage.setItem('gh_malam_room',malamRoomId);malamSubscribe();malamLoadState();
 };
 window.malamJoinRoom=async function(){
+ window.malamAudioStart();
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
  const code=(document.getElementById('malam-join-code')?.value||'').trim().toUpperCase();
  if(code.length!==6){malamMsg('Masukkan kode 6 karakter.');return;}
