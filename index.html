@@ -2058,6 +2058,7 @@ nav.sticky {
 
             <!-- ARENA GAIB · KOMPETISI CREW -->
             <section id="page-arena" class="page-section max-w-6xl mx-auto">
+              <div id="arena-lobby-view">
               <div class="mb-5">
                 <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY CREW CHALLENGE</p>
                 <h2 class="text-2xl font-bold text-[#e9dfcf]">Arena Gaib</h2>
@@ -2066,15 +2067,15 @@ nav.sticky {
               <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">9 MODE</span></div>
               
               <div id="arena-game-grid" class="grid grid-cols-2 gap-2 sm:gap-3">
-                <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Berkas%20terlarang.JPG"><span class="arena-game-shade"></span><b>Berkas Terlarang</b></button>
-                <button onclick="playArena('teka_teki')" class="arena-game-card" data-mode="teka_teki"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Teka%20teki%20arwah.JPG"><span class="arena-game-shade"></span><b>Teka-Teki Arwah</b></button>
-                <button onclick="playArena('survival')" class="arena-game-card" data-mode="survival"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Bertahan%20sampai%20pagi.JPG"><span class="arena-game-shade"></span><b>Bertahan Sampai Pagi</b></button>
-                <button onclick="playArena('relik')" class="arena-game-card" data-mode="relik"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Perburuan%20relik.JPG"><span class="arena-game-shade"></span><b>Perburuan Relik</b></button>
-                <button onclick="playArena('turnamen')" class="arena-game-card no-art" data-mode="turnamen"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Turnamen Crew</b></button>
-                <button onclick="playArena('siapa_aku')" class="arena-game-card" data-mode="siapa_aku"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Siapa%20aku%3F.JPG"><span class="arena-game-shade"></span><b>Siapa Aku?</b></button>
-                <button onclick="playArena('pencerita')" class="arena-game-card" data-mode="pencerita"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Sang%20pencerita.JPG"><span class="arena-game-shade"></span><b>Sang Pencerita</b></button>
-                <button onclick="playArena('tantangan')" class="arena-game-card" data-mode="tantangan"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Tantangan%20rahasia.JPG"><span class="arena-game-shade"></span><b>Tantangan Rahasia</b></button>
-                <button onclick="openMalamTerlarang()" class="arena-game-card" data-mode="malam_terlarang"><img class="arena-game-art" alt="Malam Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Malam%20terlarang.JPG"><span class="arena-game-shade"></span><b>Malam Terlarang</b><span class="arena-coming-soon">MULTIPLAYER</span></button>
+                <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Berkas%20terlarang.JPG"></button>
+                <button onclick="playArena('teka_teki')" class="arena-game-card" data-mode="teka_teki"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Teka%20teki%20arwah.JPG"></button>
+                <button onclick="playArena('survival')" class="arena-game-card" data-mode="survival"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Bertahan%20sampai%20pagi.JPG"></button>
+                <button onclick="playArena('relik')" class="arena-game-card" data-mode="relik"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Perburuan%20relik.JPG"></button>
+                <button onclick="playArena('turnamen')" class="arena-game-card no-art" data-mode="turnamen"><img class="arena-game-art" alt="" loading="lazy"></button>
+                <button onclick="playArena('siapa_aku')" class="arena-game-card" data-mode="siapa_aku"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Siapa%20aku%3F.JPG"></button>
+                <button onclick="playArena('pencerita')" class="arena-game-card" data-mode="pencerita"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Sang%20pencerita.JPG"></button>
+                <button onclick="playArena('tantangan')" class="arena-game-card" data-mode="tantangan"><img class="arena-game-art" alt="" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Tantangan%20rahasia.JPG"></button>
+                <button onclick="openMalamTerlarang()" class="arena-game-card" data-mode="malam_terlarang"><img class="arena-game-art" alt="Malam Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Malam%20terlarang.JPG"></button>
               </div>
               <div class="grid grid-cols-3 gap-2 mb-4">
                 <div class="rounded-xl border border-red-900/40 bg-gradient-to-br from-red-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POIN JIWAMU</p><b id="arena-my-score" class="text-xl text-red-200">—</b></div>
@@ -2088,6 +2089,7 @@ nav.sticky {
               <div class="rounded-2xl border border-red-900/30 bg-gradient-to-r from-red-950/25 via-gray-950 to-blue-950/25 p-4 mb-5">
                 <div class="flex items-center justify-between gap-3"><div><h3 class="font-bold text-sm text-[#eee8dd]">Papan Klasemen Crew</h3><p class="text-[10px] text-gray-500 mt-1">Total Poin Jiwa dari seluruh mode permainan</p></div><button onclick="refreshArena()" class="rounded-lg border border-gray-700 px-3 py-2 text-xs text-gray-300"><i class="fa-solid fa-rotate mr-1"></i>Segarkan</button></div>
                 <div id="arena-leaderboard" class="mt-3"><p class="text-xs text-gray-500 text-center py-4">Memuat klasemen...</p></div>
+              </div>
               </div>
               <div id="arena-play-panel" class="hidden mt-5 rounded-2xl border border-red-900/40 bg-[#101116] p-4 sm:p-5" aria-live="polite"></div>
               <p class="text-[10px] text-gray-600 mt-4 text-center">Poin tersimpan di database Crew. Main dengan sportif; skor tidak dapat ditukar menjadi hadiah uang.</p>
@@ -6147,8 +6149,10 @@ function toggleChatSearch(kind, forceOpen){
 #page-arena .arena-game-card:hover{transform:translateY(-2px)}
 #page-arena .arena-game-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transition:transform .35s ease}
 #page-arena .arena-game-card:hover .arena-game-art{transform:scale(1.045)}
-#page-arena .arena-game-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(4,5,9,.02) 15%,rgba(4,5,9,.28) 48%,rgba(4,5,9,.88) 100%)}
-#page-arena .arena-game-card b{position:relative;z-index:2;width:100%;font-size:clamp(10px,1.15vw,12px);font-weight:800;line-height:1.2;color:#fff;text-shadow:0 2px 8px #000,0 1px 2px #000;letter-spacing:.015em}
+#page-arena .arena-game-shade,#page-arena .arena-game-card b{display:none}
+#page-arena .arena-game-page{display:block;width:100%;min-height:68vh;margin:0;padding:16px;border:1px solid rgba(127,29,29,.45);border-radius:18px;background:linear-gradient(145deg,rgba(22,13,20,.98),rgba(10,13,22,.98));box-shadow:0 18px 55px rgba(0,0,0,.28)}
+#page-arena .arena-game-page .arena-answer{min-height:46px}
+#page-arena .arena-game-page .arena-primary{min-height:42px}
 #page-arena .arena-coming-soon{position:absolute;top:7px;left:7px;z-index:3;padding:3px 5px;background:rgba(5,8,15,.72);color:#fecaca;font-size:8px;font-weight:800;letter-spacing:.08em}
 #page-arena .arena-game-card.no-art{background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.4),transparent 58%),linear-gradient(145deg,#281622,#0c0f18)}
 #page-arena .arena-answer{display:block;width:100%;padding:11px 12px;border:1px solid #343743;border-radius:11px;background:#171922;color:#e9dfcf;text-align:left;font-size:12px;line-height:1.45}
@@ -6197,17 +6201,27 @@ const arenaModes={
 let arenaCurrent=null,arenaIndex=0,arenaScore=0,arenaAnswers=[];
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showArenaGamePage(){
+ const lobby=$('arena-lobby-view'),panel=$('arena-play-panel');if(!lobby||!panel)return;
+ lobby.classList.add('hidden');panel.classList.remove('hidden');
+ panel.classList.add('arena-game-page');
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function arenaBackHeader(kicker,title){
+ return '<div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-800"><button type="button" onclick="closeArenaGame()" class="shrink-0 rounded-xl border border-gray-700 bg-black/30 px-3 py-2 text-xs text-gray-200"><i class="fa-solid fa-arrow-left mr-2"></i>Kembali ke Arena</button><div class="min-w-0"><p class="text-[9px] tracking-[.2em] text-red-300">'+esc(kicker)+'</p><h2 class="font-bold text-lg text-white">'+esc(title)+'</h2></div></div>';
+}
 window.playArena=function(mode){
  const game=arenaModes[mode];if(!game)return;
+ const panel=$('arena-play-panel');
+ if(arenaCurrent===mode&&panel.innerHTML.trim()){showArenaGamePage();return;}
  arenaCurrent=mode;arenaIndex=0;arenaScore=0;arenaAnswers=[];
- const panel=$('arena-play-panel');panel.classList.remove('hidden');
- if(mode==='pencerita'){panel.innerHTML='<div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-red-300">MODE KREATIVITAS</p><h3 class="font-bold text-lg text-white">'+esc(game.title)+'</h3></div><button onclick="closeArenaGame()" class="text-gray-400 p-2" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><p class="text-xs text-gray-400 mb-3">'+esc(game.intro)+'</p><div class="rounded-xl border border-red-900/30 bg-red-950/20 p-3 mb-3 text-sm text-red-100">'+esc(game.prompt)+'</div><textarea id="arena-story-input" maxlength="500" placeholder="Tuliskan cerita versimu di sini..."></textarea><div class="flex items-center justify-between gap-2 mt-3"><span class="text-[10px] text-gray-500">80–500 karakter</span><button class="arena-primary" onclick="submitArenaStory()">Kirim Cerita</button></div>';
+ showArenaGamePage();
+ if(mode==='pencerita'){panel.innerHTML=arenaBackHeader('MODE KREATIVITAS',game.title)+'<p class="text-xs text-gray-400 mb-3">'+esc(game.intro)+'</p><div class="rounded-xl border border-red-900/30 bg-red-950/20 p-3 mb-3 text-sm text-red-100">'+esc(game.prompt)+'</div><textarea id="arena-story-input" maxlength="500" placeholder="Tuliskan cerita versimu di sini..."></textarea><div class="flex items-center justify-between gap-2 mt-3"><span class="text-[10px] text-gray-500">80–500 karakter</span><button class="arena-primary" onclick="submitArenaStory()">Kirim Cerita</button></div>';
  }else{renderArenaQuestion();}
- panel.scrollIntoView({behavior:'smooth',block:'start'});
 };
 function renderArenaQuestion(){
  const g=arenaModes[arenaCurrent],q=g.questions[arenaIndex],panel=$('arena-play-panel');
- panel.innerHTML='<div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-red-300">'+esc(g.title.toUpperCase())+'</p><h3 class="font-bold text-lg text-white">Tantangan '+(arenaIndex+1)+' / '+g.questions.length+'</h3></div><button onclick="closeArenaGame()" class="text-gray-400 p-2" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><div class="h-1.5 rounded-full bg-gray-800 mb-4 overflow-hidden"><div class="h-full bg-gradient-to-r from-red-600 to-blue-500" style="width:'+((arenaIndex/g.questions.length)*100)+'%"></div></div><p class="text-sm leading-relaxed text-[#eee8dd] mb-4">'+esc(q.q)+'</p><div class="grid gap-2">'+q.a.map((a,i)=>'<button class="arena-answer" onclick="answerArena('+i+')">'+String.fromCharCode(65+i)+'. '+esc(a)+'</button>').join('')+'</div><p class="text-[10px] text-gray-500 mt-3">Jawaban benar: 10 Poin Jiwa</p>';
+ panel.innerHTML=arenaBackHeader('TANTANGAN CREW',g.title)+'<h3 class="font-bold text-base text-white mb-3">Tantangan '+(arenaIndex+1)+' / '+g.questions.length+'</h3><div class="h-1.5 rounded-full bg-gray-800 mb-4 overflow-hidden"><div class="h-full bg-gradient-to-r from-red-600 to-blue-500" style="width:'+((arenaIndex/g.questions.length)*100)+'%"></div></div><p class="text-sm leading-relaxed text-[#eee8dd] mb-4">'+esc(q.q)+'</p><div class="grid gap-2">'+q.a.map((a,i)=>'<button class="arena-answer" onclick="answerArena('+i+')">'+String.fromCharCode(65+i)+'. '+esc(a)+'</button>').join('')+'</div><p class="text-[10px] text-gray-500 mt-3">Jawaban benar: 10 Poin Jiwa</p>';
 }
 window.answerArena=function(choice){
  const q=arenaModes[arenaCurrent].questions[arenaIndex],correct=choice===q.c;
@@ -6218,7 +6232,7 @@ window.answerArena=function(choice){
 };
 async function finishArenaGame(){
  const mode=arenaCurrent,game=arenaModes[mode],panel=$('arena-play-panel');
- panel.innerHTML='<div class="text-center py-4"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-xl font-bold text-white mt-3">Tantangan Selesai</h3><p class="text-sm text-gray-400 mt-1">'+esc(game.title)+'</p><p class="text-4xl font-bold text-red-200 mt-3">'+arenaScore+' <span class="text-sm">Poin Jiwa</span></p><p class="text-xs text-gray-500 mt-2">Jawaban benar '+arenaAnswers.filter(a=>a.correct).length+' dari '+arenaAnswers.length+'</p><div id="arena-save-status" class="text-xs text-gray-400 mt-4">Menyimpan hasil...</div><button class="arena-primary mt-4" onclick="closeArenaGame()">Kembali ke Arena</button></div>';
+ panel.innerHTML=arenaBackHeader('HASIL PERMAINAN',game.title)+'<div class="text-center py-4"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-xl font-bold text-white mt-3">Tantangan Selesai</h3><p class="text-sm text-gray-400 mt-1">'+esc(game.title)+'</p><p class="text-4xl font-bold text-red-200 mt-3">'+arenaScore+' <span class="text-sm">Poin Jiwa</span></p><p class="text-xs text-gray-500 mt-2">Jawaban benar '+arenaAnswers.filter(a=>a.correct).length+' dari '+arenaAnswers.length+'</p><div id="arena-save-status" class="text-xs text-gray-400 mt-4">Menyimpan hasil...</div><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button></div>';
  await saveArenaResult(mode,arenaScore,{answers:arenaAnswers});
  const status=$('arena-save-status');if(status)status.textContent='Hasil tersimpan di klasemen Crew.';
 }
@@ -6229,7 +6243,8 @@ window.submitArenaStory=async function(){
  const ok=await saveArenaResult('pencerita',20,{story:story});
  status.textContent=ok?'Cerita tersimpan di papan Arena. Kamu mendapat 20 Poin Jiwa untuk partisipasi.':'Cerita belum berhasil disimpan. Coba lagi.';
 };
-window.closeArenaGame=function(){const p=$('arena-play-panel');p.classList.add('hidden');p.innerHTML='';arenaCurrent=null;};
+window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view');if(p)p.classList.add('hidden');if(l)l.classList.remove('hidden');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
+window.playArenaAgain=function(){if(!arenaCurrent||!arenaModes[arenaCurrent])return;const mode=arenaCurrent;arenaCurrent=null;const p=$('arena-play-panel');if(p)p.innerHTML='';window.playArena(mode);};
 async function saveArenaResult(mode,score,details){
  if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){alert('Sesi login belum siap. Silakan muat ulang lalu coba lagi.');return false;}
  const {error}=await supabaseClient.from('ghoustory_arena_results').insert({user_id:activeUser.id,game_mode:mode,score:score,details:details});
@@ -6248,9 +6263,9 @@ window.loadArenaImages=function(){
 };
 window.openMalamTerlarang=function(){
  const panel=$("arena-play-panel");if(!panel)return;
- panel.classList.remove("hidden");
- panel.innerHTML='<div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-red-300">MODE MULTIPLAYER</p><h3 class="font-bold text-lg text-white">Malam Terlarang</h3></div><button onclick="closeArenaGame()" class="text-gray-400 p-2" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><p class="text-sm text-gray-300 leading-relaxed">Di antara mereka, ada yang bukan manusia.</p><p class="text-xs text-gray-500 mt-3">Ruang permainan Werewolf multiplayer sedang disiapkan. Mode ini belum bisa dimainkan.</p>';
- panel.scrollIntoView({behavior:"smooth",block:"start"});
+ if(arenaCurrent==='malam_terlarang'&&panel.innerHTML.trim()){showArenaGamePage();return;}
+ arenaCurrent='malam_terlarang';showArenaGamePage();
+ panel.innerHTML=arenaBackHeader('MODE MULTIPLAYER','Malam Terlarang')+'<p class="text-sm text-gray-300 leading-relaxed">Di antara mereka, ada yang bukan manusia.</p><div class="mt-5 rounded-xl border border-red-900/40 bg-red-950/20 p-4"><p class="text-sm font-semibold text-red-100">Ruang permainan sedang disiapkan</p><p class="text-xs text-gray-400 mt-2">Mode Werewolf multiplayer belum aktif. Fitur ruang, kode undangan, pembagian peran rahasia, malam, diskusi, dan voting belum tersedia.</p></div>';
 };
 window.generateArenaImages=async function(){
  const btn=$("arena-generate-images"),status=$("arena-image-status");
