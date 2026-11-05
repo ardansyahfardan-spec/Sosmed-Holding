@@ -4902,7 +4902,19 @@ async function loadChatMessages(){
         async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
         async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function toggleGroupReaction(messageId,emoji){try{const old=groupReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_group_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_group_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",chatMessages.map(m=>m.id));groupReactions=data||[];renderChatMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
-        async function toggleGroupPin(messageId){try{const old=groupPins.find(p=>p.message_id===messageId);if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan Crew lain.");return;}const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data,error:readError}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));if(readError)throw readError;groupPins=data||[];renderChatMessages();focusPinnedBanner("group");}catch(e){alert("Pin gagal: "+(e.message||e));}}
+        async function toggleGroupPin(messageId){
+ try{
+  const old=groupPins.find(p=>p.message_id===messageId);
+  if(old&&old.pinned_by!==activeUser.id){alert("Pesan ini disematkan Crew lain.");return;}
+  const box=document.getElementById("chat-messages"),wasNearBottom=box?box.scrollHeight-box.scrollTop-box.clientHeight<70:false,oldTop=box?.scrollTop||0;
+  const q=old?supabaseClient.from("ghoustory_group_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_group_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});
+  const {error}=await q;if(error)throw error;
+  const {data,error:readError}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",chatMessages.map(m=>m.id));if(readError)throw readError;
+  groupPins=data||[];renderChatMessages();
+  requestAnimationFrame(()=>{if(!box)return;box.scrollTop=wasNearBottom?box.scrollHeight:Math.min(oldTop,box.scrollHeight-box.clientHeight);});
+  if(!old)focusPinnedBanner("group");
+ }catch(e){alert("Pin gagal: "+(e.message||e));}
+}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null,sender_name=null,sender_avatar=null,notify=true}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
@@ -5143,7 +5155,18 @@ async function markDmMessagesRead(){
           else{rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));loadDirectConversations();}
         }
         async function toggleDmReaction(messageId,emoji){try{const old=dmReactions.find(r=>r.message_id===messageId&&r.user_id===activeUser.id&&r.emoji===emoji);const q=old?supabaseClient.from("ghoustory_dm_message_reactions").delete().eq("message_id",messageId).eq("user_id",activeUser.id).eq("emoji",emoji):supabaseClient.from("ghoustory_dm_message_reactions").insert({message_id:messageId,user_id:activeUser.id,emoji});const {error}=await q;if(error)throw error;const {data}=await supabaseClient.from("ghoustory_dm_message_reactions").select("*").in("message_id",dmMessages.map(m=>m.id));dmReactions=data||[];renderDirectMessages();}catch(e){alert("Reaksi gagal: "+e.message);}}
-        async function toggleDmPin(messageId){try{const old=dmPins.find(p=>p.message_id===messageId);const q=old?supabaseClient.from("ghoustory_dm_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_dm_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});const {error}=await q;if(error)throw error;const {data,error:readError}=await supabaseClient.from("ghoustory_dm_message_pins").select("*").in("message_id",dmMessages.map(m=>m.id));if(readError)throw readError;dmPins=data||[];renderDirectMessages();focusPinnedBanner("dm");}catch(e){alert("Pin gagal disimpan: "+(e.message||e));}}
+        async function toggleDmPin(messageId){
+ try{
+  const old=dmPins.find(p=>p.message_id===messageId),box=document.getElementById("dm-messages");
+  const wasNearBottom=box?box.scrollHeight-box.scrollTop-box.clientHeight<70:false,oldTop=box?.scrollTop||0;
+  const q=old?supabaseClient.from("ghoustory_dm_message_pins").delete().eq("message_id",messageId).eq("pinned_by",activeUser.id):supabaseClient.from("ghoustory_dm_message_pins").insert({message_id:messageId,pinned_by:activeUser.id});
+  const {error}=await q;if(error)throw error;
+  const {data,error:readError}=await supabaseClient.from("ghoustory_dm_message_pins").select("*").in("message_id",dmMessages.map(m=>m.id));if(readError)throw readError;
+  dmPins=data||[];renderDirectMessages();
+  requestAnimationFrame(()=>{if(!box)return;box.scrollTop=wasNearBottom?box.scrollHeight:Math.min(oldTop,box.scrollHeight-box.clientHeight);});
+  if(!old)focusPinnedBanner("dm");
+ }catch(e){alert("Pin gagal disimpan: "+(e.message||e));}
+}
         function setDmReply(id){dmReplyTo=dmMessages.find(m=>m.id===id)||null;const wrap=document.getElementById("dm-reply-preview"),label=document.getElementById("dm-reply-text");if(!dmReplyTo||!wrap||!label)return;label.textContent="Membalas: "+(dmReplyTo.deleted_at?"Pesan dihapus":dmReplyTo.body);wrap.classList.remove("hidden");document.getElementById("dm-input")?.focus();}
         function clearDmReply(){dmReplyTo=null;document.getElementById("dm-reply-preview")?.classList.add("hidden");}
         async function editDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;const body=prompt("Edit pesan:",m.body||"");if(body===null)return;const clean=body.trim();if(!clean)return alert("Pesan tidak boleh kosong.");try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({body:clean.slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();}catch(e){alert("Pesan gagal diedit: "+(e.message||e));}}
