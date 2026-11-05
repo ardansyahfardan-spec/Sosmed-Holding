@@ -6682,7 +6682,7 @@ function malamRender(s){
   window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent,action:selectionContent,vote:selectionContent};
   const seenKey='gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id;
   const showRole=role&&!sessionStorage.getItem(seenKey);
-  if(showRole){sessionStorage.setItem(seenKey,'1');window.__malamPendingActionModal=targetAction?.type||null;setTimeout(()=>malamOpenModal('role'),180);}
+  if(showRole){sessionStorage.setItem(seenKey,'1');window.__malamPendingActionModal=targetAction?.type||null;if(targetAction)window.__malamSelectionModalKey=phaseKey;setTimeout(()=>malamOpenModal('role'),180);}
   else if(targetAction&&window.__malamSelectionModalKey!==phaseKey&&!window.__malamModalType){window.__malamSelectionModalKey=phaseKey;setTimeout(()=>malamOpenModal(targetAction.type),180);}
   const openModal=window.__malamModalType;if(openModal)setTimeout(()=>malamOpenModal(openModal),0);
  }else{window.__malamModalData=null;window.__malamModalType=null;}
