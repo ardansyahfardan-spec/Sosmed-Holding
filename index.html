@@ -985,6 +985,85 @@ nav.sticky {
   }
 }
 
+
+
+/* GCR PAGE POLISH — harmonize legacy surfaces without touching behavior */
+#main-app .page-section:not(#page-home):not(#page-chat) .glass-panel,
+#main-app .page-section:not(#page-home):not(#page-chat) .crew-hub-tile {
+  border-radius: 18px !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) .big-tab-btn {
+  border-radius: 14px !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) [class~="bg-black"] {
+  background: #282a33 !important;
+  border-color: rgba(233,223,207,.10) !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) .text-gray-500,
+#main-app .page-section:not(#page-home):not(#page-chat) .text-gray-400 {
+  color: #b7b1a7 !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) .text-gray-300 {
+  color: #d4cec3 !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-orange-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-yellow-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-purple-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-pink-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-cyan-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-indigo-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  [class*="text-blue-"] {
+  color: #d9cdbb !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat)
+  button[class*="bg-orange-"],
+#main-app .page-section:not(#page-home):not(#page-chat)
+  button[class*="bg-amber-"] {
+  background: #82434d !important;
+  color: #fff5eb !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat)
+  button[class*="bg-orange-"]:hover,
+#main-app .page-section:not(#page-home):not(#page-chat)
+  button[class*="bg-amber-"]:hover {
+  background: #98515b !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat)
+  button[class*="bg-gray-"] {
+  background: #343640 !important;
+  border-color: rgba(233,223,207,.12) !important;
+  color: #e9dfcf !important;
+}
+#main-app .page-section:not(#page-home):not(#page-chat)
+  input::placeholder,
+#main-app .page-section:not(#page-home):not(#page-chat)
+  textarea::placeholder {
+  color: #85858d !important;
+  opacity: 1;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) .tab-content {
+  color: #e9e3d8;
+}
+#main-app .page-section:not(#page-home):not(#page-chat) .tab-content > .bg-black,
+#main-app .page-section:not(#page-home):not(#page-chat) .tab-content > div.bg-black {
+  box-shadow: 0 3px 12px rgba(0,0,0,.10);
+}
+@media (max-width: 767px) {
+  #main-app .page-section:not(#page-home):not(#page-chat) .glass-panel {
+    border-radius: 16px !important;
+  }
+  #main-app .page-section:not(#page-home):not(#page-chat) .big-tab-btn {
+    min-height: 66px;
+  }
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
