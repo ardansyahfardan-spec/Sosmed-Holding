@@ -2064,7 +2064,7 @@ nav.sticky {
                 <p class="text-sm text-gray-400 mt-1">Delapan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
               </div>
               <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">8 MODE</span></div>
-              <div id="arena-game-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div id="arena-game-grid" class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 <button onclick="playArena('berkas')" class="arena-game-card"><i class="fa-solid fa-folder-open"></i><b>Berkas Terlarang</b></button>
                 <button onclick="playArena('teka_teki')" class="arena-game-card"><i class="fa-solid fa-brain"></i><b>Teka-Teki Arwah</b></button>
                 <button onclick="playArena('survival')" class="arena-game-card"><i class="fa-solid fa-house-crack"></i><b>Bertahan Sampai Pagi</b></button>
@@ -6135,16 +6135,16 @@ function toggleChatSearch(kind, forceOpen){
 
 
 <style id="gh-arena-gaib-styles">
-#page-arena .arena-game-card{display:flex;aspect-ratio:1/1;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:17px;background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.34),transparent 58%),linear-gradient(145deg,rgba(40,22,34,.9),rgba(12,15,24,.98));text-align:center;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+#page-arena .arena-game-card{display:flex;aspect-ratio:1/1;min-width:0;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:7px;border:1px solid rgba(255,255,255,.1);border-radius:17px;background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.34),transparent 58%),linear-gradient(145deg,rgba(40,22,34,.9),rgba(12,15,24,.98));text-align:center;transition:border-color .18s ease,transform .18s ease,background .18s ease}
 #page-arena .arena-game-card:hover{border-color:rgba(190,70,85,.65);background:linear-gradient(145deg,rgba(100,25,42,.42),rgba(15,18,27,.98));transform:translateY(-2px)}
-#page-arena .arena-game-card i{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,rgba(185,28,28,.24),rgba(37,72,142,.2));border:1px solid rgba(210,120,140,.2);color:#f0a0a8;font-size:23px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
-#page-arena .arena-game-card b{font-size:12px;color:#eee8dd;line-height:1.35;max-width:100%;}
+#page-arena .arena-game-card i{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,rgba(185,28,28,.24),rgba(37,72,142,.2));border:1px solid rgba(210,120,140,.2);color:#f0a0a8;font-size:17px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+#page-arena .arena-game-card b{font-size:10px;color:#eee8dd;line-height:1.35;max-width:100%;}
 #page-arena .arena-game-card span{display:none}
 #page-arena .arena-answer{display:block;width:100%;padding:11px 12px;border:1px solid #343743;border-radius:11px;background:#171922;color:#e9dfcf;text-align:left;font-size:12px;line-height:1.45}
 #page-arena .arena-answer:hover{border-color:#a64a56;background:#241a22}
 #page-arena .arena-primary{padding:10px 14px;border-radius:10px;background:linear-gradient(110deg,#9f2435,#243f86);color:#fff;font-size:12px;font-weight:700}
 #page-arena textarea{width:100%;min-height:130px;padding:12px;border:1px solid #343743;border-radius:12px;background:#090b10;color:#eee8dd;font-size:13px}
-@media(max-width:380px){#page-arena .arena-game-card{gap:10px;padding:9px}#page-arena .arena-game-card i{width:47px;height:47px;font-size:20px}#page-arena .arena-game-card b{font-size:11px}}
+@media(max-width:380px){#page-arena .arena-game-card{gap:6px;padding:5px;border-radius:12px}#page-arena .arena-game-card i{width:32px;height:32px;font-size:15px;border-radius:10px}#page-arena .arena-game-card b{font-size:9px;line-height:1.25}}
 </style>
 
 
