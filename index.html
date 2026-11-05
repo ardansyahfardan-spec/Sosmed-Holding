@@ -181,7 +181,7 @@
         #page-chat #chat-input,#page-chat #dm-input{font-size:16px}
         #page-chat #chat-messages,#page-chat #dm-messages{scroll-padding-bottom:1rem}
         @media(max-width:767px){#page-chat.chat-room-open #chat-sidebar{display:none!important}#page-chat #chat-room-panel{width:100%;min-width:0}}
-        /* RITUAL CREW: composer tetap terlihat dan menyesuaikan keyboard HP. */
+        /* CONCLAVE: composer tetap terlihat dan menyesuaikan keyboard HP. */
         #page-chat { --chat-keyboard-offset: 0px; }
         #page-chat .chat-composer {
             position: sticky;
@@ -253,7 +253,7 @@
 #page-chat .gh-chat-swipe-actions .gh-action-delete{color:#fca5a5}
 #page-chat .gh-chat-swipe-actions .gh-action-pin{color:#fcd34d}
 
-/* Fix sentuhan kolom pesan RITUAL CREW pada layar sentuh */
+/* Fix sentuhan kolom pesan CONCLAVE pada layar sentuh */
 #page-chat.chat-room-open #group-chat-card{position:relative!important;isolation:isolate}
 #page-chat.chat-room-open #group-chat-card .chat-composer{position:relative!important;z-index:100!important;pointer-events:auto!important;flex-shrink:0!important}
 #page-chat.chat-room-open #group-chat-card .chat-compose-field,
@@ -295,7 +295,7 @@
 #page-chat.chat-room-open #group-chat-header .gh-online-status{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;color:#86efac!important;font-size:10px!important;line-height:1.25!important;white-space:nowrap!important}
 #page-chat.chat-room-open #group-chat-header .gh-chat-connection{justify-self:end!important;display:inline-flex!important;align-items:center!important;max-width:108px!important;padding:5px 8px!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:999px!important;background:rgba(0,0,0,.22)!important;color:#d1d5db!important;font-size:9px!important;line-height:1.2!important;white-space:nowrap!important}
 @media(max-width:380px){#page-chat.chat-room-open #group-chat-header.gh-group-chat-header{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;padding:9px 10px!important}#page-chat.chat-room-open #group-chat-header .chat-room-back{width:36px!important;height:36px!important;min-width:36px!important;flex-basis:36px!important}#page-chat.chat-room-open #group-chat-header .gh-chat-connection{max-width:78px!important;padding:4px 6px!important;font-size:8px!important}}
-/* Header HP RITUAL CREW: tombol Back, nama grup, dan status online sejajar; koneksi di baris kedua. */
+/* Header HP CONCLAVE: tombol Back, nama grup, dan status online sejajar; koneksi di baris kedua. */
 @media(max-width:767px){
  #page-chat.chat-room-open #group-chat-header.gh-group-chat-header{display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;grid-template-rows:30px 18px!important;align-items:center!important;column-gap:10px!important;row-gap:2px!important;min-height:66px!important;padding:8px 12px!important}
  #page-chat.chat-room-open #group-chat-header .chat-room-back{grid-column:1!important;grid-row:1 / span 2!important;align-self:center!important;width:36px!important;height:36px!important;min-width:36px!important;flex-basis:36px!important}
@@ -2028,8 +2028,8 @@ nav.sticky {
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('analisis')" class="gcr-home-item">
-                    <span class="gcr-home-icon"><i class="fa-solid fa-hat-wizard" aria-hidden="true" title="Sorting Hat"></i></span>
-                    <span class="gcr-home-copy"><b>Analisis Metadata & AI</b></span>
+                    <span class="gcr-home-icon"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true" title="Ghoust AI"></i></span>
+                    <span class="gcr-home-copy"><b>Ghoust AI & Metadata</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('segmen')" class="gcr-home-item">
@@ -2038,13 +2038,13 @@ nav.sticky {
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('tim')" class="gcr-home-item">
-                    <span class="gcr-home-icon"><i class="fa-solid fa-key" aria-hidden="true" title="Enchanted Key"></i></span>
+                    <span class="gcr-home-icon"><i class="fa-solid fa-people-group" aria-hidden="true" title="Perkumpulan Crew"></i></span>
                     <span class="gcr-home-copy"><b>Markas Crew</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('radar')" class="gcr-home-item">
-                    <span class="gcr-home-icon"><i class="fa-solid fa-eye" aria-hidden="true" title="Mystical Eye"></i></span>
-                    <span class="gcr-home-copy"><b>Radar Analitik</b></span>
+                    <span class="gcr-home-icon"><i class="fa-solid fa-star" aria-hidden="true" title="Rasi bintang"></i></span>
+                    <span class="gcr-home-copy"><b>Rasi</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                 </div>
@@ -2056,19 +2056,19 @@ nav.sticky {
               
               <div class="grid grid-cols-1 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.5fr)] gap-3">
                 <aside id="chat-sidebar" class="glass-panel rounded-2xl border border-blue-900/70 overflow-hidden">
-                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">RITUAL CREW</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan Crew</p></div><div class="flex items-center gap-2"><button type="button" onclick="enableGhoustoryNotifications()" class="px-2 py-1.5 rounded-lg border border-blue-800 text-[10px] text-blue-200 hover:bg-blue-950" aria-label="Aktifkan notifikasi"><i class="fa-solid fa-bell mr-1"></i>Notifikasi</button><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div></div>
+                  <div class="p-4 bg-gradient-to-r from-red-950 via-gray-950 to-blue-950 flex justify-between items-center"><div><h2 class="font-mystery text-lg text-white">CONCLAVE</h2><p class="text-[10px] text-gray-400">Pesan dan percakapan Crew</p></div><div class="flex items-center gap-2"><button type="button" onclick="enableGhoustoryNotifications()" class="px-2 py-1.5 rounded-lg border border-blue-800 text-[10px] text-blue-200 hover:bg-blue-950" aria-label="Aktifkan notifikasi"><i class="fa-solid fa-bell mr-1"></i>Notifikasi</button><button onclick="loadRitualMembers()" class="p-2 text-gray-300" aria-label="Muat ulang"><i class="fa-solid fa-rotate"></i></button></div></div>
                   <div class="p-3 border-b border-gray-800"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i><input id="chat-list-search" type="search" oninput="filterChatList(this.value)" placeholder="Cari percakapan..." class="w-full bg-black border border-gray-800 rounded-full pl-9 pr-3 py-2.5 text-xs text-white"></div></div>
                   <div class="p-3 border-b border-gray-800">
                     <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Percakapan</div>
-                    <button type="button" onclick="openGroupRoom()" data-chat-name="ritual crew" class="chat-list-row w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/60 to-blue-950/60 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-black border border-red-800/70 overflow-hidden flex items-center justify-center"><img id="ritual-group-avatar" src="ghoustory-logo.png" alt="Logo Ritual Crew" class="w-full h-full object-contain p-1" onerror="this.onerror=null;this.src='image_2.png'"></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">RITUAL CREW</b><small class="text-[10px] text-gray-400">Grup obrolan seluruh Crew</small></span><span id="group-unread-badge" class="gh-unread-badge hidden">0</span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button>
+                    <button type="button" onclick="openGroupRoom()" data-chat-name="ritual crew" class="chat-list-row w-full text-left p-3 rounded-xl bg-gradient-to-r from-red-950/60 to-blue-950/60 border border-red-900/60 flex items-center gap-3"><span class="w-11 h-11 rounded-full bg-black border border-red-800/70 overflow-hidden flex items-center justify-center"><img id="ritual-group-avatar" src="ghoustory-logo.png" alt="Lambang Conclave" class="w-full h-full object-contain p-1" onerror="this.onerror=null;this.src='image_2.png'"></span><span class="min-w-0 flex-1"><b class="block text-sm text-white">CONCLAVE</b><small class="text-[10px] text-gray-400">Ruang obrolan seluruh Crew</small></span><span id="group-unread-badge" class="gh-unread-badge hidden">0</span><i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i></button>
                     <div id="dm-conversations-list" class="space-y-1 mt-1"><p class="text-xs text-gray-500 p-3">Memuat percakapan pribadi...</p></div>
                   </div>
                   <div class="p-3"><button type="button" onclick="toggleRitualMembers()" class="w-full text-left text-xs text-blue-300 py-2"><i class="fa-solid fa-user-plus mr-2"></i>Mulai chat baru</button><div id="ritual-members-list" class="hidden max-h-[40vh] overflow-y-auto space-y-1 mt-2"><p class="text-xs text-gray-500 p-3">Memuat Crew...</p></div></div>
                 </aside>
                 <div id="chat-room-panel" class="hidden min-w-0">
-                  <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
+                  <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">CONCLAVE</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="gh-dm-header"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('dm')" aria-label="Cari pesan" aria-expanded="false" aria-controls="dm-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="dm-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('dm', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div class="gh-dm-header"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><h3 id="dm-title" class="text-sm font-bold text-white">Whisper</h3><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('dm')" aria-label="Cari pesan" aria-expanded="false" aria-controls="dm-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="dm-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('dm', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
                     <div id="dm-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -2076,7 +2076,7 @@ nav.sticky {
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih Crew terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="Ghoust · AI Crew" aria-label="Ghoust · AI Crew" class="w-10 h-10 shrink-0 rounded-full bg-blue-950 border border-blue-700 overflow-hidden flex items-center justify-center"><img src="./ghoust-ai-avatar.svg" alt="" class="w-8 h-8 rounded-full"></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div id="group-chat-header" class="gh-group-chat-header"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('group')" aria-label="Cari pesan" aria-expanded="false" aria-controls="group-chat-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="group-chat-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('group', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div id="group-chat-header" class="gh-group-chat-header"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>CONCLAVE <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('group')" aria-label="Cari pesan" aria-expanded="false" aria-controls="group-chat-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="group-chat-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('group', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
                     <div id="group-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -2085,9 +2085,9 @@ nav.sticky {
                   </section>
                 </div>
               </div>
-              <div id="chat-tools-modal" class="hidden fixed inset-0 z-[150] bg-black/80 p-3 items-center justify-center"><div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-4"><div class="flex items-center justify-between mb-3"><h3 id="chat-tools-title" class="font-mystery text-white">RITUAL CREW</h3><button type="button" onclick="closeChatTools()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div><div id="chat-tools-content" class="space-y-3"></div></div></div>
+              <div id="chat-tools-modal" class="hidden fixed inset-0 z-[150] bg-black/80 p-3 items-center justify-center"><div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900 bg-[#101015] p-4"><div class="flex items-center justify-between mb-3"><h3 id="chat-tools-title" class="font-mystery text-white">CONCLAVE</h3><button type="button" onclick="closeChatTools()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div><div id="chat-tools-content" class="space-y-3"></div></div></div>
               <div id="ghoust-ai-modal" class="hidden fixed inset-0 z-[151] bg-black/80 p-3 items-center justify-center"><div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-blue-900 bg-[#101015] p-4"><div class="flex items-center justify-between mb-3"><div><h3 class="font-mystery text-white">Ghoust</h3><p class="text-[10px] text-blue-300">AI Crew · panggil juga dengan @ghoust</p></div><button type="button" onclick="closeGhoustAI()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button></div><div id="ghoust-ai-history" class="bg-black/60 border border-gray-800 rounded-xl p-3 min-h-24 max-h-64 overflow-y-auto text-sm text-gray-200 whitespace-pre-wrap mb-3">Tanyakan ide, jadwal, ringkasan, atau data produksi Ghoustory.</div><form onsubmit="askGhoustAI(event)" class="flex gap-2"><input id="ghoust-ai-input" maxlength="2000" class="min-w-0 flex-1 bg-black border border-gray-700 rounded-full px-4 py-3 text-sm" placeholder="Tanya GHOUSTORY AI..."><button class="bg-blue-800 rounded-full px-4"><i class="fa-solid fa-paper-plane"></i></button></form></div></div>
-              <p class="text-[10px] text-gray-500 mt-2 text-center">Pesan RITUAL CREW disinkronkan antarCrew.</p>
+              <p class="text-[10px] text-gray-500 mt-2 text-center">Pesan CONCLAVE disinkronkan antarCrew.</p>
             </section>
 
             <!-- 1. GRIMOIRE -->
@@ -2579,10 +2579,10 @@ nav.sticky {
         </main>
         <div id="bottom-navigation" class="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-[80] w-[min(94vw,430px)] rounded-full border border-white/15 bg-[#111827]/65 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,.45)] px-3 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
           <div class="grid grid-cols-4 gap-1">
-            <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house text-lg"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Home</span></button>
-            <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
+            <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house-crack text-lg" title="Ghouse"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Ghouse</span></button>
+            <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Conclave</span></button>
             <button data-bottom-nav="lore" onclick="navigateBottom('lore')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-book-open text-lg"></i><i id="nav-dot-lore" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">LORE</span></button>
-            <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
+            <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Sosok</span></button>
           </div>
         </div>
 
@@ -2598,7 +2598,7 @@ nav.sticky {
             <header class="ritual-info-header">
               <div class="ritual-info-heading">
                 <span class="ritual-info-icon"><i class="fa-solid fa-users"></i></span>
-                <div class="ritual-info-heading-copy"><h3 id="ritual-group-info-title">RITUAL CREW</h3><p>Info grup dan daftar Crew</p></div>
+                <div class="ritual-info-heading-copy"><h3 id="ritual-group-info-title">CONCLAVE</h3><p>Info grup dan daftar Crew</p></div>
                 <button type="button" onclick="closeRitualGroupInfo()" class="ritual-info-close" aria-label="Tutup info grup"><i class="fa-solid fa-xmark"></i></button>
               </div>
               <div class="ritual-info-count"><span>Crew dalam grup</span><b id="ritual-group-member-count">Memuat...</b></div>
@@ -2699,7 +2699,7 @@ nav.sticky {
           <div class="flex items-center gap-2"><b class="text-sm text-white">Versi 1.0.4</b><span class="rounded-full bg-green-950 px-2 py-0.5 text-[9px] text-green-300">Terbaru</span></div>
           <p class="text-[10px] text-gray-400 mt-1">4 November 2026</p>
           <ul class="mt-3 space-y-2 text-xs text-gray-300 list-disc pl-4">
-            <li>Notifikasi aplikasi dan pemberitahuan saat Crew disebut di RITUAL CREW.</li>
+            <li>Notifikasi aplikasi dan pemberitahuan saat Crew disebut di CONCLAVE.</li>
             <li>Pembaruan Crew Hub agar seluruh Crew dapat melihat jadwal, konfirmasi kehadiran, dan ikut voting.</li>
             <li>Pengaturan Bersihkan Cache pada perangkat.</li>
             <li>Perlindungan sinkronisasi untuk mengurangi risiko perubahan data tertimpa.</li>
@@ -3370,12 +3370,12 @@ nav.sticky {
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['LORE','ARSIP NUSANTARA'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],chat:['Conclave','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['LORE','ARSIP NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
             const inside=pageId!=='home';if(logoEl)logoEl.classList.toggle('hidden',inside);if(backEl){backEl.classList.toggle('hidden',!inside);backEl.classList.toggle('order-first',inside);}
-            if(pageId==='chat'){const chatTitle=document.querySelector('#chat-sidebar h2');if(chatTitle)chatTitle.textContent='RITUAL CREW';}
+            if(pageId==='chat'){const chatTitle=document.querySelector('#chat-sidebar h2');if(chatTitle)chatTitle.textContent='CONCLAVE';}
             if (pageId === 'chat') { showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
             if (pageId !== 'tim') markasTimUnlocked = false;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
@@ -5106,14 +5106,14 @@ async function loadChatMessages(){
             if(!(await ensureRitualGroupAccess())){
               chatMessages=[];groupReads=[];groupReactions=[];groupPins=[];chatLoadedForUser=null;
               try{localStorage.removeItem(chatCacheKey());}catch(e){}
-              if(status)status.textContent="Akun ini tidak tergabung dalam RITUAL CREW";
+              if(status)status.textContent="Akun ini tidak tergabung dalam CONCLAVE";
               renderChatMessages();
               return;
             }
             chatLoadedForUser=activeUser.id;
             try{const cached=localStorage.getItem(chatCacheKey());if(cached){chatMessages=JSON.parse(cached)||[];renderChatMessages();}}catch(e){}
           }catch(accessError){
-            if(status)status.textContent="Akses RITUAL CREW gagal diperiksa";
+            if(status)status.textContent="Akses CONCLAVE gagal diperiksa";
             console.error("Gagal memeriksa akses grup:",accessError);
             return;
           }
@@ -5195,7 +5195,7 @@ async function loadChatMessages(){
           try{
             await insertChatMessage({body,message_type:"text",reply_to:groupReplyTo?.id||null});
             const mentioned=(ritualMembers||[]).filter(m=>body.toLowerCase().includes('@'+(m.nickname||'').trim().replace(/\\s+/g,'_').toLowerCase()));
-            if(mentioned.length)await createCrewNotifications(mentioned.map(m=>m.user_id),'Kamu disebut di RITUAL CREW',body.slice(0,180),'mention','chat');
+            if(mentioned.length)await createCrewNotifications(mentioned.map(m=>m.user_id),'Kamu disebut di CONCLAVE',body.slice(0,180),'mention','chat');
             input.value="";
             input.dispatchEvent(new Event("input",{bubbles:true}));
             clearGroupReply();
@@ -5214,7 +5214,7 @@ async function loadChatMessages(){
           }
           button.disabled=false;
         }
-        // Direktori Crew, riwayat percakapan, dan pesan pribadi RITUAL CREW.
+        // Direktori Crew, riwayat percakapan, dan pesan pribadi CONCLAVE.
         let ritualMembers=[],workspaceProfiles=[],isGhoustoryAdmin=false,isGhoustoryGroupMember=null,activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="",dmReactions=[],dmPins=[],dmPresenceChannel=null,dmTypingTimer=null;
         async function loadDirectConversations(){
           const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
@@ -5254,7 +5254,7 @@ async function loadChatMessages(){
         function renderRitualMembers(){
           const dmBox=document.getElementById("ritual-members-list"),infoBox=document.getElementById("ritual-group-members");
           const members=ritualMembers||[];
-          const aiMemberRow='<div class="ritual-member-card ritual-ai-card flex items-center gap-3 p-3 rounded-xl border border-blue-900/70 bg-blue-950/20"><img src="./ghoust-ai-avatar.svg" class="w-11 h-11 rounded-full border border-blue-700" alt="Avatar Ghoust"><span class="ritual-member-copy min-w-0 flex-1"><b class="block text-sm text-white">Ghoust</b><small class="block text-[10px] text-blue-300">AI Crew · Asisten RITUAL CREW</small><small class="block text-[10px] text-gray-500">Panggil dengan @ghoust</small></span><span class="ritual-ai-tag text-[9px] rounded-full border border-blue-800 px-2 py-1 text-blue-300">AI</span></div>';
+          const aiMemberRow='<div class="ritual-member-card ritual-ai-card flex items-center gap-3 p-3 rounded-xl border border-blue-900/70 bg-blue-950/20"><img src="./ghoust-ai-avatar.svg" class="w-11 h-11 rounded-full border border-blue-700" alt="Avatar Ghoust"><span class="ritual-member-copy min-w-0 flex-1"><b class="block text-sm text-white">Ghoust</b><small class="block text-[10px] text-blue-300">AI Crew · Asisten CONCLAVE</small><small class="block text-[10px] text-gray-500">Panggil dengan @ghoust</small></span><span class="ritual-ai-tag text-[9px] rounded-full border border-blue-800 px-2 py-1 text-blue-300">AI</span></div>';
           if(!members.length){
             if(dmBox)dmBox.innerHTML=aiMemberRow;
             if(infoBox)infoBox.innerHTML=aiMemberRow;
@@ -5269,7 +5269,7 @@ async function loadChatMessages(){
           if(infoBox)infoBox.innerHTML=aiMemberRow+members.map(p=>{
             const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
-            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari RITUAL CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
+            const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari CONCLAVE" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
             return '<div class="ritual-member-card"><span class="ritual-member-avatar"><img src="'+escapeHtml(avatar)+'" alt=""><i class="'+(online?'is-online':'is-offline')+'"></i></span><span class="ritual-member-copy"><b>'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small>'+escapeHtml(p.role||"Crew")+'</small><small class="'+(online?'is-online-text':'is-offline-text')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+kickButton+'</div>';
           }).join("");
           const count=document.getElementById("ritual-group-member-count");if(count)count.textContent=members.length+" Crew · 1 AI";
@@ -5277,12 +5277,12 @@ async function loadChatMessages(){
         async function kickRitualCrewMember(userId){
           if(!isGhoustoryAdmin)return alert("Hanya admin utama yang dapat mengeluarkan Crew dalam grup.");
           const member=ritualMembers.find(p=>p.user_id===userId);if(!member)return alert("Crew tidak ditemukan.");
-          if(!confirm('Keluarkan '+(member.nickname||"Crew ini")+' dari RITUAL CREW? Akun dan akses aplikasi lainnya tetap aktif.'))return;
+          if(!confirm('Keluarkan '+(member.nickname||"Crew ini")+' dari CONCLAVE? Akun dan akses aplikasi lainnya tetap aktif.'))return;
           const {data,error}=await supabaseClient.rpc("kick_ghoustory_ritual_member",{p_user_id:userId});
           if(error)return alert("Crew gagal dikeluarkan: "+error.message);
-          if(data!==true)return alert("Crew tersebut sudah tidak tergabung dalam RITUAL CREW.");
+          if(data!==true)return alert("Crew tersebut sudah tidak tergabung dalam CONCLAVE.");
           await loadRitualMembers();
-          alert((member.nickname||"Crew")+' berhasil dikeluarkan dari RITUAL CREW. Akun aplikasi tetap aktif.');
+          alert((member.nickname||"Crew")+' berhasil dikeluarkan dari CONCLAVE. Akun aplikasi tetap aktif.');
         }
         async function startRitualPresence(){
           // Status online Crew mengikuti Presence global sejak aplikasi dibuka,
@@ -5305,7 +5305,7 @@ async function loadChatMessages(){
           isGhoustoryAdmin=admin.data===true;
           isGhoustoryGroupMember=group.data===true;
           if(typeof renderChatMessages==="function")renderChatMessages();
-          if(!ritualMembers.length){box.textContent="Belum ada Crew di RITUAL CREW.";return;}
+          if(!ritualMembers.length){box.textContent="Belum ada Crew di CONCLAVE.";return;}
           renderRitualMembers();
           await startRitualPresence();
           await loadDirectConversations();
@@ -5328,18 +5328,18 @@ async function loadChatMessages(){
               chatMessages=[];groupReads=[];groupReactions=[];groupPins=[];chatLoadedForUser=null;
               try{localStorage.removeItem(chatCacheKey());}catch(e){}
               renderChatMessages();showChatInbox();
-              alert("Akun ini masih aktif di Ghoustory Control Room, tetapi sudah tidak tergabung dalam RITUAL CREW.");
+              alert("Akun ini masih aktif di Ghoustory Control Room, tetapi sudah tidak tergabung dalam CONCLAVE.");
               return;
             }
             showChatRoom("group");
             await loadChatMessages();
             scrollChatToLatest("group");
             await markGroupMessagesRead();
-          }catch(error){alert("Akses RITUAL CREW gagal diperiksa: "+(error.message||error));}
+          }catch(error){alert("Akses CONCLAVE gagal diperiksa: "+(error.message||error));}
         }
         async function openRitualGroupInfo(){
           try{
-            if(!(await ensureRitualGroupAccess(true))){alert("Akun ini tidak tergabung dalam RITUAL CREW.");return;}
+            if(!(await ensureRitualGroupAccess(true))){alert("Akun ini tidak tergabung dalam CONCLAVE.");return;}
             const modal=document.getElementById("ritual-group-info-modal");
             modal?.classList.remove("hidden");modal?.classList.add("flex");
             renderRitualMembers();
@@ -5352,7 +5352,7 @@ async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=workspaceProfiles.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
           document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Pesan Pribadi";
-          document.getElementById("dm-subtitle").textContent=member.role||"Crew RITUAL CREW";
+          document.getElementById("dm-subtitle").textContent=member.role||"Crew CONCLAVE";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
             const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
@@ -5432,7 +5432,7 @@ async function markDmMessagesRead(){
         }
         function openChatTools(){
           const modal=document.getElementById("chat-tools-modal"),content=document.getElementById("chat-tools-content");
-          document.getElementById("chat-tools-title").textContent="RITUAL CREW · BAGIKAN / BUAT DATA";
+          document.getElementById("chat-tools-title").textContent="CONCLAVE · BAGIKAN / BUAT DATA";
           content.innerHTML='<p class="text-xs text-gray-400">Pilih tindakan yang ingin dilakukan.</p><div class="grid grid-cols-2 gap-2"><button onclick="showChatShareCategories()" class="p-3 rounded-xl bg-blue-950 border border-blue-800 text-left"><i class="fa-solid fa-share-nodes text-blue-300 mr-2"></i><b class="text-sm">Bagikan data</b><p class="text-[10px] text-gray-400 mt-1">Pilih item dari fitur</p></button><button onclick="showChatCreateCategories()" class="p-3 rounded-xl bg-red-950 border border-red-800 text-left"><i class="fa-solid fa-square-plus text-red-300 mr-2"></i><b class="text-sm">Buat data</b><p class="text-[10px] text-gray-400 mt-1">Buat data dari chat</p></button></div>';
           modal.classList.remove("hidden");modal.classList.add("flex");
         }
@@ -5445,7 +5445,7 @@ async function markDmMessagesRead(){
           const cfg=CHAT_COLLECTIONS[type],items=cfg?.items()||[],c=document.getElementById("chat-tools-content");
           if(!cfg)return;
           if(!items.length){c.innerHTML='<button onclick="showChatShareCategories()" class="text-xs text-blue-300 mb-3">← Kembali</button><p class="text-sm text-gray-400">Belum ada data di '+escapeHtml(cfg.label)+'.</p>';return;}
-          c.innerHTML='<button onclick="showChatShareCategories()" class="text-xs text-blue-300 mb-3">← Kembali</button><p class="text-xs text-gray-400 mb-2">Pilih satu atau beberapa item '+escapeHtml(cfg.label)+'.</p><div class="space-y-2">'+items.map((x,i)=>'<label class="flex gap-2 items-center p-3 rounded-lg bg-gray-900 border border-gray-800"><input type="checkbox" class="chat-share-check accent-red-600" value="'+escapeHtml(String(x.id))+'"><span class="text-sm">'+escapeHtml(cfg.title(x))+'</span></label>').join("")+'</div><button onclick="sendSelectedChatData(\''+type+'\')" class="w-full mt-3 bg-red-800 p-3 rounded-lg text-sm font-semibold">Kirim pilihan ke RITUAL CREW</button>';
+          c.innerHTML='<button onclick="showChatShareCategories()" class="text-xs text-blue-300 mb-3">← Kembali</button><p class="text-xs text-gray-400 mb-2">Pilih satu atau beberapa item '+escapeHtml(cfg.label)+'.</p><div class="space-y-2">'+items.map((x,i)=>'<label class="flex gap-2 items-center p-3 rounded-lg bg-gray-900 border border-gray-800"><input type="checkbox" class="chat-share-check accent-red-600" value="'+escapeHtml(String(x.id))+'"><span class="text-sm">'+escapeHtml(cfg.title(x))+'</span></label>').join("")+'</div><button onclick="sendSelectedChatData(\''+type+'\')" class="w-full mt-3 bg-red-800 p-3 rounded-lg text-sm font-semibold">Kirim pilihan ke CONCLAVE</button>';
         }
         async function sendSelectedChatData(type){
           const cfg=CHAT_COLLECTIONS[type],selected=[...document.querySelectorAll(".chat-share-check:checked")].map(x=>x.value);
@@ -5455,7 +5455,7 @@ async function markDmMessagesRead(){
         function showChatCreateCategories(){
           const options=[["jadwal","Jadwal Shooting"],["kas","Kas & Iuran"],["production","Tugas / Tracker Produksi"],["notulen","Notulen"],["scriptDrafts","Naskah / Script"],["mitos","Ide / Mitos"],["vo","Catatan VO"]];
           const c=document.getElementById("chat-tools-content");
-          c.innerHTML='<p class="text-xs text-gray-400">Pilih formulir data. Setelah disimpan, data masuk ke fitur terkait dan ringkasannya dikirim ke RITUAL CREW.</p>'+options.map(([k,v])=>'<button type="button" onclick="showChatCreateForm(&quot;'+k+'&quot;)" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-chevron-right float-right text-red-400"></i></button>').join("");
+          c.innerHTML='<p class="text-xs text-gray-400">Pilih formulir data. Setelah disimpan, data masuk ke fitur terkait dan ringkasannya dikirim ke CONCLAVE.</p>'+options.map(([k,v])=>'<button type="button" onclick="showChatCreateForm(&quot;'+k+'&quot;)" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-chevron-right float-right text-red-400"></i></button>').join("");
         }
         function chatCreateField(id,label,placeholder,type="text",required=false){
           return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
@@ -5492,14 +5492,14 @@ async function markDmMessagesRead(){
             const out=number("out-amount");if(out>0)details.push({label:val("out-desc")||"Pengeluaran",amount:out,type:"out"});
             if(!details.length)return alert("Masukkan minimal satu nominal iuran atau pengeluaran.");
             const masuk=details.filter(x=>x.type==="in").reduce((sum,x)=>sum+x.amount,0);
-            item={id:now,date:new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}),desc:"Transaksi Kas dari RITUAL CREW",details,amount:masuk-out};
+            item={id:now,date:new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}),desc:"Transaksi Kas dari CONCLAVE",details,amount:masuk-out};
             db.kas.push(item);summary="Transaksi kas tercatat: "+details.map(x=>x.label+" Rp "+Number(x.amount).toLocaleString("id-ID")).join(", ");
           }else if(type==="production"){
             const title=val("title");if(!title)return alert("Nama tugas wajib diisi.");
             item={id:now,title,status:PRODUCTION_STAGES?.[0]||"Ide",updatedAt:new Date().toISOString(),updatedBy:activeUser.user_metadata?.name||activeUser.email||"Crew"};db.production.unshift(item);summary="Tugas produksi dibuat: "+title;
           }else if(type==="notulen"){
             const topic=val("title");if(!topic)return alert("Judul notulen wajib diisi.");
-            item={id:now,topic,raw:document.getElementById("chat-create-content")?.value||"",source:"Dibuat dari RITUAL CREW"};db.notulen.unshift(item);summary="Notulen dibuat: "+topic;
+            item={id:now,topic,raw:document.getElementById("chat-create-content")?.value||"",source:"Dibuat dari CONCLAVE"};db.notulen.unshift(item);summary="Notulen dibuat: "+topic;
           }else if(type==="scriptDrafts"){
             const title=val("title"),content=document.getElementById("chat-create-content")?.value?.trim()||"";if(!title||!content)return alert("Judul dan isi naskah wajib diisi.");
             item={id:now,title,content,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};db.scriptDrafts.unshift(item);summary="Naskah baru dibuat: "+title;
@@ -5786,7 +5786,7 @@ function toggleChatSearch(kind, forceOpen){
 
 
 <style id="gh-ritual-member-panel-redesign">
-/* RITUAL CREW info panel — explicit layout for desktop and mobile */
+/* CONCLAVE info panel — explicit layout for desktop and mobile */
 #ritual-group-info-modal{position:fixed!important;inset:0!important;z-index:230!important;display:none;align-items:center!important;justify-content:center!important;padding:16px!important;background:rgba(10,11,15,.78)!important;backdrop-filter:blur(7px)!important}
 #ritual-group-info-modal.flex{display:flex!important}
 #ritual-group-info-modal .ritual-info-card{display:flex!important;flex-direction:column!important;width:min(100%,460px)!important;max-height:min(84dvh,720px)!important;min-height:0!important;overflow:hidden!important;border:1px solid rgba(233,223,207,.14)!important;border-radius:20px!important;background:#202129!important;box-shadow:0 24px 72px rgba(0,0,0,.46)!important}
