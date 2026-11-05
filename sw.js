@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ghoustory-control-room-v58';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './ghoust-ai-avatar.svg', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'ghoustory-control-room-v59';
+const APP_SHELL = [ './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './ghoust-ai-avatar.svg', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -25,7 +25,7 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(new Request(request, { cache: 'no-store' }))
         .then((response) => {
           if (response && response.ok) {
             const copy = response.clone();
