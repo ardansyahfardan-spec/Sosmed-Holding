@@ -6134,6 +6134,11 @@ function toggleChatSearch(kind, forceOpen){
         }
 </style>
 
+<style id="gh-arena-mobile-grid-fix">
+@media(max-width:640px){#page-arena #arena-game-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;width:100%!important}#page-arena #arena-game-grid>.arena-game-card{width:100%!important;max-width:none!important;min-width:0!important;aspect-ratio:1.48/1!important}}
+@media(min-width:641px){#page-arena #arena-game-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(min-width:1024px){#page-arena #arena-game-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+</style>
 
 <style id="gh-arena-gaib-styles">
 #page-arena .arena-game-card{position:relative;display:flex;overflow:hidden;aspect-ratio:1.48/1;min-width:0;min-height:0;align-items:flex-end;justify-content:center;padding:8px;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.38),transparent 58%),linear-gradient(145deg,#281622,#0c0f18);text-align:center;isolation:isolate;transition:border-color .18s ease,transform .18s ease}
