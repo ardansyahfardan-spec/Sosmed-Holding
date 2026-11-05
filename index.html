@@ -743,6 +743,24 @@ main.container { background: transparent !important; }
         #page-home .gcr-home-item:hover { border-color: transparent !important; }
     
 
+        /* HOME FINISH — ruang judul lebih lega, tanpa garis pemisah. */
+        #page-home .gcr-home-heading {
+          border-bottom: 0 !important;
+          padding-bottom: 0 !important;
+          margin-bottom: 1.8rem !important;
+        }
+        #page-home .gcr-home-item {
+          min-width: 0;
+          box-shadow: 0 3px 14px rgba(48,40,30,.045);
+        }
+        #page-home .gcr-home-item:hover {
+          box-shadow: 0 7px 20px rgba(48,40,30,.075);
+        }
+        @media(max-width:767px) {
+          #page-home .gcr-home-heading { margin-bottom: 1.25rem !important; }
+          #page-home .gcr-home-grid { column-gap: 10px; row-gap: 12px; }
+        }
+
         /* HOME POLISH — state interaksi tetap halus tanpa mengembalikan border. */
         #page-home .gcr-home-item {
           border: 0 !important;
