@@ -3137,6 +3137,7 @@ nav.sticky {
                 showPage('chat'); updateBottomNavigation('chat');
                 refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
                 setTimeout(() => handleGhoustoryPushDeepLink(), 1200);
+                setTimeout(() => window.handleArenaGameDeepLink?.(), 1500);
                 setTimeout(() => {
                     welcomeScreen.style.opacity = '0';
                     document.getElementById('main-app').style.opacity = '1';
@@ -6168,6 +6169,12 @@ function toggleChatSearch(kind, forceOpen){
 
 <script id="gh-arena-gaib-logic">
 (function(){
+try{
+ const incoming=new URLSearchParams(window.location.search);
+ if(incoming.get('arenaGame')==='malam_terlarang'){
+  sessionStorage.setItem('ghoustoryArenaDeepLink',JSON.stringify({game:'malam_terlarang',room:(incoming.get('room')||'').toUpperCase()}));
+ }
+}catch(error){console.warn('Arena deep link:',error);}
 const arenaModes={
  berkas:{title:'Berkas Terlarang',intro:'Pilih kesimpulan paling masuk akal dari bukti kasus.',questions:[
   {q:'Di rumah kosong ditemukan jejak lumpur yang berhenti tepat di depan dinding. Apa petunjuk pertama yang perlu diperiksa?',a:['Dinding dan kemungkinan pintu tersembunyi','Warna cat rumah','Jumlah genteng'],c:0},
@@ -6264,9 +6271,20 @@ function malamMsg(t){const e=document.getElementById('malam-notice');if(e)e.text
 function malamHeader(){return arenaBackHeader('MULTIPLAYER · WEREWOLF','Malam Terlarang');}
 function malamHome(){const p=document.getElementById('arena-play-panel');p.innerHTML=malamHeader()+'<div class="rounded-2xl border border-red-900/40 bg-gradient-to-br from-red-950/40 via-[#101116] to-blue-950/30 p-4 mb-4"><p class="text-[9px] tracking-widest text-red-300 font-bold">DI ANTARA MEREKA, ADA YANG BUKAN MANUSIA</p><h3 class="font-mystery text-2xl text-white mt-2">Malam Terlarang</h3><p class="text-xs leading-relaxed text-gray-300 mt-2">Sebuah desa dikutuk. Saat malam tiba, Siluman memilih mangsa. Saat matahari terbit, warga harus menemukan siapa yang bersembunyi di antara mereka.</p><div class="grid grid-cols-3 gap-2 mt-4 text-center"><div class="rounded-xl bg-black/35 p-2"><b class="text-lg text-red-200">4–10</b><small class="block text-gray-500">PEMAIN</small></div><div class="rounded-xl bg-black/35 p-2"><b class="text-lg text-red-200">2</b><small class="block text-gray-500">KUBU</small></div><div class="rounded-xl bg-black/35 p-2"><b class="text-lg text-red-200">∞</b><small class="block text-gray-500">PUTARAN</small></div></div></div><div class="grid grid-cols-2 gap-2 mb-4"><button onclick="malamCreateRoom()" class="rounded-xl bg-gradient-to-br from-red-800 to-red-950 p-4 text-left"><i class="fa-solid fa-door-open text-xl"></i><b class="block text-sm mt-2">Buat Ruang</b><small>Jadi tuan rumah</small></button><div class="rounded-xl border border-gray-700 bg-black/25 p-3"><label class="text-[10px] text-gray-400">GABUNG RUANG</label><input id="malam-join-code" maxlength="6" placeholder="KODE" class="mt-2 uppercase text-center tracking-widest font-bold"><button onclick="malamJoinRoom()" class="w-full mt-2 rounded-lg bg-blue-900 py-2 text-xs">Gabung</button></div></div><div class="rounded-xl border border-gray-800 p-3"><b class="text-xs">Peran rahasia</b><div class="grid grid-cols-2 gap-2 mt-2">'+Object.keys(malamRoles).map(k=>'<div class="rounded-lg bg-gray-950 p-2"><b class="text-xs"><i class="fa-solid '+malamRoles[k][1]+' text-red-300 mr-1"></i>'+malamRoles[k][0]+'</b><p class="text-[9px] text-gray-500">'+malamRoles[k][2]+'</p><p class="text-[10px] text-gray-400 mt-1">'+malamRoles[k][3]+'</p></div>').join('')+'</div></div><p class="text-[10px] text-gray-500 mt-3">Minimal 4 pemain. Malam: aksi rahasia. Siang: diskusi dan voting. Warga menang jika semua Siluman tersingkir.</p><p id="malam-notice" class="text-xs text-red-300 mt-3"></p>';}
 window.openMalamTerlarang=function(){arenaCurrent='malam_terlarang';showArenaGamePage();if(malamRoomId)malamLoadState();else malamHome();};
+window.handleArenaGameDeepLink=function(){
+ try{
+  const raw=sessionStorage.getItem('ghoustoryArenaDeepLink');if(!raw)return;
+  sessionStorage.removeItem('ghoustoryArenaDeepLink');
+  const link=JSON.parse(raw);if(link.game!=='malam_terlarang')return;
+  showPage('arena');if(typeof updateBottomNavigation==='function')updateBottomNavigation('arena');
+  window.openMalamTerlarang();
+  if(link.room){const field=document.getElementById('malam-join-code');if(field)field.value=link.room;}
+ }catch(error){console.warn('Gagal membuka tautan Arena:',error);}
+};
+
 window.malamCreateRoom=async function(){if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;const {data,error}=await supabaseClient.rpc('malam_create_room',{p_nickname:n.trim()});if(error){malamMsg(error.message);return;}malamRoomId=data.room_id;malamSubscribe();malamLoadState();};
 window.malamJoinRoom=async function(){if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}const code=(document.getElementById('malam-join-code')?.value||'').trim().toUpperCase();if(code.length!==6){malamMsg('Masukkan kode 6 karakter.');return;}const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;const {data,error}=await supabaseClient.rpc('malam_join_room',{p_code:code,p_nickname:n.trim()});if(error){malamMsg(error.message);return;}malamRoomId=data.room_id;malamSubscribe();malamLoadState();};
-function malamInviteMessage(){const code=document.querySelector('#arena-play-panel .text-3xl.tracking-widest')?.textContent?.trim()||'';return 'Yuk main Malam Terlarang bareng di Ghoustory Control Room! 👻\n\nBuka aplikasi: https://ardansyahfardan-spec.github.io/Sosmed-Holding/\nMasuk ke Arena Gaib → Malam Terlarang → Gabung Ruang.\n\nKode ruang: '+code+'\n\nMinimal 4 pemain. Sampai ketemu di desa terkutuk!';}
+function malamInviteMessage(){const code=document.querySelector('#arena-play-panel .text-3xl.tracking-widest')?.textContent?.trim()||'';const directUrl='https://ardansyahfardan-spec.github.io/Sosmed-Holding/?arenaGame=malam_terlarang&room='+encodeURIComponent(code);return 'Yuk main Malam Terlarang bareng di Ghoustory Control Room! 👻\n\nKlik untuk langsung membuka game dan bergabung ke ruang: '+directUrl+'\n\nKode ruang: '+code+'\nMinimal 4 pemain. Sampai ketemu di desa terkutuk!';}
 window.malamInviteWhatsApp=function(){const url='https://wa.me/?text='+encodeURIComponent(malamInviteMessage());window.open(url,'_blank','noopener,noreferrer');};
 window.malamInviteMeetingCrew=async function(){try{if(!(await ensureRitualGroupAccess(true))){malamMsg('Akun ini belum tergabung dalam Meeting Crew. Gunakan undangan WhatsApp.');return;}const code=document.querySelector('#arena-play-panel .text-3xl.tracking-widest')?.textContent?.trim()||'';await insertChatMessage({body:malamInviteMessage(),message_type:'text',notify:true});malamMsg('Undangan ruang '+code+' berhasil dikirim ke Meeting Crew.');}catch(error){malamMsg('Undangan gagal dikirim: '+(error.message||error));}};
 function malamSubscribe(){if(malamChannel)supabaseClient.removeChannel(malamChannel);malamChannel=supabaseClient.channel('malam-'+malamRoomId).on('postgres_changes',{event:'*',schema:'public',table:'malam_rooms',filter:'id=eq.'+malamRoomId},malamLoadState).on('postgres_changes',{event:'*',schema:'public',table:'malam_players',filter:'room_id=eq.'+malamRoomId},malamLoadState).on('postgres_changes',{event:'*',schema:'public',table:'malam_messages',filter:'room_id=eq.'+malamRoomId},malamLoadMessages).subscribe();}
