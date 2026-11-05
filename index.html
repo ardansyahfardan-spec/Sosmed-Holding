@@ -6606,20 +6606,29 @@ window.malamStopClock=function(){if(window.__malamClockInterval){clearInterval(w
 window.malamOpenModal=function(type){
  const modal=document.getElementById('malam-modal'),content=document.getElementById('malam-modal-content'),title=document.getElementById('malam-modal-title');
  const data=window.__malamModalData||{};if(!modal||!content)return;
- const names={role:'Peran Rahasiamu',players:'Daftar Pemain',chat:'Diskusi & Ruang Chat'};
+ const names={role:'Peran Rahasiamu',players:'Daftar Pemain',chat:'Diskusi & Ruang Chat',action:'Aksi Rahasia Malam',vote:'Tentukan Suaramu'};
  if(!data[type])return;
- window.__malamModalType=type;title.textContent=names[type]||'Malam Terlarang';content.innerHTML=malamPopupHero(type==='role'?'role':type==='players'?'players':'night')+data[type];
+ window.__malamModalType=type;title.textContent=names[type]||'Malam Terlarang';
+ const hero=type==='role'?'role':type==='players'?'players':type==='vote'?'voting':'night';
+ content.innerHTML=malamPopupHero(hero)+data[type];
  modal.classList.remove('hidden');modal.classList.add('flex');
- if(type==='chat'){malamLoadMessages();malamLoadTeamMessages();}else{clearTimeout(window.__malamModalAutoClose);window.__malamModalAutoClose=setTimeout(()=>{if(window.__malamModalType===type)malamCloseModal();},5500);}
+ if(type==='chat'){malamLoadMessages();malamLoadTeamMessages();}
+ else if(type==='action'||type==='vote'){clearTimeout(window.__malamModalAutoClose);}
+ else{clearTimeout(window.__malamModalAutoClose);window.__malamModalAutoClose=setTimeout(()=>{if(window.__malamModalType===type)malamCloseModal();},5500);}
 };
 window.malamCloseModal=function(){
+ const closing=window.__malamModalType;
  clearTimeout(window.__malamModalAutoClose);
  const modal=document.getElementById('malam-modal');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}
  window.__malamModalType=null;
+ if(closing==='role'&&window.__malamPendingActionModal){
+  const next=window.__malamPendingActionModal;window.__malamPendingActionModal=null;
+  setTimeout(()=>malamOpenModal(next),180);
+ }
 };
 function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;
- if(prev&&prev.key!==phaseKey){const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');}
+ if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');}
  window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
  const p=document.getElementById('arena-play-panel'),r=s.room,ps=s.players||[];
  const me=ps.find(x=>x.user_id===activeUser.id),host=!!me?.is_host,alive=ps.filter(x=>x.is_alive);
@@ -6640,13 +6649,13 @@ function malamRender(s){
   if(r.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role)){
    const a={siluman:'attack',paranormal:'investigate',penjaga:'protect'}[s.my_role];
    const labels={siluman:'Pilih target serangan',paranormal:'Pilih seseorang untuk diperiksa',penjaga:'Pilih seseorang untuk dilindungi'};
-   action='<div class="rounded-2xl border border-indigo-800/60 bg-indigo-950/25 p-3 my-3"><div class="flex items-center justify-between gap-2"><b class="text-sm text-indigo-100">'+labels[s.my_role]+'</b><span class="text-[9px] rounded-full bg-black/30 px-2 py-1 text-indigo-200">'+(s.my_action_done?'PILIHAN TERSIMPAN':'AKSI RAHASIA')+'</span></div><p class="text-[10px] text-gray-400 mt-1">'+(s.my_action_done?'Kamu sudah memilih. Pilihan masih bisa diganti sampai waktu malam habis.':'Pilih satu pemain yang masih bertahan. Pilihanmu tidak terlihat oleh pemain lain.')+'</p><div class="grid grid-cols-2 gap-2 mt-3">'+alive.filter(x=>x.user_id!==activeUser.id&&!(s.my_role==='siluman'&&teammates.includes(x.user_id))).map(x=>'<button onclick="malamAction(\''+x.user_id+'\',\''+a+'\')" class="rounded-xl bg-gray-900 border border-gray-700 p-3 text-xs text-left hover:border-indigo-500"><i class="fa-solid fa-crosshairs text-indigo-300 mr-1"></i>'+esc(x.nickname)+'</button>').join('')+'</div></div>';
+   action='<div class="rounded-2xl border border-indigo-800/60 bg-indigo-950/25 p-3 my-3"><b class="text-sm text-indigo-100">'+labels[s.my_role]+'</b><p class="text-xs text-gray-300 mt-1">Popup aksi rahasia tersedia. Pilih target sebelum waktu malam berakhir.</p><button onclick="malamOpenModal(\'action\')" class="w-full mt-3 rounded-xl bg-gradient-to-r from-red-900 to-blue-950 py-3 text-xs font-bold">BUKA PILIHAN TARGET</button></div>';
   }else if(r.phase==='night'&&malamMyAlive){
    action='<div class="rounded-xl border border-indigo-900/40 bg-indigo-950/15 p-3 my-3"><b class="text-sm text-indigo-100">Malam sedang berlangsung</b><p class="text-xs text-gray-400 mt-1">Tetap waspada. Peran khusus sedang menjalankan aksinya. Saat pagi tiba, kalian akan berdiskusi.</p></div>';
   }else if(r.phase==='discussion'&&malamMyAlive){
    action='<div class="rounded-2xl border border-amber-800/50 bg-amber-950/20 p-3 my-3"><b class="text-sm text-amber-100"><i class="fa-solid fa-comments mr-1"></i>Waktu Diskusi</b><p class="text-xs text-gray-300 mt-1">Siapa yang punya alibi mencurigakan? Bicarakan petunjuk dan susun tuduhan sebelum voting dibuka.</p></div>';
   }else if(r.phase==='voting'&&malamMyAlive){
-   action='<div class="rounded-2xl border border-orange-800/50 bg-orange-950/20 p-3 my-3"><div class="flex items-center justify-between"><b class="text-sm text-orange-100"><i class="fa-solid fa-check-to-slot mr-1"></i>Voting Dibuka</b><span class="text-[9px] rounded-full bg-black/30 px-2 py-1">'+(s.my_action_done?'SUDAH MEMILIH':'PILIH SATU')+'</span></div><p class="text-[10px] text-gray-400 mt-1">Pilih pemain yang paling kamu curigai. Suaramu dirahasiakan sampai hasil diumumkan.</p><div class="grid grid-cols-2 gap-2 mt-3">'+alive.filter(x=>x.user_id!==activeUser.id&&!(s.my_role==='siluman'&&teammates.includes(x.user_id))).map(x=>'<button onclick="malamAction(\''+x.user_id+'\',\'vote\')" class="rounded-xl bg-gray-900 border border-gray-700 p-3 text-xs text-left hover:border-orange-500"><i class="fa-solid fa-gavel text-orange-300 mr-1"></i>'+esc(x.nickname)+'</button>').join('')+'</div></div>';
+   action='<div class="rounded-2xl border border-orange-800/50 bg-orange-950/20 p-3 my-3"><b class="text-sm text-orange-100"><i class="fa-solid fa-check-to-slot mr-1"></i>Voting Dibuka</b><p class="text-xs text-gray-300 mt-1">Popup voting tersedia. Tentukan pilihanmu sebelum waktu voting berakhir.</p><button onclick="malamOpenModal(\'vote\')" class="w-full mt-3 rounded-xl bg-gradient-to-r from-orange-900 to-red-950 py-3 text-xs font-bold">BUKA VOTING</button></div>';
   }else if(!malamMyAlive&&r.phase!=='finished'){
    action='<div class="rounded-xl border border-gray-700 bg-gray-950/70 p-3 my-3"><b class="text-sm text-gray-200"><i class="fa-solid fa-ghost mr-1 text-purple-300"></i>Kamu telah menjadi arwah</b><p class="text-xs text-gray-400 mt-1">Kamu tidak bisa lagi ikut aksi atau voting. Kamu hanya bisa berbincang di Ruang Arwah dan menyaksikan permainan.</p></div>';
   }
@@ -6664,9 +6673,17 @@ function malamRender(s){
  const modal='<div id="malam-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div><div id="malam-modal-content"></div></div></div>';
  p.innerHTML=malamHeader()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
  if(r.phase!=='lobby'){
-  window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent};
+  const nightAction=s.room.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role);
+  const canVote=s.room.phase==='voting'&&malamMyAlive;
+  const targetAction=nightAction?{type:'action',role:s.my_role,action:{siluman:'attack',paranormal:'investigate',penjaga:'protect'}[s.my_role]}:canVote?{type:'vote'}:null;
+  const actionLabel={siluman:'Pilih target serangan',paranormal:'Pilih seseorang untuk diperiksa',penjaga:'Pilih seseorang untuk dilindungi'};
+  const targetPlayers=alive.filter(x=>x.user_id!==activeUser.id&&!(nightAction&&s.my_role==='siluman'&&teammates.includes(x.user_id)));
+  const selectionContent=targetAction?'<div class="mb-3 rounded-xl border '+(targetAction.type==='vote'?'border-orange-800/50 bg-orange-950/20':'border-indigo-800/50 bg-indigo-950/20')+' p-3"><b class="text-sm text-white">'+(targetAction.type==='vote'?'Voting Rahasia':actionLabel[s.my_role])+'</b><p class="text-[10px] text-gray-300 mt-1">'+(targetAction.type==='vote'?'Pilih pemain yang paling kamu curigai. Suaramu dirahasiakan sampai hasil diumumkan.':'Pilih satu pemain yang masih bertahan. Pilihanmu hanya diproses saat malam berakhir.')+'</p>'+(s.my_action_done?'<p class="text-[10px] text-green-300 mt-2">Pilihanmu sudah tersimpan. Kamu masih bisa menggantinya sebelum waktu habis.</p>':'')+'</div><div class="grid grid-cols-2 gap-2">'+targetPlayers.map(x=>'<button onclick="malamAction(\''+x.user_id+'\',\''+(targetAction.type==='vote'?'vote':targetAction.action)+'\')" class="flex items-center gap-2 rounded-xl border border-gray-700 bg-gray-900 p-2 text-left hover:border-red-500"><span class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-800">'+(x.avatar_url?'<img src="'+esc(x.avatar_url)+'" class="h-full w-full object-cover" alt="">':'<span class="flex h-full w-full items-center justify-center text-xs font-bold">'+esc((x.nickname||'C').slice(0,1).toUpperCase())+'</span>')+'</span><span class="min-w-0 flex-1 truncate text-xs">'+esc(x.nickname)+'</span><i class="fa-solid '+(targetAction.type==='vote'?'fa-gavel':'fa-crosshairs')+' text-red-300 text-xs"></i></button>').join('')+'</div><p class="text-[9px] text-gray-500 mt-3 text-center">Popup akan berakhir otomatis saat waktu fase habis.</p>':'';
+  window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent,action:selectionContent,vote:selectionContent};
   const seenKey='gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id;
-  if(role&&!sessionStorage.getItem(seenKey)){sessionStorage.setItem(seenKey,'1');setTimeout(()=>malamOpenModal('role'),180);}
+  const showRole=role&&!sessionStorage.getItem(seenKey);
+  if(showRole){sessionStorage.setItem(seenKey,'1');window.__malamPendingActionModal=targetAction?.type||null;setTimeout(()=>malamOpenModal('role'),180);}
+  else if(targetAction&&window.__malamSelectionModalKey!==phaseKey&&!window.__malamModalType){window.__malamSelectionModalKey=phaseKey;setTimeout(()=>malamOpenModal(targetAction.type),180);}
   const openModal=window.__malamModalType;if(openModal)setTimeout(()=>malamOpenModal(openModal),0);
  }else{window.__malamModalData=null;window.__malamModalType=null;}
 
