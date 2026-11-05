@@ -2691,11 +2691,43 @@ nav.sticky {
         // ================= SUPABASE CONNECTION =================
         const SUPABASE_URL = 'https://xnbqckfbrrmdjiemfwqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-        // Gunakan global SDK dari CDN dengan nama client terpisah agar tidak terjadi benturan nama/Temporal Dead Zone.
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-            throw new Error('Supabase SDK gagal dimuat. Periksa koneksi internet atau CDN.');
+        // Jangan hentikan seluruh aplikasi jika CDN SDK terlambat/gagal dimuat.
+        let supabaseClient = (window.supabase && typeof window.supabase.createClient === 'function')
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        let supabaseSdkLoadPromise = null;
+        async function ensureSupabaseClient() {
+            if (supabaseClient) return supabaseClient;
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                return supabaseClient;
+            }
+            if (!supabaseSdkLoadPromise) {
+                supabaseSdkLoadPromise = (async () => {
+                    const sources = [
+                        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+                        'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+                    ];
+                    for (const src of sources) {
+                        try {
+                            await new Promise((resolve, reject) => {
+                                const script = document.createElement('script');
+                                script.src = src;
+                                script.async = true;
+                                script.onload = resolve;
+                                script.onerror = () => reject(new Error('CDN gagal: ' + src));
+                                document.head.appendChild(script);
+                            });
+                            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                                return supabaseClient;
+                            }
+                        } catch (error) { console.warn(error.message); }
+                    }
+                    throw new Error('SDK Supabase tidak berhasil dimuat dari CDN utama maupun cadangan.');
+                })().catch(error => { supabaseSdkLoadPromise = null; throw error; });
+            }
+            return supabaseSdkLoadPromise;
         }
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ================= STRUKTUR DATA DALAM MEMORI + DATABASE CLOUD =================
         const DEFAULT_DB = {
@@ -2877,6 +2909,14 @@ nav.sticky {
 
         // ================= INISIALISASI & AUTHENTICATION =================
         window.addEventListener('load', async () => {
+            try {
+                await ensureSupabaseClient();
+            } catch (error) {
+                console.error('Supabase belum siap:', error);
+                const status = document.getElementById('login-status');
+                if (status) { status.textContent = 'Koneksi login belum siap. Periksa internet lalu tekan Continue with Google untuk mencoba lagi.'; status.classList.remove('hidden'); }
+                return;
+            }
             setInterval(() => {
                 const clock = document.getElementById('live-clock');
                 if (clock) clock.innerText = new Date().toLocaleTimeString('id-ID') + " WIB";
@@ -3025,6 +3065,7 @@ nav.sticky {
             }
 
             try {
+                await ensureSupabaseClient();
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
@@ -3035,6 +3076,8 @@ nav.sticky {
                 if (error) throw error;
             } catch (error) {
                 console.error('Login Google gagal:', error);
+                const status = document.getElementById('login-status');
+                if (status) { status.textContent = 'Login belum berhasil: ' + (error.message || 'Periksa koneksi internet lalu coba lagi.'); status.classList.remove('hidden'); }
                 alert('Gagal login: ' + (error.message || 'Terjadi kesalahan.'));
                 if (btn) {
                     btn.disabled = false;
