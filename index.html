@@ -3376,7 +3376,9 @@ nav.sticky {
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
-        /* LORE page visual polish: keep the archive calm, readable, and mobile-first. */
+        /* LORE page visual polish is injected safely as CSS, outside the JS grammar. */
+        const lorePolishStyle=document.createElement('style');
+        lorePolishStyle.textContent=`
         #page-lore{padding-bottom:1.5rem}
         #page-lore #lore-category-grid{align-items:stretch}
         #page-lore .lore-category-card{
@@ -3407,6 +3409,8 @@ nav.sticky {
           #page-lore #lore-list-title{font-size:14px}
           #page-lore #lore-entry-count{white-space:nowrap}
         }
+`;
+        document.head.appendChild(lorePolishStyle);
         // LORE archive navigation and search foundation. Entries stay empty until source-verified records are added.
         const LORE_CATEGORY_LABELS={all:'Semua kategori',bestiary:'Bestiary',folklore:'Folklore',places:'Haunted Places',artifacts:'Artifacts',cases:'Case Files'};
         let activeLoreCategory='all';
