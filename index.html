@@ -6702,10 +6702,12 @@ window.malamOpenModal=function(type){
  else if(type==='action'||type==='vote'){clearTimeout(window.__malamModalAutoClose);}
  else{clearTimeout(window.__malamModalAutoClose);window.__malamModalAutoClose=setTimeout(()=>{if(window.__malamModalType===type)malamCloseModal();},5500);}
 };
-window.malamOpenChat=function(){
- const open=()=>window.malamOpenModal('chat');
- if(window.__malamModalData?.chat){open();return;}
- if(typeof window.malamLoadState==='function')window.malamLoadState().then(open).catch(e=>console.warn('Gagal membuka chat:',e));
+window.malamOpenChat=async function(){
+ try{
+  if(!window.__malamModalData?.chat&&typeof window.malamLoadState==='function')await window.malamLoadState();
+  if(!window.__malamModalData?.chat){malamMsg('Chat belum siap. Coba buka kembali beberapa saat lagi.');return;}
+  window.malamOpenModal('chat');
+ }catch(e){console.warn('Gagal membuka chat:',e);malamMsg('Chat belum dapat dibuka. Periksa koneksi lalu coba lagi.');}
 };
 window.malamCloseModal=function(){
  const closing=window.__malamModalType;
