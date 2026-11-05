@@ -1080,6 +1080,70 @@ nav.sticky {
   color: inherit;
 }
 
+
+
+/* PASSWORD GATES — bring all access panels into the charcoal / cream / muted-red system */
+#kas-access-modal > div,
+#markas-tim-lock > div,
+#ghoustory-group-invite-modal > form {
+  background: #22242c !important;
+  background-image: none !important;
+  border: 1px solid rgba(233,223,207,.16) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,.32) !important;
+}
+#kas-access-modal > div > div > span,
+#markas-tim-lock > div > div:first-of-type,
+#ghoustory-group-invite-modal form > div:first-child {
+  border-color: rgba(196,119,125,.35) !important;
+  background: rgba(130,67,77,.18) !important;
+  color: #d9a0a2 !important;
+}
+#kas-access-modal input,
+#markas-tim-lock input,
+#ghoustory-group-invite-modal input {
+  background: #191b22 !important;
+  border: 1px solid rgba(233,223,207,.18) !important;
+  color: #eee8dd !important;
+  border-radius: 12px !important;
+}
+#kas-access-modal input:focus,
+#markas-tim-lock input:focus,
+#ghoustory-group-invite-modal input:focus {
+  border-color: #a94d58 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(169,77,88,.18) !important;
+}
+#kas-access-modal button[onclick="verifyKasAccess()"],
+#markas-tim-lock button[type="submit"],
+#ghoustory-group-invite-submit {
+  background: #82434d !important;
+  background-image: none !important;
+  color: #fff5eb !important;
+  border: 1px solid rgba(196,119,125,.25) !important;
+  box-shadow: none !important;
+}
+#kas-access-modal button[onclick="verifyKasAccess()"]:hover,
+#markas-tim-lock button[type="submit"]:hover,
+#ghoustory-group-invite-submit:hover {
+  background: #98515b !important;
+}
+#kas-access-modal button[onclick="closeKasAccess()"],
+#markas-tim-lock button[onclick="closeMarkasTimLock()"] {
+  background: #30323b !important;
+  border-color: rgba(233,223,207,.14) !important;
+  color: #d9d2c7 !important;
+}
+#markas-tim-lock > div > p:first-of-type {
+  color: #d9a0a2 !important;
+}
+#markas-tim-lock > div > p:last-of-type {
+  color: #918b84 !important;
+}
+#ghoustory-group-invite-status {
+  color: #d9a0a2 !important;
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
