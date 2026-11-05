@@ -6867,7 +6867,7 @@ function malamRender(s){
  p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
  if(r.phase==='finished'){
   const outcome=(s.my_role==='siluman')===(r.winner==='siluman')?'win':'lose';
-  p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,r.winner,'multi',r.round_no,ps.map(x=>({name:x.nickname,role:x.role,alive:x.is_alive}))));
+  p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,r.winner,'multi',r.round_no,(s.revealed_roles||[]).map(x=>({name:x.nickname,role:x.role,alive:x.is_alive}))));
  }
  if(r.phase!=='lobby'){
   const nightAction=s.room.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role);
