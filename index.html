@@ -6329,6 +6329,83 @@ window.loadArenaImages=function(){
  });
 };
 let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false;
+/* AUDIO MALAM TERLARANG · gratis, berjalan lokal di browser */
+window.__malamAudioState={ctx:null,master:null,filter:null,oscillators:[],bgm:false,voice:false,lastPhase:''};
+window.malamAudioControls=function(){
+ const a=window.__malamAudioState;
+ return '<div class="flex items-center justify-center gap-2 mb-3" aria-label="Kontrol audio">'+
+ '<button type="button" onclick="malamAudioToggleBgm()" class="rounded-full border border-blue-800/60 bg-blue-950/40 px-3 py-1.5 text-[10px] text-blue-100"><i class="fa-solid fa-music mr-1"></i> BGM <span id="malam-audio-bgm-state">'+(a.bgm?'ON':'OFF')+'</span></button>'+
+ '<button type="button" onclick="malamAudioToggleVoice()" class="rounded-full border border-red-800/60 bg-red-950/40 px-3 py-1.5 text-[10px] text-red-100"><i class="fa-solid fa-microphone-lines mr-1"></i> Pemandu <span id="malam-audio-voice-state">'+(a.voice?'ON':'OFF')+'</span></button></div>';
+};
+window.malamAudioRefreshControls=function(){
+ const a=window.__malamAudioState;
+ const b=document.getElementById('malam-audio-bgm-state'),v=document.getElementById('malam-audio-voice-state');
+ if(b)b.textContent=a.bgm?'ON':'OFF';if(v)v.textContent=a.voice?'ON':'OFF';
+};
+window.malamAudioToggleBgm=async function(){
+ const a=window.__malamAudioState;
+ if(!a.bgm){
+  try{
+   const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Audio browser tidak didukung.');
+   if(!a.ctx){
+    const ctx=new Ctx(),master=ctx.createGain(),filter=ctx.createBiquadFilter();
+    filter.type='lowpass';filter.frequency.value=420;filter.Q.value=.7;
+    master.gain.value=0;filter.connect(master);master.connect(ctx.destination);
+    const specs=[{type:'triangle',freq:55,gain:.42},{type:'sine',freq:82.41,gain:.22},{type:'sine',freq:110,gain:.10}];
+    const oscillators=specs.map(x=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=x.type;o.frequency.value=x.freq;g.gain.value=x.gain;o.connect(g);g.connect(filter);o.start();return o;});
+    a.ctx=ctx;a.master=master;a.filter=filter;a.oscillators=oscillators;
+   }
+   await a.ctx.resume();a.master.gain.setTargetAtTime(.16,a.ctx.currentTime,.8);a.bgm=true;
+  }catch(e){console.warn('BGM tidak dapat dimulai:',e);window.malamNotify?.('AUDIO TIDAK TERSEDIA',e.message||'Browser tidak mendukung audio.','phase');}
+ }else{
+  a.bgm=false;if(a.master&&a.ctx)a.master.gain.setTargetAtTime(0,a.ctx.currentTime,.18);
+ }
+ window.malamAudioRefreshControls();
+};
+window.malamAudioToggleVoice=function(){
+ const a=window.__malamAudioState;
+ if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){
+  window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;
+ }
+ a.voice=!a.voice;
+ if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');
+ else window.speechSynthesis.cancel();
+ window.malamAudioRefreshControls();
+};
+window.malamAudioSpeak=function(text){
+ const a=window.__malamAudioState;if(!a.voice||!text||!('speechSynthesis'in window))return;
+ try{
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);u.lang='id-ID';u.rate=.86;u.pitch=.78;u.volume=1;
+  const voices=window.speechSynthesis.getVoices()||[];
+  const idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
+  if(idVoice)u.voice=idVoice;
+  window.speechSynthesis.speak(u);
+ }catch(e){console.warn('VO gagal diputar:',e);}
+};
+window.malamAudioOnPhase=function(mode,phase,round,event,winner){
+ const a=window.__malamAudioState,key=mode+':'+round+':'+phase;
+ if(a.lastPhase===key)return;a.lastPhase=key;
+ const tones={night:[49,73.42,98],discussion:[65.41,82.41,130.81],voting:[73.42,92.5,146.83],finished:[55,82.41,110]};
+ const tone=tones[phase];
+ if(tone&&a.ctx&&a.bgm){
+  a.oscillators.forEach((o,i)=>{try{o.frequency.setTargetAtTime(tone[i],a.ctx.currentTime,1.4);}catch(_){}});
+  if(a.filter)a.filter.frequency.setTargetAtTime(phase==='voting'?520:phase==='night'?360:460,a.ctx.currentTime,1.5);
+ }
+ const lines={
+  night:'Malam telah tiba... Desa kembali sunyi. Semua warga, pejamkan mata. Biarkan malam menjalankan rahasianya.',
+  discussion:'Fajar mulai menyingsing... Warga, bukalah mata kalian. Perhatikan kejadian semalam. Jangan mudah percaya pada siapa pun.',
+  voting:'Waktu diskusi telah usai... Sekarang saatnya menentukan pilihan. Siapa yang paling kalian curigai? Suarakan pilihan kalian.',
+  finished:winner==='siluman'?'Permainan berakhir... Siluman berhasil menguasai desa. Tak seorang pun lagi aman.':winner==='warga'?'Permainan berakhir... Desa berhasil diselamatkan. Siluman telah dikalahkan.':'Permainan telah berakhir... Inilah akhir dari malam terlarang.'
+ };
+ if(lines[phase])window.malamAudioSpeak(lines[phase]);
+};
+window.malamAudioStop=function(){
+ const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
+ a.voice=false;a.bgm=false;if(a.master&&a.ctx)a.master.gain.setTargetAtTime(0,a.ctx.currentTime,.12);
+ a.lastPhase='';window.malamAudioRefreshControls();
+};
+
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
 const malamPhaseNames={lobby:'Ruang Persiapan',night:'Malam',discussion:'Diskusi Warga',voting:'Voting',finished:'Permainan Selesai'};
 function malamMsg(t){const e=document.getElementById('malam-notice');if(e)e.textContent=t;}
@@ -6354,7 +6431,7 @@ window.malamTrialStart=async function(total){
  window.__malamTrial={players:names.slice(0,total).map((name,i)=>({id:'t'+i,name,role:roles[i],alive:true,isAI:i>0,suspicion:Math.random()*.25,avatar_url:i===0?avatar:'',user_id:i===0?(typeof activeUser!=='undefined'?activeUser?.id:null):null})),phase:'night',phaseStartedAt:Date.now(),round:1,selected:null,log:['Malam pertama tiba. '+total+' orang terjebak di desa ini. '+wolfCount+' di antaranya adalah Siluman.'],investigation:null,protected:null,lastEvent:'Semua warga terlelap. Siluman mulai bergerak.',modal:null,roleSeen:false,ended:false,winner:null,voteHistory:[],totalPlayers:total,wolfCount,phaseModalKey:''};
  malamTrialRender();window.__malamTrialInterval=setInterval(malamTrialTick,1000);setTimeout(()=>malamTrialOpen('role'),180);
 };
-window.malamTrialExit=function(){clearInterval(window.__malamTrialInterval);window.__malamTrialInterval=null;window.__malamTrial=null;malamCloseModal();malamHome();};
+window.malamTrialExit=function(){malamAudioStop();clearInterval(window.__malamTrialInterval);window.__malamTrialInterval=null;window.__malamTrial=null;malamCloseModal();malamHome();};
 window.malamTrialOpen=function(type){
  const s=window.__malamTrial;if(!s)return;s.modal=type;
  const modal=document.getElementById('malam-trial-modal'),title=document.getElementById('malam-trial-modal-title'),content=document.getElementById('malam-trial-modal-content');
@@ -6465,7 +6542,7 @@ window.malamTrialRender=function(){
  const arena=malamArenaMarkup(arenaPlayers,s.phase);
  const tracker='<div class="flex items-center justify-between gap-1 mb-4 px-1">'+phases.map((x,i)=>'<div class="flex min-w-0 flex-1 flex-col items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full '+(i===idx?'bg-red-400 ring-4 ring-red-500/15':i<idx?'bg-blue-400':'bg-gray-700')+'"></span><span class="text-[8px] tracking-wide whitespace-nowrap '+(i===idx?'text-red-200 font-bold':i<idx?'text-blue-200':'text-gray-600')+'">'+x+'</span></div>').join('')+'</div>';
  const modal='<div id="malam-trial-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamTrialClose()"><div class="w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-amber-800/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.65)]"><div class="flex justify-between items-center mb-4"><b id="malam-trial-modal-title" class="text-sm">Uji Coba</b><button onclick="malamTrialClose()" class="w-8 h-8 rounded-full bg-gray-800">×</button></div><div id="malam-trial-modal-content"></div></div></div>';
- p.innerHTML=malamHeader()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · '+(s.players.length-1)+' PEMAIN AI · '+s.players.length+' TOTAL</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="flex items-center justify-center gap-5 mb-3 py-1"><button aria-label="Peranku" title="Peranku" onclick="malamTrialOpen(\'role\')" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" onclick="malamTrialOpen(\'players\')" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Catatan" title="Catatan" onclick="malamTrialOpen(\'log\')" class="w-8 h-8 flex items-center justify-center text-gray-300/90 hover:text-white"><i class="fa-solid fa-scroll text-[13px]"></i></button></div>'+tracker+arena+'<div id="malam-trial-countdown" class="text-center text-sm font-black text-amber-200 mb-3">Timer berjalan</div><div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
+ malamAudioOnPhase('trial',s.phase,s.round,s.lastEvent,s.winner);\n p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · '+(s.players.length-1)+' PEMAIN AI · '+s.players.length+' TOTAL</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="flex items-center justify-center gap-5 mb-3 py-1"><button aria-label="Peranku" title="Peranku" onclick="malamTrialOpen(\'role\')" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" onclick="malamTrialOpen(\'players\')" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Catatan" title="Catatan" onclick="malamTrialOpen(\'log\')" class="w-8 h-8 flex items-center justify-center text-gray-300/90 hover:text-white"><i class="fa-solid fa-scroll text-[13px]"></i></button></div>'+tracker+arena+'<div id="malam-trial-countdown" class="text-center text-sm font-black text-amber-200 mb-3">Timer berjalan</div><div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
  if(s.modal)setTimeout(()=>malamTrialOpen(s.modal),0);
 };
 
@@ -6635,7 +6712,7 @@ window.malamCloseModal=function(){
  }
 };
 function malamRender(s){
- const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;
+ const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');}
  window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
  const p=document.getElementById('arena-play-panel'),r=s.room,ps=s.players||[];
@@ -6680,7 +6757,7 @@ function malamRender(s){
  const chatModalContent='<div class="text-[10px] text-gray-500 mb-2">'+chatTitle+' · pesan hanya untuk kanalmu</div><div id="malam-chat-list" class="max-h-[45vh] overflow-y-auto py-3 space-y-2"></div><div class="flex gap-2"><input id="malam-chat-input" maxlength="500" placeholder="Tulis pesan..." class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-sm"><button onclick="malamChat()" class="bg-blue-900 rounded-xl px-4 text-xs font-semibold">Kirim</button></div>'+(s.my_role==='siluman'&&malamMyAlive&&r.phase==='night'?malamTeamChatMarkup():'');
  const modal='<div id="malam-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div><div id="malam-modal-content"></div></div></div>';
  const oldChatInput=document.getElementById('malam-chat-input'),chatDraft=oldChatInput?.value||'',chatHadFocus=!!oldChatInput&&document.activeElement===oldChatInput;
- p.innerHTML=malamHeader()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
+ p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
  if(r.phase!=='lobby'){
   const nightAction=s.room.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role);
   const canVote=s.room.phase==='voting'&&malamMyAlive;
