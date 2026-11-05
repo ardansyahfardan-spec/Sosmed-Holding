@@ -5033,10 +5033,10 @@ nav.sticky {
         function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';document.getElementById('j-candidate-edit-id').value='';document.getElementById('j-candidate-promote-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal / Kandidat Narasumber';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');}
         async function saveCrewCandidate(){
           if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
-          const editId=document.getElementById('j-candidate-edit-id').value,id=editId||String(Date.now()),title=document.getElementById('j-nama').value.trim();
-          if(!title)return alert('Isi topik atau premis narasumber terlebih dahulu.');
-          const old=crewCandidates.find(x=>String(x.id)===String(id));
-          const row={id,title,narsum:document.getElementById('j-narsum').value.trim(),segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
+          const editId=document.getElementById('j-candidate-edit-id').value,id=editId||String(Date.now()),topic=document.getElementById('j-nama').value.trim(),speakerName=document.getElementById('j-narsum').value.trim();
+          if(!topic&&!speakerName)return alert('Isi nama narasumber atau topik terlebih dahulu.');
+          const title=topic||speakerName,old=crewCandidates.find(x=>String(x.id)===String(id));
+          const row={id,title,narsum:speakerName,segment:document.getElementById('j-segmen').value,location:document.getElementById('j-lokasi').value.trim(),created_by:old?.created_by||activeUser.id,updated_at:new Date().toISOString()};
           const saved=await supabaseClient.from('ghoustory_speaker_candidates').upsert(row);
           if(saved.error)return alert('Kandidat gagal disimpan: '+saved.error.message);
           resetCrewScheduleForm();await refreshCrewHub();alert('Kandidat narasumber berhasil disimpan.');
