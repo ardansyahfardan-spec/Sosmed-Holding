@@ -5529,5 +5529,77 @@ function toggleChatSearch(kind, forceOpen){
 }
 </script>
 
+
+<style id="gh-ritual-member-panel-redesign">
+/* RITUAL CREW member panel — visual-only refresh */
+#ritual-group-info-modal{background:rgba(12,13,17,.78)!important;backdrop-filter:blur(8px);padding:16px!important}
+#ritual-group-info-modal>div{
+  width:min(100%,440px)!important;max-height:min(82dvh,720px)!important;
+  background:#202129!important;border:1px solid rgba(233,223,207,.13)!important;
+  border-radius:22px!important;box-shadow:0 22px 70px rgba(0,0,0,.42)!important;
+}
+#ritual-group-info-modal>div>div:first-child{
+  padding:20px!important;background:#24252e!important;
+  border-bottom:1px solid rgba(233,223,207,.10)!important;
+}
+#ritual-group-info-modal>div>div:first-child span.w-12{
+  width:46px!important;height:46px!important;background:#33262b!important;
+  border:1px solid rgba(196,119,125,.3)!important;color:#c4777d!important;
+}
+#ritual-group-info-modal #ritual-group-info-title{color:#eee8dd!important;font-size:16px!important;letter-spacing:.02em}
+#ritual-group-info-modal>div>div:first-child p{color:#aaa6a1!important;font-size:11px!important}
+#ritual-group-info-modal>div>div:first-child button{
+  border:1px solid rgba(233,223,207,.14)!important;background:#2b2c35!important;color:#d8d0c5!important;
+}
+#ritual-group-info-modal #ritual-group-member-count{color:#c4777d!important;font-weight:700}
+#ritual-group-info-modal>div>div:nth-child(2){
+  padding:16px!important;background:#202129!important;overflow-y:auto!important;
+}
+#ritual-group-info-modal>div>div:nth-child(2)>div:first-child{padding:0 2px 10px!important}
+#ritual-group-info-modal>div>div:nth-child(2) h4{color:#eee8dd!important;font-size:12px!important;font-weight:700!important}
+#ritual-group-info-modal>div>div:nth-child(2)>div:first-child button{
+  color:#c4777d!important;background:#30262b!important;border:1px solid rgba(196,119,125,.2)!important;
+  border-radius:9px!important;padding:7px 10px!important;
+}
+#ritual-group-members{display:flex!important;flex-direction:column!important;gap:9px!important}
+#ritual-group-members>div{
+  display:flex!important;align-items:center!important;gap:12px!important;
+  min-width:0!important;padding:12px!important;border-radius:15px!important;
+  background:#292a33!important;border:1px solid rgba(233,223,207,.09)!important;
+  box-shadow:none!important;
+}
+#ritual-group-members>div img{width:44px!important;height:44px!important;border:1px solid rgba(233,223,207,.16)!important}
+#ritual-group-members>div>span:nth-of-type(2){min-width:0!important;flex:1!important}
+#ritual-group-members>div b{color:#eee8dd!important;font-size:13px!important;line-height:1.35!important}
+#ritual-group-members>div small{color:#aaa6a1!important;line-height:1.45!important}
+#ritual-group-members>div small.text-green-400{color:#8eb69a!important}
+#ritual-group-members>div small.text-gray-500{color:#99949a!important}
+#ritual-group-members>div button{
+  flex:0 0 auto!important;border:1px solid rgba(196,119,125,.25)!important;
+  background:#39292e!important;color:#d99a9e!important;border-radius:10px!important;
+  padding:8px 10px!important;font-size:10px!important;
+}
+#ritual-group-members>div button:hover{background:#493036!important}
+#ritual-group-members>div .bg-blue-950\/20{
+  background:#302b32!important;border-color:rgba(196,119,125,.2)!important;
+}
+#ritual-group-members>div .text-blue-300{color:#c4777d!important}
+#ritual-group-members>div .border-blue-800{border-color:rgba(196,119,125,.25)!important}
+#ritual-group-info-modal>div>div:last-child{
+  padding:13px 16px!important;background:#1c1d24!important;
+  border-top:1px solid rgba(233,223,207,.09)!important;
+  color:#99949a!important;line-height:1.5!important;
+}
+@media(max-width:480px){
+  #ritual-group-info-modal{padding:10px!important}
+  #ritual-group-info-modal>div{width:100%!important;max-height:86dvh!important;border-radius:19px!important}
+  #ritual-group-info-modal>div>div:first-child{padding:16px!important}
+  #ritual-group-info-modal>div>div:nth-child(2){padding:12px!important}
+  #ritual-group-members>div{gap:10px!important;padding:10px!important}
+  #ritual-group-members>div img{width:40px!important;height:40px!important}
+  #ritual-group-members>div button{padding:7px 8px!important}
+}
+</style>
+
 </body>
 </html>
