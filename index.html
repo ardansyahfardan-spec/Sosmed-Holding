@@ -747,6 +747,30 @@ main.container { background: transparent !important; }
         #page-home .gcr-home-item { border: 0 !important; }
         #page-home .gcr-home-item:hover { border-color: transparent !important; }
     
+
+        /* HOME POLISH — state interaksi tetap halus tanpa mengembalikan border. */
+        #page-home .gcr-home-item {
+          border: 0 !important;
+          transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        #page-home .gcr-home-item:hover {
+          border: 0 !important;
+          background: #fff !important;
+          box-shadow: 0 6px 18px rgba(48,40,30,.065);
+          transform: translateY(-1px);
+        }
+        #page-home .gcr-home-item:focus-visible {
+          outline: 2px solid #9aabc2;
+          outline-offset: 3px;
+        }
+        #page-home .gcr-home-item:hover .gcr-home-icon {
+          background: #f7e8e8;
+          color: #a84b55;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          #page-home .gcr-home-item { transition: none; }
+        }
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
