@@ -3242,7 +3242,7 @@ nav.sticky {
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['LORE','Ensiklopedia Misteri Nusantara'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['LORE','MISTERI NUSANTARA'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
@@ -5663,6 +5663,21 @@ function toggleChatSearch(kind, forceOpen){
 #welcome-screen .text-red-400{color:#f08a91 !important}
 #welcome-screen .bg-red-600{background-color:#d12d43 !important}
 #welcome-screen .bg-red-700{background-color:#a91f35 !important}
+
+        /* Mobile header: keep the page identity and action buttons on one clean row. */
+        @media (max-width: 640px) {
+          #main-app > nav { padding: .55rem .65rem !important; }
+          #main-app > nav > .container {
+            display:flex !important; flex-wrap:nowrap !important; align-items:center !important;
+            justify-content:space-between !important; gap:.4rem !important;
+          }
+          #header-identity { flex:1 1 auto !important; width:0 !important; gap:.45rem !important; }
+          #header-back-button { width:2rem !important; height:2rem !important; flex:0 0 2rem !important; margin:0 !important; }
+          #header-page-title { display:block; max-width:100%; font-size:.82rem !important; line-height:1.15 !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+          #header-page-subtitle { display:block; max-width:100%; font-size:.48rem !important; line-height:1.25 !important; letter-spacing:.09em !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+          #main-app > nav > .container > div:last-child { flex:0 0 auto !important; gap:.3rem !important; }
+          #main-app > nav > .container > div:last-child > button { width:2.1rem !important; height:2.1rem !important; flex:0 0 2.1rem !important; }
+        }
 </style>
 
 </body>
