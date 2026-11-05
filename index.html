@@ -6390,7 +6390,7 @@ window.malamTrialNight=function(force){
  if(attack&&attack===s.protected){event='Seseorang hampir menjadi korban, tetapi berhasil diselamatkan Penjaga.';}
  else if(attack){const victim=s.players.find(p=>p.id===attack);if(victim&&victim.alive){victim.alive=false;event=victim.name+' ditemukan gugur saat pagi tiba.';}}
  s.lastEvent=event;s.log.push('Pagi hari: '+event);s.phase='discussion';s.phaseStartedAt=Date.now();s.selected=null;s.protected=null;
- malamTrialCheck();malamTrialRender();malamNotify('PAGI TIBA',event,'phase');
+ malamTrialCheck();malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else malamNotify('PAGI TIBA',event,'phase');
 };
 window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
 window.malamTrialVote=function(force){
