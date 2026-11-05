@@ -5709,7 +5709,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=59",{scope:"./",updateViaCache:"none"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=60",{scope:"./",updateViaCache:"none"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -5755,7 +5755,7 @@ async function markDmMessagesRead(){
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (hadController) window.location.reload();
           }, { once: true });
-          navigator.serviceWorker.register('./sw.js?v=59', { scope: './', updateViaCache: 'none' })
+          navigator.serviceWorker.register('./sw.js?v=60', { scope: './', updateViaCache: 'none' })
             .then(registration => registration.update())
             .catch(error => console.warn('Service Worker:', error));
         }
