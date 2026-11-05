@@ -694,14 +694,10 @@ main.container { background: transparent !important; }
 }
 #page-home .gcr-home-copy b {
   color: #292a30;
+  max-width: 15ch;
   font-size: clamp(.82rem, 1.2vw, .98rem);
   line-height: 1.3;
-}
-#page-home .gcr-home-copy small {
-  color: #858178;
-  font-size: .72rem;
-  line-height: 1.4;
-  max-width: 22ch;
+  text-wrap: balance;
 }
 #page-home .gcr-home-chevron { display: none; }
 #page-home .gcr-home-item:hover {
@@ -739,7 +735,6 @@ main.container { background: transparent !important; }
     border-radius: 15px;
     font-size: 1.25rem;
   }
-  #page-home .gcr-home-copy small { font-size: .66rem; }
 }
 
 
