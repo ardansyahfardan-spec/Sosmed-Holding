@@ -6675,7 +6675,7 @@ window.malamNotify=function(title,message,kind){
  el.style.opacity='1';el.style.transition='opacity .35s ease, transform .35s ease';el.style.transform='translate(-50%,0)';
  window.__malamNoticeTimer=setTimeout(()=>{el.style.opacity='0';el.style.transform='translate(-50%,-12px)';setTimeout(()=>el.remove(),400);},5000);
 };
-window.malamPhaseSeconds=function(phase){return phase==='night'?60:phase==='discussion'?180:phase==='voting'?45:0;};
+window.malamPhaseSeconds=function(phase){return phase==='night'?60:phase==='discussion'?60:phase==='voting'?45:0;};
 window.malamStartClock=function(){
  if(window.__malamClockInterval)return;
  window.__malamClockInterval=setInterval(async()=>{
@@ -6701,6 +6701,11 @@ window.malamOpenModal=function(type){
  if(type==='chat'){malamLoadMessages();malamLoadTeamMessages();}
  else if(type==='action'||type==='vote'){clearTimeout(window.__malamModalAutoClose);}
  else{clearTimeout(window.__malamModalAutoClose);window.__malamModalAutoClose=setTimeout(()=>{if(window.__malamModalType===type)malamCloseModal();},5500);}
+};
+window.malamOpenChat=function(){
+ const open=()=>window.malamOpenModal('chat');
+ if(window.__malamModalData?.chat){open();return;}
+ if(typeof window.malamLoadState==='function')window.malamLoadState().then(open).catch(e=>console.warn('Gagal membuka chat:',e));
 };
 window.malamCloseModal=function(){
  const closing=window.__malamModalType;
@@ -6753,7 +6758,7 @@ function malamRender(s){
   body=phaseInfo+action+hostControl+result;
  }
  const chatTitle=malamGameFinished?'Percakapan Ruang':malamMyAlive?'Diskusi Warga':'Ruang Arwah';
- const modalButtons=r.phase==='lobby'?'':'<div class="flex items-center justify-center gap-5 mb-3 py-1"><button aria-label="Peranku" title="Peranku" onclick="malamOpenModal(\'role\')" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" onclick="malamOpenModal(\'players\')" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Diskusi" title="Diskusi" onclick="malamOpenModal(\'chat\')" class="w-8 h-8 flex items-center justify-center text-amber-200/90 hover:text-amber-100"><i class="fa-solid fa-comments text-[13px]"></i></button></div>';
+ const modalButtons=r.phase==='lobby'?'':'<div class="flex items-center justify-center gap-5 mb-3 py-1"><button type="button" aria-label="Peranku" title="Peranku" onclick="window.malamOpenModal(\\'role\\')" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button type="button" aria-label="Pemain" title="Pemain" onclick="window.malamOpenModal(\\'players\\')" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button type="button" aria-label="Diskusi" title="Diskusi" onclick="window.malamOpenChat()" class="w-8 h-8 flex items-center justify-center text-amber-200/90 hover:text-amber-100"><i class="fa-solid fa-comments text-[13px]"></i></button></div>';
  const playersModalContent='<div class="grid grid-cols-2 gap-2">'+list+'</div><div class="text-[10px] text-gray-500 mt-3">'+alive.length+' pemain bertahan · '+(ps.length-alive.length)+' tereliminasi</div>';
  const chatModalContent='<div class="text-[10px] text-gray-500 mb-2">'+chatTitle+' · pesan hanya untuk kanalmu</div><div id="malam-chat-list" class="max-h-[45vh] overflow-y-auto py-3 space-y-2"></div><div class="flex gap-2"><input id="malam-chat-input" maxlength="500" placeholder="Tulis pesan..." class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-sm"><button onclick="malamChat()" class="bg-blue-900 rounded-xl px-4 text-xs font-semibold">Kirim</button></div>'+(s.my_role==='siluman'&&malamMyAlive&&r.phase==='night'?malamTeamChatMarkup():'');
  const modal='<div id="malam-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div><div id="malam-modal-content"></div></div></div>';
