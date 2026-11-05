@@ -1193,6 +1193,99 @@ nav.sticky {
     #welcome-screen .drop-shadow-\[0_0_28px_rgba\(185\,28\,28\,0\.75\)\] {
       filter: drop-shadow(0 0 12px rgba(169,77,88,.22)) !important;
     }
+
+    
+/* CHAT ROOM REFINEMENT — compact header search + restrained pinned message */
+#page-chat.chat-room-open{background:#17181e!important}
+#page-chat.chat-room-open #direct-chat-card,
+#page-chat.chat-room-open #group-chat-card{background:#1d2028!important;border-color:rgba(233,223,207,.13)!important}
+#page-chat.chat-room-open #direct-chat-card>div:first-child,
+#page-chat.chat-room-open #group-chat-header{
+  background:#242630!important;
+  border-bottom:1px solid rgba(233,223,207,.12)!important;
+}
+#page-chat.chat-room-open .gh-dm-header{
+  display:flex!important;align-items:center!important;gap:12px!important;
+  min-height:104px!important;padding:10px 14px!important;
+}
+#page-chat.chat-room-open .gh-dm-header>div{min-width:0!important}
+#page-chat.chat-room-open .gh-room-search{
+  display:flex!important;align-items:center!important;gap:8px!important;
+  width:100%!important;max-width:520px!important;height:32px!important;
+  margin-top:8px!important;padding:0 11px!important;
+  border:1px solid rgba(233,223,207,.13)!important;border-radius:10px!important;
+  background:#191b22!important;color:#a99f94!important;
+}
+#page-chat.chat-room-open .gh-room-search>i{font-size:11px!important;flex:0 0 auto!important}
+#page-chat.chat-room-open .gh-room-search input{
+  width:100%!important;min-width:0!important;height:100%!important;
+  padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;
+  background:transparent!important;color:#eee8dd!important;font-size:12px!important;
+}
+#page-chat.chat-room-open .gh-room-search input::placeholder{color:#858078!important}
+#page-chat.chat-room-open #group-chat-header.gh-group-chat-header{
+  display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;align-items:center!important;
+  gap:5px 12px!important;min-height:104px!important;padding:10px 14px!important;
+}
+#page-chat.chat-room-open #group-chat-header .chat-room-back{grid-column:1!important;grid-row:1 / span 2!important}
+#page-chat.chat-room-open #group-chat-header .gh-group-chat-heading{grid-column:2!important;grid-row:1!important}
+#page-chat.chat-room-open #group-chat-header .gh-chat-connection{grid-column:3!important;grid-row:1!important}
+#page-chat.chat-room-open #group-chat-header .gh-room-search{grid-column:2 / 4!important;grid-row:2!important;max-width:none!important;margin-top:0!important;height:30px!important}
+#page-chat.chat-room-open #dm-messages,
+#page-chat.chat-room-open #chat-messages{background:#191b22!important}
+#page-chat.chat-room-open .gh-pinned-banner{
+  padding:7px 12px!important;background:#292a32!important;
+  border-bottom:1px solid rgba(233,223,207,.12)!important;
+}
+#page-chat.chat-room-open .gh-pinned-banner button{gap:10px!important;padding:2px 0!important}
+#page-chat.chat-room-open .gh-pinned-banner button>i:first-child{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:27px!important;height:27px!important;flex:0 0 27px!important;
+  border-radius:8px!important;background:rgba(169,77,88,.16)!important;
+  color:#d9a0a2!important;font-size:11px!important;
+}
+#page-chat.chat-room-open .gh-pinned-banner .gh-pinned-copy{gap:3px!important}
+#page-chat.chat-room-open .gh-pinned-banner .gh-pinned-copy small{
+  color:#d9a0a2!important;font-size:9px!important;letter-spacing:.02em!important;
+}
+#page-chat.chat-room-open .gh-pinned-banner .gh-pinned-copy strong{
+  color:#eee8dd!important;font-size:11px!important;font-weight:500!important;
+}
+#page-chat.chat-room-open .gh-pinned-banner button>i:last-child{color:#918b84!important}
+#page-chat.chat-room-open .gh-message-pin-label{color:#d9a0a2!important}
+#page-chat.chat-room-open .gh-pinned-highlight{
+  outline:2px solid rgba(196,119,125,.7)!important;
+  box-shadow:0 0 0 4px rgba(169,77,88,.12)!important;
+}
+@media(max-width:767px){
+ #page-chat.chat-room-open #group-chat-header.gh-group-chat-header{
+   grid-template-columns:36px minmax(0,1fr)!important;
+   grid-template-rows:32px 18px 30px!important;
+   gap:3px 9px!important;min-height:112px!important;padding:9px 11px!important;
+ }
+ #page-chat.chat-room-open #group-chat-header .chat-room-back{
+   grid-column:1!important;grid-row:1 / span 2!important;
+   width:34px!important;height:34px!important;min-width:34px!important;flex-basis:34px!important;
+ }
+ #page-chat.chat-room-open #group-chat-header .gh-group-chat-heading{
+   grid-column:2!important;grid-row:1!important;align-self:center!important;
+ }
+ #page-chat.chat-room-open #group-chat-header .gh-group-chat-heading h2{font-size:13px!important}
+ #page-chat.chat-room-open #group-chat-header .gh-chat-connection{
+   grid-column:2!important;grid-row:2!important;justify-self:start!important;
+   max-width:none!important;padding:1px 0!important;border:0!important;background:transparent!important;
+ }
+ #page-chat.chat-room-open #group-chat-header .gh-room-search{
+   grid-column:1 / 3!important;grid-row:3!important;width:100%!important;height:30px!important;
+ }
+ #page-chat.chat-room-open .gh-dm-header{min-height:108px!important;padding:9px 11px!important;gap:9px!important}
+}
+@media(max-width:380px){
+ #page-chat.chat-room-open .gh-dm-header{gap:8px!important}
+ #page-chat.chat-room-open #group-chat-header.gh-group-chat-header{grid-template-columns:32px minmax(0,1fr)!important;column-gap:8px!important}
+ #page-chat.chat-room-open #group-chat-header .chat-room-back{width:31px!important;height:31px!important;min-width:31px!important;flex-basis:31px!important}
+}
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -1308,8 +1401,7 @@ nav.sticky {
                 <div id="chat-room-panel" class="hidden min-w-0">
                   <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="p-3 bg-gradient-to-r from-red-950 to-blue-950 flex items-center gap-3"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div>
-                    <div class="px-3 pt-2"><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
+                    <div class="gh-dm-header"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p><div class="gh-room-search"><i class="fa-solid fa-magnifying-glass"></i><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()"></div></div></div>
                     <div id="dm-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -1317,8 +1409,7 @@ nav.sticky {
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih Crew terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="Ghoust · AI Crew" aria-label="Ghoust · AI Crew" class="w-10 h-10 shrink-0 rounded-full bg-blue-950 border border-blue-700 overflow-hidden flex items-center justify-center"><img src="./ghoust-ai-avatar.svg" alt="" class="w-8 h-8 rounded-full"></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div id="group-chat-header" class="gh-group-chat-header bg-gradient-to-r from-red-950 to-blue-950"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span></div>
-                    <div class="px-3 pt-2 bg-black/70"><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()" class="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white"></div>
+                    <div id="group-chat-header" class="gh-group-chat-header"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span><div class="gh-room-search"><i class="fa-solid fa-magnifying-glass"></i><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()"></div></div>
                     <div id="group-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
