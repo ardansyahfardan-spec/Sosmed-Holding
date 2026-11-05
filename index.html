@@ -1746,6 +1746,26 @@ nav.sticky {
  #page-chat.chat-room-open .gh-dm-header{grid-template-columns:32px minmax(0,1fr)!important;gap:6px 8px!important}
 }
 
+
+/* Search icon opens a compact floating search panel; no permanent search row. */
+#page-chat.chat-room-open #group-chat-header,
+#page-chat.chat-room-open .gh-dm-header{position:relative!important;display:flex!important;align-items:center!important;gap:10px!important;min-height:68px!important;height:auto!important;padding:10px 14px!important;overflow:visible!important}
+#page-chat.chat-room-open #group-chat-header .gh-group-chat-heading{flex:1 1 auto!important;min-width:0!important}
+#page-chat.chat-room-open #group-chat-header .gh-chat-connection{margin-left:auto!important;max-width:110px!important}
+#page-chat.chat-room-open .gh-dm-header>div{flex:1 1 auto!important;min-width:0!important}
+#page-chat.chat-room-open .gh-room-search.hidden{display:none!important}
+#page-chat.chat-room-open .gh-room-search:not(.hidden){position:absolute!important;display:flex!important;left:12px!important;right:12px!important;top:calc(100% + 6px)!important;width:auto!important;max-width:none!important;height:42px!important;margin:0!important;padding:0 10px!important;z-index:120!important;border:1px solid rgba(233,223,207,.18)!important;border-radius:12px!important;background:#252731!important;box-shadow:0 10px 28px rgba(0,0,0,.38)!important}
+#page-chat.chat-room-open .gh-room-search input{flex:1 1 auto!important;width:100%!important;height:100%!important;min-width:0!important;font-size:16px!important}
+#page-chat.chat-room-open .gh-search-toggle,#page-chat.chat-room-open .gh-search-close{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 36px!important;width:36px!important;height:36px!important;border:1px solid rgba(233,223,207,.14)!important;border-radius:10px!important;background:#30313a!important;color:#eee8dd!important}
+#page-chat.chat-room-open .gh-search-toggle{margin-left:4px!important}
+#page-chat.chat-room-open .gh-search-toggle:active,#page-chat.chat-room-open .gh-search-close:active{background:#82434d!important}
+@media(max-width:767px){
+ #page-chat.chat-room-open #group-chat-header,
+ #page-chat.chat-room-open .gh-dm-header{min-height:62px!important;padding:9px 11px!important;gap:8px!important}
+ #page-chat.chat-room-open #group-chat-header .gh-chat-connection{display:none!important}
+ #page-chat.chat-room-open .gh-search-toggle{width:34px!important;height:34px!important;flex-basis:34px!important}
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
@@ -1861,7 +1881,7 @@ nav.sticky {
                 <div id="chat-room-panel" class="hidden min-w-0">
                   <div id="chat-empty-state" class="glass-panel rounded-2xl border border-gray-800 min-h-[65vh] flex flex-col items-center justify-center text-center p-8"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-red-950 to-blue-950 border border-gray-700 flex items-center justify-center mb-4"><i class="fa-solid fa-comments text-3xl text-gray-300"></i></div><h3 class="font-mystery text-xl text-white">RITUAL CREW</h3><p class="text-sm text-gray-400 mt-2">Pilih percakapan di sebelah kiri untuk mulai mengobrol.</p></div>
                   <section id="direct-chat-card" class="hidden glass-panel rounded-2xl border border-red-900/70 overflow-hidden">
-                    <div class="gh-dm-header"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><div class="gh-room-search"><i class="fa-solid fa-magnifying-glass"></i><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()"></div></div>
+                    <div class="gh-dm-header"><button type="button" onclick="showChatInbox()" class="chat-room-back w-10 h-10 shrink-0 rounded-full bg-black/30 text-white" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><h3 id="dm-title" class="text-sm font-bold text-white">Pesan Pribadi</h3><span id="dm-status" class="text-[10px] text-gray-400">Pribadi</span></div><p id="dm-subtitle" class="text-[10px] text-gray-400">Pilih Crew untuk memulai</p></div><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('dm')" aria-label="Cari pesan" aria-expanded="false" aria-controls="dm-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="dm-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="dm-search" type="search" placeholder="Cari pesan pribadi..." oninput="dmSearchTerm=this.value;renderDirectMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('dm', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
                     <div id="dm-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="dm-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 bg-black/60 space-y-2"><p class="text-xs text-gray-500 text-center py-10">Percakapan pribadi akan muncul di sini.</p></div>
                     <div id="dm-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="dm-reply-text" class="truncate"></span><button type="button" onclick="clearDmReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -1869,7 +1889,7 @@ nav.sticky {
                     <form id="dm-form" onsubmit="sendDirectMessage(event)" class="chat-composer p-2 border-t border-gray-800 flex gap-2 bg-[#121212]"><button type="button" onclick="openChatTools()" title="Bagikan atau buat data" class="w-10 h-10 shrink-0 rounded-full border border-gray-700 text-gray-200"><i class="fa-solid fa-plus"></i></button><div class="flex-1 min-w-0 flex items-center rounded-full bg-black border border-gray-700 px-2"><input id="dm-input" maxlength="4000" autocomplete="off" enterkeyhint="send" oninput="setDmTyping(this.value.length>0)" disabled placeholder="Pilih Crew terlebih dahulu..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-base text-white disabled:opacity-50"></div><button type="button" onclick="openGhoustAI()" title="Ghoust · AI Crew" aria-label="Ghoust · AI Crew" class="w-10 h-10 shrink-0 rounded-full bg-blue-950 border border-blue-700 overflow-hidden flex items-center justify-center"><img src="./ghoust-ai-avatar.svg" alt="" class="w-8 h-8 rounded-full"></button><button id="dm-send" type="submit" disabled title="Kirim pesan" aria-label="Kirim pesan" class="w-10 h-10 shrink-0 rounded-full bg-red-700 text-white disabled:opacity-40"><i class="fa-solid fa-paper-plane"></i></button></form>
                   </section>
                   <section id="group-chat-card" class="hidden glass-panel rounded-2xl overflow-hidden border border-red-900">
-                    <div id="group-chat-header" class="gh-group-chat-header"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span><div class="gh-room-search"><i class="fa-solid fa-magnifying-glass"></i><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()"></div></div>
+                    <div id="group-chat-header" class="gh-group-chat-header"><button type="button" onclick="showChatInbox()" class="chat-room-back" aria-label="Kembali ke daftar chat"><i class="fa-solid fa-chevron-left"></i></button><div class="gh-group-chat-heading"><h2 class="font-mystery text-lg text-white cursor-pointer" role="button" tabindex="0" onclick="openRitualGroupInfo()" title="Buka info grup"><i class="fa-solid fa-users mr-2"></i>RITUAL CREW <i class="fa-solid fa-chevron-right ml-1 text-xs opacity-70"></i></h2><button type="button" id="chat-room-online-status" onclick="openOnlineCrewModal()" class="gh-online-status">0 online</button></div><span id="chat-connection" class="gh-chat-connection">Menghubungkan...</span><button type="button" class="gh-search-toggle" onclick="toggleChatSearch('group')" aria-label="Cari pesan" aria-expanded="false" aria-controls="group-chat-search-panel"><i class="fa-solid fa-magnifying-glass"></i></button><div id="group-chat-search-panel" class="gh-room-search hidden"><i class="fa-solid fa-magnifying-glass"></i><input id="group-chat-search" type="search" placeholder="Cari pesan grup..." oninput="groupSearchTerm=this.value;renderChatMessages()"><button type="button" class="gh-search-close" onclick="toggleChatSearch('group', false)" aria-label="Tutup pencarian"><i class="fa-solid fa-xmark"></i></button></div></div>
                     <div id="group-pinned-banner" class="gh-pinned-banner hidden" aria-live="polite"></div>
                     <div id="chat-messages" class="h-[65vh] min-h-[300px] max-h-[680px] overflow-y-auto p-3 sm:p-4 space-y-3 bg-black/70"><div class="text-center text-xs text-gray-500 py-8">Memuat percakapan...</div></div>
                     <div id="group-reply-preview" class="hidden px-3 py-2 border-t border-blue-900 bg-blue-950/50 text-xs text-blue-100 flex items-center justify-between gap-2"><span id="group-reply-text" class="truncate"></span><button type="button" onclick="clearGroupReply()" class="text-blue-300 px-2" aria-label="Batal membalas"><i class="fa-solid fa-xmark"></i></button></div>
@@ -5364,6 +5384,23 @@ async function markDmMessagesRead(){
  document.addEventListener('touchcancel',function(){tracking=false;},{passive:true});
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&typeof markGroupMessagesRead==='function')markGroupMessagesRead();});
 })();
+</script>
+
+
+<script>
+function toggleChatSearch(kind, forceOpen){
+ const isGroup=kind==="group";
+ const panel=document.getElementById(isGroup?"group-chat-search-panel":"dm-search-panel");
+ const input=document.getElementById(isGroup?"group-chat-search":"dm-search");
+ const header=isGroup?document.getElementById("group-chat-header"):document.querySelector(".gh-dm-header");
+ const trigger=header?.querySelector(".gh-search-toggle");
+ if(!panel)return;
+ const shouldOpen=typeof forceOpen==="boolean"?forceOpen:panel.classList.contains("hidden");
+ panel.classList.toggle("hidden",!shouldOpen);
+ if(trigger)trigger.setAttribute("aria-expanded",String(shouldOpen));
+ if(shouldOpen){setTimeout(()=>input?.focus(),30);}
+ else if(input){input.blur();}
+}
 </script>
 
 </body>
