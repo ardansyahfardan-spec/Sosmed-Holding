@@ -5043,7 +5043,7 @@ nav.sticky {
         }
         function editCrewCandidate(id){
           const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
-          resetCrewScheduleForm();document.getElementById('j-candidate-edit-id').value=c.id;
+          resetCrewScheduleForm();document.getElementById('j-candidate-edit-id').value=c.id;document.getElementById('j-candidate-promote-id').value=c.id;
           document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
           document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
           const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Edit Kandidat Narasumber';
