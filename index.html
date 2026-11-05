@@ -508,6 +508,71 @@ input:focus,textarea:focus,select:focus{border-color:rgba(100,139,194,.62)!impor
 @media(min-width:768px){nav{padding-inline:clamp(1rem,3vw,2.5rem)!important}main.container{padding-inline:clamp(1rem,3vw,2.5rem)!important}#page-home{padding-top:2.5rem}#page-home>.grid>div{min-height:174px}#page-chat:not(.chat-room-open){max-width:1240px!important}}
 @media(max-width:767px){nav{padding:.7rem .8rem!important}main.container{padding-inline:.8rem!important}#page-home{padding-top:1.25rem}#page-home>.grid{gap:.7rem!important}#page-home>.grid>div{min-height:118px;padding:1rem .65rem!important}#page-home>.grid>div h3{font-size:.78rem!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* GHOUSTORY CONTROL ROOM — HOME REDESIGN PASS 2 */
+#page-home{width:100%;padding:clamp(1.4rem,3.5vw,3rem) 0 2rem}
+#page-home>h2{
+  width:100%;margin:0 auto clamp(1.35rem,3vw,2.2rem)!important;
+  color:#e9eaf0;font-family:Inter,sans-serif!important;
+  font-size:clamp(1rem,1.8vw,1.35rem)!important;font-weight:650;
+  letter-spacing:.12em;line-height:1.5;text-align:center;
+}
+#page-home>.grid{
+  width:min(100%,1040px);max-width:1040px!important;
+  margin-inline:auto;gap:clamp(.7rem,1.5vw,1.1rem)!important;
+}
+#page-home>.grid>.glass-panel{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:flex;min-height:156px;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(1rem,2vw,1.5rem)!important;
+  border:1px solid rgba(255,255,255,.075)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(31,33,42,.98),rgba(23,25,32,.98))!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.14)!important;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+#page-home>.grid>.glass-panel::before{
+  content:"";position:absolute;inset:0 14% auto;height:1px;z-index:-1;
+  background:linear-gradient(90deg,transparent,rgba(185,91,103,.42),rgba(100,139,194,.42),transparent);
+  opacity:.72;
+}
+#page-home>.grid>.glass-panel:hover{
+  transform:translateY(-2px);
+  border-color:rgba(130,145,177,.28)!important;
+  background:linear-gradient(145deg,#242731,#1a1c24)!important;
+  box-shadow:0 12px 26px rgba(0,0,0,.2)!important;
+}
+#page-home>.grid>.glass-panel>i{
+  margin-bottom:.85rem!important;font-size:1.55rem!important;
+  color:#aeb4c1!important;opacity:.9;
+}
+#page-home>.grid>.glass-panel h3{
+  max-width:100%;color:#e8eaf0!important;
+  font-size:clamp(.76rem,1vw,.88rem)!important;
+  font-weight:600;line-height:1.45;letter-spacing:.005em;
+}
+#notification-popover{
+  border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:20px!important;background:#191b22!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.34)!important;
+}
+@media(min-width:768px){
+  #page-home{padding-top:2.7rem}
+  #page-home>.grid>.glass-panel{min-height:172px}
+}
+@media(max-width:767px){
+  #page-home{padding-top:1.25rem;padding-bottom:1.5rem}
+  #page-home>h2{letter-spacing:.09em;margin-bottom:1.25rem!important}
+  #page-home>.grid{gap:.7rem!important}
+  #page-home>.grid>.glass-panel{min-height:126px;padding:.9rem .65rem!important;border-radius:17px!important}
+  #page-home>.grid>.glass-panel>i{font-size:1.35rem!important;margin-bottom:.65rem!important}
+  #page-home>.grid>.glass-panel h3{font-size:.76rem!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-home>.grid>.glass-panel{transition:none}
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
