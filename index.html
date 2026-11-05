@@ -6407,7 +6407,7 @@ window.malamLoadState=async function(){
  if(!malamRoomId)return;
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
  if(error){malamMsg(error.message);return;}
- malamRender(data);malamLoadMessages();
+ malamRender(data);malamLoadMessages();malamLoadTeamMessages();
 };
 function malamPlayerCard(x,phase){
  const alive=!!x.is_alive;
