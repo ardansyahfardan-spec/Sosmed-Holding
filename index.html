@@ -2522,7 +2522,7 @@ nav.sticky {
                 <button type="button" data-lore-category="artifacts" onclick="openLoreCategory('artifacts')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
                   <i class="fa-solid fa-gem text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Artifacts</h3><p class="text-[11px] text-gray-500 mt-1">Benda pusaka dan tradisi terkait</p>
                 </button>
-                <button type="button" data-lore-category="cases" onclick="openLoreCategory('cases')" aria-pressed="false" class="lore-category-card col-span-2 sm:col-span-1 text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
+                <button type="button" data-lore-category="cases" onclick="openLoreCategory('cases')" aria-pressed="false" class="lore-category-card text-left rounded-xl border border-white/10 bg-white/[.035] p-3.5 min-h-28 hover:border-red-800/60 transition">
                   <i class="fa-solid fa-folder-open text-xl text-red-300 mb-3 block"></i><h3 class="font-bold text-sm text-[#eee8dd]">Case Files</h3><p class="text-[11px] text-gray-500 mt-1">Kesaksian dan dokumentasi pengalaman</p>
                 </button>
               </div>
@@ -5850,41 +5850,61 @@ function toggleChatSearch(kind, forceOpen){
           #main-app > nav > .container > div:last-child { flex:0 0 auto !important; gap:.3rem !important; }
           #main-app > nav > .container > div:last-child > button { width:2.1rem !important; height:2.1rem !important; flex:0 0 2.1rem !important; }
         }
-        /* LORE page visual polish is injected safely as CSS, outside the JS grammar. */
-        const lorePolishStyle=document.createElement('style');
-        lorePolishStyle.textContent=`
-        #page-lore{padding-bottom:1.5rem}
-        #page-lore #lore-category-grid{align-items:stretch}
-        #page-lore .lore-category-card{
-          display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
-          min-width:0;min-height:112px;padding:13px;border-radius:14px;
-          background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
-          border-color:rgba(255,255,255,.09);text-align:left;
+        /* LORE page polish: consistent archive layout on desktop and mobile. */
+        #page-lore { padding-bottom: 1.5rem; }
+        #page-lore #lore-category-grid { align-items: stretch; }
+        #page-lore .lore-category-card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: flex-start;
+          min-width: 0;
+          min-height: 116px;
+          padding: 14px;
+          border-radius: 14px;
+          border-color: rgba(255,255,255,.09);
+          background: linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
+          text-align: left;
+          transition: border-color .18s ease, background .18s ease, transform .18s ease;
         }
-        #page-lore .lore-category-card[aria-pressed="true"]{
-          border-color:rgba(190,55,70,.72);background:linear-gradient(145deg,rgba(105,22,35,.32),rgba(255,255,255,.025));
-          box-shadow:inset 0 0 0 1px rgba(190,55,70,.12);
+        #page-lore .lore-category-card:hover {
+          border-color: rgba(190,55,70,.45);
+          background: linear-gradient(145deg,rgba(105,22,35,.20),rgba(255,255,255,.025));
         }
-        #page-lore .lore-category-card i{margin-bottom:10px}
-        #page-lore .lore-category-card h3{line-height:1.25}
-        #page-lore .lore-category-card p{line-height:1.45}
-        #page-lore #lore-entry-list article{transition:border-color .18s ease,background .18s ease}
-        #page-lore #lore-entry-list article:hover{border-color:rgba(190,55,70,.35);background:rgba(105,22,35,.10)}
-        #page-lore #lore-search{font-size:13px;min-height:24px}
-        @media(max-width:640px){
-          #page-lore{padding-left:0;padding-right:0}
-          #page-lore>div:first-child{margin-bottom:16px}
-          #page-lore>div:first-child h2{font-size:1.55rem;letter-spacing:.02em}
-          #page-lore>div:first-child>p:last-child{max-width:34rem;font-size:12px;line-height:1.55}
-          #page-lore .lore-category-card{min-height:108px;padding:11px}
-          #page-lore .lore-category-card i{font-size:18px;margin-bottom:8px}
-          #page-lore .lore-category-card h3{font-size:12px}
-          #page-lore .lore-category-card p{font-size:10px}
-          #page-lore #lore-list-title{font-size:14px}
-          #page-lore #lore-entry-count{white-space:nowrap}
+        #page-lore .lore-category-card[aria-pressed="true"] {
+          border-color: rgba(190,55,70,.78);
+          background: linear-gradient(145deg,rgba(105,22,35,.34),rgba(255,255,255,.025));
+          box-shadow: inset 0 0 0 1px rgba(190,55,70,.14);
         }
-`;
-        document.head.appendChild(lorePolishStyle);
+        #page-lore .lore-category-card i { margin-bottom: 10px; }
+        #page-lore .lore-category-card h3 { line-height: 1.25; }
+        #page-lore .lore-category-card p { line-height: 1.45; }
+        #page-lore #lore-entry-list article {
+          border-radius: 12px;
+          transition: border-color .18s ease, background .18s ease;
+        }
+        #page-lore #lore-entry-list article:hover {
+          border-color: rgba(190,55,70,.35);
+          background: rgba(105,22,35,.10);
+        }
+        #page-lore #lore-search { min-height: 24px; font-size: 13px; }
+        #page-lore #lore-entry-count { white-space: nowrap; }
+        @media (max-width: 640px) {
+          #page-lore { padding-left: 0; padding-right: 0; }
+          #page-lore > div:first-child { margin-bottom: 16px; }
+          #page-lore > div:first-child h2 { font-size: 1.55rem; letter-spacing: .02em; }
+          #page-lore > div:first-child > p:last-child {
+            max-width: 34rem;
+            font-size: 12px;
+            line-height: 1.55;
+          }
+          #page-lore #lore-category-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+          #page-lore .lore-category-card { min-height: 108px; padding: 11px; }
+          #page-lore .lore-category-card i { font-size: 18px; margin-bottom: 8px; }
+          #page-lore .lore-category-card h3 { font-size: 12px; }
+          #page-lore .lore-category-card p { font-size: 10px; }
+          #page-lore #lore-list-title { font-size: 14px; }
+        }
 
 </style>
 
