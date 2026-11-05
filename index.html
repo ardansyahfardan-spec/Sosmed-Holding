@@ -1766,6 +1766,22 @@ nav.sticky {
  #page-chat.chat-room-open .gh-search-toggle{width:34px!important;height:34px!important;flex-basis:34px!important}
 }
 
+
+/* FINAL FIX: hidden search panels must stay hidden until the search icon is tapped. */
+#page-chat #group-chat-search-panel.hidden,
+#page-chat #dm-search-panel.hidden,
+#page-chat.chat-room-open #group-chat-search-panel.hidden,
+#page-chat.chat-room-open #dm-search-panel.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+#page-chat #group-chat-search-panel:not(.hidden),
+#page-chat #dm-search-panel:not(.hidden) {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans selection:bg-ghoulRed selection:text-white relative">
