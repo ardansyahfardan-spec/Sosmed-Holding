@@ -5904,10 +5904,28 @@ function toggleChatSearch(kind, forceOpen){
             font-size: 12px;
             line-height: 1.55;
           }
-          #page-lore #lore-category-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
-          #page-lore .lore-category-card { min-height: 0; padding: 8px; gap: 6px; }
-          #page-lore .lore-category-card i { font-size: 18px; }
-          #page-lore .lore-category-card h3 { font-size: 11px; line-height: 1.2; }
+          #page-lore #lore-category-grid {
+            display: flex;
+            gap: 9px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2px 1px 8px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          #page-lore #lore-category-grid::-webkit-scrollbar { display: none; }
+          #page-lore .lore-category-card {
+            flex: 0 0 104px;
+            width: 104px;
+            min-height: 0;
+            aspect-ratio: 1 / 1;
+            padding: 8px;
+            gap: 7px;
+            scroll-snap-align: start;
+          }
+          #page-lore .lore-category-card i { font-size: 19px; }
+          #page-lore .lore-category-card h3 { font-size: 11px; line-height: 1.25; }
           #page-lore .lore-category-card p { display: none; }
           #page-lore #lore-list-title { font-size: 14px; }
         }
