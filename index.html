@@ -6337,10 +6337,10 @@ function malamHeader(){return arenaBackHeader('MULTIPLAYER · WEREWOLF','Malam T
 /* MODE LATIHAN SOLO: simulasi lokal, tidak memakai database multiplayer */
 window.__malamTrial=null;
 window.malamTrialStart=function(){
- const names=['Kamu','Raka','Mira','Bimo','Sinta','Damar'];
- const roles=['siluman','paranormal','penjaga','warga','warga','warga'];
+ const names=['Kamu','Raka','Mira','Bimo','Sinta','Damar','Naya','Jati'];
+ const roles=['siluman','siluman','paranormal','penjaga','warga','warga','warga','warga'];
  for(let i=roles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[roles[i],roles[j]]=[roles[j],roles[i]];}
- window.__malamTrial={players:names.map((name,i)=>({id:'t'+i,name:name,role:roles[i],alive:true,isAI:i>0})),phase:'night',round:1,selected:null,log:['Malam pertama tiba. Perhatikan siapa yang bisa dipercaya.'],investigation:null,protected:null,lastEvent:'Semua warga terlelap. Siluman mulai bergerak.',modal:null,roleSeen:false,ended:false,winner:null};
+ window.__malamTrial={players:names.map((name,i)=>({id:'t'+i,name:name,role:roles[i],alive:true,isAI:i>0,suspicion:Math.random()*.25})),phase:'night',round:1,selected:null,log:['Malam pertama tiba. Delapan orang terjebak di desa ini. Dua di antaranya adalah Siluman.'],investigation:null,protected:null,lastEvent:'Semua warga terlelap. Dua Siluman mulai bergerak.',modal:null,roleSeen:false,ended:false,winner:null,voteHistory:[]};
  malamTrialRender();
  setTimeout(()=>malamTrialOpen('role'),180);
 };
@@ -6384,25 +6384,46 @@ window.malamTrialNight=function(){
 window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.selected=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();};
 window.malamTrialVote=function(){
  const s=window.__malamTrial;if(!s||s.phase!=='voting'||!s.selected)return;
- const target=s.selected,alive=s.players.filter(p=>p.alive),tally={};tally[target]=1;
+ const alive=s.players.filter(p=>p.alive),target=s.selected;
+ if(!alive.some(p=>p.id===target&&p.id!=='t0')){malamTrialNotice('Pilihan tidak valid.');return;}
+ const tally={};const votes=[];
+ const cast=(voter,choice)=>{if(choice&&alive.some(p=>p.id===choice&&choice!==voter.id)){tally[choice]=(tally[choice]||0)+1;votes.push({voter:voter.name,target:choice});}};
+ cast(s.players[0],target);
  alive.filter(p=>p.isAI).forEach(p=>{
-  let choice;
-  const suspects=alive.filter(x=>x.id!==p.id);
-  if(p.role==='siluman')choice=suspects.find(x=>x.role!=='siluman'&&x.id==='t0')||suspects[Math.floor(Math.random()*suspects.length)];
-  else choice=suspects.find(x=>x.role==='siluman')||suspects[Math.floor(Math.random()*suspects.length)];
-  if(choice)tally[choice.id]=(tally[choice.id]||0)+1;
+  const options=alive.filter(x=>x.id!==p.id);
+  if(!options.length)return;
+  const ranked=options.map(x=>{
+   let score=(x.suspicion||0)+(Math.random()*.9);
+   if(x.role==='siluman')score+=Math.random()*.55;
+   if(x.id==='t0'&&s.players[0].role!=='siluman'&&Math.random()<.18)score+=.45;
+   if(x.role==='siluman'&&p.role==='siluman')score-=.45;
+   return {x,score};
+  }).sort((a,b)=>b.score-a.score);
+  const pick=Math.random()<.24?options[Math.floor(Math.random()*options.length)]:ranked[0].x;
+  cast(p,pick.id);
  });
- const top=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0],out=s.players.find(p=>p.id===top);
- if(out){out.alive=false;s.lastEvent=out.name+' mendapat suara terbanyak dan terungkap sebagai '+malamRoles[out.role][0]+'.';s.log.push('Hasil voting: '+s.lastEvent);}
- s.selected=null;s.phase='night';s.round++;malamTrialCheck();
- if(!s.ended){s.lastEvent='Malam ke-'+s.round+' dimulai. Pemain yang bertahan kembali berjaga.';s.log.push(s.lastEvent);}
+ const ordered=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+ const top=ordered[0],tied=ordered.filter(x=>x[1]===top?.[1]);
+ let out=null;
+ if(tied.length===1){
+  out=s.players.find(p=>p.id===top[0]);
+  if(out){out.alive=false;s.lastEvent=out.name+' mendapat suara terbanyak dan terungkap sebagai '+malamRoles[out.role][0]+'.';s.log.push('Hasil voting: '+s.lastEvent);}
+ }else{
+  s.lastEvent='Voting berakhir imbang. Tidak ada pemain yang tereliminasi hari ini.';
+  s.log.push(s.lastEvent);
+ }
+ s.voteHistory.push({round:s.round,tally:Object.fromEntries(ordered),eliminated:out?.name||null});
+ s.players.filter(p=>p.alive&&p.isAI).forEach(p=>{p.suspicion=Math.max(0,Math.min(1,(p.suspicion||0)+(Math.random()*.16-.04)));});
+ s.selected=null;
+ malamTrialCheck();
+ if(!s.ended){s.phase='night';s.round++;s.lastEvent='Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);}
  malamTrialRender();
 };
 window.malamTrialCheck=function(){
  const s=window.__malamTrial;if(!s)return;
  const alive=s.players.filter(p=>p.alive),wolves=alive.filter(p=>p.role==='siluman').length,others=alive.length-wolves;
- if(!wolves){s.ended=true;s.winner='warga';s.phase='finished';s.lastEvent='Semua Siluman telah disingkirkan. Desa selamat!';s.log.push(s.lastEvent);}
- else if(wolves>=others){s.ended=true;s.winner='siluman';s.phase='finished';s.lastEvent='Siluman menguasai desa. Warga kalah.';s.log.push(s.lastEvent);}
+ if(!wolves){s.ended=true;s.winner='warga';s.phase='finished';s.lastEvent='Kedua Siluman telah disingkirkan. Desa akhirnya selamat!';s.log.push(s.lastEvent);}
+ else if(wolves>=others){s.ended=true;s.winner='siluman';s.phase='finished';s.lastEvent='Jumlah Siluman menyamai warga yang tersisa. Desa jatuh ke tangan Siluman.';s.log.push(s.lastEvent);}
 };
 window.malamTrialNotice=function(t){const e=document.getElementById('malam-trial-notice');if(e)e.textContent=t;};
 window.malamTrialRender=function(){
@@ -6416,15 +6437,15 @@ window.malamTrialRender=function(){
    action='<div class="rounded-2xl border border-indigo-800/60 bg-indigo-950/25 p-3 mb-3"><b class="text-sm text-indigo-100">'+label+'</b><p class="text-[10px] text-gray-400 mt-1">Aksi ini rahasia. Pilih satu pemain yang masih hidup.</p><div class="grid grid-cols-2 gap-2 mt-3">'+alive.filter(x=>x.id!=='t0'&&!(me.role==='siluman'&&x.role==='siluman')).map(x=>'<button onclick="malamTrialSelect(\''+x.id+'\')" class="rounded-xl border p-3 text-xs '+(s.selected===x.id?'border-amber-400 bg-amber-950/50':'border-gray-700 bg-gray-900')+'">'+x.name+(s.selected===x.id?' ✓':'')+'</button>').join('')+'</div><button onclick="malamTrialNight()" class="w-full rounded-xl bg-indigo-800 py-3 mt-3 text-xs font-bold">Kunci Aksi & Lanjut ke Pagi</button></div>';
   }else action='<div class="rounded-2xl border border-indigo-900/40 bg-indigo-950/15 p-3 mb-3"><b class="text-sm">Kamu Warga biasa</b><p class="text-xs text-gray-400 mt-1">Kamu tidak punya aksi khusus malam ini. Biarkan AI menjalankan aksinya.</p><button onclick="malamTrialNight()" class="w-full rounded-xl bg-indigo-800 py-3 mt-3 text-xs font-bold">Lanjutkan ke Pagi</button></div>';
  }else if(s.phase==='discussion'){
-  action='<div class="rounded-2xl border border-amber-800/50 bg-amber-950/20 p-3 mb-3"><b class="text-sm text-amber-100">Diskusi Warga</b><p class="text-xs text-gray-300 mt-1">AI sedang menyusun alibi. Baca catatan diskusi sebelum voting.</p><div class="space-y-2 mt-3">'+s.players.filter(x=>x.alive&&x.isAI).slice(0,3).map(x=>'<div class="rounded-lg bg-black/30 p-2 text-xs"><b class="text-amber-200">'+x.name+':</b> '+(x.role==='siluman'?'Aku tidak melihat apa-apa. Jangan asal menuduh!':x.role==='paranormal'?'Ada sesuatu yang terasa janggal malam tadi.':'Kita perlu melihat siapa yang paling diuntungkan dari kejadian tadi.')).join('')+'</div><button onclick="malamTrialVotePhase()" class="w-full rounded-xl bg-amber-800 py-3 mt-3 text-xs font-bold">Buka Voting</button></div>';
+  action='<div class="rounded-2xl border border-amber-800/50 bg-amber-950/20 p-3 mb-3"><b class="text-sm text-amber-100">Diskusi Warga</b><p class="text-xs text-gray-300 mt-1">Tujuh pemain AI sedang menyusun alibi. Perhatikan pernyataan mereka sebelum voting.</p><div class="space-y-2 mt-3">'+s.players.filter(x=>x.alive&&x.isAI).slice(0,3).map(x=>'<div class="rounded-lg bg-black/30 p-2 text-xs"><b class="text-amber-200">'+x.name+':</b> '+(x.role==='siluman'?'Aku tidak melihat apa-apa. Jangan asal menuduh!':x.role==='paranormal'?'Ada sesuatu yang terasa janggal malam tadi.':'Kita perlu melihat siapa yang paling diuntungkan dari kejadian tadi.')).join('')+'</div><button onclick="malamTrialVotePhase()" class="w-full rounded-xl bg-amber-800 py-3 mt-3 text-xs font-bold">Buka Voting</button></div>';
  }else if(s.phase==='voting'){
-  action='<div class="rounded-2xl border border-orange-800/50 bg-orange-950/20 p-3 mb-3"><b class="text-sm text-orange-100">Tentukan pilihanmu</b><p class="text-xs text-gray-300 mt-1">Pilih satu pemain yang paling kamu curigai. AI juga akan memberikan suara.</p><div class="grid grid-cols-2 gap-2 mt-3">'+alive.filter(x=>x.id!=='t0').map(x=>'<button onclick="malamTrialSelect(\''+x.id+'\')" class="rounded-xl border p-3 text-xs '+(s.selected===x.id?'border-orange-400 bg-orange-950/50':'border-gray-700 bg-gray-900')+'">'+x.name+(s.selected===x.id?' ✓':'')+'</button>').join('')+'</div><button onclick="malamTrialVote()" class="w-full rounded-xl bg-orange-800 py-3 mt-3 text-xs font-bold">Kirim Suara</button></div>';
+  action='<div class="rounded-2xl border border-orange-800/50 bg-orange-950/20 p-3 mb-3"><b class="text-sm text-orange-100">Tentukan pilihanmu</b><p class="text-xs text-gray-300 mt-1">Pilih satu pemain yang paling kamu curigai. Tujuh AI akan memberikan suara berdasarkan petunjuk dan kecurigaan mereka, bukan karena mengetahui semua peran.</p><div class="grid grid-cols-2 gap-2 mt-3">'+alive.filter(x=>x.id!=='t0').map(x=>'<button onclick="malamTrialSelect(\''+x.id+'\')" class="rounded-xl border p-3 text-xs '+(s.selected===x.id?'border-orange-400 bg-orange-950/50':'border-gray-700 bg-gray-900')+'">'+x.name+(s.selected===x.id?' ✓':'')+'</button>').join('')+'</div><button onclick="malamTrialVote()" class="w-full rounded-xl bg-orange-800 py-3 mt-3 text-xs font-bold">Kirim Suara</button></div>';
  }else{
   action='<div class="rounded-2xl border border-yellow-700/50 bg-yellow-950/20 p-4 text-center"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-lg font-bold mt-2">'+(s.winner==='warga'?'Kubu Warga Menang':'Kubu Siluman Menang')+'</h3><p class="text-xs text-gray-300 mt-1">'+s.lastEvent+'</p><div class="space-y-1 text-left mt-3">'+s.players.map(x=>'<div class="rounded-lg bg-gray-900 p-2 text-xs flex justify-between"><span>'+x.name+'</span><b class="text-red-200">'+malamRoles[x.role][0]+' · '+(x.alive?'Hidup':'Gugur')+'</b></div>').join('')+'</div><button onclick="malamTrialStart()" class="w-full rounded-xl bg-yellow-800 py-3 mt-4 text-xs font-bold">Main Lagi</button><button onclick="malamTrialExit()" class="w-full rounded-xl border border-gray-700 py-3 mt-2 text-xs">Kembali ke Menu</button></div>';
  }
  const tracker='<div class="grid grid-cols-4 gap-1 mb-3">'+phases.map((x,i)=>'<div class="rounded-lg border p-2 text-center '+(i===idx?'border-red-500 bg-red-950/40':i<idx?'border-blue-900 bg-blue-950/20':'border-gray-800')+'"><span class="text-[8px]">'+x+'</span></div>').join('')+'</div>';
  const modal='<div id="malam-trial-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamTrialClose()"><div class="w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-amber-800/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.65)]"><div class="flex justify-between items-center mb-4"><b id="malam-trial-modal-title" class="text-sm">Uji Coba</b><button onclick="malamTrialClose()" class="w-8 h-8 rounded-full bg-gray-800">×</button></div><div id="malam-trial-modal-content"></div></div></div>';
- p.innerHTML=malamHeader()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · 5 PEMAIN AI</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="grid grid-cols-3 gap-2 mb-3"><button onclick="malamTrialOpen(\'role\')" class="rounded-xl border border-purple-800/60 bg-purple-950/25 p-3 text-[10px]">🎭<br>Peranku</button><button onclick="malamTrialOpen(\'players\')" class="rounded-xl border border-gray-700 bg-gray-950 p-3 text-[10px]">👥<br>Pemain · '+s.players.length+'</button><button onclick="malamTrialOpen(\'log\')" class="rounded-xl border border-gray-700 bg-gray-950 p-3 text-[10px]">📜<br>Catatan</button></div>'+tracker+'<div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
+ p.innerHTML=malamHeader()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · 7 PEMAIN AI</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="grid grid-cols-3 gap-2 mb-3"><button onclick="malamTrialOpen(\'role\')" class="rounded-xl border border-purple-800/60 bg-purple-950/25 p-3 text-[10px]">🎭<br>Peranku</button><button onclick="malamTrialOpen(\'players\')" class="rounded-xl border border-gray-700 bg-gray-950 p-3 text-[10px]">👥<br>Pemain · '+s.players.length+'</button><button onclick="malamTrialOpen(\'log\')" class="rounded-xl border border-gray-700 bg-gray-950 p-3 text-[10px]">📜<br>Catatan</button></div>'+tracker+'<div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
  if(s.modal)setTimeout(()=>malamTrialOpen(s.modal),0);
 };
 
