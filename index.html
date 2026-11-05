@@ -2042,6 +2042,11 @@ nav.sticky {
                     <span class="gcr-home-copy"><b>Markas Crew</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
+                  <button type="button" onclick="showPage('arena')" class="gcr-home-item">
+                    <span class="gcr-home-icon"><i class="fa-solid fa-gamepad" aria-hidden="true" title="Arena Gaib"></i></span>
+                    <span class="gcr-home-copy"><b>Arena Gaib</b></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
                   <button type="button" onclick="showPage('radar')" class="gcr-home-item">
                     <span class="gcr-home-icon"><svg viewBox="0 0 32 32" class="w-7 h-7" role="img" aria-label="Rasi bintang"><path d="M5 23 11 8 19 17 26 5 27 25 14 27 5 23Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 8 19 17 27 25M19 17 26 5" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".75"/><circle cx="5" cy="23" r="2.1" fill="currentColor"/><circle cx="11" cy="8" r="2.1" fill="currentColor"/><circle cx="19" cy="17" r="2.1" fill="currentColor"/><circle cx="26" cy="5" r="2.1" fill="currentColor"/><circle cx="27" cy="25" r="2.1" fill="currentColor"/><circle cx="14" cy="27" r="2.1" fill="currentColor"/></svg></span>
                     <span class="gcr-home-copy"><b>Rasi</b></span>
@@ -2049,6 +2054,37 @@ nav.sticky {
                   </button>
                 </div>
               </div>
+            </section>
+
+            <!-- ARENA GAIB · KOMPETISI CREW -->
+            <section id="page-arena" class="page-section max-w-6xl mx-auto">
+              <div class="mb-5">
+                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY CREW CHALLENGE</p>
+                <h2 class="text-2xl font-bold text-[#e9dfcf]">Arena Gaib</h2>
+                <p class="text-sm text-gray-400 mt-1">Delapan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
+              </div>
+              <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="rounded-xl border border-red-900/40 bg-gradient-to-br from-red-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POIN JIWAMU</p><b id="arena-my-score" class="text-xl text-red-200">—</b></div>
+                <div class="rounded-xl border border-blue-900/40 bg-gradient-to-br from-blue-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POSISIMU</p><b id="arena-my-rank" class="text-xl text-blue-200">—</b></div>
+                <div class="rounded-xl border border-gray-700 bg-gray-950 p-3"><p class="text-[9px] text-gray-400">MODE GAME</p><b class="text-xl text-white">08</b></div>
+              </div>
+              <div class="rounded-2xl border border-red-900/30 bg-gradient-to-r from-red-950/25 via-gray-950 to-blue-950/25 p-4 mb-5">
+                <div class="flex items-center justify-between gap-3"><div><h3 class="font-bold text-sm text-[#eee8dd]">Papan Klasemen Crew</h3><p class="text-[10px] text-gray-500 mt-1">Total Poin Jiwa dari seluruh mode permainan</p></div><button onclick="refreshArena()" class="rounded-lg border border-gray-700 px-3 py-2 text-xs text-gray-300"><i class="fa-solid fa-rotate mr-1"></i>Segarkan</button></div>
+                <div id="arena-leaderboard" class="mt-3"><p class="text-xs text-gray-500 text-center py-4">Memuat klasemen...</p></div>
+              </div>
+              <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">8 MODE</span></div>
+              <div id="arena-game-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <button onclick="playArena('berkas')" class="arena-game-card"><i class="fa-solid fa-folder-open"></i><b>Berkas Terlarang</b><span>Selidiki kasus dari petunjuk yang tersedia.</span></button>
+                <button onclick="playArena('teka_teki')" class="arena-game-card"><i class="fa-solid fa-brain"></i><b>Teka-Teki Arwah</b><span>Uji logika dan pecahkan teka-teki misterius.</span></button>
+                <button onclick="playArena('survival')" class="arena-game-card"><i class="fa-solid fa-house-crack"></i><b>Bertahan Sampai Pagi</b><span>Ambil keputusan untuk bertahan hidup.</span></button>
+                <button onclick="playArena('relik')" class="arena-game-card"><i class="fa-solid fa-gem"></i><b>Perburuan Relik</b><span>Kenali artefak dan kumpulkan poin koleksi.</span></button>
+                <button onclick="playArena('turnamen')" class="arena-game-card"><i class="fa-solid fa-trophy"></i><b>Turnamen Crew</b><span>Ikuti babak tantangan dan kejar skor tertinggi.</span></button>
+                <button onclick="playArena('siapa_aku')" class="arena-game-card"><i class="fa-solid fa-masks-theater"></i><b>Siapa Aku?</b><span>Tebak sosok dari petunjuk yang dibuka.</span></button>
+                <button onclick="playArena('pencerita')" class="arena-game-card"><i class="fa-solid fa-feather-pointed"></i><b>Sang Pencerita</b><span>Tulis cerita horor dari kata-kata acak.</span></button>
+                <button onclick="playArena('tantangan')" class="arena-game-card"><i class="fa-solid fa-eye"></i><b>Tantangan Rahasia</b><span>Selesaikan misi rahasia yang berganti setiap hari.</span></button>
+              </div>
+              <div id="arena-play-panel" class="hidden mt-5 rounded-2xl border border-red-900/40 bg-[#101116] p-4 sm:p-5" aria-live="polite"></div>
+              <p class="text-[10px] text-gray-600 mt-4 text-center">Poin tersimpan di database Crew. Main dengan sportif; skor tidak dapat ditukar menjadi hadiah uang.</p>
             </section>
 
             <!-- CHAT KRU · INBOX DAN ROOM -->
@@ -3388,7 +3424,7 @@ nav.sticky {
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
@@ -3402,6 +3438,7 @@ nav.sticky {
             updateBottomNavigation(pageId==='lore'?'lore':pageId==='crewhub'?'home':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(activeUser)loadGhoustoryNotifications();
+            if(pageId==='arena')refreshArena();
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
@@ -6091,6 +6128,117 @@ function toggleChatSearch(kind, forceOpen){
           #bottom-navigation { bottom: calc(max(.7rem, env(safe-area-inset-bottom)) + 1.9rem) !important; }
         }
 </style>
+
+
+<style id="gh-arena-gaib-styles">
+#page-arena .arena-game-card{display:flex;min-width:0;min-height:150px;flex-direction:column;align-items:flex-start;justify-content:center;gap:9px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:15px;background:linear-gradient(145deg,rgba(80,20,35,.34),rgba(15,18,27,.96));text-align:left;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+#page-arena .arena-game-card:hover{border-color:rgba(190,70,85,.65);background:linear-gradient(145deg,rgba(100,25,42,.42),rgba(15,18,27,.98));transform:translateY(-2px)}
+#page-arena .arena-game-card i{display:flex;align-items:center;justify-content:center;width:37px;height:37px;border-radius:11px;background:rgba(185,28,28,.16);color:#f0a0a8;font-size:17px}
+#page-arena .arena-game-card b{font-size:12px;color:#eee8dd;line-height:1.3}
+#page-arena .arena-game-card span{font-size:10px;line-height:1.45;color:#99949a}
+#page-arena .arena-answer{display:block;width:100%;padding:11px 12px;border:1px solid #343743;border-radius:11px;background:#171922;color:#e9dfcf;text-align:left;font-size:12px;line-height:1.45}
+#page-arena .arena-answer:hover{border-color:#a64a56;background:#241a22}
+#page-arena .arena-primary{padding:10px 14px;border-radius:10px;background:linear-gradient(110deg,#9f2435,#243f86);color:#fff;font-size:12px;font-weight:700}
+#page-arena textarea{width:100%;min-height:130px;padding:12px;border:1px solid #343743;border-radius:12px;background:#090b10;color:#eee8dd;font-size:13px}
+@media(max-width:380px){#page-arena .arena-game-card{min-height:142px;padding:11px}#page-arena .arena-game-card b{font-size:11px}}
+</style>
+
+
+<script id="gh-arena-gaib-logic">
+(function(){
+const arenaModes={
+ berkas:{title:'Berkas Terlarang',intro:'Pilih kesimpulan paling masuk akal dari bukti kasus.',questions:[
+  {q:'Di rumah kosong ditemukan jejak lumpur yang berhenti tepat di depan dinding. Apa petunjuk pertama yang perlu diperiksa?',a:['Dinding dan kemungkinan pintu tersembunyi','Warna cat rumah','Jumlah genteng'],c:0},
+  {q:'Rekaman suara terdengar pada pukul 02.13, tetapi listrik rumah padam sejak tengah malam. Apa yang perlu diverifikasi?',a:['Merek jam dinding','Sumber daya dan perangkat perekam','Warna kabel telepon'],c:1},
+  {q:'Dua saksi memberi waktu kejadian berbeda. Langkah investigasi terbaik adalah...',a:['Memilih cerita paling seram','Mengabaikan keduanya','Mencocokkan kronologi dengan bukti independen'],c:2}]},
+ teka_teki:{title:'Teka-Teki Arwah',intro:'Pecahkan tiga teka-teki. Jawaban tepat mendapat 10 Poin Jiwa.',questions:[
+  {q:'Aku selalu mengikuti saat terang, tetapi menghilang saat gelap. Siapakah aku?',a:['Bayangan','Gema','Kabut'],c:0},
+  {q:'Semakin banyak diambil, semakin besar aku. Apakah aku?',a:['Api','Lubang','Jejak'],c:1},
+  {q:'Aku punya banyak kunci, tetapi tak bisa membuka satu pintu pun. Apakah aku?',a:['Peti','Gembok','Piano'],c:2}]},
+ survival:{title:'Bertahan Sampai Pagi',intro:'Situasi darurat. Pilih tindakan paling aman untuk bertahan.',questions:[
+  {q:'Kamu mendengar langkah kaki di lantai atas rumah kosong. Apa tindakan paling aman?',a:['Naik sendirian untuk memeriksa','Keluar ke tempat aman dan hubungi bantuan','Mematikan semua lampu lalu bersembunyi'],c:1},
+  {q:'Pintu keluar macet dan kamu mencium bau asap. Apa yang harus dilakukan?',a:['Menjauh dari asap, cari jalur keluar alternatif, minta bantuan','Tetap di kamar tanpa memberi kabar','Mencari sumber asap tanpa perlindungan'],c:0},
+  {q:'Temanmu terpisah di bangunan gelap. Pilihan terbaik?',a:['Berpencar lebih jauh','Mengikuti suara tanpa komunikasi','Tetap di titik aman dan hubungi teman/layanan darurat'],c:2}]},
+ relik:{title:'Perburuan Relik',intro:'Kenali benda budaya dan artefak dari petunjuknya.',questions:[
+  {q:'Keris dalam tradisi Jawa dikenal sebagai...',a:['Senjata tikam tradisional dengan bilah khas','Alat musik tiup','Perisai dari rotan'],c:0},
+  {q:'Naskah kuno yang ditulis pada daun lontar biasa disebut...',a:['Prasasti batu','Lontar','Gerabah'],c:1},
+  {q:'Artefak berupa arca umumnya merupakan...',a:['Perhiasan kain','Alat pertanian','Karya pahatan berbentuk figur'],c:2}]},
+ turnamen:{title:'Turnamen Crew',intro:'Babak kualifikasi: jawab lima pertanyaan untuk mencatat skor terbaik.',questions:[
+  {q:'Apa nama ilmu yang mempelajari cerita rakyat dan tradisi lisan?',a:['Folkloristik','Astronomi','Botani'],c:0},
+  {q:'Candi Pari berada di wilayah kabupaten...',a:['Gresik','Sidoarjo','Pasuruan'],c:1},
+  {q:'Dalam investigasi, kesaksian tunggal sebaiknya...',a:['Langsung dianggap fakta','Dihapus dari catatan','Diverifikasi dengan sumber lain'],c:2},
+  {q:'Apa istilah untuk cerita asal-usul suatu tempat atau fenomena?',a:['Legenda etiologis','Biografi','Laporan cuaca'],c:0},
+  {q:'Apa yang paling penting saat mendokumentasikan kisah misteri?',a:['Menambah dramatisasi','Membedakan fakta, cerita lisan, dan dugaan','Menghilangkan sumber'],c:1}]},
+ siapa_aku:{title:'Siapa Aku?',intro:'Tebak sosok atau istilah dari petunjuknya.',questions:[
+  {q:'Aku adalah tokoh cerita rakyat Jawa Timur yang dikaitkan dengan Tambak Oso, Waru. Siapa aku?',a:['Jaka Tarub','Sarip Tambak Oso','Roro Jonggrang'],c:1},
+  {q:'Aku adalah makhluk dalam cerita rakyat yang sering digambarkan sebagai penjaga tempat tertentu. Istilah umumku?',a:['Penunggu','Pujangga','Pelaut'],c:0},
+  {q:'Aku adalah tradisi membersihkan makam menjelang Ramadan atau hari tertentu di sejumlah daerah Jawa.',a:['Sedekah laut','Nyadran','Kasada'],c:1}]},
+ pencerita:{title:'Sang Pencerita',intro:'Racik cerita horor pendek dari kata-kata acak. Karya akan tampil di papan Arena untuk dibaca Crew.',prompt:'Buat cerita 80–500 karakter yang memuat tiga kata ini: LONCENG · SUMUR · JAM 03.00'},
+ tantangan:{title:'Tantangan Rahasia',intro:'Misi harian: satu teka-teki rahasia untuk seluruh Crew.',questions:[
+  {q:'Aku bisa dipatahkan tanpa disentuh. Aku bisa diberikan, tetapi juga diingkari. Apakah aku?',a:['Janji','Cermin','Kaca'],c:0},
+  {q:'Aku menyimpan suara masa lalu, tetapi tidak punya mulut. Apakah aku?',a:['Lentera','Rekaman','Peta'],c:1},
+  {q:'Aku menunjukkan arah, tetapi tidak pernah berjalan. Apakah aku?',a:['Kompas','Sepatu','Payung'],c:0}]}
+};
+let arenaCurrent=null,arenaIndex=0,arenaScore=0,arenaAnswers=[];
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+window.playArena=function(mode){
+ const game=arenaModes[mode];if(!game)return;
+ arenaCurrent=mode;arenaIndex=0;arenaScore=0;arenaAnswers=[];
+ const panel=$('arena-play-panel');panel.classList.remove('hidden');
+ if(mode==='pencerita'){panel.innerHTML='<div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-red-300">MODE KREATIVITAS</p><h3 class="font-bold text-lg text-white">'+esc(game.title)+'</h3></div><button onclick="closeArenaGame()" class="text-gray-400 p-2" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><p class="text-xs text-gray-400 mb-3">'+esc(game.intro)+'</p><div class="rounded-xl border border-red-900/30 bg-red-950/20 p-3 mb-3 text-sm text-red-100">'+esc(game.prompt)+'</div><textarea id="arena-story-input" maxlength="500" placeholder="Tuliskan cerita versimu di sini..."></textarea><div class="flex items-center justify-between gap-2 mt-3"><span class="text-[10px] text-gray-500">80–500 karakter</span><button class="arena-primary" onclick="submitArenaStory()">Kirim Cerita</button></div>';
+ }else{renderArenaQuestion();}
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+};
+function renderArenaQuestion(){
+ const g=arenaModes[arenaCurrent],q=g.questions[arenaIndex],panel=$('arena-play-panel');
+ panel.innerHTML='<div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-red-300">'+esc(g.title.toUpperCase())+'</p><h3 class="font-bold text-lg text-white">Tantangan '+(arenaIndex+1)+' / '+g.questions.length+'</h3></div><button onclick="closeArenaGame()" class="text-gray-400 p-2" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><div class="h-1.5 rounded-full bg-gray-800 mb-4 overflow-hidden"><div class="h-full bg-gradient-to-r from-red-600 to-blue-500" style="width:'+((arenaIndex/g.questions.length)*100)+'%"></div></div><p class="text-sm leading-relaxed text-[#eee8dd] mb-4">'+esc(q.q)+'</p><div class="grid gap-2">'+q.a.map((a,i)=>'<button class="arena-answer" onclick="answerArena('+i+')">'+String.fromCharCode(65+i)+'. '+esc(a)+'</button>').join('')+'</div><p class="text-[10px] text-gray-500 mt-3">Jawaban benar: 10 Poin Jiwa</p>';
+}
+window.answerArena=function(choice){
+ const q=arenaModes[arenaCurrent].questions[arenaIndex],correct=choice===q.c;
+ arenaAnswers.push({question:q.q,choice:q.a[choice],correct});if(correct)arenaScore+=10;
+ arenaIndex++;
+ if(arenaIndex<arenaModes[arenaCurrent].questions.length){renderArenaQuestion();return;}
+ finishArenaGame();
+};
+async function finishArenaGame(){
+ const mode=arenaCurrent,game=arenaModes[mode],panel=$('arena-play-panel');
+ panel.innerHTML='<div class="text-center py-4"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-xl font-bold text-white mt-3">Tantangan Selesai</h3><p class="text-sm text-gray-400 mt-1">'+esc(game.title)+'</p><p class="text-4xl font-bold text-red-200 mt-3">'+arenaScore+' <span class="text-sm">Poin Jiwa</span></p><p class="text-xs text-gray-500 mt-2">Jawaban benar '+arenaAnswers.filter(a=>a.correct).length+' dari '+arenaAnswers.length+'</p><div id="arena-save-status" class="text-xs text-gray-400 mt-4">Menyimpan hasil...</div><button class="arena-primary mt-4" onclick="closeArenaGame()">Kembali ke Arena</button></div>';
+ await saveArenaResult(mode,arenaScore,{answers:arenaAnswers});
+ const status=$('arena-save-status');if(status)status.textContent='Hasil tersimpan di klasemen Crew.';
+}
+window.submitArenaStory=async function(){
+ const input=$('arena-story-input'),story=(input?.value||'').trim(),panel=$('arena-play-panel');
+ if(story.length<80){alert('Cerita minimal 80 karakter.');return;}
+ const status=document.createElement('p');status.className='text-xs text-gray-400 mt-3';status.textContent='Mengirim cerita...';panel.appendChild(status);
+ const ok=await saveArenaResult('pencerita',20,{story:story});
+ status.textContent=ok?'Cerita tersimpan di papan Arena. Kamu mendapat 20 Poin Jiwa untuk partisipasi.':'Cerita belum berhasil disimpan. Coba lagi.';
+};
+window.closeArenaGame=function(){const p=$('arena-play-panel');p.classList.add('hidden');p.innerHTML='';arenaCurrent=null;};
+async function saveArenaResult(mode,score,details){
+ if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){alert('Sesi login belum siap. Silakan muat ulang lalu coba lagi.');return false;}
+ const {error}=await supabaseClient.from('ghoustory_arena_results').insert({user_id:activeUser.id,game_mode:mode,score:score,details:details});
+ if(error){console.error('Arena save error',error);alert('Hasil belum tersimpan: '+(error.message||'periksa koneksi'));return false;}
+ await refreshArena();return true;
+}
+window.refreshArena=async function(){
+ const board=$('arena-leaderboard');if(!board)return;
+ if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Masuk untuk melihat klasemen Crew.</p>';return;}
+ board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Memuat klasemen...</p>';
+ const [res,profilesRes]=await Promise.all([
+  supabaseClient.from('ghoustory_arena_results').select('user_id,score,game_mode,created_at').order('created_at',{ascending:false}).limit(1000),
+  supabaseClient.from('ghoustory_profiles').select('user_id,nickname,avatar_url')
+ ]);
+ if(res.error){board.innerHTML='<p class="text-xs text-red-300 text-center py-4">Klasemen belum dapat dimuat. '+esc(res.error.message)+'</p>';return;}
+ const totals={};(res.data||[]).forEach(r=>{if(!totals[r.user_id])totals[r.user_id]={score:0,games:0};totals[r.user_id].score+=Number(r.score)||0;totals[r.user_id].games++;});
+ const profiles=profilesRes.data||[],ranked=Object.entries(totals).map(([id,v])=>({id,...v,profile:profiles.find(p=>p.user_id===id)})).sort((a,b)=>b.score-a.score||b.games-a.games).slice(0,20);
+ const mine=ranked.findIndex(p=>p.id===activeUser.id),my=ranked[mine];
+ $('arena-my-score').textContent=my?my.score.toLocaleString('id-ID'):'0';$('arena-my-rank').textContent=my?'#'+(mine+1):'—';
+ if(!ranked.length){board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Belum ada skor. Jadilah anggota pertama yang bermain!</p>';return;}
+ board.innerHTML=ranked.map((p,i)=>'<div class="flex items-center gap-3 py-2 border-b border-gray-800/80"><span class="w-7 text-center font-bold '+(i===0?'text-yellow-300':i===1?'text-gray-300':i===2?'text-orange-300':'text-gray-600')+'">'+(i+1)+'</span><div class="min-w-0 flex-1"><b class="block text-xs text-gray-200 truncate">'+esc(p.profile?.nickname||'Anggota Crew')+'</b><span class="text-[10px] text-gray-500">'+p.games+' permainan</span></div><b class="text-sm text-red-200">'+p.score.toLocaleString('id-ID')+' XP</b></div>').join('');
+};
+})();
+</script>
 
 </body>
 </html>
