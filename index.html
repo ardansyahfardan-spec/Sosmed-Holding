@@ -5351,7 +5351,7 @@ async function loadChatMessages(){
 async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
           const member=workspaceProfiles.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
-          document.getElementById("dm-title").textContent=member.nickname||"Pesan Pribadi";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Pesan Pribadi";
+          document.getElementById("dm-title").textContent=member.nickname||"Whisper";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Whisper";
           document.getElementById("dm-subtitle").textContent=member.role||"Crew CONCLAVE";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
