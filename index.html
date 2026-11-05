@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f3f0e9">
+    <meta name="theme-color" content="#17181e">
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon%202.png?isolated=1">
     <link rel="icon" type="image/png" href="./apple-touch-icon%202.png?isolated=1">
     <meta name="application-name" content="Ghoustory Control Room">
@@ -783,6 +783,65 @@ main.container { background: transparent !important; }
         @media (prefers-reduced-motion: reduce) {
           #page-home .gcr-home-item { transition: none; }
         }
+
+
+/* GCR THEME DIRECTION — dark canvas, cream as a restrained accent */
+html, body {
+  background-color: #17181e !important;
+  color: #e9e3d8;
+}
+#main-app { background: #17181e !important; }
+main.container { background: transparent !important; }
+nav.sticky {
+  background: rgba(20,21,27,.97) !important;
+  border-bottom-color: rgba(169,77,88,.42) !important;
+}
+#page-home {
+  background: transparent !important;
+  color: #eee8dd !important;
+}
+#page-home .gcr-home-heading p {
+  color: #c18c82 !important;
+}
+#page-home .gcr-home-heading h1 {
+  color: #eee8dd !important;
+}
+#page-home .gcr-home-heading span {
+  color: #aaa6a0 !important;
+}
+#page-home .gcr-home-item {
+  background: #23252d !important;
+  color: #eee8dd !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.16) !important;
+}
+#page-home .gcr-home-item:hover {
+  background: #292b34 !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,.24) !important;
+}
+#page-home .gcr-home-icon,
+#page-home .gcr-home-icon.gcr-red,
+#page-home .gcr-home-icon.gcr-blue {
+  background: #e9dfcf !important;
+  color: #514b4a !important;
+}
+#page-home .gcr-home-copy b {
+  color: #eee8dd !important;
+}
+#page-home .gcr-home-item:hover .gcr-home-icon {
+  background: #f0e4d2 !important;
+  color: #91434d !important;
+}
+#bottom-navigation {
+  background: rgba(29,30,37,.96) !important;
+  border-color: rgba(233,223,207,.12) !important;
+}
+#bottom-navigation .bottom-nav-item.active {
+  background: #a94d58 !important;
+  color: #fff !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #page-home .gcr-home-item { transition: none; }
+}
 
 </style>
 </head>
