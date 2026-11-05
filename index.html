@@ -6431,7 +6431,9 @@ window.malamTrialStart=async function(total){
 };
 window.malamTrialExit=function(){malamAudioStop();clearInterval(window.__malamTrialInterval);window.__malamTrialInterval=null;window.__malamTrial=null;malamCloseModal();malamHome();};
 window.malamTrialOpen=function(type){
- const s=window.__malamTrial;if(!s)return;s.modal=type;
+ const s=window.__malamTrial;if(!s)return;
+ const previousChatInput=document.getElementById('malam-trial-chat-input'),chatDraft=previousChatInput?.value||'',chatHadFocus=!!previousChatInput&&document.activeElement===previousChatInput;
+ s.modal=type;
  const modal=document.getElementById('malam-trial-modal'),title=document.getElementById('malam-trial-modal-title'),content=document.getElementById('malam-trial-modal-content');
  if(!modal||!content)return;
  const me=s.players[0],role=malamRoles[me.role],alive=s.players.filter(x=>x.alive);
@@ -6451,7 +6453,7 @@ window.malamTrialOpen=function(type){
  modal.classList.remove('hidden');modal.classList.add('flex');clearTimeout(window.__malamTrialModalAutoClose);
  if(type==='chat'){
   const chatInput=document.getElementById('malam-trial-chat-input'),sendButton=content.querySelector('button[onclick="malamTrialSendChat()"]');
-  if(chatInput){chatInput.type='text';chatInput.inputMode='text';chatInput.autocapitalize='sentences';chatInput.autocomplete='off';chatInput.spellcheck=true;chatInput.style.cssText+=';pointer-events:auto;touch-action:manipulation;user-select:text;-webkit-user-select:text;';chatInput.removeAttribute('readonly');chatInput.disabled=false;}
+  if(chatInput){chatInput.type='text';chatInput.inputMode='text';chatInput.autocapitalize='sentences';chatInput.autocomplete='off';chatInput.spellcheck=true;chatInput.style.cssText+=';pointer-events:auto;touch-action:manipulation;user-select:text;-webkit-user-select:text;';chatInput.removeAttribute('readonly');chatInput.disabled=false;chatInput.value=chatDraft;if(chatHadFocus)chatInput.focus({preventScroll:true});}
   if(sendButton){sendButton.type='button';sendButton.style.pointerEvents='auto';}
  }
  if(!isAction&&!isVote&&type!=='chat')window.__malamTrialModalAutoClose=setTimeout(()=>{if(window.__malamTrial?.modal===type)malamTrialClose();},5500);
@@ -6480,6 +6482,7 @@ window.malamTrialSendChat=function(){
   s.chatMessages.push({name:responder.name,body:reply,self:false});
  }
  if(s.chatMessages.length>80)s.chatMessages=s.chatMessages.slice(-80);
+ input.value='';
  malamTrialOpen('chat');
  const list=document.getElementById('malam-trial-chat-list');if(list)list.scrollTop=list.scrollHeight;
  const next=document.getElementById('malam-trial-chat-input');if(next)next.focus({preventScroll:true});
