@@ -1897,8 +1897,9 @@ nav.sticky {
 @media(max-width:640px){#malam-trial-modal.chat-keyboard-open .malam-trial-modal-card{width:100%!important;max-width:100%!important;padding:12px!important;} }
 
 /* Malam Terlarang: wallpaper vertikal milik Ghoustory mengikuti fase permainan. */
-#arena-play-panel.malam-wallpaper-night{background-image:linear-gradient(180deg,rgba(4,7,18,.72),rgba(4,7,18,.86)),url('./assets/images/malam-terlarang/wallpapers/Malam.JPG');background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;border-radius:22px;padding:12px!important;}
-#arena-play-panel.malam-wallpaper-day{background-image:linear-gradient(180deg,rgba(10,16,28,.35),rgba(10,16,28,.64)),url('./assets/images/malam-terlarang/wallpapers/Pagi.JPG');background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;border-radius:22px;padding:12px!important;}
+/* Wallpaper game: gunakan path absolut GitHub Pages dan scroll attachment agar stabil di Safari/iOS. */
+#arena-play-panel.malam-wallpaper-night{background-color:#080b16!important;background-image:linear-gradient(180deg,rgba(4,7,18,.30),rgba(4,7,18,.56)),url('/Sosmed-Holding/assets/images/malam-terlarang/wallpapers/Malam.JPG')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;background-attachment:scroll!important;border-radius:22px;padding:12px!important;}
+#arena-play-panel.malam-wallpaper-day{background-color:#172235!important;background-image:linear-gradient(180deg,rgba(10,16,28,.10),rgba(10,16,28,.32)),url('/Sosmed-Holding/assets/images/malam-terlarang/wallpapers/Pagi.JPG')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;background-attachment:scroll!important;border-radius:22px;padding:12px!important;}
 #arena-play-panel.malam-wallpaper-day .text-amber-50{color:#fff7d6!important;}
 </style>
 </head>
