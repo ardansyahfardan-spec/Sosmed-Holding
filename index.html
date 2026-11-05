@@ -2418,6 +2418,55 @@ nav.sticky {
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4"><button onclick="showPage('tim')" class="rounded-xl border border-yellow-900 bg-yellow-950/30 p-3 text-xs">Buka Markas Crew</button><button onclick="showPage('grimoire')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Grimoire</button><button onclick="showPage('analisis')" class="rounded-xl border border-gray-800 bg-gray-900 p-3 text-xs">Buka Analisis</button></div>
     </section>
 
+            <section id="page-lore" class="page-section max-w-5xl mx-auto">
+              <div class="mb-5">
+                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">THE INDONESIAN MYSTERY ARCHIVE</p>
+                <h2 class="text-2xl font-bold text-[#e9dfcf]">LORE</h2>
+                <p class="text-sm text-gray-400 mt-1">Ensiklopedia cerita rakyat, folklor, dan misteri dari seluruh Nusantara.</p>
+              </div>
+              <div class="rounded-2xl border border-red-900/40 bg-gradient-to-br from-red-950/30 to-[#17181e] p-4 sm:p-5 mb-5">
+                <div class="flex items-start gap-3">
+                  <span class="w-10 h-10 shrink-0 rounded-xl bg-red-950/70 border border-red-900/50 flex items-center justify-center text-red-300"><i class="fa-solid fa-book-open text-lg"></i></span>
+                  <div class="min-w-0">
+                    <h3 class="font-bold text-[#eee8dd] text-sm">Arsip Misteri Nusantara</h3>
+                    <p class="text-xs text-gray-400 mt-1 leading-relaxed">Kumpulan pengetahuan tentang makhluk dalam folklor, legenda daerah, tempat bersejarah, benda pusaka, dan kisah masyarakat Indonesia. Setiap artikel harus memiliki sumber yang dapat ditelusuri.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
+                  <i class="fa-solid fa-ghost text-xl text-red-300 mb-3"></i>
+                  <h3 class="font-bold text-sm text-[#eee8dd]">Bestiary</h3>
+                  <p class="text-[11px] text-gray-500 mt-1">Makhluk dalam folklor Nusantara</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
+                  <i class="fa-solid fa-scroll text-xl text-red-300 mb-3"></i>
+                  <h3 class="font-bold text-sm text-[#eee8dd]">Folklore</h3>
+                  <p class="text-[11px] text-gray-500 mt-1">Legenda dan cerita rakyat daerah</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
+                  <i class="fa-solid fa-house-chimney-crack text-xl text-red-300 mb-3"></i>
+                  <h3 class="font-bold text-sm text-[#eee8dd]">Haunted Places</h3>
+                  <p class="text-[11px] text-gray-500 mt-1">Lokasi, sejarah, dan kisah masyarakat</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28">
+                  <i class="fa-solid fa-gem text-xl text-red-300 mb-3"></i>
+                  <h3 class="font-bold text-sm text-[#eee8dd]">Artifacts</h3>
+                  <p class="text-[11px] text-gray-500 mt-1">Benda pusaka dan tradisi terkait</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/[.035] p-4 min-h-28 col-span-2 sm:col-span-1">
+                  <i class="fa-solid fa-folder-open text-xl text-red-300 mb-3"></i>
+                  <h3 class="font-bold text-sm text-[#eee8dd]">Case Files</h3>
+                  <p class="text-[11px] text-gray-500 mt-1">Dokumentasi kisah dan pengalaman masyarakat</p>
+                </div>
+              </div>
+              <div class="rounded-xl border border-white/10 bg-white/[.025] p-4 mt-5">
+                <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-shield-halved text-red-300"></i><h3 class="text-sm font-bold text-[#eee8dd]">Standar sumber LORE</h3></div>
+                <p class="text-xs text-gray-400 leading-relaxed">Artikel tidak boleh berisi klaim rekaan. Cerita kepercayaan harus diberi konteks sebagai folklor atau kesaksian, bukan fakta ilmiah. Setiap entri akan melalui pemeriksaan sumber sebelum diterbitkan.</p>
+                <p class="text-[11px] text-gray-500 mt-3">Belum ada artikel yang diterbitkan. Koleksi akan ditampilkan setelah sistem sumber dan proses review disiapkan.</p>
+              </div>
+            </section>
+
             <section id="page-anda" class="page-section max-w-3xl mx-auto">
       <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
         <div class="flex flex-col gap-5">
@@ -2447,7 +2496,7 @@ nav.sticky {
           <div class="grid grid-cols-4 gap-1">
             <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house text-lg"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Home</span></button>
             <button data-bottom-nav="chat" onclick="navigateBottom('chat')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-comments text-lg"></i><i id="nav-dot-chat" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Chat</span></button>
-            <button data-bottom-nav="tim" onclick="navigateBottom('tim')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-calendar-days text-lg"></i><i id="nav-dot-tim" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Crew Hub</span></button>
+            <button data-bottom-nav="lore" onclick="navigateBottom('lore')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-book-open text-lg"></i><i id="nav-dot-lore" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">LORE</span></button>
             <button data-bottom-nav="anda" onclick="navigateBottom('anda')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><img id="nav-profile-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-500"><i id="nav-dot-anda" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Anda</span></button>
           </div>
         </div>
@@ -3193,7 +3242,7 @@ nav.sticky {
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
+            const pageTitles={home:['Ghoustory','Control Room'],chat:['RITUAL CREW','Percakapan Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['LORE','Ensiklopedia Misteri Nusantara'],anda:['Anda','Akun dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Analisis','Metadata dan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Radar','Analitik']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];
@@ -3204,7 +3253,7 @@ nav.sticky {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
             target.classList.add('page-active');
             window.ghoustoryNavCurrentPage = pageId;
-            updateBottomNavigation(pageId==='crewhub'?'tim':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
+            updateBottomNavigation(pageId==='lore'?'lore':pageId==='crewhub'?'home':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(activeUser)loadGhoustoryNotifications();
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
@@ -4661,7 +4710,7 @@ nav.sticky {
             }
         }
 
-        function navigateBottom(page){if(page==='tim'){showPage('crewhub');return;}showPage(page);}
+        function navigateBottom(page){showPage(page);}
         function goHeaderBack(){const current=document.querySelector('.page-section.page-active')?.id?.replace('page-','')||'home';if(current==='chat'&&document.getElementById('page-chat')?.classList.contains('chat-room-open')){showChatInbox();return;}showPage('home');}
         function updateBottomNavigation(page){document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.bottomNav===page));}
         function openQuickScript(){showPage('grimoire');switchTab('grimoire','editor');setTimeout(()=>document.getElementById('script-title')?.focus(),100);}
