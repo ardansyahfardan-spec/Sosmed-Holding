@@ -2064,15 +2064,16 @@ nav.sticky {
                 <p class="text-sm text-gray-400 mt-1">Delapan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
               </div>
               <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">8 MODE</span></div>
-              <div id="arena-game-grid" class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                <button onclick="playArena('berkas')" class="arena-game-card"><i class="fa-solid fa-folder-open"></i><b>Berkas Terlarang</b></button>
-                <button onclick="playArena('teka_teki')" class="arena-game-card"><i class="fa-solid fa-brain"></i><b>Teka-Teki Arwah</b></button>
-                <button onclick="playArena('survival')" class="arena-game-card"><i class="fa-solid fa-house-crack"></i><b>Bertahan Sampai Pagi</b></button>
-                <button onclick="playArena('relik')" class="arena-game-card"><i class="fa-solid fa-gem"></i><b>Perburuan Relik</b></button>
-                <button onclick="playArena('turnamen')" class="arena-game-card"><i class="fa-solid fa-trophy"></i><b>Turnamen Crew</b></button>
-                <button onclick="playArena('siapa_aku')" class="arena-game-card"><i class="fa-solid fa-masks-theater"></i><b>Siapa Aku?</b></button>
-                <button onclick="playArena('pencerita')" class="arena-game-card"><i class="fa-solid fa-feather-pointed"></i><b>Sang Pencerita</b></button>
-                <button onclick="playArena('tantangan')" class="arena-game-card"><i class="fa-solid fa-eye"></i><b>Tantangan Rahasia</b></button>
+              <div class="flex flex-wrap items-center gap-2 mb-3"><button id="arena-generate-images" onclick="generateArenaImages()" class="rounded-xl border border-red-800/60 bg-gradient-to-r from-red-950 to-blue-950 px-3 py-2 text-[11px] font-bold text-red-100"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Buat Gambar dengan Gemini AI</button><span id="arena-image-status" class="text-[10px] text-gray-500">Ilustrasi dibuat sekali lalu tersimpan.</span></div>
+              <div id="arena-game-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Berkas Terlarang</b></button>
+                <button onclick="playArena('teka_teki')" class="arena-game-card" data-mode="teka_teki"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Teka-Teki Arwah</b></button>
+                <button onclick="playArena('survival')" class="arena-game-card" data-mode="survival"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Bertahan Sampai Pagi</b></button>
+                <button onclick="playArena('relik')" class="arena-game-card" data-mode="relik"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Perburuan Relik</b></button>
+                <button onclick="playArena('turnamen')" class="arena-game-card" data-mode="turnamen"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Turnamen Crew</b></button>
+                <button onclick="playArena('siapa_aku')" class="arena-game-card" data-mode="siapa_aku"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Siapa Aku?</b></button>
+                <button onclick="playArena('pencerita')" class="arena-game-card" data-mode="pencerita"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Sang Pencerita</b></button>
+                <button onclick="playArena('tantangan')" class="arena-game-card" data-mode="tantangan"><img class="arena-game-art" alt="" loading="lazy"><span class="arena-game-shade"></span><b>Tantangan Rahasia</b></button>
               </div>
               <div class="grid grid-cols-3 gap-2 mb-4">
                 <div class="rounded-xl border border-red-900/40 bg-gradient-to-br from-red-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POIN JIWAMU</p><b id="arena-my-score" class="text-xl text-red-200">—</b></div>
@@ -6135,16 +6136,18 @@ function toggleChatSearch(kind, forceOpen){
 
 
 <style id="gh-arena-gaib-styles">
-#page-arena .arena-game-card{display:flex;aspect-ratio:1/1;min-width:0;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:7px;border:1px solid rgba(255,255,255,.1);border-radius:17px;background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.34),transparent 58%),linear-gradient(145deg,rgba(40,22,34,.9),rgba(12,15,24,.98));text-align:center;transition:border-color .18s ease,transform .18s ease,background .18s ease}
-#page-arena .arena-game-card:hover{border-color:rgba(190,70,85,.65);background:linear-gradient(145deg,rgba(100,25,42,.42),rgba(15,18,27,.98));transform:translateY(-2px)}
-#page-arena .arena-game-card i{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,rgba(185,28,28,.24),rgba(37,72,142,.2));border:1px solid rgba(210,120,140,.2);color:#f0a0a8;font-size:17px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
-#page-arena .arena-game-card b{font-size:10px;color:#eee8dd;line-height:1.35;max-width:100%;}
-#page-arena .arena-game-card span{display:none}
+#page-arena .arena-game-card{position:relative;display:flex;overflow:hidden;aspect-ratio:1/1;min-width:0;min-height:0;align-items:flex-end;justify-content:center;padding:10px;border:1px solid rgba(255,255,255,.13);border-radius:15px;background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.38),transparent 58%),linear-gradient(145deg,#281622,#0c0f18);text-align:center;isolation:isolate;transition:border-color .18s ease,transform .18s ease}
+#page-arena .arena-game-card:hover{border-color:rgba(190,70,85,.75);transform:translateY(-2px)}
+#page-arena .arena-game-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .35s ease}
+#page-arena .arena-game-card:hover .arena-game-art{transform:scale(1.045)}
+#page-arena .arena-game-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,5,9,.04) 20%,rgba(4,5,9,.35) 52%,rgba(4,5,9,.94) 100%)}
+#page-arena .arena-game-card b{position:relative;z-index:1;width:100%;font-size:clamp(10px,1.4vw,13px);font-weight:800;line-height:1.25;color:#fff;text-shadow:0 2px 8px #000,0 1px 2px #000;letter-spacing:.015em}
+#page-arena .arena-game-card.no-art{background:radial-gradient(circle at 50% 25%,rgba(111,28,49,.4),transparent 58%),linear-gradient(145deg,#281622,#0c0f18)}
 #page-arena .arena-answer{display:block;width:100%;padding:11px 12px;border:1px solid #343743;border-radius:11px;background:#171922;color:#e9dfcf;text-align:left;font-size:12px;line-height:1.45}
 #page-arena .arena-answer:hover{border-color:#a64a56;background:#241a22}
 #page-arena .arena-primary{padding:10px 14px;border-radius:10px;background:linear-gradient(110deg,#9f2435,#243f86);color:#fff;font-size:12px;font-weight:700}
 #page-arena textarea{width:100%;min-height:130px;padding:12px;border:1px solid #343743;border-radius:12px;background:#090b10;color:#eee8dd;font-size:13px}
-@media(max-width:380px){#page-arena .arena-game-card{gap:6px;padding:5px;border-radius:12px}#page-arena .arena-game-card i{width:32px;height:32px;font-size:15px;border-radius:10px}#page-arena .arena-game-card b{font-size:9px;line-height:1.25}}
+@media(max-width:380px){#page-arena .arena-game-card{padding:7px;border-radius:12px}#page-arena .arena-game-card b{font-size:10px}}
 </style>
 
 
@@ -6225,6 +6228,43 @@ async function saveArenaResult(mode,score,details){
  if(error){console.error('Arena save error',error);alert('Hasil belum tersimpan: '+(error.message||'periksa koneksi'));return false;}
  await refreshArena();return true;
 }
+const arenaImageModes=["berkas","teka_teki","survival","relik","turnamen","siapa_aku","pencerita","tantangan"];
+function arenaImageUrl(mode){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+".png";}
+window.loadArenaImages=function(){
+ document.querySelectorAll("#arena-game-grid .arena-game-card").forEach(card=>{
+  const mode=card.dataset.mode,img=card.querySelector(".arena-game-art");if(!mode||!img)return;
+  img.onload=()=>card.classList.remove("no-art");
+  img.onerror=()=>{img.removeAttribute("src");card.classList.add("no-art");};
+  img.src=arenaImageUrl(mode);
+ });
+};
+window.generateArenaImages=async function(){
+ const btn=$("arena-generate-images"),status=$("arena-image-status");
+ if(!btn||!status)return;
+ if(typeof activeUser==="undefined"||!activeUser?.id||typeof supabaseClient==="undefined"){status.textContent="Masuk ke akun Crew untuk membuat gambar.";return;}
+ btn.disabled=true;btn.classList.add("opacity-50");let made=0,skipped=0;
+ try{
+  for(let i=0;i<arenaImageModes.length;i++){
+   const mode=arenaImageModes[i],path="games/"+mode+".png",url=arenaImageUrl(mode);
+   const existing=await fetch(url,{method:"HEAD",cache:"no-store"});
+   if(existing.ok){skipped++;status.textContent="Memeriksa ilustrasi "+(i+1)+"/8…";continue;}
+   status.textContent="Gemini sedang membuat gambar "+(i+1)+"/8…";
+   const {data,error}=await supabaseClient.functions.invoke("ghoustory-ai",{body:{task:"arena-image",mode}});
+   if(error)throw error;
+   if(!data?.imageBase64)throw new Error(data?.error||"Gemini tidak mengembalikan gambar untuk "+mode+".");
+   const binary=atob(data.imageBase64),bytes=new Uint8Array(binary.length);
+   for(let n=0;n<binary.length;n++)bytes[n]=binary.charCodeAt(n);
+   const blob=new Blob([bytes],{type:data.mimeType||"image/png"});
+   const {error:uploadError}=await supabaseClient.storage.from("arena-game-images").upload(path,blob,{contentType:data.mimeType||"image/png",cacheControl:"31536000",upsert:false});
+   if(uploadError&&uploadError.statusCode!=="409")throw uploadError;
+   made++;const card=document.querySelector('#arena-game-grid .arena-game-card[data-mode="'+mode+'"]'),img=card?.querySelector(".arena-game-art");
+   if(img){img.onload=()=>card.classList.remove("no-art");img.onerror=()=>card.classList.add("no-art");img.src=url+"?v="+Date.now();}
+  }
+  status.textContent=made?made+" gambar baru tersimpan. "+(skipped?skipped+" gambar sudah tersedia.":""): "Semua gambar sudah tersedia.";
+ }catch(error){console.error("Arena image generation error:",error);status.textContent="Gagal membuat gambar: "+(error.message||"periksa koneksi dan kuota Gemini.");}
+ finally{btn.disabled=false;btn.classList.remove("opacity-50");}
+};
+window.loadArenaImages();
 window.refreshArena=async function(){
  const board=$('arena-leaderboard');if(!board)return;
  if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Masuk untuk melihat klasemen Crew.</p>';return;}
