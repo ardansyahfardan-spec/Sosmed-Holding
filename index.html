@@ -5997,6 +5997,14 @@ function toggleChatSearch(kind, forceOpen){
         }
 
 
+        /* HEADER TITLE SCALE: improve page-title readability on desktop and mobile. */
+        #header-page-title { font-size:1.2rem !important; line-height:1.2 !important; letter-spacing:.025em !important; }
+        #header-page-subtitle { font-size:.62rem !important; }
+        @media (max-width:640px) {
+          #header-page-title { font-size:1.05rem !important; line-height:1.18 !important; letter-spacing:.015em !important; }
+          #header-page-subtitle { font-size:.56rem !important; line-height:1.25 !important; }
+        }
+
         /* NAV POSITION FIX — raise the floating navigation clear of the bottom edge. */
         #bottom-navigation { bottom: 2.25rem !important; }
         @media (max-width: 767px) {
