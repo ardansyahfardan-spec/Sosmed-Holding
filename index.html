@@ -6376,14 +6376,14 @@ window.malamTrialNight=function(force){
  const me=s.players[0],alive=s.players.filter(p=>p.alive);
  const aiSiluman=alive.filter(p=>p.role==='siluman'&&p.isAI);
  let attack=null;
- if(me.role==='siluman'){attack=s.selected;if(!attack){const picks=alive.filter(p=>p.role!=='siluman');if(picks.length)attack=picks[Math.floor(Math.random()*picks.length)].id;}}
+ if(me.alive&&me.role==='siluman'){attack=s.selected;if(!attack){const picks=alive.filter(p=>p.role!=='siluman');if(picks.length)attack=picks[Math.floor(Math.random()*picks.length)].id;}}
  else if(aiSiluman.length){
   const choices=alive.filter(p=>p.role!=='siluman'&&p.id!=='t0');
   if(choices.length){const votes={};aiSiluman.forEach(()=>{const pick=choices[Math.floor(Math.random()*choices.length)];votes[pick.id]=(votes[pick.id]||0)+1;});attack=Object.keys(votes).sort((a,b)=>votes[b]-votes[a])[0];}
  }
- if(['siluman','paranormal','penjaga'].includes(me.role)&&!s.selected&&!force){malamTrialNotice('Pilih target terlebih dahulu.');return;}
- if(me.role==='paranormal'&&s.selected){const target=s.players.find(p=>p.id===s.selected);if(target){s.investigation={name:target.name,role:target.role};s.log.push('Hasil rahasia: '+target.name+(target.role==='siluman'?' adalah Siluman.':' bukan Siluman.'));}}
- if(me.role==='penjaga')s.protected=s.selected;
+ if(me.alive&&['siluman','paranormal','penjaga'].includes(me.role)&&!s.selected&&!force){malamTrialNotice('Pilih target terlebih dahulu.');return;}
+ if(me.alive&&me.role==='paranormal'&&s.selected){const target=s.players.find(p=>p.id===s.selected);if(target){s.investigation={name:target.name,role:target.role};s.log.push('Hasil rahasia: '+target.name+(target.role==='siluman'?' adalah Siluman.':' bukan Siluman.'));}}
+ if(me.alive&&me.role==='penjaga')s.protected=s.selected;
  const aiGuard=alive.find(p=>p.role==='penjaga'&&p.isAI);
  if(aiGuard){const choices=alive.filter(p=>p.id!=='t0');if(choices.length)s.protected=choices[Math.floor(Math.random()*choices.length)].id;}
  let event='Malam berlalu tanpa korban.';
