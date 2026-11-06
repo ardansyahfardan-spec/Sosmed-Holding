@@ -112,40 +112,68 @@ function audioInit(){try{const AC=window.AudioContext||window.webkitAudioContext
 function audioSetVolume(v){audioPrefs.volume=Math.max(0,Math.min(1,Number(v)||0));if(audioMaster)audioMaster.gain.setTargetAtTime(audioPrefs.volume,audioCtx.currentTime,.08);}
 function audioStartBgm(){
  if(!audioPrefs.bgm||!audioInit()||bgmNodes.length)return;
- const t=audioCtx.currentTime;
- [[55,.085],[82.41,.052],[110,.032],[164.81,.012]].forEach(([hz,vol],i)=>{
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter(),lfo=audioCtx.createOscillator(),lg=audioCtx.createGain();
-  o.type='sine';o.frequency.value=hz;f.type='lowpass';f.frequency.value=240+i*45;g.gain.value=vol;
-  lfo.frequency.value=.045+i*.018;lg.gain.value=hz*.012;lfo.connect(lg);lg.connect(o.frequency);
-  o.connect(f);f.connect(g);g.connect(audioMaster);o.start(t);lfo.start(t);bgmNodes.push(o,g,f,lfo,lg);
- });
- const makeNoise=(freq,q,level,rate,kind)=>{
-  const size=audioCtx.sampleRate*3,buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate),data=buffer.getChannelData(0);
-  for(let i=0;i<size;i++)data[i]=Math.random()*2-1;
-  const src=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain(),lfo=audioCtx.createOscillator(),mod=audioCtx.createGain();
-  src.buffer=buffer;src.loop=true;filter.type=kind;filter.frequency.value=freq;filter.Q.value=q;gain.gain.value=level;
-  lfo.frequency.value=rate;mod.gain.value=level*.42;lfo.connect(mod);mod.connect(gain.gain);
-  src.connect(filter);filter.connect(gain);gain.connect(audioMaster);src.start(t);lfo.start(t);bgmNodes.push(src,filter,gain,lfo,mod);
- };
- // Angin malam dan desis tipis untuk suasana gaib.
- makeNoise(420,.45,.055,.09,'lowpass');
- makeNoise(1150,.8,.018,.13,'bandpass');
- // Gemuruh massa dari kejauhan: lapisan noise dan formant rendah yang naik-turun.
- makeNoise(310,.7,.038,.19,'bandpass');
- makeNoise(690,.55,.022,.27,'bandpass');
- [145,218,292,365].forEach((hz,i)=>{
-  const o=audioCtx.createOscillator(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain(),lfo=audioCtx.createOscillator(),lg=audioCtx.createGain();
-  o.type='triangle';o.frequency.value=hz+(i%2?3:-4);f.type='bandpass';f.frequency.value=hz*1.8;f.Q.value=1.1;
-  g.gain.value=.006;lfo.frequency.value=.16+i*.035;lg.gain.value=.004;lfo.connect(lg);lg.connect(g.gain);
-  o.connect(f);f.connect(g);g.connect(audioMaster);o.start(t);lfo.start(t);bgmNodes.push(o,f,g,lfo,lg);
- });
- // Nada melengking pelan seperti suara gaib yang melintas.
- const wail=audioCtx.createOscillator(),wg=audioCtx.createGain(),vibrato=audioCtx.createOscillator(),vg=audioCtx.createGain();
- wail.type='sine';wail.frequency.value=510;wg.gain.value=.009;vibrato.frequency.value=.11;vg.gain.value=95;vibrato.connect(vg);vg.connect(wail.frequency);wail.connect(wg);wg.connect(audioMaster);wail.start(t);vibrato.start(t);bgmNodes.push(wail,wg,vibrato,vg);
+ // Musik permainan ringan: progresi C–G–Am–F dengan bass dan melodi pluck.
+ const sr=audioCtx.sampleRate,duration=8,buffer=audioCtx.createBuffer(2,sr*duration,sr);
+ const left=buffer.getChannelData(0),right=buffer.getChannelData(1);
+ const beat=.5,bar=beat*4;
+ const chords=[[130.81,164.81,196],[98,123.47,146.83],[110,130.81,164.81],[87.31,110,130.81]];
+ const melody=[523.25,392,440,392,329.63,392,523.25,587.33,523.25,440,392,329.63,392,440,392,329.63];
+ function note(freq,at,len,amp,decay,pan=0){
+  const from=Math.floor(at*sr),count=Math.min(Math.floor(len*sr),left.length-from);
+  for(let i=0;i<count;i++){
+   const t=i/sr,env=Math.exp(-t*decay)*Math.min(1,t*70),v=Math.sin(2*Math.PI*freq*t)*env*amp;
+   const k=from+i;left[k]+=v*Math.sqrt((1-pan)*.5);right[k]+=v*Math.sqrt((1+pan)*.5);
+  }
+ }
+ for(let barIndex=0;barIndex<4;barIndex++){
+  const chord=chords[barIndex];
+  for(let beatIndex=0;beatIndex<4;beatIndex++){
+   const at=barIndex*bar+beatIndex*beat;
+   note(chord[0]/2,at,.46,.13,2.8,-.15);
+   note(chord[1],at,.36,.035,5,.1);
+   note(chord[2],at,.36,.03,5,.2);
+   note(chord[0],at,.22,.07,8,-.1);
+   note(chord[1],at+.18,.2,.045,9,.15);
+   const m=melody[(barIndex*4+beatIndex)*1];
+   note(m,at+.04,.32,.085,5,(beatIndex%2?-.22:.22));
+  }
+ }
+ const src=audioCtx.createBufferSource(),gain=audioCtx.createGain();
+ src.buffer=buffer;src.loop=true;gain.gain.value=.52;src.connect(gain);gain.connect(audioMaster);src.start();
+ bgmNodes.push(src,gain);
 }
 function audioStopBgm(){bgmNodes.forEach(n=>{try{n.stop?.();n.disconnect?.();}catch(e){}});bgmNodes=[];}
-function audioStep(){if(!audioPrefs.steps||!audioInit())return;const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.setValueAtTime(155,t);o.frequency.exponentialRampToValueAtTime(58,t+.13);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.29,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g);g.connect(audioMaster);o.start(t);o.stop(t+.18);}
-function audioDice(){if(!audioPrefs.dice||!audioInit())return;const t=audioCtx.currentTime,d=.48,n=Math.floor(audioCtx.sampleRate*d),b=audioCtx.createBuffer(1,n,audioCtx.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n)*(.65+.35*Math.sin(i/n*Math.PI*9));const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();src.buffer=b;f.type='bandpass';f.frequency.value=1250;f.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.39,t+.025);g.gain.exponentialRampToValueAtTime(.0001,t+d);src.connect(f);f.connect(g);g.connect(audioMaster);src.start(t);src.stop(t+d);const o=audioCtx.createOscillator(),og=audioCtx.createGain();o.type='square';o.frequency.setValueAtTime(420,t+.34);o.frequency.exponentialRampToValueAtTime(115,t+.46);og.gain.setValueAtTime(.0001,t+.34);og.gain.exponentialRampToValueAtTime(.2,t+.36);og.gain.exponentialRampToValueAtTime(.0001,t+.49);o.connect(og);og.connect(audioMaster);o.start(t+.34);o.stop(t+.5);}
+function audioStep(){
+ if(!audioPrefs.steps||!audioInit())return;
+ const t=audioCtx.currentTime;
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
+ o.type='triangle';o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(72,t+.11);
+ f.type='lowpass';f.frequency.value=900;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.78,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.19);
+ o.connect(f);f.connect(g);g.connect(audioMaster);o.start(t);o.stop(t+.2);
+ const n=Math.floor(audioCtx.sampleRate*.075),b=audioCtx.createBuffer(1,n,audioCtx.sampleRate),a=b.getChannelData(0);
+ for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);
+ const ns=audioCtx.createBufferSource(),ng=audioCtx.createGain(),nf=audioCtx.createBiquadFilter();
+ ns.buffer=b;nf.type='highpass';nf.frequency.value=1100;ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.22,t+.004);ng.gain.exponentialRampToValueAtTime(.0001,t+.075);
+ ns.connect(nf);nf.connect(ng);ng.connect(audioMaster);ns.start(t);ns.stop(t+.08);
+}
+function audioDice(durationMs=900){
+ if(!audioPrefs.dice||!audioInit())return;
+ const t=audioCtx.currentTime,d=Math.max(.5,durationMs/1000),n=Math.floor(audioCtx.sampleRate*.22);
+ const b=audioCtx.createBuffer(1,n,audioCtx.sampleRate),a=b.getChannelData(0);
+ for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(.8-.5*i/n);
+ const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain(),lfo=audioCtx.createOscillator(),lg=audioCtx.createGain();
+ src.buffer=b;src.loop=true;f.type='bandpass';f.frequency.value=1750;f.Q.value=.85;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.62,t+.025);
+ lfo.type='square';lfo.frequency.value=8.5;lg.gain.value=.22;lfo.connect(lg);lg.connect(g.gain);
+ src.connect(f);f.connect(g);g.connect(audioMaster);src.start(t);lfo.start(t);
+ const stopAt=t+d-.12;g.gain.setTargetAtTime(.0001,stopAt,.035);src.stop(t+d);lfo.stop(t+d);
+ // Bunyi dadu berhenti/menyentuh papan.
+ const hit=audioCtx.createOscillator(),hg=audioCtx.createGain();hit.type='triangle';
+ hit.frequency.setValueAtTime(520,t+d-.08);hit.frequency.exponentialRampToValueAtTime(145,t+d+.035);
+ hg.gain.setValueAtTime(.0001,t+d-.08);hg.gain.exponentialRampToValueAtTime(.48,t+d-.055);hg.gain.exponentialRampToValueAtTime(.0001,t+d+.07);
+ hit.connect(hg);hg.connect(audioMaster);hit.start(t+d-.08);hit.stop(t+d+.08);
+}
 function audioSpeak(txt){if(!audioPrefs.narrator||!('speechSynthesis'in window)||!txt)return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(txt).replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim());u.lang='id-ID';u.rate=.96;u.pitch=1.04;u.volume=1;const v=window.speechSynthesis.getVoices().find(x=>/^id(-|$)/i.test(x.lang));if(v)u.voice=v;window.speechSynthesis.speak(u);}catch(e){console.warn('Narator tidak tersedia',e);}}
 function audioPanel(){audioInit();const on=k=>audioPrefs[k]?'AKTIF':'MATI';showModal('<div class="text-[9px] red font-bold tracking-widest">PENGATURAN AUDIO</div><h3 class="text-xl font-black mt-1">Suasana permainan</h3><p class="text-xs mt-2">BGM memadukan ambience horor, desis angin gaib, dan gemuruh massa demonstrasi dari kejauhan. Atur volume sesuai kenyamananmu.</p>'+[['bgm','🎼 BGM','Musik latar'],['steps','👣 Langkah pion','Saat pion berpindah petak'],['narrator','🗣️ Suara Pemandu','Narasi cerita dan peristiwa'],['dice','🎲 Suara dadu','Kocokan dan lemparan dadu']].map(([k,l,d])=>'<button class="jbtn w-full mt-2 flex items-center justify-between text-left" data-audio-key="'+k+'" onclick="jadiWniToggleAudio(this.dataset.audioKey)"><span>'+l+'<small class="block text-[9px] opacity-70">'+d+'</small></span><b id="audio-state-'+k+'">'+on(k)+'</b></button>').join('')+'<label class="block text-xs mt-4">Volume utama <span id="audio-volume-label">'+Math.round(audioPrefs.volume*100)+'%</span></label><input aria-label="Volume audio" type="range" min="0" max="100" value="'+Math.round(audioPrefs.volume*100)+'" oninput="jadiWniVolume(this.value)" class="w-full mt-2"><button class="jbtn w-full mt-4" onclick="jadiWniTestVoice()">▶ TES SUARA PEMANDU</button><button class="jbtn w-full mt-2" onclick="closeJadiWniModal()">SELESAI</button>');}
 window.jadiWniAudioPanel=audioPanel;
@@ -280,7 +308,7 @@ window.jadiWniArchive=function(){const entries=archivePeople.map(([file,name,des
 window.jadiWniRoll=async function(){
  if(!game||game.rolled||game.moving)return;
  const pl=game.players[game.turn];if(onlineRoom&&pl.user_id!==onlineUserId())return;const dice=1+Math.floor(Math.random()*6);
- audioInit();audioDice();
+ audioInit();audioDice(dice*300+180);
  game.rolled=true;game.moving=true;game.lastDice=dice;game.stepCount=0;
  game.log=pl.name+' mendapatkan angka '+dice+'. Pion bergerak mengikuti jalur papan.';
  updateRollUI();
