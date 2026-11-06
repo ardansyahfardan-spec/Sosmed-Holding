@@ -2149,7 +2149,7 @@ nav.sticky {
               </div>
               </div>
               <div id="arena-play-panel" class="hidden mt-5 rounded-2xl border border-red-900/40 bg-[#101116] p-4 sm:p-5" aria-live="polite"></div>
-              <p class="text-[10px] text-gray-600 mt-4 text-center">Poin tersimpan di database Crew. Main dengan sportif; skor tidak dapat ditukar menjadi hadiah uang.</p>
+              <p id="arena-footer-note" class="text-[10px] text-gray-600 mt-4 text-center">Poin tersimpan di database Crew. Main dengan sportif; skor tidak dapat ditukar menjadi hadiah uang.</p>
             </section>
 
             <!-- CHAT KRU · INBOX DAN ROOM -->
@@ -6338,8 +6338,10 @@ let arenaCurrent=null,arenaIndex=0,arenaScore=0,arenaAnswers=[];
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function showArenaGamePage(){
- const lobby=$('arena-lobby-view'),panel=$('arena-play-panel');if(!lobby||!panel)return;
- lobby.classList.add('hidden');panel.classList.remove('hidden');
+ const lobby=$('arena-lobby-view'),panel=$('arena-play-panel'),note=$('arena-footer-note');if(!lobby||!panel)return;
+ lobby.classList.add('hidden');lobby.style.display='none';
+ panel.classList.remove('hidden');panel.style.display='block';
+ if(note)note.style.display='none';
  panel.classList.add('arena-game-page');
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -6379,7 +6381,7 @@ window.submitArenaStory=async function(){
  const ok=await saveArenaResult('pencerita',20);
  status.textContent=ok?'Partisipasi tercatat di klasemen. Kamu mendapat 20 Poin Jiwa. Cerita tidak disimpan.':'Skor belum berhasil disimpan. Coba lagi.';
 };
-window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view');if(p)p.classList.add('hidden');if(l)l.classList.remove('hidden');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
+window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view'),note=$('arena-footer-note');if(p){p.classList.add('hidden');p.style.display='none';p.classList.remove('arena-game-page');p.innerHTML='';}if(l){l.classList.remove('hidden');l.style.display='';}if(note)note.style.display='';if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
 window.playArenaAgain=function(){if(!arenaCurrent||!arenaModes[arenaCurrent])return;const mode=arenaCurrent;arenaCurrent=null;const p=$('arena-play-panel');if(p)p.innerHTML='';window.playArena(mode);};
 async function saveArenaResult(mode,score){
  if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){alert('Sesi login belum siap. Silakan muat ulang lalu coba lagi.');return false;}
