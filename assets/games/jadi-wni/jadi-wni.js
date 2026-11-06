@@ -31,7 +31,7 @@ const tileFiles={
  'Pelabuhan':'Pelabuhan.JPG',
  'Kantor Pos':'Kantor pos.JPG'
 };
-const tileImage=name=>{const file=tileFiles[name];const cardImages={'Dana Umum':'kartu/dana-umum/dana umum.jpg','Kesempatan':'kartu/kesempatan/kesempatan.jpg'};const src=cardImages[name]?assetUrl(cardImages[name]):file?assetUrl('papan/petak/'+file):'';return src?'<img class="tile-art" src="'+src+'" alt="" loading="lazy" decoding="async">':'';};
+const tileImage=name=>{const file=tileFiles[name];const cardImages={'Dana Umum':'kartu/dana-umum/dana umum.jpg','Kesempatan':'kartu/kesempatan/kesempatan.jpg'};const src=cardImages[name]?assetUrl(cardImages[name]):file?assetUrl('papan/petak/'+file):'';return src?'<img class="tile-art" src="'+src+'" alt="" loading="eager" decoding="async">':'';};
 const characterImages={petani:'karakter/petani.jpg',buruh:'karakter/buruh.jpg',mahasiswa:'karakter/mahasiswa (2).jpg',pedagang:'karakter/pedagang.jpg',jurnalis:'karakter/wartawan.jpg',guru:'karakter/guru.jpg'};
 const characterImage=(id,cls='')=>characterImages[id]?'<img src="'+assetUrl(characterImages[id])+'" alt="'+esc(chars.find(c=>c[0]===id)?.[1]||'Karakter pemain')+'" class="'+cls+'" loading="lazy">':'';
 const chapterImages=[
