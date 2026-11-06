@@ -23,6 +23,7 @@ const tileFiles={
  'Pajak Pembangunan':'Pajak pembangunan.JPG',
  'Sekolah Negeri':'Sekolah negeri.JPG',
  'Ruang Redaksi':'Ruang redaksi.JPG',
+ 'Kantor Pers':'Ruang redaksi.JPG',
  'Tahanan':'Tahanan.JPG',
  'Koperasi':'Koperasi.JPG',
  'Rumah Sakit':'Rumah sakit.JPG',
@@ -60,7 +61,7 @@ const spaces=[
  ['Dana Umum','fund','📘'],['Rumah Sakit','asset','🏥','Kesehatan',320,75],
  ['Kesempatan','chance','🎴'],['Pajak Pembangunan','tax','🧾',140],
  ['Challenge Sejarah','challenge','🃏'],['Koperasi','asset','🤝','Ekonomi',300,70],
- ['Universitas','asset','🎓','Pendidikan',400,110],['Balai Pers','asset','📻','Pers',360,90],
+ ['Universitas','asset','🎓','Pendidikan',400,110],['Kantor Pers','asset','📰','Pers',360,90],
  ['Pelabuhan','asset','⚓','Transportasi',340,80]
 ].map(x=>({name:x[0],type:x[1],icon:x[2],group:x[3],price:x[4],rent:x[5],amount:x[1]==='tax'?x[3]:undefined}));
 const chapters=[
