@@ -1945,11 +1945,13 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 #arena-play-panel .malam-audio-controls{
  position:fixed!important;top:max(10px,env(safe-area-inset-top))!important;
  right:max(10px,env(safe-area-inset-right))!important;z-index:10020!important;
- justify-content:flex-end!important;margin:0!important;padding:5px!important;
- border:1px solid rgba(148,163,184,.2);border-radius:999px;
- background:rgba(3,7,18,.78);backdrop-filter:blur(12px);
+ display:flex!important;flex-direction:column!important;align-items:flex-end!important;
+ gap:8px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;
 }
 #arena-play-panel .malam-audio-controls button{white-space:nowrap!important;}
+#arena-play-panel .malam-audio-panel{display:flex;flex-direction:column;gap:7px;padding:9px;border:1px solid rgba(148,163,184,.28);border-radius:16px;background:rgba(3,7,18,.94);backdrop-filter:blur(14px);box-shadow:0 10px 35px rgba(0,0,0,.4);}
+#arena-play-panel .malam-audio-panel[hidden]{display:none!important;}
+#arena-play-panel .malam-audio-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(148,163,184,.35);border-radius:50%;background:rgba(3,7,18,.9);color:#e5e7eb;font-size:17px;box-shadow:0 4px 18px rgba(0,0,0,.35);}
 @media(orientation:landscape) and (max-height:520px){
  #arena-play-panel.arena-game-page{padding:8px!important;}
  #arena-play-panel .malam-audio-controls{top:max(5px,env(safe-area-inset-top))!important;right:max(6px,env(safe-area-inset-right))!important;}
@@ -6509,12 +6511,19 @@ window.loadArenaImages=function(){
 };
 let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false;
 /* AUDIO MALAM TERLARANG · BGM MP3 milik pengguna + ducking saat pemandu */
-window.__malamAudioState={audio:null,bgm:false,voice:false,lastPhase:'',timer:null};
+window.__malamAudioState={audio:null,bgm:false,voice:false,panelOpen:false,lastPhase:'',timer:null};
 window.malamAudioControls=function(){
  const a=window.__malamAudioState;
- return '<div class="malam-audio-controls flex items-center justify-end gap-2 mb-3" aria-label="Kontrol audio">'+
- '<button type="button" onclick="malamAudioToggleBgm()" class="rounded-full border border-blue-800/60 bg-blue-950/40 px-3 py-1.5 text-[10px] text-blue-100"><i class="fa-solid fa-music mr-1"></i> BGM <span id="malam-audio-bgm-state">'+(a.bgm?'ON':'OFF')+'</span></button>'+
- '<button type="button" onclick="malamAudioToggleVoice()" class="rounded-full border border-red-800/60 bg-red-950/40 px-3 py-1.5 text-[10px] text-red-100"><i class="fa-solid fa-microphone-lines mr-1"></i> Pemandu <span id="malam-audio-voice-state">'+(a.voice?'ON':'OFF')+'</span></button></div>';
+ return '<div class="malam-audio-controls" aria-label="Kontrol audio">'+
+ '<button type="button" class="malam-audio-icon" aria-label="Buka kontrol audio" aria-expanded="'+(a.panelOpen?'true':'false')+'" onclick="malamAudioTogglePanel()"><i class="fa-solid fa-volume-high"></i></button>'+
+ '<div id="malam-audio-panel" class="malam-audio-panel" '+(a.panelOpen?'':'hidden')+'>'+
+ '<button type="button" onclick="malamAudioToggleBgm()" class="rounded-full border border-blue-800/60 bg-blue-950/40 px-3 py-2 text-[10px] text-blue-100 text-left"><i class="fa-solid fa-music mr-1"></i> BGM <span id="malam-audio-bgm-state">'+(a.bgm?'ON':'OFF')+'</span></button>'+
+ '<button type="button" onclick="malamAudioToggleVoice()" class="rounded-full border border-red-800/60 bg-red-950/40 px-3 py-2 text-[10px] text-red-100 text-left"><i class="fa-solid fa-microphone-lines mr-1"></i> Pemandu <span id="malam-audio-voice-state">'+(a.voice?'ON':'OFF')+'</span></button></div></div>';
+};
+window.malamAudioTogglePanel=function(){
+ const a=window.__malamAudioState;a.panelOpen=!a.panelOpen;
+ const panel=document.getElementById('malam-audio-panel'),button=document.querySelector('.malam-audio-icon');
+ if(panel)panel.hidden=!a.panelOpen;if(button)button.setAttribute('aria-expanded',a.panelOpen?'true':'false');
 };
 window.malamAudioRefreshControls=function(){
  const a=window.__malamAudioState,b=document.getElementById('malam-audio-bgm-state'),v=document.getElementById('malam-audio-voice-state');
