@@ -12,6 +12,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%}
 #hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
+#exitgame{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;pointer-events:auto;width:44px;height:44px;border-radius:14px;border:1px solid #ffffff55;background:#080d18dd;color:#fff;font-size:23px;line-height:1;box-shadow:0 5px 20px #0009;z-index:4}
+#hud .top{padding-left:54px}
+#rotate{display:none;position:fixed;inset:0;z-index:20;background:#070b13;color:white;align-items:center;justify-content:center;text-align:center;padding:28px;font-weight:800}
+@media(orientation:portrait) and (max-width:900px){#rotate{display:flex}#hud,#start,#ending{visibility:hidden}}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .panel{background:linear-gradient(135deg,rgba(8,12,22,.9),rgba(20,13,20,.78));border:1px solid rgba(160,55,65,.45);box-shadow:0 8px 28px #0008;border-radius:13px;padding:10px 12px;backdrop-filter:blur(8px)}
 .kicker{font-size:9px;letter-spacing:.2em;color:#fca5a5;font-weight:800}
@@ -39,7 +43,9 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 </head>
 <body>
 <div id="game"></div>
+<div id="rotate">PUTAR PONSEL KE POSISI LANDSCAPE<br><span style="font-size:13px;font-weight:500;color:#cbd5e1">GHOUSTORY: DESA TERLARANG dimainkan dalam layar mendatar.</span></div>
 <div id="hud">
+ <button id="exitgame" aria-label="Kembali ke Arena" title="Kembali ke Arena">‹</button>
  <div class="top">
   <div class="panel"><div class="kicker">GHOUSTORY · CHAPTER 01</div><h1>DESA TERLARANG</h1><div id="objective">Cari petunjuk di sekitar desa.</div><div id="status">Malam Penutupan · 00.13</div></div>
   <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio">♫ AUDIO: MATI</button></div>
@@ -116,6 +122,7 @@ const body=mat(0x263b55),pants=mat(0x20232c),face=mat(0xcaa78c),eye=mat(0x090b10
 const torso=box(player,0,1.35,0,.85,1.05,.48,body),head=box(player,0,2.2,0,.65,.65,.62,face);
 box(player,-.16,2.27,.315,.07,.08,.025,eye);box(player,.16,2.27,.315,.07,.08,.025,eye);
 const legs=[box(player,-.22,.48,0,.3,.8,.34,pants),box(player,.22,.48,0,.3,.8,.34,pants)];
+legs.forEach((leg,i)=>{leg.geometry.translate(0,-.4,0);leg.position.y=.88;leg.userData.phase=i*Math.PI;});
 const arms=[box(player,-.58,1.42,0,.25,.9,.28,face),box(player,.58,1.42,0,.25,.9,.28,face)];
 const lantern=cylinder(player,.62,1.05,.12,.12,.12,.38,gold,7);
 const clues=[];
@@ -182,17 +189,19 @@ function updateGhosts(dt){
 }
 function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)continue;const d=distance(player.position,c.g.position);if(d<best){best=d;near={kind:'clue',item:c};}}
  const gd=distance(player.position,{x:0,z:-40});if(gd<3.8&&gd<best+1){near={kind:'gate'};}
- interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'DEKATKAN';}
+ interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'CARI';interact.disabled=!near;interact.setAttribute('aria-label',near?'Periksa objek':'Dekati petunjuk');}
 function updateCamera(dt){const target=new THREE.Vector3(player.position.x,player.position.y+2.2,player.position.z+5.5);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.3,player.position.z-2.5);}
 function movePlayer(dt){
  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x;
  let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y;
- const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);player.position.x+=x*5.1*dt;player.position.z+=z*5.1*dt;player.rotation.y=Math.atan2(x,z);arms[0].rotation.x=Math.sin(elapsed*10)*.25;arms[1].rotation.x=-Math.sin(elapsed*10)*.25;}
+ const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);player.position.x+=x*5.1*dt;player.position.z+=z*5.1*dt;player.rotation.y=Math.atan2(x,z);const step=Math.sin(elapsed*10);legs[0].rotation.x=step*.58;legs[1].rotation.x=-step*.58;arms[0].rotation.x=-step*.32;arms[1].rotation.x=step*.32;}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
 }
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
 const clock=new THREE.Clock();
-document.getElementById('begin').addEventListener('click',()=>{document.getElementById('start').style.display='none';reset();say('Cari cahaya kuning. Itu petunjuk yang tertinggal.');});
+async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
+document.getElementById('exitgame').addEventListener('click',async()=>{try{if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
+document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
 document.getElementById('again').addEventListener('click',reset);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
 document.getElementById('audio').addEventListener('click',()=>{audioOn=!audioOn;document.getElementById('audio').textContent='♫ AUDIO: '+(audioOn?'NYALA':'MATI');if(audioOn){try{audioCtx=audioCtx||new AudioContext();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=47;gain.gain.value=.018;osc.connect(gain);gain.connect(audioCtx.destination);osc.start();document.getElementById('audio').dataset.on='1';}catch(e){}}else if(audioCtx){audioCtx.close();audioCtx=null;}});
