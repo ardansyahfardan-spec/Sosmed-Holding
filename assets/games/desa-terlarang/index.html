@@ -26,7 +26,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 #hint{position:absolute;left:50%;top:24%;transform:translateX(-50%);font-size:11px;text-align:center;color:#fff;background:#05070bd9;border:1px solid #ffffff24;padding:8px 12px;border-radius:20px;opacity:0;transition:opacity .2s;max-width:90vw}
 #hint.show{opacity:1}
 #interact{position:absolute;right:18px;bottom:calc(24px + env(safe-area-inset-bottom));pointer-events:auto;border:1px solid #fca5a577;background:linear-gradient(135deg,#991b1b,#1d4ed8);color:white;border-radius:50%;width:68px;height:68px;font-weight:900;font-size:11px;box-shadow:0 0 25px #dc262655;display:none}
-.actionbtn{position:absolute;right:24px;bottom:calc(106px + env(safe-area-inset-bottom));pointer-events:auto;width:54px;height:54px;border-radius:50%;border:1px solid #ffffff66;background:linear-gradient(145deg,#26364eeb,#111827ed);color:#fff;font-weight:900;font-size:10px;box-shadow:0 5px 18px #0009;display:none;touch-action:none}
+.actionbtn{position:absolute;right:24px;bottom:calc(106px + env(safe-area-inset-bottom));pointer-events:auto;width:54px;height:54px;border-radius:50%;border:1px solid #ffffff66;background:linear-gradient(145deg,#26364eeb,#111827ed);color:#fff;font-weight:900;font-size:10px;box-shadow:0 5px 18px #0009;display:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #prone{right:88px;background:linear-gradient(145deg,#713f3feb,#24151ced)}
 #sprint{left:24px;right:auto;bottom:calc(170px + env(safe-area-inset-bottom));background:linear-gradient(145deg,#7c2d12eb,#1e293bed)}
 #sprint.active{border-color:#fdba74;background:linear-gradient(145deg,#c2410c,#7c2d12);box-shadow:0 0 20px #f9731666}
@@ -138,8 +138,12 @@ const jumpButton=document.getElementById('jump'),proneButton=document.getElement
 function setSprint(value){isSprinting=!!value&&!isProne;sprintButton.classList.toggle('active',isSprinting);sprintButton.textContent=isSprinting?'LARI ON':'LARI';}
 function setProne(value){isProne=!!value;if(isProne&& !grounded){isProne=false;return;}torso.position.y=isProne?.78:1.35;torso.scale.y=isProne?.62:1;head.position.y=isProne?1.25:2.2;arms.forEach((a,i)=>{a.position.y=isProne?.83:1.42;a.rotation.z=isProne?(i===0?1.05:-1.05):0;});legs.forEach((l,i)=>{l.position.y=isProne?.42:.88;l.rotation.x=0;});proneButton.textContent=isProne?'BANGUN':'TIARAP';proneButton.classList.toggle('active',isProne);}
 function doJump(){if(!running||!grounded)return;if(isProne)setProne(false);jumpVelocity=6.4;grounded=false;}
-sprintButton.addEventListener('pointerdown',e=>{e.preventDefault();sprintButton.setPointerCapture(e.pointerId);setSprint(true);});
-['pointerup','pointercancel','lostpointercapture'].forEach(ev=>sprintButton.addEventListener(ev,()=>setSprint(false)));
+const sprintPointers=new Set();
+sprintButton.addEventListener('pointerdown',e=>{e.preventDefault();sprintPointers.add(e.pointerId);try{sprintButton.setPointerCapture(e.pointerId);}catch(_){}setSprint(true);});
+function releaseSprintPointer(e){sprintPointers.delete(e.pointerId);setSprint(sprintPointers.size>0);}
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>sprintButton.addEventListener(ev,releaseSprintPointer));
+jumpButton.addEventListener('pointerdown',e=>{e.preventDefault();try{jumpButton.setPointerCapture(e.pointerId);}catch(_){}doJump();});
+proneButton.addEventListener('pointerdown',e=>{e.preventDefault();try{proneButton.setPointerCapture(e.pointerId);}catch(_){}if(running&&grounded)setProne(!isProne);});
 const lantern=cylinder(player,.62,1.05,.12,.12,.12,.38,gold,7);
 const clues=[];
 function clue(x,z,label){
@@ -235,8 +239,7 @@ function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';
 function reset(){player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>g.g.position.copy(g.home));updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
 function collect(){if(!near)return;if(near.kind==='clue'){near.item.found=true;near.item.g.visible=false;updateCount();say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';say('Tiga bukti lengkap. Gerbang balai desa terbuka!');gate.material=mat(0x493d31);}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;document.getElementById('ending').style.display='flex';}else say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}
 interact.addEventListener('click',collect);
-jumpButton.addEventListener('click',doJump);
-proneButton.addEventListener('click',()=>{if(running&&grounded)setProne(!isProne);});
+
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const joy=document.getElementById('joystick'),stick=document.getElementById('stick');let joyId=null;
