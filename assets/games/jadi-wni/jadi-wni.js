@@ -6,12 +6,12 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'Rp '+Math.max(0,Math.round(n)).toLocaleString('id-ID');
 const chars=[
- ['petani','Petani','🌾','Mengolah tanah dan menjaga pangan rakyat.'],
- ['buruh','Buruh','🧰','Menggerakkan roda industri.'],
- ['mahasiswa','Mahasiswa','🎓','Menyuarakan perubahan.'],
- ['pedagang','Pedagang','🧺','Menghidupkan ekonomi kecil.'],
- ['jurnalis','Jurnalis','📰','Merawat informasi dan kebebasan pers.'],
- ['guru','Guru','📚','Menjaga akses pendidikan.']
+ ['petani','Petani','👨‍🌾','Mengolah tanah dan menjaga pangan rakyat.'],
+ ['buruh','Buruh','👷','Menggerakkan roda industri.'],
+ ['mahasiswa','Mahasiswa','🧑‍🎓','Menyuarakan perubahan.'],
+ ['pedagang','Pedagang','🧑‍💼','Menghidupkan ekonomi kecil.'],
+ ['jurnalis','Jurnalis','🧑‍💻','Merawat informasi dan kebebasan pers.'],
+ ['guru','Guru','🧑‍🏫','Menjaga akses pendidikan.']
 ];
 const spaces=[
  ['MULAI','start','🚩'],['Tanah Garapan','asset','🌾','Agraria',180,35],['Dana Umum','fund','📘'],
