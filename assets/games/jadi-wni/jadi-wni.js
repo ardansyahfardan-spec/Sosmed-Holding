@@ -14,21 +14,23 @@ const chars=[
  ['guru','Guru','🧑‍🏫','Menjaga akses pendidikan.']
 ];
 const assetUrl=path=>'assets/games/jadi-wni/'+path.split('/').map(encodeURIComponent).join('/');
-const tileAliases={
- 'Tanah Garapan':['tanah','tanah garapan'],
- 'Pasar Rakyat':['pasar','pasar rakyat'],
- 'Pabrik Tekstil':['pabrik','pabrik tekstil'],
- 'Sekolah Negeri':['sekolah','sekolah negeri'],
- 'Ruang Redaksi':['redaksi','ruang redaksi'],
- 'Rumah Sakit':['rumah sakit','rumahsakit'],
- 'Kawasan Industri':['industri','kawasan industri'],
- 'Koperasi':['koperasi'],
- 'Universitas':['universitas'],
- 'Balai Pers':['pers','balai pers'],
- 'Pelabuhan':['pelabuhan']
+const tileFiles={
+ 'Bebas Parkir':'Bebas parkir.JPG',
+ 'Tanah Garapan':'Tanah garapan.JPG',
+ 'Pasar Rakyat':'Pasar rakyat.JPG',
+ 'Pabrik Tekstil':'Pabrik tekstil.JPG',
+ 'Pajak Negara':'Pajak negara.JPG',
+ 'Pajak Pembangunan':'Pajak pembangunan.JPG',
+ 'Sekolah Negeri':'Sekolah negeri.JPG',
+ 'Ruang Redaksi':'Ruang redaksi.JPG',
+ 'Tahanan':'Tahanan.JPG',
+ 'Koperasi':'Koperasi.JPG',
+ 'Rumah Sakit':'Rumah sakit.JPG',
+ 'Universitas':'Universitas .JPG',
+ 'Pelabuhan':'Pelabuhan.JPG',
+ 'Kantor Pos':'Kantor pos.JPG'
 };
-const tileImage=name=>{const slug=v=>String(v).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');const names=[...(tileAliases[name]||[]),name,name.toLowerCase()].flatMap(v=>[v,slug(v),slug(v).replace(/-/g,' '),slug(v).replace(/-/g,'_')]);const files=[...new Set(names)].flatMap(n=>['jpg','jpeg','png','webp'].map(ext=>'petak/'+n+'.'+ext));return '<img class="tile-art" src="'+assetUrl(files[0])+'" data-candidates="'+esc(JSON.stringify(files))+'" data-index="0" alt="" loading="lazy" onerror="window.jwniTileImageError(this)">';};
-window.jwniTileImageError=function(img){try{const files=JSON.parse(img.dataset.candidates||'[]'),next=Number(img.dataset.index||0)+1;if(next>=files.length){img.remove();return;}img.dataset.index=String(next);img.src=assetUrl(files[next]);}catch(e){img.remove();}};
+const tileImage=name=>{const file=tileFiles[name];return file?'<img class="tile-art" src="'+assetUrl('papan/petak/'+file)+'" alt="" loading="lazy" decoding="async">':'';};
 const characterImages={petani:'karakter/petani.jpg',buruh:'karakter/buruh.jpg',mahasiswa:'karakter/mahasiswa (2).jpg',pedagang:'karakter/pedagang.jpg',jurnalis:'karakter/wartawan.jpg',guru:'karakter/guru.jpg'};
 const characterImage=(id,cls='')=>characterImages[id]?'<img src="'+assetUrl(characterImages[id])+'" alt="'+esc(chars.find(c=>c[0]===id)?.[1]||'Karakter pemain')+'" class="'+cls+'" loading="lazy">':'';
 const chapterImages=[
