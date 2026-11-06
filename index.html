@@ -6415,6 +6415,12 @@ async function arenaFetchPack(mode){
  return null;
 }
 window.playArena=async function(mode){
+ if(mode==='berkas'){
+  arenaCurrent='berkas';showArenaGamePage();
+  const panel=$('arena-play-panel');
+  panel.innerHTML=arenaBackHeader('PETUALANGAN 3D','GHOUSTORY: DESA TERLARANG')+'<div class="overflow-hidden rounded-2xl border border-red-900/40 bg-black" style="height:min(78dvh,820px);min-height:520px"><iframe title="GHOUSTORY: Desa Terlarang" src="./assets/games/desa-terlarang/index.html" style="display:block;width:100%;height:100%;border:0" allow="autoplay; fullscreen; gamepad"></iframe></div>';
+  return;
+ }
  if(mode==='jadi_wni'){if(typeof window.playJadiWni==='function'){window.playJadiWni();}else{console.error('JADI WNI script belum siap dimuat.');alert('Game JADI WNI belum siap. Muat ulang halaman.');}return;}
  if(!arenaModes[mode])return;
  arenaCurrent=mode;arenaIndex=0;arenaStep=0;arenaScore=0;arenaAnswers=[];
