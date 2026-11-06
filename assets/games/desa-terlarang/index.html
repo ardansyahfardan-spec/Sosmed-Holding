@@ -28,6 +28,8 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 #interact{position:absolute;right:18px;bottom:calc(24px + env(safe-area-inset-bottom));pointer-events:auto;border:1px solid #fca5a577;background:linear-gradient(135deg,#991b1b,#1d4ed8);color:white;border-radius:50%;width:68px;height:68px;font-weight:900;font-size:11px;box-shadow:0 0 25px #dc262655;display:none}
 .actionbtn{position:absolute;right:24px;bottom:calc(106px + env(safe-area-inset-bottom));pointer-events:auto;width:54px;height:54px;border-radius:50%;border:1px solid #ffffff66;background:linear-gradient(145deg,#26364eeb,#111827ed);color:#fff;font-weight:900;font-size:10px;box-shadow:0 5px 18px #0009;display:none;touch-action:none}
 #prone{right:88px;background:linear-gradient(145deg,#713f3feb,#24151ced)}
+#sprint{right:24px;bottom:calc(170px + env(safe-area-inset-bottom));background:linear-gradient(145deg,#7c2d12eb,#1e293bed)}
+#sprint.active{border-color:#fdba74;background:linear-gradient(145deg,#c2410c,#7c2d12);box-shadow:0 0 20px #f9731666}
 .actionbtn.active{border-color:#fca5a5;background:linear-gradient(145deg,#991b1b,#31213a);box-shadow:0 0 18px #dc262666}
 #joystick{position:absolute;left:18px;bottom:calc(25px + env(safe-area-inset-bottom));width:118px;height:118px;border-radius:50%;border:1px solid #ffffff45;background:#07101d88;pointer-events:auto;display:none}
 #stick{position:absolute;width:48px;height:48px;left:34px;top:34px;border-radius:50%;background:linear-gradient(135deg,#64748b,#1e293b);border:1px solid #ffffff77;box-shadow:0 3px 12px #0009}
@@ -57,6 +59,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <div id="joystick"><div id="stick"></div></div>
  <button id="jump" class="actionbtn" aria-label="Lompat">LOMPAT</button>
  <button id="prone" class="actionbtn" aria-label="Tiarap">TIARAP</button>
+ <button id="sprint" class="actionbtn" aria-label="Lari">LARI</button>
  <button id="interact">PERIKSA</button>
 </div>
 <div id="start"><div class="card">
@@ -129,10 +132,14 @@ box(player,-.16,2.27,.315,.07,.08,.025,eye);box(player,.16,2.27,.315,.07,.08,.02
 const legs=[box(player,-.22,.48,0,.3,.8,.34,pants),box(player,.22,.48,0,.3,.8,.34,pants)];
 legs.forEach((leg,i)=>{leg.geometry.translate(0,-.4,0);leg.position.y=.88;leg.userData.phase=i*Math.PI;});
 const arms=[box(player,-.58,1.42,0,.25,.9,.28,face),box(player,.58,1.42,0,.25,.9,.28,face)];
-let isProne=false,jumpVelocity=0,grounded=true;
-const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone');
+let isProne=false,jumpVelocity=0,grounded=true,isSprinting=false;
+let cameraYaw=0,cameraPitch=0.16,cameraPointer=null,lastCameraX=0,lastCameraY=0;
+const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone'),sprintButton=document.getElementById('sprint');
+function setSprint(value){isSprinting=!!value&&!isProne;sprintButton.classList.toggle('active',isSprinting);sprintButton.textContent=isSprinting?'LARI ON':'LARI';}
 function setProne(value){isProne=!!value;if(isProne&& !grounded){isProne=false;return;}torso.position.y=isProne?.78:1.35;torso.scale.y=isProne?.62:1;head.position.y=isProne?1.25:2.2;arms.forEach((a,i)=>{a.position.y=isProne?.83:1.42;a.rotation.z=isProne?(i===0?1.05:-1.05):0;});legs.forEach((l,i)=>{l.position.y=isProne?.42:.88;l.rotation.x=0;});proneButton.textContent=isProne?'BANGUN':'TIARAP';proneButton.classList.toggle('active',isProne);}
 function doJump(){if(!running||!grounded)return;if(isProne)setProne(false);jumpVelocity=6.4;grounded=false;}
+sprintButton.addEventListener('pointerdown',e=>{e.preventDefault();sprintButton.setPointerCapture(e.pointerId);setSprint(true);});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>sprintButton.addEventListener(ev,()=>setSprint(false)));
 const lantern=cylinder(player,.62,1.05,.12,.12,.12,.38,gold,7);
 const clues=[];
 function clue(x,z,label){
@@ -169,7 +176,7 @@ function ghost(type,x,z){
  }
  ghosts.push({type,g,home:new THREE.Vector3(x,0,z),phase:Math.random()*6,alert:false});
 }
-ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);
+ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);ghost('tuyul',-28,2);
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
 const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false;
@@ -194,20 +201,30 @@ function updateGhosts(dt){
  for(const gh of ghosts){
   const p=gh.g.position,d=distance(p,player.position);gh.phase+=dt;
   const active=d<(isProne?5.5:12);
-  if(active&&d>1.8){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.35:gh.type==='anak'?1.05:gh.type==='nenek'?1.0:1.2;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
+  if(active&&d>1.8){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.55:gh.type==='tuyul'?2.35:gh.type==='pocong'?1.8:gh.type==='anak'?1.15:gh.type==='nenek'?.85:gh.type==='kuntilanak'?1.05:1.1;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
   else if(!active){p.x=gh.home.x+Math.sin(gh.phase*.35)*1.5;p.z=gh.home.z+Math.cos(gh.phase*.3)*1.5;}
-  gh.g.position.y=(gh.type==='anak'?.05:0)+Math.sin(gh.phase*2)*.08;
+  const bob=gh.type==='pocong'?Math.abs(Math.sin(gh.phase*4.2))*.42:gh.type==='kuntilanak'?.32+Math.sin(gh.phase*1.7)*.18:gh.type==='tuyul'?.04+Math.abs(Math.sin(gh.phase*6))*.12:Math.sin(gh.phase*2)*.035;
+  gh.g.position.y=bob;gh.g.rotation.z=gh.type==='kuntilanak'?Math.sin(gh.phase*1.2)*.045:gh.type==='nenek'?Math.sin(gh.phase*1.1)*.035:0;gh.g.scale.setScalar(gh.type==='genderuwo'?1+Math.sin(gh.phase*2)*.012:1);
   if(d<(isProne?1.35:2.1)&&invuln<=0){health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}}
  }
 }
 function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)continue;const d=distance(player.position,c.g.position);if(d<best){best=d;near={kind:'clue',item:c};}}
  const gd=distance(player.position,{x:0,z:-40});if(gd<3.8&&gd<best+1){near={kind:'gate'};}
  interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'CARI';interact.disabled=!near;interact.setAttribute('aria-label',near?'Periksa objek':'Dekati petunjuk');}
-function updateCamera(dt){const target=new THREE.Vector3(player.position.x,player.position.y+2.2,player.position.z+5.5);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.3,player.position.z-2.5);}
+function updateCamera(dt){
+ const distanceBehind=6.2,focusY=player.position.y+1.45;
+ const target=new THREE.Vector3(player.position.x+Math.sin(cameraYaw)*distanceBehind,focusY+Math.sin(cameraPitch)*distanceBehind,player.position.z+Math.cos(cameraYaw)*distanceBehind);
+ camera.position.lerp(target,1-Math.pow(.0004,dt));camera.lookAt(player.position.x,focusY,player.position.z);
+}
+const cameraSurface=document.getElementById('game');
+cameraSurface.addEventListener('pointerdown',e=>{if(!running||e.clientX<innerWidth*.34||e.target.closest('button')||e.target.closest('#joystick'))return;cameraPointer=e.pointerId;lastCameraX=e.clientX;lastCameraY=e.clientY;try{cameraSurface.setPointerCapture(cameraPointer);}catch(_){}});
+cameraSurface.addEventListener('pointermove',e=>{if(e.pointerId!==cameraPointer)return;const dx=e.clientX-lastCameraX,dy=e.clientY-lastCameraY;lastCameraX=e.clientX;lastCameraY=e.clientY;cameraYaw-=dx*.006;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.004,-.18,.62);});
+function endCameraDrag(e){if(e.pointerId===cameraPointer)cameraPointer=null;}
+cameraSurface.addEventListener('pointerup',endCameraDrag);cameraSurface.addEventListener('pointercancel',endCameraDrag);
 function movePlayer(dt){
  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x;
  let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y;
- const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);const speed=isProne?2.25:5.1;player.position.x+=x*speed*dt;player.position.z+=z*speed*dt;player.rotation.y=Math.atan2(x,z);const step=Math.sin(elapsed*(isProne?5:10));if(!isProne){legs[0].rotation.x=step*.58;legs[1].rotation.x=-step*.58;arms[0].rotation.x=-step*.32;arms[1].rotation.x=step*.32;}else{legs[0].rotation.x=.12+step*.08;legs[1].rotation.x=.12-step*.08;}}
+ const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);const forwardX=-Math.sin(cameraYaw),forwardZ=-Math.cos(cameraYaw),rightX=Math.cos(cameraYaw),rightZ=-Math.sin(cameraYaw);const worldX=rightX*x-forwardX*z,worldZ=rightZ*x-forwardZ*z;const speed=isProne?2.25:isSprinting?8.2:5.1;player.position.x+=worldX*speed*dt;player.position.z+=worldZ*speed*dt;player.rotation.y=Math.atan2(worldX,worldZ);const step=Math.sin(elapsed*(isProne?5:10));if(!isProne){legs[0].rotation.x=step*.58;legs[1].rotation.x=-step*.58;arms[0].rotation.x=-step*.32;arms[1].rotation.x=step*.32;}else{legs[0].rotation.x=.12+step*.08;legs[1].rotation.x=.12-step*.08;}}
  else if(!isProne){legs[0].rotation.x=THREE.MathUtils.damp(legs[0].rotation.x,0,9,dt);legs[1].rotation.x=THREE.MathUtils.damp(legs[1].rotation.x,0,9,dt);arms[0].rotation.x=THREE.MathUtils.damp(arms[0].rotation.x,0,9,dt);arms[1].rotation.x=THREE.MathUtils.damp(arms[1].rotation.x,0,9,dt);}
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
@@ -216,7 +233,7 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
-document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
+document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';sprintButton.style.display='block';reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
 document.getElementById('again').addEventListener('click',reset);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
 document.getElementById('audio').addEventListener('click',()=>{audioOn=!audioOn;document.getElementById('audio').textContent='♫ AUDIO: '+(audioOn?'NYALA':'MATI');if(audioOn){try{audioCtx=audioCtx||new AudioContext();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=47;gain.gain.value=.018;osc.connect(gain);gain.connect(audioCtx.destination);osc.start();document.getElementById('audio').dataset.on='1';}catch(e){}}else if(audioCtx){audioCtx.close();audioCtx=null;}});
