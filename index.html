@@ -2888,6 +2888,19 @@ nav.sticky {
         // ================= SUPABASE CONNECTION =================
         const SUPABASE_URL = 'https://xnbqckfbrrmdjiemfwqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
+        // Bootstrap: fungsi inbox tersedia sebelum skrip chat lanjutan selesai dimuat.
+        // Mencegah proses login awal gagal pada perangkat yang menjalankan callback auth lebih cepat.
+        window.showChatInbox = function showChatInboxBootstrap(){
+            document.getElementById("main-app")?.classList.remove("chat-room-mode");
+            const page=document.getElementById("page-chat");
+            const panel=document.getElementById("chat-room-panel");
+            const sidebar=document.getElementById("chat-sidebar");
+            page?.classList.remove("chat-room-open");
+            panel?.classList.add("hidden");
+            sidebar?.classList.remove("hidden");
+            document.getElementById("direct-chat-card")?.classList.add("hidden");
+            document.getElementById("group-chat-card")?.classList.add("hidden");
+        };
         // Jangan hentikan seluruh aplikasi jika CDN SDK terlambat/gagal dimuat.
         let supabaseClient = (window.supabase && typeof window.supabase.createClient === 'function')
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
