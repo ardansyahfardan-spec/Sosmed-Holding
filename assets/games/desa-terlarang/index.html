@@ -41,7 +41,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 .small{font-size:10px;color:#94a3b8}
 #ending{display:none}
 #ending .card{max-height:85vh;overflow:auto}
-#audio{pointer-events:auto;border:1px solid #ffffff35;background:#080d18cc;color:#ddd;border-radius:10px;padding:8px 10px;font-size:10px}
+#audio{pointer-events:auto;border:1px solid #ffffff45;background:#080d18eF;color:#fff;border-radius:50%;width:38px;height:38px;font-size:17px;margin-top:5px}#audio-menu{position:absolute;right:12px;top:82px;z-index:30;display:flex;flex-direction:column;gap:7px;padding:9px;border:1px solid #ffffff35;border-radius:13px;background:#080d18f2;box-shadow:0 8px 24px #0009}#audio-menu[hidden]{display:none}#audio-menu button{pointer-events:auto;white-space:nowrap;border:1px solid #ffffff24;border-radius:9px;background:#101a2b;color:#f1f5f9;padding:9px 12px;font-size:10px;text-align:left}
 @media(hover:none),(pointer:coarse){#joystick,#interact{display:block}}
 @media(max-width:420px){.panel{padding:8px 9px}h1{font-size:12px}#objective{font-size:10px}}
 </style>
@@ -53,7 +53,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <button id="exitgame" aria-label="Kembali ke Arena" title="Kembali ke Arena">‹</button>
  <div class="top">
   <div class="panel"><div class="kicker">GHOUSTORY · CHAPTER 01</div><h1>DESA TERLARANG</h1><div id="objective">Cari petunjuk di sekitar desa.</div><div id="status">Malam Penutupan · 00.13</div></div>
-  <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio">♫ AUDIO: MATI</button></div>
+  <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio" aria-label="Kontrol audio" aria-expanded="false" title="Kontrol audio">🔊</button><div id="audio-menu" hidden><button id="audio-bgm" type="button">♫ BGM: MATI</button><button id="audio-voice" type="button">🎙 PEMANDU: MATI</button></div></div>
  </div>
  <div id="hint"></div>
  <div id="joystick"><div id="stick"></div></div>
@@ -228,9 +228,9 @@ function ghost(type,x,z){
 ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);ghost('tuyul',-28,2);
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
 const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
-let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false;
+let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
-function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);}
+function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
 function reset(){player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>g.g.position.copy(g.home));updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
 function collect(){if(!near)return;if(near.kind==='clue'){near.item.found=true;near.item.g.visible=false;updateCount();say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';say('Tiga bukti lengkap. Gerbang balai desa terbuka!');gate.material=mat(0x493d31);}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;document.getElementById('ending').style.display='flex';}else say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}
@@ -285,7 +285,7 @@ document.getElementById('exitgame').addEventListener('click',async()=>{try{if(pa
 document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';sprintButton.style.display='block';reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
 document.getElementById('again').addEventListener('click',reset);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
-document.getElementById('audio').addEventListener('click',()=>{audioOn=!audioOn;document.getElementById('audio').textContent='♫ AUDIO: '+(audioOn?'NYALA':'MATI');if(audioOn){try{audioCtx=audioCtx||new AudioContext();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=47;gain.gain.value=.018;osc.connect(gain);gain.connect(audioCtx.destination);osc.start();document.getElementById('audio').dataset.on='1';}catch(e){}}else if(audioCtx){audioCtx.close();audioCtx=null;}});
+const audioButton=document.getElementById('audio'),audioMenu=document.getElementById('audio-menu'),bgmButton=document.getElementById('audio-bgm'),voiceButton=document.getElementById('audio-voice');function refreshAudio(){bgmButton.textContent='♫ BGM: '+(audioOn?'NYALA':'MATI');voiceButton.textContent='🎙 PEMANDU: '+(voiceOn?'NYALA':'MATI');}audioButton.addEventListener('click',()=>{audioMenu.hidden=!audioMenu.hidden;audioButton.setAttribute('aria-expanded',audioMenu.hidden?'false':'true');});bgmButton.addEventListener('click',()=>{audioOn=!audioOn;if(audioOn){try{const AC=window.AudioContext||window.webkitAudioContext;audioCtx=audioCtx||new AC();if(audioCtx.state==='suspended')audioCtx.resume();ambientOsc=audioCtx.createOscillator();ambientGain=audioCtx.createGain();ambientOsc.type='sine';ambientOsc.frequency.value=47;ambientGain.gain.value=.018;ambientOsc.connect(ambientGain);ambientGain.connect(audioCtx.destination);ambientOsc.start();}catch(e){audioOn=false;console.warn('BGM tidak tersedia:',e);}}else{try{ambientOsc?.stop();}catch(e){}ambientOsc=null;ambientGain=null;if(audioCtx){audioCtx.close();audioCtx=null;}}refreshAudio();});voiceButton.addEventListener('click',()=>{voiceOn=!voiceOn;if(!voiceOn&&('speechSynthesis'in window))speechSynthesis.cancel();refreshAudio();});refreshAudio();
 animate();
 </script>
 </body>
