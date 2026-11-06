@@ -6854,7 +6854,7 @@ function malamPlayerCard(x,phase){
  const alive=!!x.is_alive,avatar=x.avatar_url||'';
  const photo=avatar?'<img src="'+esc(avatar)+'" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">':'<span class="text-xs font-black">'+esc((x.nickname||'C').trim().slice(0,1).toUpperCase())+'</span>';
  return '<div class="flex items-center gap-2 rounded-xl border '+(x.is_host?'border-blue-800/70':'border-gray-800')+' '+(alive?'bg-gray-950/70':'bg-black/30 opacity-60')+' p-2">'+
- '<div class="relative w-9 h-9 shrink-0 overflow-hidden rounded-full border '+(alive?'border-red-500/70 bg-gradient-to-br from-red-900 to-blue-950 text-red-100':'border-gray-700 bg-gray-800 text-gray-500')+' flex items-center justify-center">'+photo+(alive?'':'<span class="absolute inset-0 flex items-center justify-center bg-black/55"><i class="fa-solid fa-skull text-xs"></i></span>')+'</div>'+
+ '<div class="relative w-9 h-9 shrink-0 overflow-visible rounded-full '+(alive?'':'opacity-90 grayscale')+' flex items-center justify-center">'+(alive?photo:'<img src="assets/arena/status/Mati.png" alt="Mati" class="w-full h-full object-contain">')+(alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-4 h-4 object-contain drop-shadow">':'')+'</div>'+
  '<div class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(x.nickname)+(x.user_id===activeUser.id?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(x.is_host?'text-blue-300':'text-gray-500')+'">'+(x.is_host?'HOST · ':'')+(phase==='lobby'?(x.is_ready?'SIAP':'BELUM SIAP'):(alive?'MASIH BERTAHAN':'TERELIMINASI'))+'</small></div>'+
  '<span class="text-[9px] '+(alive?'text-green-400':'text-gray-600')+'">'+(alive?'HIDUP':'GUGUR')+'</span></div>';
 }
@@ -6868,8 +6868,8 @@ function malamArenaMarkup(players,phase){
   const avatar=x.avatar_url||'',initial=esc((x.nickname||'C').trim().slice(0,1).toUpperCase());
   const photo=avatar?'<img src="'+esc(avatar)+'" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover">':'<span class="text-lg font-black">'+initial+'</span>';
   return '<div class="absolute flex flex-col flex-nowrap items-center gap-1" style="left:'+left+'%;top:'+top+'%;transform:translate(-50%,-50%);width:'+seatWidth+'px;--malam-seat-width:'+seatWidth+'px;z-index:2">'+
-   '<div class="relative rounded-full overflow-hidden border-2 '+(alive?(day?'border-amber-100 shadow-[0_0_0_2px_rgba(251,191,36,.38),0_0_20px_rgba(255,235,160,.85)]':'border-red-500 shadow-[0_0_14px_rgba(239,68,68,.45)]'):'border-gray-600 grayscale opacity-55')+' '+(day?'bg-amber-100 text-amber-950':'bg-gradient-to-br from-red-950 to-blue-950 text-white')+' flex items-center justify-center" style="width:'+avatarSize+'px;height:'+avatarSize+'px">'+photo+
-   (alive?'<span class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#080b12] bg-green-400"></span>':'<span class="absolute inset-0 flex items-center justify-center bg-black/50"><i class="fa-solid fa-skull text-sm text-gray-100"></i></span>')+
+   '<div class="relative rounded-full overflow-visible '+(alive?'':'grayscale opacity-90')+' flex items-center justify-center" style="width:'+avatarSize+'px;height:'+avatarSize+'px">'+(alive?photo:'<img src="assets/arena/status/Mati.png" alt="Mati" class="w-full h-full object-contain">')+
+   (alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-5 h-5 object-contain drop-shadow">':'')+
    '</div>'+
    (x.user_id===activeUser.id?'<span class="rounded-full bg-blue-600 px-2 py-0.5 text-[7px] leading-none font-black tracking-wider text-white shadow">KAMU</span>':'')+
    '<b class="block w-full max-w-full truncate rounded-full bg-black/65 px-1.5 py-0.5 text-center '+(alive?(day?'text-amber-50':'text-gray-100'):'text-gray-300')+'" style="font-size:'+(compact?'7px':medium?'8px':'9px')+';line-height:1.15">'+esc(x.nickname)+'</b>'+
