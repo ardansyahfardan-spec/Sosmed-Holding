@@ -1929,6 +1929,31 @@ nav.sticky {
  #arena-play-panel .malam-arena-board .absolute.flex{width:var(--malam-seat-width,64px)!important;}
 }
 
+
+/* Semua permainan Arena dibuka sebagai layar penuh tanpa bingkai aplikasi. */
+body:has(#arena-play-panel.arena-game-page){padding-bottom:0!important;overflow:hidden!important;}
+body:has(#arena-play-panel.arena-game-page) #main-app>nav,
+body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!important;}
+#arena-play-panel.arena-game-page{
+ position:fixed!important;inset:0!important;z-index:9990!important;
+ display:block!important;width:100vw!important;height:100vh!important;height:100dvh!important;
+ max-width:none!important;margin:0!important;padding:12px!important;
+ overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+#arena-play-panel.arena-game-page iframe{display:block!important;width:100%!important;height:100%!important;min-height:100%!important;border:0!important;border-radius:0!important;}
+#arena-play-panel .malam-audio-controls{
+ position:fixed!important;top:max(10px,env(safe-area-inset-top))!important;
+ right:max(10px,env(safe-area-inset-right))!important;z-index:10020!important;
+ justify-content:flex-end!important;margin:0!important;padding:5px!important;
+ border:1px solid rgba(148,163,184,.2);border-radius:999px;
+ background:rgba(3,7,18,.78);backdrop-filter:blur(12px);
+}
+#arena-play-panel .malam-audio-controls button{white-space:nowrap!important;}
+@media(orientation:landscape) and (max-height:520px){
+ #arena-play-panel.arena-game-page{padding:8px!important;}
+ #arena-play-panel .malam-audio-controls{top:max(5px,env(safe-area-inset-top))!important;right:max(6px,env(safe-area-inset-right))!important;}
+}
 </style>
 <style>
 /* Trial chat: modal mengikuti area layar yang masih terlihat saat keyboard HP terbuka. */
@@ -6487,7 +6512,7 @@ let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false
 window.__malamAudioState={audio:null,bgm:false,voice:false,lastPhase:'',timer:null};
 window.malamAudioControls=function(){
  const a=window.__malamAudioState;
- return '<div class="flex items-center justify-center gap-2 mb-3" aria-label="Kontrol audio">'+
+ return '<div class="malam-audio-controls flex items-center justify-end gap-2 mb-3" aria-label="Kontrol audio">'+
  '<button type="button" onclick="malamAudioToggleBgm()" class="rounded-full border border-blue-800/60 bg-blue-950/40 px-3 py-1.5 text-[10px] text-blue-100"><i class="fa-solid fa-music mr-1"></i> BGM <span id="malam-audio-bgm-state">'+(a.bgm?'ON':'OFF')+'</span></button>'+
  '<button type="button" onclick="malamAudioToggleVoice()" class="rounded-full border border-red-800/60 bg-red-950/40 px-3 py-1.5 text-[10px] text-red-100"><i class="fa-solid fa-microphone-lines mr-1"></i> Pemandu <span id="malam-audio-voice-state">'+(a.voice?'ON':'OFF')+'</span></button></div>';
 };
