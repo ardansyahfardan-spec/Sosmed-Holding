@@ -6678,14 +6678,26 @@ window.malamTrialNight=function(force){
  }
  if(me.alive&&['siluman','paranormal','penjaga'].includes(me.role)&&!s.selected&&!force){malamTrialNotice('Pilih target terlebih dahulu.');return;}
  if(me.alive&&me.role==='paranormal'&&s.selected){const target=s.players.find(p=>p.id===s.selected);if(target){s.investigation={name:target.name,role:target.role};s.log.push('Hasil rahasia: '+target.name+(target.role==='siluman'?' adalah Siluman.':' bukan Siluman.'));}}
- if(me.alive&&me.role==='penjaga')s.protected=s.selected;
+ const protectedTargets=[];
+ if(me.alive&&me.role==='penjaga'&&s.selected)protectedTargets.push(s.selected);
  const aiGuard=alive.find(p=>p.role==='penjaga'&&p.isAI);
- if(aiGuard){const choices=alive.filter(p=>p.id!=='t0');if(choices.length)s.protected=choices[Math.floor(Math.random()*choices.length)].id;}
+ if(aiGuard){const choices=alive.filter(p=>p.id!==aiGuard.id);if(choices.length)protectedTargets.push(choices[Math.floor(Math.random()*choices.length)].id);}
+ const aiParanormal=alive.find(p=>p.role==='paranormal'&&p.isAI);
+ if(aiParanormal){
+  const choices=alive.filter(p=>p.id!==aiParanormal.id);
+  if(choices.length){const inspected=choices[Math.floor(Math.random()*choices.length)];inspected.suspicion=Math.max(0,Math.min(1,(inspected.suspicion||0)+(inspected.role==='siluman'?.7:-.25)));}
+ }
  let event='Malam berlalu tanpa korban.';
- if(attack&&attack===s.protected){event='Seseorang hampir menjadi korban, tetapi berhasil diselamatkan Penjaga.';}
+ if(attack&&protectedTargets.includes(attack)){event='Seseorang hampir menjadi korban, tetapi berhasil diselamatkan Penjaga.';}
  else if(attack){const victim=s.players.find(p=>p.id===attack);if(victim&&victim.alive){victim.alive=false;event=victim.name+' ditemukan gugur saat pagi tiba.';}}
  s.lastEvent=event;s.log.push('Pagi hari: '+event);s.phase='discussion';s.phaseStartedAt=Date.now();s.selected=null;s.protected=null;s.modal=null;
- malamTrialCheck();malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else malamNotify('PAGI TIBA',event,'phase');
+ malamTrialCheck();malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else{
+  malamNotify('PAGI TIBA',event,'phase');
+  if(me.alive&&me.role==='paranormal'&&s.investigation){
+   const result=s.investigation.role==='siluman'?'adalah Siluman':'bukan Siluman';
+   setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',s.investigation.name+' '+result+'. Hanya kamu yang dapat melihat hasil ini.','phase'),1200);
+  }
+ }
 };
 window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();setTimeout(()=>malamTrialOpen('vote'),180);malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
 window.malamTrialVote=function(force){
@@ -6839,6 +6851,13 @@ window.malamLoadState=async function(){
  if(!malamRoomId)return;malamStartClock();
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
  if(error){malamMsg(error.message);return;}
+ if(data?.my_role==='paranormal'&&data?.investigation){
+  const resultKey=malamRoomId+':'+data.room?.round_no+':'+data.investigation;
+  if(window.__malamLastInvestigationKey!==resultKey){
+   window.__malamLastInvestigationKey=resultKey;
+   malamNotify('HASIL PEMERIKSAAN',data.investigation==='siluman'?'TARGET ADALAH SILUMAN':'TARGET BUKAN SILUMAN','phase');
+  }
+ }
  const ids=(data?.players||[]).map(x=>x.user_id).filter(Boolean);
  if(ids.length){
   const {data:profiles,error:profileError}=await supabaseClient.from('ghoustory_profiles').select('user_id,avatar_url').in('user_id',ids);
