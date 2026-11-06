@@ -6400,6 +6400,7 @@ async function arenaFetchPack(mode){
  return null;
 }
 window.playArena=async function(mode){
+ if(mode==='jadi_wni'){if(typeof window.playJadiWni==='function'){window.playJadiWni();}else{console.error('JADI WNI script belum siap dimuat.');alert('Game JADI WNI belum siap. Muat ulang halaman.');}return;}
  if(!arenaModes[mode])return;
  arenaCurrent=mode;arenaIndex=0;arenaStep=0;arenaScore=0;arenaAnswers=[];
  arenaBankStep=0;arenaBankClues=[];arenaBankStats={health:3,sanity:3,battery:2,supplies:2};arenaBankCards=[];arenaBankPack=null;
