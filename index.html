@@ -6856,7 +6856,7 @@ function malamPlayerCard(x,phase){
  return '<div class="flex items-center gap-2 rounded-xl border '+(x.is_host?'border-blue-800/70':'border-gray-800')+' '+(alive?'bg-gray-950/70':'bg-black/30 opacity-60')+' p-2">'+
  '<div class="relative w-9 h-9 shrink-0 overflow-visible rounded-full '+(alive?'':'opacity-90 grayscale')+' flex items-center justify-center">'+(alive?photo:'<img src="assets/arena/status/Mati.png" alt="Mati" class="w-full h-full object-contain">')+(alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-4 h-4 object-contain drop-shadow">':'')+'</div>'+
  '<div class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(x.nickname)+(x.user_id===activeUser.id?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(x.is_host?'text-blue-300':'text-gray-500')+'">'+(x.is_host?'HOST · ':'')+(phase==='lobby'?(x.is_ready?'SIAP':'BELUM SIAP'):(alive?'MASIH BERTAHAN':'TERELIMINASI'))+'</small></div>'+
- '<img src="assets/arena/status/'+(alive?'Hidup.png':'Mati.png')+'" alt="'+(alive?'Hidup':'Mati')+'" class="w-7 h-7 shrink-0 object-contain"></div>';
+ '<span class="text-[9px] '+(alive?'text-green-400':'text-gray-600')+'">'+(alive?'HIDUP':'GUGUR')+'</span></div>';
 }
 function malamArenaMarkup(players,phase){
  const count=players.length;if(!count)return '';
@@ -6873,7 +6873,7 @@ function malamArenaMarkup(players,phase){
    '</div>'+
    (x.user_id===activeUser.id?'<span class="rounded-full bg-blue-600 px-2 py-0.5 text-[7px] leading-none font-black tracking-wider text-white shadow">KAMU</span>':'')+
    '<b class="block w-full max-w-full truncate rounded-full bg-black/65 px-1.5 py-0.5 text-center '+(alive?(day?'text-amber-50':'text-gray-100'):'text-gray-300')+'" style="font-size:'+(compact?'7px':medium?'8px':'9px')+';line-height:1.15">'+esc(x.nickname)+'</b>'+
-   (phase==='lobby'?'<span class="text-[7px] '+(x.is_ready?'text-green-300':'text-gray-500')+'">'+(x.is_ready?'SIAP':'BELUM')+'</span>':'<img src="assets/arena/status/'+(alive?'Hidup.png':'Mati.png')+'" alt="'+(alive?'Hidup':'Mati')+'" class="w-5 h-5 object-contain">')+
+   (phase==='lobby'?'<span class="text-[7px] '+(x.is_ready?'text-green-300':'text-gray-500')+'">'+(x.is_ready?'SIAP':'BELUM')+'</span>':'<span class="text-[7px] '+(alive?'text-green-300':'text-red-300')+'">'+(alive?'HIDUP':'GUGUR')+'</span>')+
   '</div>';
  }).join('');
  return '<section class="malam-arena-board mb-4 rounded-3xl border '+(day?'border-amber-500/40 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,.24),rgba(245,158,11,.08)_45%,rgba(5,7,13,.96)_78%)] shadow-[0_0_42px_rgba(251,191,36,.12)]':'border-blue-950/70 bg-[radial-gradient(ellipse_at_center,rgba(30,64,175,.18),rgba(5,7,13,.96)_68%)]')+' p-2"><div class="relative mx-auto w-full max-w-[420px] aspect-square">'+
