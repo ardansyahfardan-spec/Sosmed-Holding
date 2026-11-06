@@ -6925,7 +6925,8 @@ function malamPlayerCard(x,phase){
  '<div class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(x.nickname)+(x.user_id===activeUser.id?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(x.is_host?'text-blue-300':'text-gray-500')+'">'+(x.is_host?'HOST · ':'')+(phase==='lobby'?(x.is_ready?'SIAP':'BELUM SIAP'):(alive?'MASIH BERTAHAN':'TERELIMINASI'))+'</small></div>'+
  '<span class="text-[9px] '+(alive?'text-green-400':'text-gray-600')+'">'+(alive?'HIDUP':'GUGUR')+'</span></div>';
 }
-function malamArenaMarkup(players,phase){
+function malamArenaMarkup(players,phase,myTeamIds=[]){
+ const mySilumanTeam=new Set(myTeamIds||[]);
  const count=players.length;if(!count)return '';
  const day=phase!=='night',compact=count>=9,medium=count>=7;
  const radius=compact?39:medium?38:36,seatWidth=compact?58:medium?64:70,avatarSize=compact?38:medium?42:48;
@@ -6939,6 +6940,7 @@ function malamArenaMarkup(players,phase){
    (alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-5 h-5 object-contain drop-shadow">':'')+
    '</div>'+
    (x.user_id===activeUser.id?'<span class="rounded-full bg-blue-600 px-2 py-0.5 text-[7px] leading-none font-black tracking-wider text-white shadow">KAMU</span>':'')+
+   (mySilumanTeam.has(x.user_id)?'<span class="rounded-full border border-red-400/80 bg-red-950/95 px-2 py-0.5 text-[7px] leading-none font-black tracking-wider text-red-100 shadow-[0_0_12px_rgba(239,68,68,.75)]"><i class="fa-solid fa-eye mr-1"></i>SILUMAN</span>':'')+
    '<b class="block w-full max-w-full truncate rounded-full bg-black/65 px-1.5 py-0.5 text-center '+(alive?(day?'text-amber-50':'text-gray-100'):'text-gray-300')+'" style="font-size:'+(compact?'7px':medium?'8px':'9px')+';line-height:1.15">'+esc(x.nickname)+'</b>'+
    (phase==='lobby'?'<span class="text-[7px] '+(x.is_ready?'text-green-300':'text-gray-500')+'">'+(x.is_ready?'SIAP':'BELUM')+'</span>':'<span class="text-[7px] '+(alive?'text-green-300':'text-red-300')+'">'+(alive?'HIDUP':'GUGUR')+'</span>')+
   '</div>';
@@ -7054,7 +7056,7 @@ function malamRender(s){
  const chatModalContent='<div class="text-[10px] text-gray-500 mb-2">'+chatTitle+' · pesan hanya untuk kanalmu</div><div id="malam-chat-list" class="max-h-[45vh] overflow-y-auto py-3 space-y-2"></div><div class="flex gap-2"><input id="malam-chat-input" maxlength="500" placeholder="Tulis pesan..." class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-sm"><button onclick="malamChat()" class="bg-blue-900 rounded-xl px-4 text-xs font-semibold">Kirim</button></div>'+(s.my_role==='siluman'&&malamMyAlive&&r.phase==='night'?malamTeamChatMarkup():'');
  const modal='<div id="malam-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><div class="flex items-center gap-2">'+(type!=='chat'?'<button type="button" onclick="event.preventDefault();event.stopPropagation();window.malamOpenModal(\'chat\')" aria-label="Buka chat pemain" title="Chat pemain" class="w-9 h-9 rounded-full bg-amber-950/50 text-amber-200"><i class="fa-solid fa-comments"></i></button>':'')+'<button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div></div><div id="malam-modal-content"></div></div></div>';
  const oldChatInput=document.getElementById('malam-chat-input'),chatDraft=oldChatInput?.value||'',chatHadFocus=!!oldChatInput&&document.activeElement===oldChatInput;
- p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
+ p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase,s.my_role==='siluman'?teammates:[]))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
  if(r.phase==='finished'){
   const outcome=(s.my_role==='siluman')===(r.winner==='siluman')?'win':'lose';
   p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,r.winner,'multi',r.round_no,(s.revealed_roles||[]).map(x=>({name:x.nickname,role:x.role,alive:x.is_alive}))));
