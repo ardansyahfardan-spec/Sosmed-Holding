@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080b12">
+<title>GHOUSTORY: Desa Terlarang</title>
+<style>
+:root{color-scheme:dark;--red:#b91c1c;--blue:#2563eb}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;color:#f4f0e8;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.panel{background:linear-gradient(135deg,rgba(8,12,22,.9),rgba(20,13,20,.78));border:1px solid rgba(160,55,65,.45);box-shadow:0 8px 28px #0008;border-radius:13px;padding:10px 12px;backdrop-filter:blur(8px)}
+.kicker{font-size:9px;letter-spacing:.2em;color:#fca5a5;font-weight:800}
+h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
+#objective{font-size:11px;color:#e5e7eb;max-width:min(65vw,360px);line-height:1.4}
+#status{font-size:10px;color:#fca5a5;margin-top:5px}
+#cluecount{font-size:12px;font-weight:800;color:#fbbf24;white-space:nowrap}
+#hint{position:absolute;left:50%;top:24%;transform:translateX(-50%);font-size:11px;text-align:center;color:#fff;background:#05070bd9;border:1px solid #ffffff24;padding:8px 12px;border-radius:20px;opacity:0;transition:opacity .2s;max-width:90vw}
+#hint.show{opacity:1}
+#interact{position:absolute;right:18px;bottom:calc(28px + env(safe-area-inset-bottom));pointer-events:auto;border:1px solid #fca5a577;background:linear-gradient(135deg,#991b1b,#1d4ed8);color:white;border-radius:50%;width:68px;height:68px;font-weight:900;font-size:11px;box-shadow:0 0 25px #dc262655;display:none}
+#joystick{position:absolute;left:18px;bottom:calc(25px + env(safe-area-inset-bottom));width:118px;height:118px;border-radius:50%;border:1px solid #ffffff45;background:#07101d88;pointer-events:auto;display:none}
+#stick{position:absolute;width:48px;height:48px;left:34px;top:34px;border-radius:50%;background:linear-gradient(135deg,#64748b,#1e293b);border:1px solid #ffffff77;box-shadow:0 3px 12px #0009}
+#start,#ending{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(ellipse at center,#152238e8,#05070bf5 70%);z-index:5}
+.card{width:min(460px,100%);border:1px solid #9f343d88;border-radius:20px;padding:22px;background:linear-gradient(145deg,#101827f5,#160d16f5);box-shadow:0 20px 70px #000b}
+.card h2{font-size:24px;line-height:1.05;margin:8px 0 12px}
+.card p{font-size:13px;line-height:1.65;color:#cbd5e1}
+.primary{border:0;border-radius:12px;padding:13px 18px;background:linear-gradient(100deg,#b91c1c,#1d4ed8);color:#fff;font-weight:900;width:100%;margin-top:12px}
+.small{font-size:10px;color:#94a3b8}
+#ending{display:none}
+#ending .card{max-height:85vh;overflow:auto}
+#audio{pointer-events:auto;border:1px solid #ffffff35;background:#080d18cc;color:#ddd;border-radius:10px;padding:8px 10px;font-size:10px}
+@media(hover:none),(pointer:coarse){#joystick,#interact{display:block}}
+@media(max-width:420px){.panel{padding:8px 9px}h1{font-size:12px}#objective{font-size:10px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="hud">
+ <div class="top">
+  <div class="panel"><div class="kicker">GHOUSTORY · CHAPTER 01</div><h1>DESA TERLARANG</h1><div id="objective">Cari petunjuk di sekitar desa.</div><div id="status">Malam Penutupan · 00.13</div></div>
+  <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio">♫ AUDIO: MATI</button></div>
+ </div>
+ <div id="hint"></div>
+ <div id="joystick"><div id="stick"></div></div>
+ <button id="interact">PERIKSA</button>
+</div>
+<div id="start"><div class="card">
+ <div class="kicker">SEBUAH DESA YANG TAK PERNAH TIDUR</div>
+ <h2>GHOUSTORY:<br>DESA TERLARANG</h2>
+ <p>Wanasetra menghilang dari peta sejak Malam Penutupan. Tim dokumentasi terakhir mengirim satu pesan: <i>“Kami menemukan desa itu. Tapi sepertinya ada yang tidak ingin kami pulang.”</i></p>
+ <p><b>Misi pertama:</b> temukan tiga bukti di sekitar desa, lalu cari jalan menuju balai desa. Jangan biarkan para penghuni malam mendekat.</p>
+ <p class="small">PC: WASD / tombol panah untuk bergerak, E untuk memeriksa. Ponsel: joystick kiri dan tombol PERIKSA.</p>
+ <button class="primary" id="begin">MASUKI DESA</button>
+ </div></div>
+<div id="ending"><div class="card">
+ <div class="kicker">BAB 1 · DESA YANG HILANG</div>
+ <h2>CATATAN TERAKHIR</h2>
+ <p>Di balik pintu balai desa, kamu menemukan catatan lusuh: <i>“Jangan bunyikan kentongan tiga kali. Jika suara dari sumur menjawab, berarti Penjaga sudah tahu kalian datang.”</i></p>
+ <p>Di halaman terakhir tertulis satu nama: <b>Wanasetra, 17 Oktober 1987.</b> Tinta merah di bawahnya membentuk lambang yang sama dengan ukiran di pintu bawah tanah.</p>
+ <p style="color:#fca5a5">Dari arah sumur terdengar tiga ketukan.</p>
+ <p class="small">Ini adalah akhir misi pembuka. Misteri utama belum terungkap.</p>
+ <button class="primary" id="again">ULANGI MISI</button>
+ </div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+const mount=document.getElementById('game');
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x080e19);
+scene.fog=new THREE.FogExp2(0x0a111c,.027);
+const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,180);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=false;
+mount.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0x9bb6dc,0x211713,1.15));
+const moon=new THREE.DirectionalLight(0x9db8ff,1.15);moon.position.set(-18,30,12);scene.add(moon);
+const redLight=new THREE.PointLight(0xb91c3b,2.1,27);redLight.position.set(1,4,-12);scene.add(redLight);
+const blueLight=new THREE.PointLight(0x315ebd,1.5,25);blueLight.position.set(-16,3,8);scene.add(blueLight);
+const mat=(c,rough=1,em=0)=>new THREE.MeshStandardMaterial({color:c,roughness:rough,emissive:em,emissiveIntensity:em?1:0});
+const groundMat=mat(0x202a26),wood=mat(0x392d27),wood2=mat(0x514037),roof=mat(0x171b22),cloth=mat(0xd8d5c9),dark=mat(0x17151a),skin=mat(0xb9a18b),hair=mat(0x24212a),gold=mat(0x8b642c),glow=mat(0xe6b65b,.4,0x8c4b12);
+function box(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);parent.add(o);return o}
+function cylinder(parent,x,y,z,rt,rb,h,m,seg=7){const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),m);o.position.set(x,y,z);parent.add(o);return o}
+const floor=box(scene,0,-.45,0,100,.8,100,groundMat);
+const pathMat=mat(0x51483c),path=box(scene,0,-.015,1,7,.06,75,pathMat);
+function house(x,z,w=8,d=7){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ box(g,0,1.7,0,w,3.4,d,wood);
+ box(g,0,3.65,0,w+.8,.35,d+.8,roof);
+ const r1=box(g,-w*.26,4.2,0,w*.55,1.1,d+.9,roof);r1.rotation.z=-.48;
+ const r2=box(g,w*.26,4.2,0,w*.55,1.1,d+.9,roof);r2.rotation.z=.48;
+ box(g,0,1.2,d/2+.04,1.35,2.4,.16,dark);
+ for(let i=-1;i<=1;i+=2){box(g,i*w*.28,2.2,d/2+.12,1.15,1.1,.12,mat(0x151e2b));}
+ box(g,0,.15,d/2+.12,1.8,.3,.3,wood2);
+ return g;
+}
+house(-13,-11,9,8);house(13,-16,10,8);house(-18,12,8,7);house(16,13,9,8);house(0,-30,12,9);
+function tree(x,z,s=1){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ cylinder(g,0,1.5,0,.38,.55,3,wood2,6);
+ for(let i=0;i<3;i++){const crown=new THREE.Mesh(new THREE.ConeGeometry(2.5-i*.35,4,6),mat(i%2?0x182c27:0x20372d));crown.position.set(0,4+i*1.7,0);g.add(crown);}
+ g.scale.setScalar(s);
+}
+for(let i=0;i<35;i++){const a=i*2.399;const r=24+(i%5)*4;tree(Math.cos(a)*r,Math.sin(a)*r,.8+(i%4)*.12);}
+for(let i=0;i<8;i++){tree(-26+i*7,-37-(i%2)*5,1.1);}
+function lamp(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,1.4,0,.08,.1,2.8,wood2,6);const l=new THREE.PointLight(0xff9b4a,1.5,9);l.position.set(0,2.8,0);g.add(l);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.2,7,6),mat(0xffbd70,.4,0xff7a22));bulb.position.copy(l.position);g.add(bulb);}
+lamp(-5,-5);lamp(6,-21);lamp(-15,18);lamp(18,6);
+const well=new THREE.Group();well.position.set(8,0,2);scene.add(well);cylinder(well,0,.45,0,1.35,1.5,.9,mat(0x45484a),9);cylinder(well,0,.95,0,1.05,1.05,.12,mat(0x080b10),9);box(well,0,2,0,.18,2.3,.18,wood2);box(well,0,3.05,0,2.4,.18,.18,wood2);
+const pendopo=new THREE.Group();pendopo.position.set(0,0,-34);scene.add(pendopo);box(pendopo,0,.25,0,13,.5,10,wood2);for(let x of [-5.5,5.5])for(let z of [-4,4])box(pendopo,x,2.1,z,.35,4.2,.35,wood2);box(pendopo,0,4.35,0,14,.3,11,roof);box(pendopo,0,4.9,0,9,.9,7,roof);
+const player=new THREE.Group();scene.add(player);player.position.set(0,0,24);
+const body=mat(0x263b55),pants=mat(0x20232c),face=mat(0xcaa78c),eye=mat(0x090b10);
+const torso=box(player,0,1.35,0,.85,1.05,.48,body),head=box(player,0,2.2,0,.65,.65,.62,face);
+box(player,-.16,2.27,.315,.07,.08,.025,eye);box(player,.16,2.27,.315,.07,.08,.025,eye);
+const legs=[box(player,-.22,.48,0,.3,.8,.34,pants),box(player,.22,.48,0,.3,.8,.34,pants)];
+const arms=[box(player,-.58,1.42,0,.25,.9,.28,face),box(player,.58,1.42,0,.25,.9,.28,face)];
+const lantern=cylinder(player,.62,1.05,.12,.12,.12,.38,gold,7);
+const clues=[];
+function clue(x,z,label){
+ const g=new THREE.Group();g.position.set(x,.2,z);scene.add(g);
+ const core=new THREE.Mesh(new THREE.OctahedronGeometry(.48,0),glow);g.add(core);
+ const halo=new THREE.Mesh(new THREE.TorusGeometry(.7,.035,5,16),mat(0xffb75e,.3,0x7d3510));halo.rotation.x=Math.PI/2;g.add(halo);
+ clues.push({g,label,found:false});
+}
+clue(-13,-7,'Foto keluarga');clue(8,2,'Rekaman sumur');clue(0,-30,'Catatan balai desa');
+const ghosts=[];
+function ghost(type,x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const white=mat(type==='pocong'?0xe1dfd7:type==='anak'?0xd4d5d1:type==='nenek'?0xb7b2aa:type==='kakek'?0xaaa49a:type==='kuntilanak'?0xe8e2e0:0x342b31);
+ const pale=mat(0xb9a99c),black=mat(0x09090d),red=mat(0x751d2b,.6,0x2d050a);
+ if(type==='anak'){
+  box(g,0,.85,0,.62,.95,.42,white);box(g,0,1.55,0,.52,.52,.5,pale);box(g,-.13,1.6,.26,.07,.08,.025,black);box(g,.13,1.6,.26,.07,.08,.025,black);
+  box(g,-.42,.9,0,.18,.72,.18,white);box(g,.42,.9,0,.18,.72,.18,white);
+ }else if(type==='nenek'||type==='kakek'){
+  box(g,0,1,0,.85,1.35,.52,type==='nenek'?dark:wood2);cylinder(g,0,1.92,0,.32,.3,.42,pale,7);
+  const haircap=new THREE.Mesh(new THREE.SphereGeometry(.39,7,5),hair);haircap.position.set(0,2.12,-.02);g.add(haircap);
+  box(g,-.13,1.98,.28,.07,.07,.02,black);box(g,.13,1.98,.28,.07,.07,.02,black);
+  if(type==='nenek'){for(let i=-2;i<=2;i++)box(g,i*.13,1.65,.3,.035,.4,.03,white);}
+  else{box(g,.52,.75,0,.09,1.35,.09,wood2);}
+ }else if(type==='pocong'){
+  cylinder(g,0,1.15,0,.32,.42,1.8,white,5);const h=box(g,0,2.2,0,.55,.55,.55,white);h.rotation.z=.08;box(g,0,1.95,.29,.16,.08,.025,black);
+ }else if(type==='kuntilanak'){
+  box(g,0,1.15,0,.75,1.9,.42,white);cylinder(g,0,2.3,0,.27,.25,.38,pale,7);
+  for(let i=-3;i<=3;i++)box(g,i*.12,1.95,-.25,.1,1.6,.1,hair);
+  box(g,-.12,2.35,.23,.06,.07,.025,red);box(g,.12,2.35,.23,.06,.07,.025,red);
+ }else{
+  box(g,0,1.35,0,1.25,1.6,.75,white);cylinder(g,0,2.45,0,.48,.4,.75,white,6);
+  for(let i=-1;i<=1;i+=2)box(g,i*.72,1.45,0,.38,1.15,.4,white);
+  box(g,-.17,2.55,.38,.12,.1,.03,red);box(g,.17,2.55,.38,.12,.1,.03,red);
+ }
+ ghosts.push({type,g,home:new THREE.Vector3(x,0,z),phase:Math.random()*6,alert:false});
+}
+ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);
+const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
+const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
+let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false;
+const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
+function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);}
+function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
+function reset(){player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>g.g.position.copy(g.home));updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
+function collect(){if(!near)return;if(near.kind==='clue'){near.item.found=true;near.item.g.visible=false;updateCount();say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';say('Tiga bukti lengkap. Gerbang balai desa terbuka!');gate.material=mat(0x493d31);}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;document.getElementById('ending').style.display='flex';}else say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}
+interact.addEventListener('click',collect);addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')collect();});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+const joy=document.getElementById('joystick'),stick=document.getElementById('stick');let joyId=null;
+joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joyMove(e);});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e);});
+function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy),scale=Math.min(1,48/(len||1));move.x=dx*scale/48;move.y=dy*scale/48;stick.style.transform='translate('+move.x*34+'px,'+move.y*34+'px)';}
+function joyEnd(e){if(e.pointerId===joyId){joyId=null;move.x=move.y=0;stick.style.transform='';}}
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
+function updateGhosts(dt){
+ for(const gh of ghosts){
+  const p=gh.g.position,d=distance(p,player.position);gh.phase+=dt;
+  const active=d<12;
+  if(active&&d>1.8){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.35:gh.type==='anak'?1.05:gh.type==='nenek'?1.0:1.2;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
+  else if(!active){p.x=gh.home.x+Math.sin(gh.phase*.35)*1.5;p.z=gh.home.z+Math.cos(gh.phase*.3)*1.5;}
+  gh.g.position.y=(gh.type==='anak'?.05:0)+Math.sin(gh.phase*2)*.08;
+  if(d<2.1&&invuln<=0){health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}}
+ }
+}
+function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)continue;const d=distance(player.position,c.g.position);if(d<best){best=d;near={kind:'clue',item:c};}}
+ const gd=distance(player.position,{x:0,z:-40});if(gd<3.8&&gd<best+1){near={kind:'gate'};}
+ interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'DEKATKAN';}
+function updateCamera(dt){const target=new THREE.Vector3(player.position.x,player.position.y+2.2,player.position.z+5.5);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.3,player.position.z-2.5);}
+function movePlayer(dt){
+ let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x;
+ let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y;
+ const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);player.position.x+=x*5.1*dt;player.position.z+=z*5.1*dt;player.rotation.y=Math.atan2(x,z);arms[0].rotation.x=Math.sin(elapsed*10)*.25;arms[1].rotation.x=-Math.sin(elapsed*10)*.25;}
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
+}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
+const clock=new THREE.Clock();
+document.getElementById('begin').addEventListener('click',()=>{document.getElementById('start').style.display='none';reset();say('Cari cahaya kuning. Itu petunjuk yang tertinggal.');});
+document.getElementById('again').addEventListener('click',reset);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
+document.getElementById('audio').addEventListener('click',()=>{audioOn=!audioOn;document.getElementById('audio').textContent='♫ AUDIO: '+(audioOn?'NYALA':'MATI');if(audioOn){try{audioCtx=audioCtx||new AudioContext();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=47;gain.gain.value=.018;osc.connect(gain);gain.connect(audioCtx.destination);osc.start();document.getElementById('audio').dataset.on='1';}catch(e){}}else if(audioCtx){audioCtx.close();audioCtx=null;}});
+animate();
+</script>
+</body>
+</html>
