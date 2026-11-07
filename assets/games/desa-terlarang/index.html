@@ -311,7 +311,7 @@ function updateToolSwing(dt){
   const arc=Math.sin(progress*Math.PI);
   // Ayunan lebar dan tegas, tetap berjalan tanpa perlu mengenai target.
   equipment.rotation.set(-arc*1.9,arc*.48,-arc*1.65);
-  equipment.position.set(.34+arc*.2,-.34-arc*.22,-.72-arc*.12);
+  equipment.position.set(arc*.2,-arc*.22,-arc*.12);
  }else{
   equipment.rotation.set(0,0,0);
   equipment.position.set(0,0,0);
