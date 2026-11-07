@@ -533,7 +533,7 @@ async function mpInit(){
  }catch(error){mpMessage(error.message||'Gagal menghubungkan multiplayer.',true);return false;}
 }
 function mpOpen(){mpPanel.classList.add('open');mpPanel.setAttribute('aria-hidden','false');mpInit();}
-function mpClosePanel(){if(!mpRoomId){mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');}}
+function mpClosePanel(){mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');}
 function mpSetRoomBusy(busy,label='MEMPROSES...'){
  mpRoomBusy=!!busy;
  const create=document.getElementById('mp-create'),join=document.getElementById('mp-join');
