@@ -518,7 +518,7 @@ function mpApplyRemotePose(remote){
  if(torso){torso.position.y=prone?.78:1.35;torso.scale.y=prone?.62:1;}
  if(headRig){headRig.position.y=prone?1.25:2.2;headRig.rotation.x=prone?-.42:0;}
  for(const [name,side] of [['avatar-arm-left',0],['avatar-arm-right',1]]){
-  const arm=model.getObjectByName(name);if(arm){arm.position.y=prone?.83:1.69;arm.rotation.z=prone?(side===0?1.05:-1.05):0;}
+  const arm=model.getObjectByName(name);if(arm){arm.position.y=prone?.83:1.42;arm.rotation.z=prone?(side===0?1.05:-1.05):0;}
  }
  for(const name of ['avatar-leg-left','avatar-leg-right']){const leg=model.getObjectByName(name);if(leg)leg.position.y=prone?.42:.88;}
 }
