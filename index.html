@@ -6969,6 +6969,17 @@ function malamSubscribe(){
   .on('postgres_changes',{event:'*',schema:'public',table:'malam_players',filter:'room_id=eq.'+malamRoomId},malamLoadState)
   .on('postgres_changes',{event:'INSERT',schema:'public',table:'malam_messages',filter:'room_id=eq.'+malamRoomId},()=>{malamLoadState();malamLoadTeamMessages();})
   .subscribe();
+ if(window.__malamTeamPollInterval)clearInterval(window.__malamTeamPollInterval);
+ window.__malamTeamPollInterval=setInterval(async()=>{
+  const current=window.__malamCurrentState;
+  if(!malamRoomId||current?.room?.phase!=='night'||current?.my_role!=='siluman')return;
+  try{
+   const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
+   if(error||!data)return;
+   const next=JSON.stringify(data.team_action_targets||[]),previous=JSON.stringify(current.team_action_targets||[]);
+   if(next!==previous){current.team_action_targets=data.team_action_targets||[];malamRender(current);}
+  }catch(e){console.warn('Indikator target Siluman belum tersinkron:',e);}
+ },1800);
 }
 window.malamLoadState=async function(){
  if(!malamRoomId)return;malamStartClock();
@@ -7046,7 +7057,7 @@ window.malamStartClock=function(){
   if(left===0&&!window.__malamTickInFlight){window.__malamTickInFlight=true;try{const {data,error}=await supabaseClient.rpc('malam_tick',{p_room:malamRoomId});if(!error&&data)await malamLoadState();}catch(e){console.warn('Malam timer tick:',e);}finally{window.__malamTickInFlight=false;}}
  },1000);
 };
-window.malamStopClock=function(){if(window.__malamClockInterval){clearInterval(window.__malamClockInterval);window.__malamClockInterval=null;}window.__malamCurrentState=null;};
+window.malamStopClock=function(){if(window.__malamClockInterval){clearInterval(window.__malamClockInterval);window.__malamClockInterval=null;}if(window.__malamTeamPollInterval){clearInterval(window.__malamTeamPollInterval);window.__malamTeamPollInterval=null;}window.__malamCurrentState=null;};
 window.malamOpenModal=function(type){
  const modal=document.getElementById('malam-modal'),content=document.getElementById('malam-modal-content'),title=document.getElementById('malam-modal-title');
  const data=window.__malamModalData||{};if(!modal||!content)return;
@@ -7141,7 +7152,7 @@ function malamRender(s){
  }else{window.__malamModalData=null;window.__malamModalType=null;}
 
 }
-window.malamReady=async v=>{const {error}=await supabaseClient.rpc('malam_set_ready',{p_room:malamRoomId,p_ready:!!v});if(error)malamMsg(error.message);else malamLoadState();};
+window.malamReady=async v=>{malamAudioStart();const {error}=await supabaseClient.rpc('malam_set_ready',{p_room:malamRoomId,p_ready:!!v});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamStart=async()=>{sessionStorage.removeItem('gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id);window.__malamRoleRevealRoomKey=null;malamAudioStart();const {error}=await supabaseClient.rpc('malam_start_game',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamArenaPlayerClick=async function(targetId){
  const trial=window.__malamTrial;
