@@ -5842,7 +5842,7 @@ async function markDmMessagesRead(){
             }
             const permission=await Notification.requestPermission();
             if(permission!=="granted"){alert("Izin notifikasi belum diberikan.");return;}
-            const registration=await navigator.serviceWorker.register("./sw.js?v=61",{scope:"./",updateViaCache:"none"});
+            const registration=await navigator.serviceWorker.register("./sw.js?v=62",{scope:"./",updateViaCache:"none"});
             await navigator.serviceWorker.ready;
             let subscription=await registration.pushManager.getSubscription();
             if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ghoulBase64ToBytes(GHOUSTORY_VAPID_PUBLIC_KEY)});
@@ -5888,7 +5888,7 @@ async function markDmMessagesRead(){
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (hadController) window.location.reload();
           }, { once: true });
-          navigator.serviceWorker.register('./sw.js?v=61', { scope: './', updateViaCache: 'none' })
+          navigator.serviceWorker.register('./sw.js?v=62', { scope: './', updateViaCache: 'none' })
             .then(registration => registration.update())
             .catch(error => console.warn('Service Worker:', error));
         }
@@ -6664,38 +6664,18 @@ window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
  return '<div id="malam-result-popup" class="fixed inset-0 z-[10020] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onclick="if(event.target===this)this.remove()"><div class="relative w-full max-w-sm overflow-hidden rounded-3xl border '+(won?'border-amber-400/60':'border-red-500/50')+' bg-gradient-to-b from-[#171923] via-[#101116] to-black p-5 text-center shadow-2xl"><div class="absolute inset-x-0 top-0 h-1 '+(won?'bg-gradient-to-r from-amber-600 via-yellow-200 to-amber-600':'bg-gradient-to-r from-red-900 via-red-400 to-red-900')+'"></div><img src="./assets/images/malam-terlarang/results/'+(won?'Menang.JPG':'Kalah.JPG')+'" alt="'+(won?'Ilustrasi kemenangan':'Ilustrasi kekalahan')+'" class="mx-auto mb-3 max-h-48 w-full rounded-xl object-contain" loading="eager"><div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full '+(won?'bg-amber-400/10 text-amber-300 ring-1 ring-amber-300/40':'bg-red-500/10 text-red-300 ring-1 ring-red-400/40')+'"><i class="fa-solid '+(won?'fa-trophy':'fa-skull-crossbones')+' text-4xl"></i></div><p class="mt-4 text-[10px] font-black tracking-[.35em] '+(won?'text-amber-300':'text-red-300')+'">'+(won?'KEMENANGAN':'KEKALAHAN')+'</p><h2 class="mt-2 text-2xl font-black text-white">'+(won?'KAMU MENANG':'KAMU KALAH')+'</h2><p class="mt-1 text-sm font-bold '+(won?'text-amber-200':'text-red-200')+'">'+title+'</p><p class="mt-3 text-xs leading-relaxed text-gray-300">'+(won?'Perjuanganmu menentukan nasib desa malam ini.':'Malam ini bukan milikmu. Permainan telah berakhir.')+'</p><div class="mt-4 max-h-36 space-y-1 overflow-y-auto text-left">'+people+'</div><button onclick="window.malamPlayResultAudio(\''+outcome+'\',\''+winner+'\')" class="mt-4 w-full rounded-xl border border-gray-600 bg-gray-800/80 py-3 text-xs font-bold text-white"><i class="fa-solid fa-volume-high mr-2"></i>Putar audio hasil</button><button onclick="document.getElementById(\'malam-result-popup\')?.remove()" class="mt-2 w-full rounded-xl '+(won?'bg-amber-700':'bg-red-900')+' py-3 text-sm font-black text-white">LANJUT</button></div></div>';
 };
 window.malamAudioOnPhase=function(mode,phase,round,event,winner){
- const a=window.__malamAudioState;if(!a||!a.voice||!phase)return;
- const eventText=String(event||'').trim();
- const key=String(mode)+':'+String(phase)+':'+String(round||0)+':'+eventText;
- if(a.lastPhase===key)return;
- a.lastPhase=key;
- const trial=window.__malamTrial,state=window.__malamCurrentState;
- const role=mode==='trial'?trial?.players?.[0]?.role:state?.my_role;
- const elimination=/(gugur|dikeluarkan melalui voting|tereliminasi)/i.test(eventText);
- let line='';
- if(phase==='lobby')line='Selamat datang di Malam Terlarang. Saya akan memandu permainan dari awal hingga akhir. Pastikan seluruh pemain sudah bergabung dan menekan tombol siap. Setelah semua siap, host dapat memulai permainan.';
- else if(phase==='night'){
-  if(elimination)line='Pengumuman. '+eventText.replace(/Malam kembali tiba\.?/i,'').trim()+'. ';
-  line+='Malam telah tiba. Seluruh warga diminta memejamkan mata. Jangan berbicara dan jangan membocorkan identitas. ';
-  if(role==='siluman')line+='Siluman, pilih satu korban melalui profil pemain.';
-  else if(role==='paranormal')line+='Paranormal, pilih satu pemain untuk diperiksa. Kamu hanya boleh memeriksa satu orang malam ini.';
-  else if(role==='penjaga')line+='Penjaga, pilih satu pemain untuk dilindungi. Kamu boleh melindungi diri sendiri.';
-  else line+='Warga biasa, kamu tidak memiliki aksi malam. Tunggu hingga pagi tiba.';
- }else if(phase==='discussion'){
-  line='Pagi telah tiba. Seluruh pemain yang masih hidup, silakan bangun. ';
-  if(eventText){
-   if(/ditemukan gugur/i.test(eventText))line+='Pengumuman korban. '+eventText+'. ';
-   else if(/tidak ada korban/i.test(eventText))line+=eventText+'. ';
-   else line+=eventText+'. ';
-  }
-  line+='Sekarang waktunya diskusi. Sampaikan alibi, dengarkan keterangan pemain lain, dan perhatikan siapa yang saling melindungi. Setelah waktu diskusi berakhir, voting akan dibuka.';
- }else if(phase==='voting'){
-  line='Perhatian, waktu diskusi telah selesai. Sekarang voting dibuka. Pilih satu pemain yang paling kamu curigai dengan mengetuk profilnya. Pilihan dapat diganti sebelum waktu habis.';
- }else if(phase==='finished'){
-  if(eventText)line=eventText+'. ';
-  line+=winner==='siluman'?'Permainan telah berakhir. Kubu Siluman memenangkan permainan. Seluruh identitas dan peran pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.':'Permainan telah berakhir. Kubu Warga memenangkan permainan. Seluruh Siluman berhasil ditemukan dan disingkirkan. Seluruh identitas pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.';
- }
- if(line)window.malamAudioSpeak(line);
+  const a=window.__malamAudioState;if(!a||!a.voice||!phase)return;
+  // Narator selalu netral: tidak pernah menyebut nama, peran, atau aksi rahasia pemain.
+  const key=String(mode)+':'+String(phase)+':'+String(round||0);
+  if(a.lastPhase===key)return;
+  a.lastPhase=key;
+  let line='';
+  if(phase==='lobby')line='Selamat datang di Malam Terlarang. Saya akan memandu jalannya permainan. Pastikan seluruh pemain sudah bergabung dan menekan tombol siap. Setelah semua siap, host dapat memulai permainan.';
+  else if(phase==='night')line='Malam telah tiba. Seluruh pemain diminta memejamkan mata dan menjaga suasana tetap tenang. Pemain yang memiliki aksi malam, silakan menjalankan aksinya secara rahasia. Pemain lainnya tetap menunggu hingga pagi. Jangan menyebut atau membocorkan identitas siapa pun.';
+  else if(phase==='discussion')line='Pagi telah tiba. Silakan kembali berdiskusi. Perhatikan alibi, dengarkan keterangan pemain lain, dan sampaikan kecurigaan dengan tenang. Voting akan dibuka setelah waktu diskusi berakhir.';
+  else if(phase==='voting')line='Perhatian, waktu diskusi telah selesai. Voting sekarang dibuka. Pilih satu pemain yang paling kamu curigai dengan mengetuk profilnya. Pilihan dapat diganti sebelum waktu habis.';
+  else if(phase==='finished')line=winner==='siluman'?'Permainan telah berakhir. Kubu Siluman memenangkan permainan. Terima kasih telah mengikuti Malam Terlarang.':'Permainan telah berakhir. Kubu Warga memenangkan permainan. Terima kasih telah mengikuti Malam Terlarang.';
+  if(line)window.malamAudioSpeak(line);
 };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
@@ -6937,14 +6917,33 @@ window.handleArenaGameDeepLink=function(){
  }catch(error){console.warn('Gagal membuka tautan Arena:',error);}
 };
 window.malamCreateRoom=async function(){
- if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
- window.malamAudioStart();
- const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;
- const totalRaw=prompt('Pilih total pemain (4–10). Minimal 2 dan maksimal 6 pemain manusia; slot sisanya otomatis diisi AI.','8');if(totalRaw===null)return;
- const total=Number(totalRaw);if(!Number.isInteger(total)||total<4||total>10){malamMsg('Total pemain harus angka 4 sampai 10.');return;}
- const {data,error}=await supabaseClient.rpc('malam_create_room',{p_nickname:n.trim(),p_total_players:total});
- if(error){malamMsg(error.message);return;}
- malamRoomId=data.room_id;sessionStorage.setItem('gh_malam_room',malamRoomId);malamSubscribe();malamLoadState();
+  if(window.__malamCreatingRoom)return;
+  if(!activeUser?.id){malamMsg('Silakan login dahulu sebelum membuat ruang.');return;}
+  const rawName=prompt('Nama pemain (2–24 karakter):',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');
+  if(rawName===null)return;
+  const nickname=String(rawName).trim();
+  if(nickname.length<2||nickname.length>24){malamMsg('Nama pemain harus 2–24 karakter. Silakan coba lagi.');return;}
+  const totalRaw=prompt('Pilih total pemain (4–10). Minimal 2 dan maksimal 6 pemain manusia; slot sisanya otomatis diisi AI.','8');
+  if(totalRaw===null)return;
+  const total=Number(String(totalRaw).trim());
+  if(!Number.isInteger(total)||total<4||total>10){malamMsg('Total pemain harus angka 4 sampai 10.');return;}
+  window.__malamCreatingRoom=true;
+  malamMsg('Sedang membuat ruang. Mohon tunggu…');
+  try{
+    window.malamAudioStart();
+    const {data,error}=await supabaseClient.rpc('malam_create_room',{p_nickname:nickname,p_total_players:total});
+    if(error)throw error;
+    if(!data?.room_id||!data?.code)throw new Error('Server belum mengembalikan kode ruang. Silakan coba lagi.');
+    malamRoomId=data.room_id;
+    sessionStorage.setItem('gh_malam_room',malamRoomId);
+    malamSubscribe();
+    await malamLoadState();
+  }catch(error){
+    console.error('Gagal membuat ruang Malam Terlarang:',error);
+    malamMsg('Gagal membuat ruang: '+(error?.message||'Periksa koneksi lalu coba lagi.'));
+  }finally{
+    window.__malamCreatingRoom=false;
+  }
 };
 window.malamJoinRoom=async function(){
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
