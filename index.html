@@ -6767,12 +6767,18 @@ window.malamTrialSendChat=function(){
 window.malamTrialClose=function(){clearTimeout(window.__malamTrialModalAutoClose);const m=document.getElementById('malam-trial-modal');if(m){m.classList.add('hidden');m.classList.remove('flex');}const s=window.__malamTrial;if(s){const previous=s.modal;s.modal=null;if(previous==='role'&&!s.ended&&s.phase==='night'&&['siluman','paranormal','penjaga'].includes(s.players[0].role))setTimeout(()=>malamTrialOpen('action'),120);}};
 window.malamTrialSelect=function(id){
  const s=window.__malamTrial;if(!s||s.ended)return;
+ if(s.phase==='night'&&s.players[0]?.role==='paranormal'&&s.investigation){malamNotify('PEMERIKSAAN SUDAH DIGUNAKAN','Tunggu sampai malam berikutnya untuk memilih target baru.','phase');return;}
  const p=s.players.find(x=>x.id===id);if(!p||!p.alive||id==='t0')return;
  s.selected=id;
  const me=s.players[0];
  if(s.phase==='night'&&me.alive&&me.role==='paranormal'){
+  if(s.investigation){malamNotify('PEMERIKSAAN SUDAH DIGUNAKAN','Kamu sudah memeriksa '+s.investigation.name+' malam ini. Tunggu sampai malam berikutnya.','phase');return;}
   s.investigation={name:p.name,role:p.role};
-  malamNotify('HASIL PEMERIKSAAN',p.name+' memiliki peran '+(malamRoles[p.role]?.[0]||p.role)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.','phase');
+  s.selected=null;
+  malamTrialRender();
+  malamNotify('HASIL PEMERIKSAAN',p.name+' memiliki peran '+(malamRoles[p.role]?.[0]||p.role)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini. Pemeriksaan malam ini sudah digunakan.','phase');
+  malamTrialClose();
+  return;
  }
  if(s.phase==='night'&&me.alive&&me.role==='penjaga'){
   malamNotify('PERLINDUNGAN DIPILIH',p.name+' sekarang kamu lindungi. Jika Siluman menyerangnya malam ini, ia akan selamat.','phase');
@@ -6865,7 +6871,8 @@ window.malamTrialRender=function(){
  const phases=['MALAM','DISKUSI','VOTING','SELESAI'],idx=s.phase==='night'?0:s.phase==='discussion'?1:s.phase==='voting'?2:3;
  let action='';
  if(s.phase==='night'){
-  if(['siluman','paranormal','penjaga'].includes(me.role))action='<div class="rounded-2xl border border-indigo-800/50 bg-indigo-950/20 p-3 mb-3"><b class="text-sm text-indigo-100">Aksi Malam</b><p class="text-xs text-gray-300 mt-1">Pilih target melalui popup aksi. Pilihan diproses otomatis saat malam berakhir.</p><button onclick="malamTrialOpen(\'action\')" class="mt-3 w-full rounded-xl bg-indigo-900/70 py-2.5 text-xs font-bold text-white">Buka Pilihan Target</button></div>';
+  if(me.role==='paranormal'&&s.investigation)action='<div class="rounded-2xl border border-purple-700/50 bg-purple-950/25 p-3 mb-3"><b class="text-sm text-purple-100">Pemeriksaan Malam Ini Selesai</b><p class="text-xs text-gray-300 mt-2">'+esc(s.investigation.name)+' memiliki peran <b class="text-purple-200">'+esc(malamRoles[s.investigation.role]?.[0]||s.investigation.role)+'</b>.</p><p class="text-[10px] text-gray-400 mt-2">Kamu hanya dapat memeriksa satu orang setiap malam. Tunggu giliran berikutnya untuk memeriksa pemain lain.</p></div>';
+  else if(['siluman','paranormal','penjaga'].includes(me.role))action='<div class="rounded-2xl border border-indigo-800/50 bg-indigo-950/20 p-3 mb-3"><b class="text-sm text-indigo-100">Aksi Malam</b><p class="text-xs text-gray-300 mt-1">Pilih target melalui popup aksi. Pilihan diproses otomatis saat malam berakhir.</p><button onclick="malamTrialOpen(\'action\')" class="mt-3 w-full rounded-xl bg-indigo-900/70 py-2.5 text-xs font-bold text-white">Buka Pilihan Target</button></div>';
   else action='<div class="rounded-2xl border border-indigo-900/40 bg-indigo-950/15 p-3 mb-3"><b class="text-sm">Kamu Warga biasa</b><p class="text-xs text-gray-400 mt-1">Kamu tidak punya aksi khusus malam ini. Biarkan AI menjalankan aksinya.</p><p class="text-[10px] text-indigo-200 mt-3">Menunggu pagi. Fase berganti otomatis.</p></div>';
  }else if(s.phase==='discussion'){
   action='<div class="rounded-2xl border border-amber-800/50 bg-amber-950/20 p-3 mb-3"><b class="text-sm text-amber-100">Diskusi Warga</b><p class="text-xs text-gray-300 mt-1">Pemain AI sedang menyusun alibi. Perhatikan pernyataan mereka sebelum voting.</p><div class="space-y-2 mt-3">'+s.players.filter(x=>x.alive&&x.isAI).slice(0,3).map(x=>'<div class="rounded-lg bg-black/30 p-2 text-xs"><b class="text-amber-200">'+esc(x.name)+':</b> '+(x.role==='siluman'?'Aku tidak melihat apa-apa. Jangan asal menuduh!':x.role==='paranormal'?'Ada sesuatu yang terasa janggal malam tadi.':'Kita perlu melihat siapa yang paling diuntungkan dari kejadian tadi.')).join('')+'</div><button type="button" onclick="malamTrialOpen(\'discussion\')" class="mt-3 w-full rounded-xl border border-amber-400/60 bg-amber-500/20 py-3 text-sm font-black text-amber-100"><i class="fa-solid fa-comments mr-2"></i>BUKA DISKUSI WARGA</button><p class="text-[10px] text-amber-200 mt-3">Voting terbuka otomatis saat diskusi selesai.</p></div>';
