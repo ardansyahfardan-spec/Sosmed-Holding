@@ -611,6 +611,7 @@ async function mpConnectRoom(roomId){
  mpChannel.on('broadcast',{event:'clue_found'},({payload})=>{if(mpApplyClue(Number(payload?.index),true))mpPersistGameState();});
  mpChannel.on('broadcast',{event:'mission_complete'},({payload})=>finishMission(false,payload?.nickname));
  mpChannel.on('broadcast',{event:'ghost_hit'},({payload})=>applyGhostHit(Number(payload?.index),payload?.hp,!!payload?.defeated,payload?.x,payload?.z));
+ mpChannel.on('broadcast',{event:'ghost_attack'},({payload})=>mpHandleGhostAttack(payload));
  mpChannel.on('broadcast',{event:'ghost_state'},({payload})=>mpApplyGhostState(payload));
  mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
  mpChannel.on('presence',{event:'sync'},mpPresenceSync);
@@ -693,8 +694,24 @@ function ghostLabel(type){return ({pocong:'Pocong',kuntilanak:'Kuntilanak',gende
 function applyGhostHit(index,hp,defeated,x,z){
  const gh=ghosts[index];if(!gh)return;
  gh.hp=Math.max(0,Math.min(gh.maxHp,Number(hp)||0));gh.stagger=.85;
- if(Number.isFinite(x)&&Number.isFinite(z))gh.g.position.set(x,0,z);
+ if(Number.isFinite(x)&&Number.isFinite(z)){gh.g.position.set(x,0,z);gh.userData.mpTarget?.set(x,0,z);}
  gh.defeatedTimer=defeated?7:0;gh.g.visible=!defeated;
+}
+function mpHandleGhostAttack(payload){
+ if(!mpRoomId||!mpChannel||mpRoomData?.room?.host_id!==mpUser?.id||!payload?.user_id)return;
+ const attacker=payload.user_id===mpUser.id?{x:player.position.x,z:player.position.z,yaw:player.rotation.y}:mpRemotePlayers.get(payload.user_id);
+ if(!attacker)return;
+ const ax=Number(attacker.x??attacker.model?.position.x),az=Number(attacker.z??attacker.model?.position.z),yaw=Number(attacker.yaw);
+ if(!Number.isFinite(ax)||!Number.isFinite(az)||!Number.isFinite(yaw))return;
+ const index=Number(payload.index),gh=ghosts[index];if(!Number.isInteger(index)||!gh||!gh.g.visible||gh.defeatedTimer>0)return;
+ const dx=gh.g.position.x-ax,dz=gh.g.position.z-az,d=Math.hypot(dx,dz);
+ if(d>3.65||d<.001||(dx/d)*Math.sin(yaw)+(dz/d)*Math.cos(yaw)<=.22)return;
+ const damage=payload.tool==='hoe'||payload.tool==='sickle'?2:1;
+ gh.hp=Math.max(0,gh.hp-damage);gh.stagger=.85;gh.g.position.x+=dx/d*.72;gh.g.position.z+=dz/d*.72;
+ const defeated=gh.hp<=0;if(defeated){gh.defeatedTimer=7;gh.g.visible=false;}
+ const result={index,hp:gh.hp,defeated,x:gh.g.position.x,z:gh.g.position.z};
+ mpChannel.send({type:'broadcast',event:'ghost_hit',payload:result}).catch(error=>console.warn('Hasil serangan hantu gagal dikirim:',error));
+ if(payload.user_id===mpUser.id){soundEffect('ghost-hit');say(defeated?ghostLabel(gh.type)+' berhasil diusir sementara!':ghostLabel(gh.type)+' terkena serangan! Sisa tenaga: '+gh.hp+'/'+gh.maxHp);}
 }
 function resolveToolHit(){
  const forwardX=Math.sin(player.rotation.y),forwardZ=Math.cos(player.rotation.y);
@@ -707,13 +724,17 @@ function resolveToolHit(){
   if(facing>.22){best=d;target={gh,index:i};}
  }
  if(!target){say('Ayunanmu tidak mengenai apa pun. Dekati hantu dan hadap ke arahnya.');return;}
- const damage=selectedTool==='hoe'?2:selectedTool==='sickle'?2:1;
+ if(mpRoomId&&mpGameStarted&&mpRoomData?.room?.host_id!==mpUser?.id){
+  mpChannel?.send({type:'broadcast',event:'ghost_attack',payload:{user_id:mpUser.id,index:target.index,tool:selectedTool}}).catch(error=>console.warn('Permintaan serangan hantu gagal dikirim:',error));
+  say('Serangan dikirim ke penjaga room...');return;
+ }
+ if(mpRoomId&&mpGameStarted){mpHandleGhostAttack({user_id:mpUser.id,index:target.index,tool:selectedTool});return;}
+ const damage=selectedTool==='hoe'||selectedTool==='sickle'?2:1;
  const gh=target.gh;gh.hp=Math.max(0,gh.hp-damage);gh.stagger=.85;
  const dx=gh.g.position.x-player.position.x,dz=gh.g.position.z-player.position.z,len=Math.hypot(dx,dz)||1;
  gh.g.position.x+=dx/len*.72;gh.g.position.z+=dz/len*.72;
  const defeated=gh.hp<=0;if(defeated){gh.defeatedTimer=7;gh.g.visible=false;}
  soundEffect('ghost-hit');say(defeated?ghostLabel(gh.type)+' berhasil diusir sementara!':ghostLabel(gh.type)+' terkena serangan! Sisa tenaga: '+gh.hp+'/'+gh.maxHp);
- if(mpChannel)mpChannel.send({type:'broadcast',event:'ghost_hit',payload:{index:target.index,hp:gh.hp,defeated,x:gh.g.position.x,z:gh.g.position.z}}).catch(()=>{});
 }
 const storySeen=new Set();
 const storyBeats=[
