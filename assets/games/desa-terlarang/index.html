@@ -84,10 +84,11 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  </div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/RoundedBoxGeometry.js';
 const mount=document.getElementById('game');
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x080e19);
-scene.fog=new THREE.FogExp2(0x0a111c,.021);
+scene.background=new THREE.Color(0x111b2a);
+scene.fog=new THREE.FogExp2(0x111b2a,.012);
 const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,180);
 const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
@@ -95,10 +96,11 @@ renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=false;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.12;
+renderer.toneMappingExposure=1.32;
 mount.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0x9bb6dc,0x211713,1.15));
-const moon=new THREE.DirectionalLight(0x9db8ff,1.15);moon.position.set(-18,30,12);scene.add(moon);
+scene.add(new THREE.HemisphereLight(0xb9d1ef,0x514638,2.05));
+scene.add(new THREE.AmbientLight(0x8798b4,.62));
+const moon=new THREE.DirectionalLight(0xc1d5ff,1.55);moon.position.set(-18,30,12);scene.add(moon);
 const redLight=new THREE.PointLight(0xb91c3b,2.1,27);redLight.position.set(1,4,-12);scene.add(redLight);
 const blueLight=new THREE.PointLight(0x315ebd,1.5,25);blueLight.position.set(-16,3,8);scene.add(blueLight);
 const mat=(c,rough=1,em=0,extra={})=>new THREE.MeshStandardMaterial({color:c,roughness:rough,emissive:em,emissiveIntensity:em?1:0,...extra});
@@ -167,33 +169,34 @@ const cameraToggle=document.getElementById('camera-toggle');
 function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
 cameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
 
-// Roblox-inspired block avatar: recognizable hair, face, layered clothing and shoes.
+// Roblox-inspired avatar with softly rounded edges, layered clothes and recognizable silhouette.
+function avatarBox(parent,x,y,z,w,h,d,m,radius){const geo=new RoundedBoxGeometry(w,h,d,3,radius??Math.min(.075,Math.min(w,h,d)*.18));const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);parent.add(o);return o;}
 const body=mat(0x1765a8),pants=mat(0x252b38),face=mat(0xd7a783),eye=mat(0x17191d);
 const hair=mat(0x17191f),hairLight=mat(0x292b32),shirtTrim=mat(0xe5edf4),shoeMat=mat(0xe8e9e7),soleMat=mat(0x30343a);
-const torso=box(player,0,1.35,0,.86,1.02,.48,body);
-box(player,0,1.79,.247,.34,.13,.025,shirtTrim);
-box(player,0,1.02,.251,.72,.09,.025,shirtTrim);
-box(player,0,1.89,0,.22,.18,.22,face); // neck
-const head=box(player,0,2.2,0,.68,.68,.62,face);
-box(player,-.37,2.19,0,.09,.2,.18,face);box(player,.37,2.19,0,.09,.2,.18,face); // ears
+const torso=avatarBox(player,0,1.35,0,.86,1.02,.48,body);
+avatarBox(player,0,1.79,.247,.34,.13,.025,shirtTrim);
+avatarBox(player,0,1.02,.251,.72,.09,.025,shirtTrim);
+avatarBox(player,0,1.89,0,.22,.18,.22,face); // neck
+const head=avatarBox(player,0,2.2,0,.68,.68,.62,face);
+avatarBox(player,-.37,2.19,0,.09,.2,.18,face);avatarBox(player,.37,2.19,0,.09,.2,.18,face); // ears
 // swept black hair and fringe
-box(player,0,2.55,-.015,.72,.19,.65,hair);
-box(player,-.22,2.48,.205,.28,.19,.22,hair);
-box(player,.06,2.49,.23,.34,.2,.2,hairLight);
-box(player,-.31,2.34,-.03,.13,.28,.55,hair);
-box(player,.31,2.35,-.02,.13,.25,.54,hair);
-box(player,-.16,2.27,.317,.105,.105,.025,eye);box(player,.16,2.27,.317,.105,.105,.025,eye);
-box(player,-.16,2.31,.331,.11,.025,.025,hair);box(player,.16,2.31,.331,.11,.025,.025,hair);
-box(player,0,2.13,.32,.13,.035,.035,mat(0x754e43)); // subtle smile
-const legs=[box(player,-.22,.48,0,.32,.8,.36,pants),box(player,.22,.48,0,.32,.8,.36,pants)];
+avatarBox(player,0,2.55,-.015,.72,.19,.65,hair);
+avatarBox(player,-.22,2.48,.205,.28,.19,.22,hair);
+avatarBox(player,.06,2.49,.23,.34,.2,.2,hairLight);
+avatarBox(player,-.31,2.34,-.03,.13,.28,.55,hair);
+avatarBox(player,.31,2.35,-.02,.13,.25,.54,hair);
+avatarBox(player,-.16,2.27,.317,.105,.105,.025,eye);avatarBox(player,.16,2.27,.317,.105,.105,.025,eye);
+avatarBox(player,-.16,2.31,.331,.11,.025,.025,hair);avatarBox(player,.16,2.31,.331,.11,.025,.025,hair);
+avatarBox(player,0,2.13,.32,.13,.035,.035,mat(0x754e43)); // subtle smile
+const legs=[avatarBox(player,-.22,.48,0,.32,.8,.36,pants),avatarBox(player,.22,.48,0,.32,.8,.36,pants)];
 legs.forEach((leg,i)=>{leg.geometry.translate(0,-.4,0);leg.position.y=.88;leg.userData.phase=i*Math.PI;
- const shoe=new THREE.Mesh(new THREE.BoxGeometry(.35,.2,.5),shoeMat);shoe.position.set(0,-.77,.075);leg.add(shoe);
- const sole=new THREE.Mesh(new THREE.BoxGeometry(.355,.055,.505),soleMat);sole.position.set(0,-.865,.075);leg.add(sole);
+ const shoe=new THREE.Mesh(new RoundedBoxGeometry(.35,.2,.5,3,.045),shoeMat);shoe.position.set(0,-.77,.075);leg.add(shoe);
+ const sole=new THREE.Mesh(new RoundedBoxGeometry(.355,.055,.505,3,.018),soleMat);sole.position.set(0,-.865,.075);leg.add(sole);
 });
-const arms=[box(player,-.59,1.42,0,.27,.88,.3,face),box(player,.59,1.42,0,.27,.88,.3,face)];
+const arms=[avatarBox(player,-.59,1.42,0,.27,.88,.3,face),avatarBox(player,.59,1.42,0,.27,.88,.3,face)];
 // blue short sleeves over the upper arms
-box(player,-.59,1.69,0,.285,.34,.315,body);box(player,.59,1.69,0,.285,.34,.315,body);
-box(player,0,1.36,.249,.12,.22,.025,shirtTrim);
+avatarBox(player,-.59,1.69,0,.285,.34,.315,body);avatarBox(player,.59,1.69,0,.285,.34,.315,body);
+avatarBox(player,0,1.36,.249,.12,.22,.025,shirtTrim);
 let isProne=false,jumpVelocity=0,grounded=true,isSprinting=false,sprintHoldTimer=null;
 let cameraYaw=0,cameraPitch=0.16,cameraPointer=null,lastCameraX=0,lastCameraY=0;
 const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone');
@@ -345,7 +348,7 @@ function updateCamera(dt){
  const distance=isProne?4.1:5.2, pitch=THREE.MathUtils.clamp(cameraPitch,-.35,.55), horizontal=Math.cos(pitch)*distance;
  const desired=new THREE.Vector3(target.x+Math.sin(cameraYaw)*horizontal,target.y+1.15+Math.sin(pitch)*distance,target.z+Math.cos(cameraYaw)*horizontal);
  camera.position.lerp(desired,Math.min(1,dt*10));camera.lookAt(target);
- if(Math.hypot(move.x,move.y)<.08&&!keys.w&&!keys.a&&!keys.s&&!keys.d&&!keys.arrowup&&!keys.arrowdown&&!keys.arrowleft&&!keys.arrowright)player.rotation.y=cameraYaw+Math.PI;
+ // Camera drag only orbits the view; it must never rotate the avatar.
 }
 const cameraSurface=document.getElementById('game');
 cameraSurface.addEventListener('pointerdown',e=>{if(!running||e.clientX<innerWidth*.34||e.target.closest('button')||e.target.closest('#joystick'))return;cameraPointer=e.pointerId;lastCameraX=e.clientX;lastCameraY=e.clientY;try{cameraSurface.setPointerCapture(cameraPointer);}catch(_){}});
