@@ -1967,6 +1967,11 @@ nav.sticky {
  min-height:40px!important;pointer-events:auto!important;touch-action:manipulation!important;
  cursor:pointer!important;
 }
+/* Popup multiplayer dipindah ke body agar tidak terpotong overflow arena. */
+body > #malam-modal.malam-modal-portal{position:fixed!important;inset:0!important;z-index:2147483000!important;overflow-y:auto!important;overscroll-behavior:contain!important;}
+body > #malam-modal.malam-modal-portal>div{position:relative!important;z-index:1!important;margin:auto!important;}
+body > #malam-modal.malam-modal-portal.chat-keyboard-open{align-items:flex-start!important;overflow:hidden!important;}
+body > #malam-modal.malam-modal-portal.chat-keyboard-open>div{max-height:calc(100dvh - 16px)!important;overflow-y:auto!important;}
 /* Semua permainan Arena dibuka sebagai layar penuh tanpa bingkai aplikasi. */
 body:has(#arena-play-panel.arena-game-page){padding-bottom:0!important;overflow:hidden!important;}
 body:has(#arena-play-panel.arena-game-page) #main-app>nav,
@@ -7274,6 +7279,12 @@ function malamRender(s){
  const modal='<div id="malam-modal" class="fixed inset-0 z-[10040] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><div class="flex items-center gap-2">'+(window.__malamModalType!=='chat'?'<button type="button" onclick="event.preventDefault();event.stopPropagation();window.malamOpenModal(\'chat\')" aria-label="Buka chat pemain" title="Chat pemain" class="w-9 h-9 rounded-full bg-amber-950/50 text-amber-200"><i class="fa-solid fa-comments"></i></button>':'')+'<button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div></div><div id="malam-modal-content"></div></div></div>';
  const oldChatInput=document.getElementById('malam-chat-input'),chatDraft=oldChatInput?.value||'',chatHadFocus=!!oldChatInput&&document.activeElement===oldChatInput;
  p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase,s.my_role==='siluman'?teammates:[],{ownId:activeUser.id,role:s.my_role,alive:malamMyAlive,investigationDone:!!s.investigation,selectedTarget:s.my_action_target,teamActionTargets:s.team_action_targets||[]}))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
+ const gameModal=p.querySelector('#malam-modal');
+ if(gameModal){
+  document.querySelectorAll('body > #malam-modal.malam-modal-portal').forEach(el=>el.remove());
+  gameModal.classList.add('malam-modal-portal');
+  document.body.appendChild(gameModal);
+ }
  malamBindUtilityButtons(p);
  if(r.phase==='finished'){
   const outcome=(s.my_role==='siluman')===(r.winner==='siluman')?'win':'lose';
