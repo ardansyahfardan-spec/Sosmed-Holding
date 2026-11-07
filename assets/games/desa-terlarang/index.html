@@ -232,6 +232,31 @@ button:active{transform:scale(.97);background:#273650}
   barrel(-10.1,-15.2);barrel(-4.8,-18.2);barrel(10.1,-29.1);barrel(4.8,-33.1);
   crate(-4.9,-46.8,.9);crate(5.1,-60.2,.95);crate(10.7,-63.5,.8);
   well(11.1,-43.2);handCart(-10.7,-55.5);
+
+  // Jalur eksplorasi dan landmark tersembunyi di luar jalan utama.
+  function stonePath(x,z,count,dz=1.2){for(let i=0;i<count;i++){const o=new THREE.Mesh(new THREE.DodecahedronGeometry(.42,0),M.stone);o.position.set(x+Math.sin(i*.72)*.38,.04,z+i*dz);o.scale.set(1,.22,.72);o.castShadow=true;scene.add(o);}}
+  stonePath(-10.5,-16,8);stonePath(10.8,-40,9);stonePath(-14.5,-67,12);
+  const bamboo=new THREE.MeshStandardMaterial({color:0x4b5835,roughness:1});
+  for(const x of [-15.5,-10.5]){const p=cylinderProp(.13,.17,3.3,bamboo,x,1.65,-72,8);p.rotation.z=x<0?-.04:.04;}
+  box(5.4,.18,.2,weatheredWood,-13,3.18,-72);
+  const worldInteractions=[];
+  const interactionMat=new THREE.MeshStandardMaterial({color:0x8b302f,emissive:0x4b1015,emissiveIntensity:.45,roughness:.8});
+  function interactionMarker(x,z,label,detail,action){
+   const g=new THREE.Group();g.position.set(x,.12,z);scene.add(g);
+   const ring=new THREE.Mesh(new THREE.TorusGeometry(.48,.035,7,20),new THREE.MeshBasicMaterial({color:0xd7a56c,transparent:true,opacity:.75}));ring.rotation.x=-Math.PI/2;g.add(ring);
+   const pin=new THREE.Mesh(new THREE.OctahedronGeometry(.17,0),interactionMat);pin.position.y=.48;g.add(pin);
+   const light=new THREE.PointLight(0xd69b68,.38,3.5);light.position.y=.6;g.add(light);
+   worldInteractions.push({x,z,label,detail,action,group:g,ring,pin,light,used:false,phase:Math.random()*6.28});
+  }
+  const secretDoor=new THREE.Group();secretDoor.position.set(-7.52,.12,-14.52);scene.add(secretDoor);
+  const doorLeaf=box(.88,1.9,.12,M.wood,0,.95,0);doorLeaf.position.set(.44,.95,0);secretDoor.add(doorLeaf);
+  const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
+  let doorOpen=false;
+  interactionMarker(-7.45,-12.8,'Pintu rumah tua','Engselnya berderit.',()=>{doorOpen=!doorOpen;secretDoor.rotation.y=doorOpen?-1.18:0;return doorOpen?'Pintu terbuka. Ada bekas lumpur menuju ruang belakang.':'Pintu ditutup kembali.';});
+  interactionMarker(11.1,-41.1,'Sumur tua','Tiga ketukan terdengar dari dasar sumur.',()=>'Kamu menemukan kain lusuh dengan simbol yang sama seperti tanda di gerbang desa.');
+  interactionMarker(5.1,-60.2,'Peti lapuk','Peti terkunci dengan ukiran angka.',()=>'Di bawah peti terselip catatan: Jangan ikuti suara dari arah hutan.');
+  interactionMarker(-13,-70.2,'Jalur hutan tersembunyi','Jejak kaki kecil melewati gerbang bambu.',()=>'Jejak itu berhenti mendadak. Sebuah lonceng kecil masih terasa hangat.');
+
   // Papan lapuk, batu berlumut, dan ranting berserakan di tepi jalan.
   for(let i=0;i<34;i++){
    const side=i%2?-1:1,x=side*(5.1+Math.random()*4.5),z=-3-Math.random()*78;
@@ -412,7 +437,7 @@ button:active{transform:scale(.97);background:#273650}
   {x:0,z:-59,name:'Bayangan di ujung jalan',done:false}
  ];
  const missionProgress=document.getElementById('mission-progress'),interactBtn=document.getElementById('interact');
- let nearbyMission=null;
+ let nearbyMission=null,nearbyWorld=null;
  const missionMarkers=missionPoints.map((p,i)=>{
   const g=new THREE.Group();g.position.set(p.x,.08,p.z);scene.add(g);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.58,.045,8,24),new THREE.MeshBasicMaterial({color:0xc68c78,transparent:true,opacity:.8}));ring.rotation.x=-Math.PI/2;g.add(ring);
@@ -461,6 +486,7 @@ button:active{transform:scale(.97);background:#273650}
   soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO 100%':'AUDIO MATI';
  });
  interactBtn.addEventListener('click',()=>{
+  if(nearbyWorld){const message=nearbyWorld.action();nearbyWorld.used=true;nearbyWorld.group.visible=false;hint.textContent=nearbyWorld.label+': '+message;nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
   if(!nearbyMission)return;
   nearbyMission.done=true;
   const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
@@ -489,13 +515,16 @@ button:active{transform:scale(.97);background:#273650}
   swayingTrees.forEach(t=>{t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
   lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
   missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
+  worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
   let ix=joyX,iz=joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
-  nearbyMission=null;let nearest=Infinity;
+  nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
-  interactBtn.style.display=nearbyMission?'block':'none';
-  if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';
-  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);player.position.x+=ix*speed*dt;player.position.z+=iz*speed*dt;player.rotation.y=Math.atan2(ix,-iz);walkingTime+=dt*(sprinting?15:10);}
+  worldInteractions.forEach(o=>{if(o.used)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
+  interactBtn.style.display=(nearbyMission||nearbyWorld)?'block':'none';
+  if(nearbyWorld)interactBtn.textContent='INTERAKSI: '+nearbyWorld.label.toUpperCase();
+  else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
+  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
   // Area eksplorasi diperluas ke halaman rumah, pepohonan, dan sisi desa.
   player.position.x=THREE.MathUtils.clamp(player.position.x,-24,24);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-92,10);
