@@ -264,13 +264,17 @@ const arms=[-1,1].map(side=>{
  return pivot;
 });
 avatarSphere(player,0,1.35,.245,.07,.16,.025,shirtTrim);
+// Satu rig untuk semua bagian avatar agar rambut, wajah, pakaian, tangan, dan kaki
+// ikut berubah posisi saat tiarap, bukan hanya torso dan kepala.
+const avatarRig=new THREE.Group();avatarRig.name='avatar-rig';player.add(avatarRig);
+player.children.filter(part=>part!==avatarRig).forEach(part=>avatarRig.attach(part));
 let isProne=false,jumpVelocity=0,grounded=true,isSprinting=false,sprintHoldTimer=null;
 let cameraYaw=0,cameraPitch=0.16,cameraPointer=null,lastCameraX=0,lastCameraY=0;
 const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone');
 function setSprint(value){isSprinting=!!value&&!isProne;}
 function clearSprintHold(){if(sprintHoldTimer!==null){clearTimeout(sprintHoldTimer);sprintHoldTimer=null;}setSprint(false);}
 function updateSprintHold(){const pushedFullyUp=move.y<=-.92&&Math.abs(move.x)<=.38;if(!pushedFullyUp||isProne){clearSprintHold();return;}if(!isSprinting&&sprintHoldTimer===null){sprintHoldTimer=setTimeout(()=>{sprintHoldTimer=null;if(move.y<=-.92&&Math.abs(move.x)<=.38&&!isProne)setSprint(true);},2000);}}
-function setProne(value){isProne=!!value;if(isProne)clearSprintHold();if(isProne&& !grounded){isProne=false;return;}torso.position.y=isProne?.78:1.35;torso.scale.y=isProne?.62:1;headRig.position.y=isProne?1.25:2.2;headRig.rotation.x=isProne?-.42:0;arms.forEach((a,i)=>{a.position.y=isProne?.83:1.42;a.rotation.z=isProne?(i===0?1.05:-1.05):0;});legs.forEach((l,i)=>{l.position.y=isProne?.42:.88;l.rotation.x=0;});proneButton.textContent=isProne?'BANGUN':'TIARAP';proneButton.classList.toggle('active',isProne);}
+function setProne(value){if(value&&!grounded)return;isProne=!!value;if(isProne)clearSprintHold();avatarRig.rotation.set(isProne?Math.PI/2:0,0,0);avatarRig.position.y=isProne?.24:0;proneButton.textContent=isProne?'BANGUN':'TIARAP';proneButton.classList.toggle('active',isProne);}
 function doJump(){if(!running||!grounded)return;if(isProne)setProne(false);jumpVelocity=6.4;grounded=false;}
 jumpButton.addEventListener('pointerdown',e=>{e.preventDefault();try{jumpButton.setPointerCapture(e.pointerId);}catch(_){}doJump();});
 proneButton.addEventListener('pointerdown',e=>{e.preventDefault();try{proneButton.setPointerCapture(e.pointerId);}catch(_){}if(running&&grounded)setProne(!isProne);});
@@ -281,7 +285,7 @@ const metal=mat(0x777d83),handleMat=mat(0x65452d),handMat=mat(0xb99a82);
 const hand=box(equipment,.34,-.34,-.72,.17,.2,.18,handMat);
 let toolSwing=0,toolSwingCooldown=0;
 const useToolButton=document.getElementById('use-tool');
-function useEquippedTool(){if(!running||selectedTool==='flashlight'||isProne)return;toolSwing=1;toolSwingCooldown=.18;useToolButton.classList.remove('active');void useToolButton.offsetWidth;useToolButton.classList.add('active');setTimeout(()=>useToolButton.classList.remove('active'),150);resolveToolHit();}
+function useEquippedTool(){if(!running||selectedTool==='flashlight'||isProne||toolSwingCooldown>0)return;toolSwing=1;toolSwingCooldown=.62;useToolButton.classList.remove('active');void useToolButton.offsetWidth;useToolButton.classList.add('active');setTimeout(()=>useToolButton.classList.remove('active'),150);resolveToolHit();}
 useToolButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{useToolButton.setPointerCapture(e.pointerId);}catch(_){}useEquippedTool();});
 const toolModels={};
 function makeTool(kind){const g=new THREE.Group();if(kind==='flashlight'){cylinder(g,.34,-.3,-.73,.075,.09,.42,mat(0x202a36),9);cylinder(g,.34,-.08,-.73,.11,.11,.09,metal,9);const lens=new THREE.Mesh(new THREE.CircleGeometry(.085,12),mat(0xf8e7b2,.3,0xffd56a));lens.position.set(.34,-.08,-.681);g.add(lens);}else if(kind==='hoe'){const shaft=cylinder(g,.34,-.36,-.75,.035,.035,.72,handleMat,7);shaft.rotation.x=.18;const blade=box(g,.34,-.02,-.75,.42,.09,.08,metal);blade.rotation.z=-.12;}else if(kind==='sickle'){cylinder(g,.34,-.35,-.75,.035,.035,.62,handleMat,7);const blade=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,12,Math.PI*.82),metal);blade.position.set(.48,-.02,-.75);g.add(blade);}else{const plank=box(g,.34,-.27,-.75,.16,.78,.09,handleMat);plank.rotation.z=-.18;}return g;}
@@ -318,14 +322,19 @@ function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.
 function updateToolSwing(dt){
  toolSwingCooldown=Math.max(0,toolSwingCooldown-dt);
  if(toolSwing>0){
-  toolSwing=Math.max(0,toolSwing-dt*2.6);
-  const progress=1-toolSwing,arc=Math.sin(progress*Math.PI);
-  // FPS: ayunkan objek di depan kamera. TPS: ayunkan senjata dan lengan kanan avatar.
-  equipment.rotation.set(-arc*1.9,arc*.48,-arc*1.65);
-  equipment.position.set(arc*.2,-arc*.22,-arc*.12);
-  thirdPersonToolRoot.rotation.set(-arc*.9,arc*.25,-arc*1.75);
-  arms[1].rotation.x=-arc*1.15;
-  arms[1].rotation.z=-arc*.38;
+  toolSwing=Math.max(0,toolSwing-dt*1.65);
+  const progress=1-toolSwing;
+  // Ayunan besar dengan hentakan di tengah agar terbaca jelas pada FPS dan TPS.
+  const windup=THREE.MathUtils.smoothstep(progress,0,.22);
+  const strike=THREE.MathUtils.smoothstep(progress,.22,.58);
+  const recover=1-THREE.MathUtils.smoothstep(progress,.58,1);
+  const arc=Math.max(0,Math.sin(progress*Math.PI));
+  const hit= Math.max(0,strike*recover);
+  equipment.rotation.set(-arc*2.35-hit*.32,arc*.62,-arc*2.05);
+  equipment.position.set(arc*.24-hit*.08,-arc*.3+windup*.06,-arc*.18);
+  thirdPersonToolRoot.rotation.set(-arc*1.25-hit*.3,arc*.38,-arc*2.15);
+  arms[1].rotation.x=-arc*1.55-hit*.22;
+  arms[1].rotation.z=-arc*.62;
  }else{
   equipment.rotation.set(0,0,0);equipment.position.set(0,0,0);
   thirdPersonToolRoot.rotation.set(0,0,0);
@@ -820,9 +829,9 @@ function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)c
  const gd=distance(player.position,{x:0,z:-40});if(gd<3.8&&gd<best+1){near={kind:'gate'};}
  interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'CARI';interact.disabled=!near;interact.setAttribute('aria-label',near?'Periksa objek':'Dekati petunjuk');}
 function updateCamera(dt){
- if(cameraMode==='first'){const eyeHeight=isProne?1.02:1.62;camera.position.set(player.position.x,player.position.y+eyeHeight,player.position.z);camera.rotation.order='YXZ';camera.rotation.y=cameraYaw;camera.rotation.x=cameraPitch;return;}
- const target=new THREE.Vector3(player.position.x,player.position.y+(isProne?.85:1.35),player.position.z);
- const distance=isProne?4.1:5.2, pitch=THREE.MathUtils.clamp(cameraPitch,-.35,.55), horizontal=Math.cos(pitch)*distance;
+ if(cameraMode==='first'){const eyeHeight=isProne?.58:1.62;camera.position.set(player.position.x,player.position.y+eyeHeight,player.position.z);camera.rotation.order='YXZ';camera.rotation.y=cameraYaw;camera.rotation.x=cameraPitch;return;}
+ const target=new THREE.Vector3(player.position.x,player.position.y+(isProne?.42:1.35),player.position.z);
+ const distance=isProne?3.7:5.2, pitch=THREE.MathUtils.clamp(cameraPitch,-.35,.55), horizontal=Math.cos(pitch)*distance;
  const desired=new THREE.Vector3(target.x+Math.sin(cameraYaw)*horizontal,target.y+1.15+Math.sin(pitch)*distance,target.z+Math.cos(cameraYaw)*horizontal);
  camera.position.lerp(desired,Math.min(1,dt*10));camera.lookAt(target);
  if(Math.hypot(move.x,move.y)<.08&&!keys.w&&!keys.a&&!keys.s&&!keys.d&&!keys.arrowup&&!keys.arrowdown&&!keys.arrowleft&&!keys.arrowright)player.rotation.y=cameraYaw+Math.PI;
@@ -840,7 +849,7 @@ function movePlayer(dt){
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
 }
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();mpUpdateRemotePlayers(dt);mpBroadcastPlayer(dt);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;updateToolSwing(dt);movePlayer(dt);updateGhosts(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();mpUpdateRemotePlayers(dt);mpBroadcastPlayer(dt);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateToolSwing(dt);updateGhosts(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
