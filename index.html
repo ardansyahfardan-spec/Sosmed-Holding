@@ -6791,7 +6791,7 @@ window.malamTrialNight=function(force){
  const protectedTargets=[];
  if(me.alive&&me.role==='penjaga'&&s.selected)protectedTargets.push(s.selected);
  const aiGuard=alive.find(p=>p.role==='penjaga'&&p.isAI);
- if(aiGuard&&s.aiProtectedTarget)protectedTargets.push(s.aiProtectedTarget);
+ if(aiGuard&&s.aiProtectedTarget)protectedTargets.push(s.aiProtectedTarget);protectedTargets.forEach(id=>{const p=s.players.find(x=>x.id===id);if(p)p.is_protected=true;});
  const aiParanormal=alive.find(p=>p.role==='paranormal'&&p.isAI);
  if(aiParanormal){const inspectChoices=alive.filter(p=>p.id!==aiParanormal.id);if(inspectChoices.length){const inspected=inspectChoices[Math.floor(Math.random()*inspectChoices.length)];inspected.suspicion=Math.max(0,Math.min(1,(inspected.suspicion||0)+(inspected.role==='siluman'?.7:-.25)));}}
  let event='Malam berlalu tanpa korban.';
@@ -6819,7 +6819,7 @@ window.malamTrialVote=function(force){
  const alive=s.players.filter(p=>p.alive),target=s.selected;
  if(target&&!alive.some(p=>p.id===target&&p.id!=='t0')){malamTrialNotice('Pilihan tidak valid.');return;}
  const tally={};const votes=[];
- const cast=(voter,choice)=>{if(choice&&alive.some(p=>p.id===choice&&choice!==voter.id)){tally[choice]=(tally[choice]||0)+1;votes.push({voter:voter.name,target:choice});}};
+ const cast=(voter,choice)=>{if(choice&&alive.some(p=>p.id===choice&&choice!==voter.id)){tally[choice]=(tally[choice]||0)+1;votes.push({voter:voter.name,target:choice});const targetPlayer=s.players.find(p=>p.id===choice);if(targetPlayer)targetPlayer.suspicion_from=[...(targetPlayer.suspicion_from||[]),voter.id];}};
  if(target)cast(s.players[0],target);
  alive.filter(p=>p.isAI).forEach(p=>cast(p,s.aiVoteChoices?.[p.id]||null));
  const ordered=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
