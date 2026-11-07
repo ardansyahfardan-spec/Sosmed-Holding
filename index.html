@@ -6641,7 +6641,7 @@ window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
 window.malamAudioOnPhase=function(){ /* Pemandu tidak mengumumkan pergantian fase. */ };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
- a.voice=false;a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
+ a.voice=false;a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;a.introPlayed=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
 };
 
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
