@@ -511,6 +511,17 @@ async function mpRefreshRoom(){
  mpRoomData=data;mpRenderRoom();
  if(data.room.status==='playing'&&!mpGameStarted)mpStartGame();
 }
+function mpApplyRemotePose(remote){
+ if(!remote?.model)return;
+ const model=remote.model,prone=!!remote.prone;
+ const torso=model.getObjectByName('avatar-torso'),headRig=model.getObjectByName('avatar-head');
+ if(torso){torso.position.y=prone?.78:1.35;torso.scale.y=prone?.62:1;}
+ if(headRig){headRig.position.y=prone?1.25:2.2;headRig.rotation.x=prone?-.42:0;}
+ for(const [name,side] of [['avatar-arm-left',0],['avatar-arm-right',1]]){
+  const arm=model.getObjectByName(name);if(arm){arm.position.y=prone?.83:1.69;arm.rotation.z=prone?(side===0?1.05:-1.05):0;}
+ }
+ for(const name of ['avatar-leg-left','avatar-leg-right']){const leg=model.getObjectByName(name);if(leg)leg.position.y=prone?.42:.88;}
+}
 function mpApplyRemoteState(payload){
  if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z))return;
  let remote=mpRemotePlayers.get(payload.user_id);
@@ -521,9 +532,9 @@ function mpApplyRemoteState(payload){
   ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(payload.nickname||'Pemain').slice(0,18),128,40);
   const texture=new THREE.CanvasTexture(canvas);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
   sprite.position.set(0,3.25,0);sprite.scale.set(2.2,.55,1);model.add(sprite);scene.add(model);
-  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0,phase:0,walking:!!payload.walking,sprinting:!!payload.sprinting};mpRemotePlayers.set(payload.user_id,remote);
+  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0,phase:0,walking:!!payload.walking,sprinting:!!payload.sprinting,prone:!!payload.prone};mpRemotePlayers.set(payload.user_id,remote);
  }
- remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;remote.walking=!!payload.walking;remote.sprinting=!!payload.sprinting;
+ remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;remote.walking=!!payload.walking;remote.sprinting=!!payload.sprinting;remote.prone=!!payload.prone;mpApplyRemotePose(remote);
 }
 function mpPresenceSync(){
  if(!mpChannel)return;
@@ -617,7 +628,8 @@ function mpUpdateRemotePlayers(dt){
  for(const remote of mpRemotePlayers.values()){
   remote.model.position.lerp(remote.target,Math.min(1,dt*12));remote.model.rotation.y=remote.yaw;
   remote.phase+=dt*(remote.sprinting?12:8);
-  remote.model.children.filter(child=>typeof child.userData?.phase==='number').forEach((leg,i)=>{const target=remote.walking?Math.sin(remote.phase+leg.userData.phase)*.58:0;leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,target,10,dt);});
+  remote.model.children.filter(child=>typeof child.userData?.phase==='number').forEach((leg,i)=>{const target=remote.walking&&!remote.prone?Math.sin(remote.phase+leg.userData.phase)*.58:remote.prone?Math.sin(remote.phase*.55+leg.userData.phase)*.08:0;leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,target,10,dt);});
+  if(remote.prone){const left=remote.model.getObjectByName('avatar-arm-left'),right=remote.model.getObjectByName('avatar-arm-right');if(left)left.rotation.x=0;if(right)right.rotation.x=0;}
  }
 }
 
