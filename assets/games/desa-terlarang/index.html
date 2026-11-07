@@ -327,16 +327,27 @@ function ghost(type,x,z){
  const hairCap=(y=2.43,scale=1)=>{ell(0,y,0,.34*scale,.19*scale,.29*scale,hairMat);};
  const tornHem=(radius,y,count=9)=>{for(let i=0;i<count;i++){const a=i/count*Math.PI*2;const x=Math.cos(a)*radius,z=Math.sin(a)*radius;const t=add(new THREE.ConeGeometry(.075,.32,5),clothMat,x,y-.08,z);t.rotation.z=Math.cos(a)*.32;t.rotation.x=Math.sin(a)*.3;}};
  if(isP){
-  // Pocong: volume tubuh manusia terbungkus kain kafan, lipatan dan simpul kain yang nyata.
-  robe([[.13,.08],[.29,.18],[.39,.42],[.34,.75],[.31,1.05],[.35,1.38],[.3,1.72],[.25,2.05],[.2,2.3],[.16,2.48]],clothMat,28);
-  ell(0,2.54,.01,.23,.25,.22,clothMat);
-  for(let y of [.38,.52,1.48,1.61]){const b=add(new THREE.TorusGeometry(y<1?.31:.27,.045,8,28),boneMat,0,y,0);b.rotation.x=Math.PI/2;}
-  // Kain silang dan simpul kepala, tidak memakai mata menyala.
-  limb([-.28,1.45,.03],[.28,1.45,.03],.055,.055,clothMat);
-  ell(0,2.77,-.02,.12,.13,.13,clothMat);
-  ell(-.095,2.53,.19,.065,.085,.025,socketMat);ell(.095,2.53,.19,.065,.085,.025,socketMat);
-  ell(0,2.34,.225,.09,.045,.025,socketMat);
-  for(let i=0;i<5;i++){const fold=add(new THREE.TorusGeometry(.29-i*.018,.012,5,24),boneMat,0,.75+i*.25,0);fold.rotation.x=Math.PI/2;}
+  // Pocong dengan siluet manusia terbungkus: bahu, dada, pinggang, pinggul dan dua kaki masih terbaca.
+  robe([[.29,.08],[.34,.2],[.37,.42],[.42,.67],[.38,.88],[.31,1.08],[.34,1.32],[.43,1.55],[.49,1.72],[.4,1.9],[.25,2.04],[.19,2.18]],clothMat,36);
+  // Kaki terbungkus yang menyatu di bawah kain, bukan ujung lonjong seperti lontong.
+  ell(-.12,.22,.015,.16,.22,.19,clothMat);ell(.12,.22,.015,.16,.22,.19,clothMat);
+  // Lengan terikat rapat di depan dada, terlihat sebagai dua tonjolan anatomis.
+  limb([-.39,1.72,.02],[-.28,1.36,.25],.115,.09,clothMat);
+  limb([.39,1.72,.02],[.28,1.36,.25],.115,.09,clothMat);
+  limb([-.28,1.36,.25],[.17,1.31,.3],.085,.07,clothMat);
+  limb([.28,1.36,.25],[-.17,1.31,.3],.085,.07,clothMat);
+  // Kepala manusia tertutup kain dengan bentuk tengkorak dan simpul ikatan di atas.
+  ell(0,2.28,.015,.25,.31,.23,clothMat);
+  ell(0,2.53,-.015,.17,.13,.16,clothMat);
+  ell(-.095,2.29,.21,.055,.08,.025,socketMat);ell(.095,2.29,.21,.055,.08,.025,socketMat);
+  ell(0,2.12,.22,.085,.04,.025,socketMat);
+  // Ikatan kain kasar di pergelangan, dada, pinggang dan mata kaki.
+  for(const band of [{y:.34,r:.34},{y:.53,r:.36},{y:1.28,r:.34},{y:1.48,r:.43},{y:1.65,r:.47}]){
+   const b=add(new THREE.TorusGeometry(band.r,.035,7,32),boneMat,0,band.y,0);b.rotation.x=Math.PI/2;
+  }
+  // Kain kafan berlapis dan sobekan kecil di bagian bawah.
+  for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const x=Math.cos(a)*.34,z=Math.sin(a)*.34;const flap=add(new THREE.ConeGeometry(.075,.25,5),clothMat,x,.18,z);flap.rotation.z=Math.cos(a)*.25;flap.rotation.x=Math.sin(a)*.25;}
+  for(let i=0;i<4;i++){const fold=add(new THREE.TorusGeometry(.32+i*.025,.012,5,32),boneMat,0,.72+i*.18,0);fold.rotation.x=Math.PI/2;}
  }else if(isK){
   // Kuntilanak: siluet perempuan dewasa kurus, gaun panjang lusuh dan rambut kusut berlapis.
   ell(0,1.52,0,.31,.55,.2,skinMat);
@@ -422,11 +433,16 @@ function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
 function updateGhosts(dt){
  for(const gh of ghosts){
   const p=gh.g.position,d=distance(p,player.position);gh.phase+=dt;
-  const active=d<(isProne?5.5:12);
-  if(active&&d>1.8){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.55:gh.type==='tuyul'?2.35:gh.type==='pocong'?1.8:gh.type==='anak'?1.15:gh.type==='nenek'?.85:gh.type==='kuntilanak'?1.05:1.1;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
+  const active=d<(isProne?5.5:12),moving=active&&d>1.8;
+  if(moving){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.55:gh.type==='tuyul'?2.35:gh.type==='pocong'?1.8:gh.type==='anak'?1.15:gh.type==='nenek'?.85:gh.type==='kuntilanak'?1.05:1.1;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
   else if(!active){p.x=gh.home.x+Math.sin(gh.phase*.35)*1.5;p.z=gh.home.z+Math.cos(gh.phase*.3)*1.5;}
-  const bob=gh.type==='pocong'?Math.abs(Math.sin(gh.phase*4.2))*.42:gh.type==='kuntilanak'?.32+Math.sin(gh.phase*1.7)*.18:gh.type==='tuyul'?.04+Math.abs(Math.sin(gh.phase*6))*.12:Math.sin(gh.phase*2)*.035;
-  gh.g.position.y=bob;gh.g.rotation.z=gh.type==='kuntilanak'?Math.sin(gh.phase*1.2)*.045:gh.type==='nenek'?Math.sin(gh.phase*1.1)*.035:0;gh.g.scale.setScalar(gh.type==='genderuwo'?1+Math.sin(gh.phase*2)*.012:1);
+  // Kaki tetap menapak tanah. Hanya pocong yang melompat kecil; hantu lain tidak melayang.
+  const step=moving?Math.sin(gh.phase*8):Math.sin(gh.phase*1.4)*.12;
+  const hop=gh.type==='pocong'&&moving?Math.max(0,Math.sin(gh.phase*5.5))*.19:0;
+  gh.g.position.y=hop+(moving?Math.abs(step)*.012:0);
+  gh.g.rotation.z=gh.type==='kuntilanak'?(moving?Math.sin(gh.phase*5)*.025:Math.sin(gh.phase*1.1)*.012):gh.type==='nenek'?(moving?Math.sin(gh.phase*5)*.018:0):gh.type==='kakek'?(moving?Math.sin(gh.phase*5)*.015:0):gh.type==='anak'?(moving?Math.sin(gh.phase*8)*.025:0):0;
+  gh.g.rotation.x=gh.type==='genderuwo'?(moving?-.035:0):0;
+  gh.g.scale.setScalar(gh.type==='genderuwo'?1+Math.sin(gh.phase*2)*.008:1);
   if(d<(isProne?1.35:2.1)&&invuln<=0){health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';soundEffect('damage');say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}}
  }
 }
