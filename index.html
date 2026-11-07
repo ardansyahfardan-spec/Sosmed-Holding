@@ -6956,7 +6956,7 @@ window.malamLoadState=async function(){
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
  if(error){malamMsg(error.message);return;}
  if(data?.my_role==='paranormal'&&data?.investigation){
-  const inv=data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
+  const inv=data.investigation_detail||data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
   if(window.__malamLastInvestigationKey!==resultKey){
    window.__malamLastInvestigationKey=resultKey;
    malamNotify('HASIL PEMERIKSAAN',(inv.nickname||'Target')+' memiliki peran '+(malamRoles[inv.role]?.[0]||inv.role)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.','phase');
