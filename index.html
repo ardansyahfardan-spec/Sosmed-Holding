@@ -6690,7 +6690,7 @@ window.malamBackToArena=async function(){
 };
 window.malamTrialOpen=function(type){
  const s=window.__malamTrial;if(!s)return;
- if((type==='chat'||type==='discussion')&&s.phase!=='discussion'){malamNotify('Diskusi warga hanya tersedia saat fase diskusi.');return;}
+ if((type==='chat'||type==='discussion')&&s.phase!=='discussion'){malamNotify('Diskusi warga hanya tersedia saat fase diskusi.');return;}if(type==='chat'&&!s.players[0]?.alive){malamNotify('Pemain yang gugur wajib diam dan tidak dapat berkomunikasi dengan pemain hidup.');return;}
  if(type==='team'&&!(s.phase==='night'&&s.players[0]?.alive&&s.players[0]?.role==='siluman')){malamNotify('Bisik-bisik hanya tersedia bagi Siluman yang masih hidup saat malam.');return;}
  const previousChatInput=document.getElementById('malam-trial-chat-input'),chatDraft=previousChatInput?.value||'',chatHadFocus=!!previousChatInput&&document.activeElement===previousChatInput;
  s.modal=type;
@@ -6736,7 +6736,7 @@ window.malamTrialSendTeamChat=function(){
  input.value='';malamTrialOpen('team');const list=document.getElementById('malam-trial-team-list');if(list)list.scrollTop=list.scrollHeight;const next=document.getElementById('malam-trial-team-input');if(next)next.focus({preventScroll:true});
 };
 window.malamTrialSendChat=function(){
- const s=window.__malamTrial,input=document.getElementById('malam-trial-chat-input');if(!s||!input||s.phase!=='discussion')return;
+ const s=window.__malamTrial,input=document.getElementById('malam-trial-chat-input');if(!s||!input||s.phase!=='discussion'||!s.players[0]?.alive){malamTrialNotice('Pemain yang gugur wajib diam.');return;}
  const body=input.value.trim();if(!body)return;
  s.chatMessages=s.chatMessages||[];s.chatMessages.push({name:'Kamu',body,self:true});
  const pool=s.players.filter(p=>p.isAI&&p.alive);
@@ -6764,7 +6764,7 @@ window.malamTrialSendChat=function(){
  const list=document.getElementById('malam-trial-chat-list');if(list)list.scrollTop=list.scrollHeight;
  const next=document.getElementById('malam-trial-chat-input');if(next)next.focus({preventScroll:true});
 };
-window.malamTrialClose=function(){clearTimeout(window.__malamTrialModalAutoClose);const m=document.getElementById('malam-trial-modal');if(m){m.classList.add('hidden');m.classList.remove('flex');}const s=window.__malamTrial;if(s){const previous=s.modal;s.modal=null;if(previous==='role'&&!s.ended&&s.phase==='night'&&['siluman','paranormal','penjaga'].includes(s.players[0].role))setTimeout(()=>malamTrialOpen('action'),120);}};
+window.malamTrialClose=function(){clearTimeout(window.__malamTrialModalAutoClose);const m=document.getElementById('malam-trial-modal');if(m){m.classList.add('hidden');m.classList.remove('flex');}const s=window.__malamTrial;if(s){const previous=s.modal;s.modal=null;if(previous==='role'&&!s.ended&&s.phase==='night'&&['siluman','paranormal','penjaga'].includes(s.players[0].role))malamTrialNotice('Klik profil pemain untuk menjalankan aksimu.');}};
 window.malamTrialSelect=function(id){
  const s=window.__malamTrial;if(!s||s.ended)return;const me=s.players[0],p=s.players.find(x=>x.id===id);if(!me?.alive||!p?.alive)return;
  if(s.phase==='voting'){if(id==='t0'){malamTrialNotice('Kamu tidak dapat memilih diri sendiri.');return;}s.selected=id;malamTrialRender();malamTrialNotice('Pilihan voting tersimpan. Kamu masih bisa menggantinya sampai waktu voting habis.');return;}
@@ -6801,7 +6801,7 @@ window.malamTrialNight=function(force){
  malamTrialCheck();malamTrialRender();
  if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else malamNotify('PAGI TIBA',event,'phase');
 };
-window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();setTimeout(()=>malamTrialOpen('vote'),180);malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
+window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
 window.malamTrialVote=function(force){
  const s=window.__malamTrial;if(!s||s.phase!=='voting'||!s.players[0]?.alive||(!s.selected&&!force))return;
  const alive=s.players.filter(p=>p.alive),target=s.selected;
@@ -6837,7 +6837,7 @@ window.malamTrialVote=function(force){
  s.selected=null;
  malamTrialCheck();
  if(!s.ended){s.phase='night';s.phaseStartedAt=Date.now();s.round++;s.modal=null;s.investigation=null;s.selected=null;s.lastEvent='Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);}
- malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else{if(['siluman','paranormal','penjaga'].includes(s.players[0].role)&&s.players[0].alive)setTimeout(()=>malamTrialOpen('action'),180);const voteSummary=s.lastVoteTally?.length?'Hasil suara: '+s.lastVoteTally.map(v=>v.name+' '+v.votes+' suara').join(', ')+'. '+(out?'Peran '+out.name+': '+malamRoles[out.role][0]+'.':''):'Tidak ada suara yang masuk.';malamNotify('HASIL VOTING',s.lastEvent+' '+voteSummary,'phase');setTimeout(()=>malamNotify('MALAM KEMBALI TIBA','Malam ke-'+s.round+' dimulai.','phase'),4200);}
+ malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else{const voteSummary=s.lastVoteTally?.length?'Hasil suara: '+s.lastVoteTally.map(v=>v.name+' '+v.votes+' suara').join(', ')+'. '+(out?'Peran '+out.name+': '+malamRoles[out.role][0]+'.':''):'Tidak ada suara yang masuk.';malamNotify('HASIL VOTING',s.lastEvent+' '+voteSummary,'phase');setTimeout(()=>malamNotify('MALAM KEMBALI TIBA','Malam ke-'+s.round+' dimulai.','phase'),4200);}
 };
 window.malamTrialCheck=function(){
  const s=window.__malamTrial;if(!s)return;
