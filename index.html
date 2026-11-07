@@ -7027,7 +7027,7 @@ function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');if(ph==='discussion'&&s.my_role==='paranormal'&&s.investigation){const noticeKey=phaseKey+':'+s.investigation_name+':'+s.investigation;if(window.__malamInvestigationNoticeKey!==noticeKey){window.__malamInvestigationNoticeKey=noticeKey;setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',((s.investigation_name||'Pemain yang diperiksa')+' memiliki peran '+(malamRoles[s.investigation]?.[0]||s.investigation)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.'),'phase'),900);}}}
  window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
- const p=document.getElementById('arena-play-panel'),r=s.room,rawPlayers=s.players||[],ps=rawPlayers.map(x=>({...x,suspicion_from:(s.suspicion_marks||[]).filter(m=>m.target_id===x.user_id).map(m=>m.actor_id),is_protected:r.phase==='night'&&x.user_id===s.protected_target_id}));
+ const p=document.getElementById('arena-play-panel'),r=s.room,rawPlayers=s.players||[],ps=rawPlayers.map(x=>({...x,chat_bubble:(window.__malamChatBubbleByUser||{})[x.user_id]?.body||'',suspicion_from:(s.suspicion_marks||[]).filter(m=>m.target_id===x.user_id).map(m=>m.actor_id),is_protected:r.phase==='night'&&x.user_id===s.protected_target_id}));
  if(p){p.classList.remove('malam-wallpaper-night','malam-wallpaper-day');if(r.phase!=='lobby')p.classList.add(r.phase==='night'?'malam-wallpaper-night':'malam-wallpaper-day');}
  const me=ps.find(x=>x.user_id===activeUser.id),host=!!me?.is_host,alive=ps.filter(x=>x.is_alive);
  malamMyAlive=!!me?.is_alive;malamGameFinished=r.phase==='finished';
@@ -7116,14 +7116,15 @@ window.malamResolveNight=async()=>{const {error}=await supabaseClient.rpc('malam
 window.malamStartVoting=async()=>{const {error}=await supabaseClient.rpc('malam_start_voting',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamResolveVote=async()=>{const {error}=await supabaseClient.rpc('malam_resolve_vote',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamLoadMessages=async()=>{
- if(!malamRoomId)return;
- let query=supabaseClient.from('malam_messages').select('nickname,body,created_at,channel').eq('room_id',malamRoomId).order('created_at').limit(80);
- if(!malamGameFinished)query=query.eq('channel',malamMyAlive?'living':'ghost');
- const {data,error}=await query;
- const b=document.getElementById('malam-chat-list');if(!b)return;
- b.innerHTML=error?'<p class="text-xs text-red-300">Chat belum dapat dimuat.</p>':(data||[]).map(m=>'<div class="rounded-xl '+(m.channel==='ghost'?'bg-purple-950/40':'bg-gray-900')+' p-2"><div class="flex justify-between gap-2"><b class="text-red-200 text-[10px]">'+esc(m.nickname)+'</b><small class="text-[9px] text-gray-500">'+new Date(m.created_at).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</small></div><p class="text-xs text-gray-200 whitespace-pre-wrap break-words mt-1">'+esc(m.body)+'</p></div>').join('')||'<p class="text-xs text-gray-500 text-center py-3">Belum ada pesan. Mulai percakapan!</p>';
- b.scrollTop=b.scrollHeight;
-};
+  if(!malamRoomId)return;
+  let query=supabaseClient.from('malam_messages').select('nickname,body,created_at,channel').eq('room_id',malamRoomId).order('created_at').limit(80);
+  if(!malamGameFinished)query=query.eq('channel',malamMyAlive?'living':'ghost');
+  const {data,error}=await query;if(error){console.warn('Chat belum dapat dimuat:',error.message);return;}
+  if(!malamMyAlive||!['discussion','voting'].includes(window.__malamCurrentState?.room?.phase))return;
+  const bubbles={};(data||[]).filter(m=>m.channel==='living'&&Date.now()-Date.parse(m.created_at)<7000).forEach(m=>{const player=(window.__malamCurrentState.players||[]).find(p=>p.nickname===m.nickname);if(player)bubbles[player.user_id]={body:m.body,at:m.created_at};});
+  window.__malamChatBubbleByUser=bubbles;
+  if(window.__malamCurrentState)malamRender(window.__malamCurrentState);
+ };
 window.malamLoadTeamMessages=async()=>{
  const box=document.getElementById('malam-team-chat-list');if(!box||!malamRoomId)return;
  const {data,error}=await supabaseClient.from('malam_messages').select('nickname,body,created_at').eq('room_id',malamRoomId).eq('channel','siluman').order('created_at').limit(60);
