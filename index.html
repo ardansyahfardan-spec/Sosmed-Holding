@@ -6371,7 +6371,7 @@ function toggleChatSearch(kind, forceOpen){
 }
 
 
- .malam-player-chat-bubble{position:absolute;left:50%;top:-38px;transform:translateX(-50%);z-index:20;width:max-content;max-width:132px;padding:5px 8px;border:1px solid rgba(147,197,253,.55);border-radius:10px;background:rgba(18,29,48,.96);color:#f8fafc;font-size:9px;line-height:1.25;text-align:center;overflow-wrap:anywhere;box-shadow:0 4px 16px rgba(0,0,0,.45);animation:malam-bubble-life 7s linear both}
+ .malam-player-chat-bubble{position:absolute;left:50%;bottom:calc(100% + 4px);top:auto;transform:translateX(-50%);z-index:30;width:max-content;max-width:124px;padding:5px 7px;border:1px solid rgba(96,165,250,.55);border-radius:9px;background:rgba(8,15,29,.97);color:#eff6ff;font-size:8px;line-height:1.25;text-align:center;overflow-wrap:anywhere;box-shadow:0 4px 14px rgba(0,0,0,.5);animation:none;pointer-events:none}
  .malam-player-chat-bubble:after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:rgba(18,29,48,.96);border-right:1px solid rgba(147,197,253,.55);border-bottom:1px solid rgba(147,197,253,.55);transform:translateX(-50%) rotate(45deg)}
  @keyframes malam-bubble-life{0%,72%{opacity:1}100%{opacity:0}}
 </style>
@@ -6600,7 +6600,7 @@ window.malamAudioToggleBgm=async function(){
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;window.malamAudioSetVolume(.34);}
+ a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;window.malamAudioSetVolume(.34);}else{a.lastPhase='';window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;const trial=window.__malamTrial,state=window.__malamCurrentState;if(trial)window.malamAudioOnPhase('trial',trial.phase,trial.round,trial.lastEvent,trial.winner);else if(state)window.malamAudioOnPhase('multi',state.room?.phase,state.room?.round_no,state.room?.last_event,state.room?.winner);else window.malamAudioSpeak('Suara pemandu aktif. Selamat bermain Malam Terlarang.');}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
