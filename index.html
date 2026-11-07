@@ -6960,9 +6960,9 @@ function malamHome(){
 }
 window.openMalamTerlarang=function(){
  arenaCurrent='malam_terlarang';showArenaGamePage();
- if(malamRoomId){malamLoadState();return;}
+ if(malamRoomId){window.malamAudioStart();malamLoadState();return;}
  const saved=sessionStorage.getItem('gh_malam_room');
- if(saved){malamRoomId=saved;malamSubscribe();malamLoadState();return;}
+ if(saved){malamRoomId=saved;window.malamAudioStart();malamSubscribe();malamLoadState();return;}
  malamHome();
 };
 window.handleArenaGameDeepLink=function(){
