@@ -102,8 +102,8 @@ button:active{transform:scale(.97);background:#273650}
  const hint=document.getElementById('hint');
  if(!window.THREE){state.textContent='GAGAL MEMUAT ENGINE';hint.textContent='Engine grafis belum tersedia. Periksa koneksi lalu muat ulang.';return;}
   const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x080d18);scene.fog=new THREE.FogExp2(0x111827,.018);
-  const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,360);camera.position.set(0,7,18);camera.lookAt(0,1,0);
+  scene.background=new THREE.Color(0x080d18);scene.fog=new THREE.FogExp2(0x111827,.012);
+  const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,520);camera.position.set(0,7,18);camera.lookAt(0,1,0);
   let cameraYaw=0,cameraPitch=.42,lookPointer=null,lastLookX=0,lastLookY=0;
   canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer)return;e.preventDefault();const dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;cameraYaw-=dx*.006;cameraPitch=THREE.MathUtils.clamp(cameraPitch+dy*.004,.16,1.05);});
@@ -114,8 +114,8 @@ button:active{transform:scale(.97);background:#273650}
   scene.add(new THREE.HemisphereLight(0x9aafd0,0x17130f,1.25));
   const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=true;moonLight.shadow.mapSize.set(1024,1024);moonLight.shadow.camera.left=-90;moonLight.shadow.camera.right=90;moonLight.shadow.camera.top=90;moonLight.shadow.camera.bottom=-90;scene.add(moonLight);
   const moon=new THREE.Mesh(new THREE.SphereGeometry(2.2,32,24),new THREE.MeshBasicMaterial({color:0xd9e4f5}));moon.position.set(-24,22,-55);scene.add(moon);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(260,280),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-55);ground.receiveShadow=true;scene.add(ground);
-  const path=new THREE.Mesh(new THREE.PlaneGeometry(7,190),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-82);path.receiveShadow=true;scene.add(path);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,400),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-90);ground.receiveShadow=true;scene.add(ground);
+  const path=new THREE.Mesh(new THREE.PlaneGeometry(9,245),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-112);path.receiveShadow=true;scene.add(path);
   const M={
    wall:new THREE.MeshStandardMaterial({color:0x51483d,roughness:.96}),wood:new THREE.MeshStandardMaterial({color:0x30251e,roughness:.9}),
    timber:new THREE.MeshStandardMaterial({color:0x6a4930,roughness:.9}),roof:new THREE.MeshStandardMaterial({color:0x29272a,roughness:.96}),
@@ -171,9 +171,9 @@ button:active{transform:scale(.97);background:#273650}
   for(let i=0;i<6;i++){const z=-8-i*14;streetLamp(i%2===0?-5.1:5.1,z);}
   for(let i=0;i<15;i++){const z=-i*7-9;tree(-9-(i%3)*1.7,z,.9+(i%2)*.2);tree(9+(i%4)*1.2,z-3,.85+(i%3)*.16);}
   // Sabuk hutan luar dan pepohonan di wilayah utara desa.
-  for(let i=0;i<28;i++){const z=-18-i*5.2;tree(-18-(i%4)*2.2,z,.95+(i%3)*.22);tree(18+(i%5)*2.1,z-2,.9+(i%3)*.2);}
-  for(let i=0;i<24;i++){const a=i*Math.PI*2/24,r=30+(i%4)*2;tree(Math.cos(a)*r,-104+Math.sin(a)*r,.9+(i%3)*.18);}
-  hut(-7,-17,1,0);hut(7,-31,.95,1);hut(-8,-48,1.15,0);hut(9,-61,1.05,1);
+  for(let i=0;i<36;i++){const z=-18-i*5.8;tree(-25-(i%4)*2.8,z,1.05+(i%3)*.24);tree(25+(i%5)*2.6,z-2,1+(i%3)*.22);}
+  for(let i=0;i<32;i++){const a=i*Math.PI*2/32,r=42+(i%4)*3;tree(Math.cos(a)*r,-125+Math.sin(a)*r,1+(i%3)*.2);}
+  hut(-7,-17,1.35,0);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
 
   // Detail lingkungan desa terbengkalai: teras lapuk, pagar rusak, tong,
   // peti, sumur tua, gerobak dan puing agar dunia terasa lebih hidup.
@@ -231,7 +231,7 @@ button:active{transform:scale(.97);background:#273650}
   }
   // Pagar tua yang putus-putus, tidak menutup jalur utama.
   fenceRun(-10.2,-19,5);fenceRun(6.2,-34,4);fenceRun(-11,-51,5);fenceRun(8.2,-64,5);
-  porch(-7,-14.15,1);porch(7,-28.8,1);porch(-8,-45.35,1);porch(9,-58.55,1);
+  porch(-7,-13.3,1.3);porch(7,-27.95,1.25);porch(-8,-44.5,1.35);porch(9,-57.4,1.3);
   barrel(-10.1,-15.2);barrel(-4.8,-18.2);barrel(10.1,-29.1);barrel(4.8,-33.1);
   crate(-4.9,-46.8,.9);crate(5.1,-60.2,.95);crate(10.7,-63.5,.8);
   well(11.1,-43.2);handCart(-10.7,-55.5);
@@ -264,11 +264,11 @@ button:active{transform:scale(.97);background:#273650}
    const light=new THREE.PointLight(0xd69b68,.38,3.5);light.position.y=.6;g.add(light);
    worldInteractions.push({x,z,label,detail,action,group:g,ring,pin,light,used:false,repeatable:label==='Pintu rumah tua',phase:Math.random()*6.28});
   }
-  const secretDoor=new THREE.Group();secretDoor.position.set(-7.52,.12,-14.52);scene.add(secretDoor);
+  const secretDoor=new THREE.Group();secretDoor.position.set(-7.52,.12,-13.82);scene.add(secretDoor);
   const doorLeaf=box(.88,1.9,.12,M.wood,0,.95,0);doorLeaf.position.set(.44,.95,0);secretDoor.add(doorLeaf);
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
   let doorOpen=false;
-  interactionMarker(-7.45,-12.8,'Pintu rumah tua','Engselnya berderit.',()=>{doorOpen=!doorOpen;secretDoor.rotation.y=doorOpen?-1.18:0;return doorOpen?'Pintu terbuka. Ada bekas lumpur menuju ruang belakang.':'Pintu ditutup kembali.';});
+  interactionMarker(-7.45,-12.05,'Pintu rumah tua','Engselnya berderit.',()=>{doorOpen=!doorOpen;secretDoor.rotation.y=doorOpen?-1.18:0;return doorOpen?'Pintu terbuka. Ada bekas lumpur menuju ruang belakang.':'Pintu ditutup kembali.';});
   interactionMarker(11.1,-41.1,'Sumur tua','Tiga ketukan terdengar dari dasar sumur.',()=>'Kamu menemukan kain lusuh dengan simbol yang sama seperti tanda di gerbang desa.');
   interactionMarker(5.1,-60.2,'Peti lapuk','Peti terkunci dengan ukiran angka.',()=>'Di bawah peti terselip catatan: Jangan ikuti suara dari arah hutan.');
   interactionMarker(-13,-70.2,'Jalur hutan tersembunyi','Jejak kaki kecil melewati gerbang bambu.',()=>'Jejak itu berhenti mendadak. Sebuah lonceng kecil masih terasa hangat.');
@@ -563,8 +563,8 @@ button:active{transform:scale(.97);background:#273650}
   else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
   if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
   // Area eksplorasi diperluas ke halaman rumah, pepohonan, dan sisi desa.
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-82,82);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-178,10);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);
   if(!onGround||player.position.y>0){verticalVelocity-=18*dt;player.position.y+=verticalVelocity*dt;if(player.position.y<=0){player.position.y=0;verticalVelocity=0;onGround=true;}}
 
   if(multiplayer&&t-lastBroadcast>140){
