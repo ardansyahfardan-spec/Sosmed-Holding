@@ -10,6 +10,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: write
 
 concurrency:
   group: github-pages
@@ -34,6 +35,31 @@ jobs:
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: .
+
+      - name: Clear stale GitHub Pages deployment lock
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const staleSha = 'f01fdd399a326e240a4dcabad512ba7305397bc1';
+            const { owner, repo } = context.repo;
+            const deployments = await github.paginate(github.rest.repos.listDeployments, {
+              owner,
+              repo,
+              sha: staleSha,
+              environment: 'github-pages',
+              per_page: 100
+            });
+            for (const deployment of deployments) {
+              if (deployment.sha !== staleSha || deployment.environment !== 'github-pages') continue;
+              await github.rest.repos.createDeploymentStatus({
+                owner,
+                repo,
+                deployment_id: deployment.id,
+                state: 'inactive',
+                description: 'Clear stale Pages deployment blocking the current release.'
+              });
+              core.info(`Marked stale Pages deployment ${deployment.id} inactive.`);
+            }
 
       - name: Deploy to GitHub Pages
         id: deployment
