@@ -125,6 +125,25 @@ button:active{transform:scale(.97);background:#273650}
  const torso=new THREE.Mesh(new THREE.BoxGeometry(.82,1.05,.42),clothes);torso.position.y=1.55;torso.castShadow=true;player.add(torso);
  const head=new THREE.Mesh(new THREE.SphereGeometry(.29,16,12),skin);head.position.set(0,2.28,0);head.castShadow=true;player.add(head);
  const hair=new THREE.Mesh(new THREE.SphereGeometry(.3,12,8,0,Math.PI*2,0,Math.PI*.48),new THREE.MeshStandardMaterial({color:0x171514}));hair.position.set(0,2.35,0);player.add(hair);
+ // Detail wajah, aksesori, dan siluet avatar bergaya game modern.
+ const eyeMat=new THREE.MeshStandardMaterial({color:0x111722,roughness:.65});
+ const eyeL=new THREE.Mesh(new THREE.SphereGeometry(.035,10,8),eyeMat);
+ const eyeR=eyeL.clone();
+ eyeL.position.set(-.105,2.29,-.265);eyeR.position.set(.105,2.29,-.265);
+ player.add(eyeL,eyeR);
+ const mouth=new THREE.Mesh(new THREE.BoxGeometry(.095,.018,.018),new THREE.MeshStandardMaterial({color:0x563b38}));
+ mouth.position.set(0,2.19,-.282);player.add(mouth);
+ const backpack=new THREE.Mesh(new THREE.BoxGeometry(.52,.62,.22),new THREE.MeshStandardMaterial({color:0x111b29,roughness:1}));
+ backpack.position.set(0,1.58,.29);backpack.castShadow=true;player.add(backpack);
+ const packFlap=new THREE.Mesh(new THREE.BoxGeometry(.38,.18,.025),new THREE.MeshStandardMaterial({color:0x35475a,roughness:1}));
+ packFlap.position.set(0,1.82,.414);player.add(packFlap);
+ const chestStripe=new THREE.Mesh(new THREE.BoxGeometry(.12,.72,.025),new THREE.MeshStandardMaterial({color:0x9a343b,roughness:.8}));
+ chestStripe.position.set(.23,1.56,-.216);player.add(chestStripe);
+ const belt=new THREE.Mesh(new THREE.BoxGeometry(.84,.09,.44),new THREE.MeshStandardMaterial({color:0x090d13,roughness:1}));
+ belt.position.set(0,1.12,0);player.add(belt);
+ const badge=new THREE.Mesh(new THREE.BoxGeometry(.16,.13,.025),new THREE.MeshStandardMaterial({color:0xb9c8d9,metalness:.25,roughness:.55}));
+ badge.position.set(-.18,1.72,-.222);player.add(badge);
+
  const armL=new THREE.Group();armL.position.set(-.49,1.94,0);player.add(armL);const armR=new THREE.Group();armR.position.set(.49,1.94,0);player.add(armR);
  limb(armL,clothes,.14,.12,.72,0,-.34,0);limb(armL,skin,.115,.1,.24,0,-.79,0);limb(armR,clothes,.14,.12,.72,0,-.34,0);limb(armR,skin,.115,.1,.24,0,-.79,0);
  const legL=new THREE.Group();legL.position.set(-.22,1.02,0);player.add(legL);const legR=new THREE.Group();legR.position.set(.22,1.02,0);player.add(legR);
