@@ -485,7 +485,7 @@ function ghost(type,x,z){
   if(type==='nenek'){limb([.55,.7,0],[.58,.08,.02],.035,.025,boneMat);ell(0,1.38,.19,.13,.045,.025,clothMat);}
   else{limb([.55,.78,0],[.58,.08,.02],.035,.025,darkCloth);}
  }
- ghosts.push({type,g,home:new THREE.Vector3(x,0,z),phase:Math.random()*6,alert:false,hp:3,maxHp:3,stagger:0,defeatedTimer:0});
+ ghosts.push({type,g,home:new THREE.Vector3(x,0,z),phase:ghosts.length*.83,hp:3,maxHp:3,stagger:0,defeatedTimer:0});
 }
 ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);ghost('tuyul',-28,2);
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
@@ -782,19 +782,68 @@ const storyBeats=[
  'Rekaman itu berdesis: “Kami menutup pintu bawah tanah. Tapi kentongan sudah berbunyi tiga kali. Penjaga pasti terbangun.”',
  'Catatan kepala desa mengungkap kebenaran: warga Wanasetra menghilang pada 17 Oktober 1987 untuk mengurung sesuatu di bawah balai desa. Segelnya mulai terbuka.'
 ];
+
+// Seluruh perilaku hantu dikendalikan daftar event statis ini.
+// Tidak ada pencarian target, patroli acak, pengejaran, atau keputusan otonom.
+const STORY_GHOST_EVENTS=Object.freeze({
+ 0:Object.freeze({ghost:0,speed:1.35,message:'Ada sesuatu bergerak di dekat sumur.',route:Object.freeze([{x:8,z:5},{x:8,z:1},{x:4,z:-2}])}),
+ 1:Object.freeze({ghost:3,speed:1.8,message:'Sosok terbungkus kain muncul di jalan desa.',route:Object.freeze([{x:-3,z:-24},{x:-3,z:-18},{x:0,z:-14}])}),
+ 2:Object.freeze({ghost:4,speed:1.25,message:'Penjaga terakhir terbangun di dekat balai desa.',route:Object.freeze([{x:-22,z:-23},{x:-14,z:-26},{x:-7,z:-32}])})
+});
+
+function isGhostEventAuthority(){
+ return !mpRoomId||(mpGameStarted&&mpRoomData?.room?.host_id===mpUser?.id);
+}
+
 function triggerStoryGhostEvent(clueIndex){
- // Hanya host yang menjalankan rute agar semua Crew melihat gerakan yang sama.
- if(mpRoomId&&mpRoomData?.room?.host_id!==mpUser?.id)return;
- const events={
-  0:{ghost:0,route:[{x:8,z:5},{x:8,z:1},{x:4,z:-2}],speed:1.35},
-  1:{ghost:3,route:[{x:-3,z:-24},{x:-3,z:-18},{x:0,z:-14}],speed:1.8},
-  2:{ghost:4,route:[{x:-22,z:-23},{x:-14,z:-26},{x:-7,z:-32}],speed:1.25}
- };
- const event=events[clueIndex],gh=event&&ghosts[event.ghost];
- if(!gh||gh.defeatedTimer>0)return;
- gh.g.visible=true;gh.userData.scriptRoute=event.route.map(p=>({x:p.x,z:p.z}));
- gh.userData.scriptRouteIndex=0;gh.userData.scriptSpeed=event.speed;gh.userData.mpMoving=true;
- say(clueIndex===0?'Ada sesuatu bergerak di dekat sumur.':clueIndex===1?'Sosok terbungkus kain muncul di jalan desa.':'Penjaga terakhir terbangun di dekat balai desa.');
+ if(!isGhostEventAuthority())return false;
+ const event=STORY_GHOST_EVENTS[clueIndex],gh=event&&ghosts[event.ghost];
+ if(!gh||gh.defeatedTimer>0)return false;
+
+ gh.g.visible=true;
+ gh.userData.scriptRoute=event.route.map(point=>({x:point.x,z:point.z}));
+ gh.userData.scriptRouteIndex=0;
+ gh.userData.scriptSpeed=event.speed;
+ gh.userData.mpMoving=true;
+ gh.userData.scriptEvent=clueIndex;
+ say(event.message);
+ return true;
+}
+
+function updateScriptedGhostRoute(gh,dt){
+ const route=gh.userData.scriptRoute;
+ if(!Array.isArray(route)||!isGhostEventAuthority())return false;
+
+ let index=Number(gh.userData.scriptRouteIndex)||0;
+ if(index>=route.length){
+  gh.userData.scriptRoute=null;
+  gh.userData.scriptRouteIndex=0;
+  gh.userData.mpMoving=false;
+  return false;
+ }
+
+ const waypoint=route[index];
+ const dx=waypoint.x-gh.g.position.x,dz=waypoint.z-gh.g.position.z;
+ const distanceToWaypoint=Math.hypot(dx,dz);
+ if(distanceToWaypoint<=.24){
+  index++;
+  gh.userData.scriptRouteIndex=index;
+  if(index>=route.length){
+   gh.userData.scriptRoute=null;
+   gh.userData.scriptRouteIndex=0;
+   gh.userData.mpMoving=false;
+   return false;
+  }
+  return true;
+ }
+
+ const speed=Number(gh.userData.scriptSpeed)||1.65;
+ const step=Math.min(distanceToWaypoint,speed*dt);
+ gh.g.position.x+=dx/distanceToWaypoint*step;
+ gh.g.position.z+=dz/distanceToWaypoint*step;
+ gh.g.rotation.y=Math.atan2(dx,dz);
+ gh.userData.mpMoving=true;
+ return true;
 }
 function mpApplyClue(index,announce=false){
  const item=clues[index];if(!item||item.found)return false;
@@ -862,7 +911,7 @@ function mpUpdateRemotePlayers(dt){
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
-function reset(){clearSprintHold();setWalkHold(false);keys={};move.x=move.y=0;grounded=true;jumpVelocity=0;invuln=0;toolSwing=0;toolSwingCooldown=0;isSprinting=false;setProne(false);const stickEl=document.getElementById('stick');if(stickEl)stickEl.style.transform='';missionCompleted=false;storySeen.clear();near=null;setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;delete g.userData.mpTarget;delete g.userData.scriptRoute;g.userData.scriptRouteIndex=0;g.userData.mpMoving=false;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
+function reset(){clearSprintHold();setWalkHold(false);keys={};move.x=move.y=0;grounded=true;jumpVelocity=0;invuln=0;toolSwing=0;toolSwingCooldown=0;isSprinting=false;setProne(false);const stickEl=document.getElementById('stick');if(stickEl)stickEl.style.transform='';missionCompleted=false;storySeen.clear();near=null;setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;delete g.userData.mpTarget;delete g.userData.scriptRoute;delete g.userData.scriptEvent;g.userData.scriptRouteIndex=0;g.userData.mpMoving=false;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
 function finishMission(announce=true,completedBy=''){if(missionCompleted)return;missionCompleted=true;running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';if(completedBy){say('Misi selesai! '+completedBy+' berhasil membuka gerbang.');}else if(announce){say('Misi selesai! Seluruh tim berhasil keluar dari desa.');}if(mpRoomId)mpPersistGameState();if(announce&&mpChannel)mpChannel.send({type:'broadcast',event:'mission_complete',payload:{nickname:mpNickname}}).catch(error=>console.warn('Pemberitahuan misi selesai gagal dikirim:',error));}
 function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex,true);if(mpRoomId)mpPersistGameState();if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
@@ -893,18 +942,10 @@ function updateGhosts(dt){
   if(!ghostAuthority&&gh.userData.mpTarget){p.lerp(gh.userData.mpTarget,Math.min(1,dt*12));}
   if(ghostAuthority&&gh.defeatedTimer>0){gh.defeatedTimer-=dt;if(gh.defeatedTimer<=0){gh.hp=gh.maxHp;gh.g.position.copy(gh.home);gh.g.visible=true;gh.stagger=0;}else continue;}
   if(ghostAuthority)gh.stagger=Math.max(0,gh.stagger-dt);
-  // Scripted Event Controller: hantu hanya mengikuti rute cerita yang ditentukan kode.
+  // Host menjalankan rute cerita; klien lain hanya mengikuti posisi yang disiarkan.
   let moving=!!gh.userData.mpMoving;
   if(ghostAuthority){
-   moving=false;
-   const route=gh.userData.scriptRoute;
-   const routeIndex=Number(gh.userData.scriptRouteIndex)||0;
-   if(Array.isArray(route)&&routeIndex<route.length&&gh.stagger<=0){
-    const waypoint=route[routeIndex],dx=waypoint.x-p.x,dz=waypoint.z-p.z,len=Math.hypot(dx,dz);
-    if(len<.24){gh.userData.scriptRouteIndex=routeIndex+1;}
-    else{const speed=Number(gh.userData.scriptSpeed)||1.65,step=Math.min(len,speed*dt);p.x+=dx/len*step;p.z+=dz/len*step;gh.g.rotation.y=Math.atan2(dx,dz);moving=true;}
-    if((Number(gh.userData.scriptRouteIndex)||0)>=route.length){gh.userData.scriptRoute=null;gh.userData.scriptRouteIndex=0;moving=false;}
-   }
+   moving=gh.stagger<=0?updateScriptedGhostRoute(gh,dt):false;
    gh.userData.mpMoving=moving;
   }else moving=!!gh.userData.mpMoving;
   const t=gh.phase;
