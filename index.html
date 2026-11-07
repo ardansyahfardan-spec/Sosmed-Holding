@@ -6693,6 +6693,7 @@ window.malamTrialOpen=function(type){
  const modal=document.getElementById('malam-trial-modal'),title=document.getElementById('malam-trial-modal-title'),content=document.getElementById('malam-trial-modal-content');
  if(!modal||!content)return;
  const me=s.players[0],role=malamRoles[me.role],alive=s.players.filter(x=>x.alive);
+ if(type==='vote'&&!me.alive){malamTrialNotice('Kamu sudah gugur dan tidak bisa ikut voting.');return;}
  const isAction=type==='action',isVote=type==='vote';
  title.textContent=type==='role'?'Peran Rahasiamu':type==='players'?'Daftar Pemain':type==='discussion'?'Diskusi Warga':type==='chat'?'Chat Pemain':type==='team'?'Bisik-Bisik Siluman':isAction?'Aksi Malam':isVote?'Voting Rahasia':'Catatan Diskusi';
  if(type==='role')content.innerHTML='<div class="text-center"><img src="'+malamRoleArtUrl(me.role)+'" alt="Kartu peran '+role[0]+'" class="block w-full max-w-[210px] max-h-[300px] object-contain mx-auto rounded-2xl shadow-[0_12px_35px_rgba(0,0,0,.55)]"><small class="block text-purple-300 tracking-widest mt-4">IDENTITAS RAHASIAMU</small><b class="block text-2xl text-white mt-2">'+role[0]+'</b><span class="inline-block rounded-full bg-purple-950/70 px-3 py-1 text-[10px] text-purple-200 mt-2">'+role[2]+'</span><p class="text-sm text-gray-300 mt-4">'+role[3]+'</p>'+(s.investigation?'<div class="mt-4 rounded-xl border border-purple-700/40 p-3"><small class="text-purple-300">HASIL PEMERIKSAAN</small><b class="block mt-1 '+(s.investigation.role==='siluman'?'text-red-300':'text-green-300')+'">'+s.investigation.name+': '+(s.investigation.role==='siluman'?'TERDETEKSI SILUMAN':'BUKAN SILUMAN')+'</b></div>':'')+'</div>';
@@ -6800,7 +6801,7 @@ window.malamTrialNight=function(force){
 };
 window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();setTimeout(()=>malamTrialOpen('vote'),180);malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
 window.malamTrialVote=function(force){
- const s=window.__malamTrial;if(!s||s.phase!=='voting'||(!s.selected&&!force))return;
+ const s=window.__malamTrial;if(!s||s.phase!=='voting'||!s.players[0]?.alive||(!s.selected&&!force))return;
  const alive=s.players.filter(p=>p.alive),target=s.selected;
  if(target&&!alive.some(p=>p.id===target&&p.id!=='t0')){malamTrialNotice('Pilihan tidak valid.');return;}
  const tally={};const votes=[];
@@ -6969,11 +6970,11 @@ window.malamLoadState=async function(){
  malamRender(data);malamLoadMessages();malamLoadTeamMessages();
 };
 function malamPlayerCard(x,phase){
- const alive=!!x.is_alive,avatar=x.avatar_url||'';
+ const alive=!!x.is_alive,avatar=x.avatar_url||'',revealedRole=!alive&&x.revealed_role?malamRoles[x.revealed_role]?.[0]||x.revealed_role:'';
  const photo=avatar?'<img src="'+esc(avatar)+'" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">':'<span class="text-xs font-black">'+esc((x.nickname||'C').trim().slice(0,1).toUpperCase())+'</span>';
  return '<div class="flex items-center gap-2 rounded-xl border '+(x.is_host?'border-blue-800/70':'border-gray-800')+' '+(alive?'bg-gray-950/70':'bg-black/30 opacity-60')+' p-2">'+
  '<div class="relative w-9 h-9 shrink-0 overflow-visible rounded-full '+(alive?'':'opacity-90 grayscale')+' flex items-center justify-center">'+(alive?photo:'<img src="assets/arena/status/Mati.png" alt="Mati" class="w-full h-full object-contain">')+(alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-4 h-4 object-contain drop-shadow">':'')+'</div>'+
- '<div class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(x.nickname)+(x.user_id===activeUser.id?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(x.is_host?'text-blue-300':'text-gray-500')+'">'+(x.is_host?'HOST · ':'')+(phase==='lobby'?(x.is_ready?'SIAP':'BELUM SIAP'):(alive?'MASIH BERTAHAN':'TERELIMINASI'))+'</small></div>'+
+ '<div class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(x.nickname)+(x.user_id===activeUser.id?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(x.is_host?'text-blue-300':'text-gray-500')+'">'+(x.is_host?'HOST · ':'')+(phase==='lobby'?(x.is_ready?'SIAP':'BELUM SIAP'):(alive?'MASIH BERTAHAN':'TERELIMINASI'))+(revealedRole?' · PERAN: '+esc(revealedRole):'')+'</small></div>'+
  '<span class="text-[9px] '+(alive?'text-green-400':'text-gray-600')+'">'+(alive?'HIDUP':'GUGUR')+'</span></div>';
 }
 function malamArenaMarkup(players,phase,myTeamIds=[]){
@@ -7132,6 +7133,9 @@ function malamRender(s){
 window.malamReady=async v=>{const {error}=await supabaseClient.rpc('malam_set_ready',{p_room:malamRoomId,p_ready:!!v});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamStart=async()=>{const {error}=await supabaseClient.rpc('malam_start_game',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamAction=async(t,a)=>{
+ const current=window.__malamCurrentState,me=current?.players?.find(x=>x.user_id===activeUser.id);
+ if(!me?.is_alive){malamMsg('Kamu sudah gugur dan tidak bisa melakukan voting atau aksi.');malamCloseModal();return;}
+ if(a==='vote'&&current?.room?.phase!=='voting'){malamMsg('Voting sedang tidak dibuka.');return;}
  const {error}=await supabaseClient.rpc('malam_submit_action',{p_room:malamRoomId,p_target:t,p_action:a});
  if(error){malamMsg(error.message);return;}
  malamNotify(a==='vote'?'SUARA TERCATAT':'AKSI RAHASIA TERSIMPAN',a==='vote'?'Pilihan votingmu dihitung saat waktu voting berakhir.':'Aksimu diproses otomatis saat malam berakhir.');await malamLoadState();
