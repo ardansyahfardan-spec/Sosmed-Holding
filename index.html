@@ -6605,7 +6605,7 @@ window.malamAudioToggleVoice=function(){
 };
 window.malamAudioSpeak=function(text){
  const a=window.__malamAudioState;if(!a.voice||!text||!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window))return;
- try{
+ try{window.speechSynthesis.resume();
   // Safari/iOS kadang memotong antrean jika banyak utterance dikirim sekaligus.
   // Kirim satu potongan, tunggu onend, baru lanjut ke potongan berikutnya.
   const sentences=String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[String(text)];
@@ -6628,7 +6628,7 @@ window.malamAudioSpeak=function(text){
    if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;window.malamAudioSetVolume(.34);return;}
    a.voiceSpeaking=true;a.voicePending=a.voiceQueue.length;
    const chunk=a.voiceQueue.shift(),u=new SpeechSynthesisUtterance(chunk);
-   u.lang='id-ID';u.rate=.9;u.pitch=.82;u.volume=1;if(idVoice)u.voice=idVoice;
+   u.lang='id-ID';u.rate=.92;u.pitch=.9;u.volume=1;if(idVoice)u.voice=idVoice;
    u.onstart=()=>window.malamAudioSetVolume(.16);
    const advance=()=>{a.voiceSpeaking=false;a.voicePending=a.voiceQueue.length;setTimeout(speakNext,140);};
    u.onend=advance;
@@ -7146,7 +7146,7 @@ function malamRender(s){
  if(r.phase!=='lobby'){
   window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent};
   const seenKey='gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id,showRole=!!role&&!sessionStorage.getItem(seenKey)&&window.__malamRoleRevealRoomKey!==malamRoomId;
-  if(showRole&&!window.__malamRoleRevealPending){window.__malamRoleRevealPending=true;setTimeout(()=>{window.__malamRoleRevealPending=false;const latest=window.__malamCurrentState;if(!latest||latest.room?.phase==='lobby'||!latest.my_role)return;const latestRole=malamRoles[latest.my_role];if(!latestRole)return;window.__malamModalData={...(window.__malamModalData||{}),role:window.__malamModalData?.role||roleModalContent};malamOpenModal('role');const modal=document.getElementById('malam-modal');if(modal&&!modal.classList.contains('hidden')){sessionStorage.setItem(seenKey,'1');window.__malamRoleRevealRoomKey=malamRoomId;}},650);}
+  if(showRole&&!window.__malamRoleRevealPending){window.__malamRoleRevealPending=true;let attempts=0;const revealRoleCard=()=>{const latest=window.__malamCurrentState,modal=document.getElementById('malam-modal');if(!latest||latest.room?.phase==='lobby'||!latest.my_role){window.__malamRoleRevealPending=false;return;}if(!malamRoles[latest.my_role]){window.__malamRoleRevealPending=false;return;}if(!modal||!document.getElementById('malam-modal-content')){if(++attempts<12){requestAnimationFrame(revealRoleCard);return;}window.__malamRoleRevealPending=false;return;}window.__malamModalData={...(window.__malamModalData||{}),role:roleModalContent};malamOpenModal('role');if(!modal.classList.contains('hidden')){sessionStorage.setItem(seenKey,'1');window.__malamRoleRevealRoomKey=malamRoomId;window.__malamRoleRevealPending=false;return;}if(++attempts<12)setTimeout(revealRoleCard,180);else window.__malamRoleRevealPending=false;};requestAnimationFrame(()=>setTimeout(revealRoleCard,180));}
   const openModal=window.__malamModalType;
   if(openModal&&['chat','role','players'].includes(openModal))setTimeout(()=>malamOpenModal(openModal),0);
  }else{window.__malamModalData=null;window.__malamModalType=null;}
