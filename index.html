@@ -1957,12 +1957,12 @@ nav.sticky {
 
 /* FIX TERBATAS: tombol Peran, List Pemain, dan Chat harus berada di atas lapisan arena. */
 #arena-play-panel .malam-utility-actions{
- position:relative!important;z-index:2147483000!important;isolation:isolate!important;
+ position:relative!important;z-index:20!important;isolation:isolate!important;
  display:flex!important;width:100%!important;min-height:44px!important;
  pointer-events:auto!important;touch-action:manipulation!important;
 }
 #arena-play-panel .malam-utility-actions button{
- position:relative!important;z-index:2147483001!important;display:inline-flex!important;
+ position:relative!important;z-index:21!important;display:inline-flex!important;
  align-items:center!important;justify-content:center!important;min-width:40px!important;
  min-height:40px!important;pointer-events:auto!important;touch-action:manipulation!important;
  cursor:pointer!important;
@@ -6561,7 +6561,7 @@ window.loadArenaImages=function(){
 };
 let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false;
 /* AUDIO MALAM TERLARANG · BGM MP3 milik pengguna + ducking saat pemandu */
-window.__malamAudioState={audio:null,bgm:false,voice:false,introPlayed:false,panelOpen:false,lastPhase:'',timer:null,bgmBaseVolume:.34,bgmDuckVolume:.07};
+window.__malamAudioState={audio:null,bgm:false,voice:false,voiceQueue:[],voiceQueueRunning:false,voiceRunId:0,voiceSpeaking:false,introPlayed:false,panelOpen:false,lastPhase:'',timer:null,bgmBaseVolume:.34,bgmDuckVolume:.07};
 window.malamAudioControls=function(){
  const a=window.__malamAudioState;
  return '<div class="malam-audio-controls" aria-label="Kontrol audio">'+
@@ -6585,7 +6585,15 @@ window.malamAudioSetVolume=function(level){
 window.malamAudioDuckForVoice=function(isSpeaking){
  const a=window.__malamAudioState;if(!a)return;
  a.voiceSpeaking=!!isSpeaking;
- if(a.audio)a.audio.volume=a.voiceSpeaking?Math.min(a.bgmBaseVolume,a.bgmDuckVolume):a.bgmBaseVolume;
+ if(a.audio){
+  a.audio.volume=a.voiceSpeaking?Math.min(a.bgmBaseVolume,a.bgmDuckVolume):a.bgmBaseVolume;
+  if(!a.voiceSpeaking&&a.bgm&&a.audio.paused){
+   const resumed=a.audio.play();
+   if(resumed&&typeof resumed.catch==='function')resumed.catch(e=>{
+    a.bgm=false;window.malamAudioRefreshControls();console.warn('BGM belum dapat dilanjutkan:',e);
+   });
+  }
+ }
 };
 window.malamAudioStart=function(){
  const a=window.__malamAudioState;
@@ -6617,14 +6625,18 @@ window.malamAudioToggleBgm=async function(){
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];window.malamAudioDuckForVoice(false);}else{a.lastPhase='';window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];window.malamAudioDuckForVoice(false);const trial=window.__malamTrial,state=window.__malamCurrentState;if(trial)window.malamAudioOnPhase('trial',trial.phase,trial.round,trial.lastEvent,trial.winner);else if(state)window.malamAudioOnPhase('multi',state.room?.phase,state.room?.round_no,state.room?.last_event,state.room?.winner);else window.malamAudioSpeak('Suara pemandu aktif. Selamat bermain Malam Terlarang.');}
+ a.voice=!a.voice;
+ a.voiceRunId=(a.voiceRunId||0)+1;a.voiceQueueRunning=false;a.voiceSpeaking=false;
+ window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];
+ window.malamAudioDuckForVoice(false);
+ if(a.voice){a.lastPhase='';const trial=window.__malamTrial,state=window.__malamCurrentState;if(trial)window.malamAudioOnPhase('trial',trial.phase,trial.round,trial.lastEvent,trial.winner);else if(state)window.malamAudioOnPhase('multi',state.room?.phase,state.room?.round_no,state.room?.last_event,state.room?.winner);else window.malamAudioSpeak('Suara pemandu aktif. Selamat bermain Malam Terlarang.');}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
- const a=window.__malamAudioState;if(!a.voice||!text||!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window))return;
- try{window.speechSynthesis.resume();
-  // Safari/iOS kadang memotong antrean jika banyak utterance dikirim sekaligus.
-  // Kirim satu potongan, tunggu onend, baru lanjut ke potongan berikutnya.
+ const a=window.__malamAudioState;
+ if(!a.voice||!text||!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window))return;
+ try{
+  window.speechSynthesis.resume();
   const sentences=String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[String(text)];
   const chunks=[];
   sentences.forEach(sentence=>{
@@ -6638,22 +6650,48 @@ window.malamAudioSpeak=function(text){
   });
   a.voiceQueue=a.voiceQueue||[];
   a.voiceQueue.push(...chunks);
-  if(a.voiceSpeaking)return;
+  if(a.voiceQueueRunning)return;
+  a.voiceQueueRunning=true;
+  const runId=a.voiceRunId=(a.voiceRunId||0)+1;
   const voices=window.speechSynthesis.getVoices()||[];
   const idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
   const speakNext=()=>{
-   if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;window.malamAudioDuckForVoice(false);return;}
-   a.voiceSpeaking=true;a.voicePending=a.voiceQueue.length;
+   if(runId!==a.voiceRunId)return;
+   if(!a.voice||!a.voiceQueue.length){
+    a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;
+    window.malamAudioDuckForVoice(false);return;
+   }
    const chunk=a.voiceQueue.shift(),u=new SpeechSynthesisUtterance(chunk);
+   let settled=false,watchdog=null;
+   const finish=()=>{
+    if(settled)return;settled=true;if(watchdog)clearTimeout(watchdog);
+    if(runId!==a.voiceRunId)return;
+    a.voicePending=a.voiceQueue.length;
+    if(a.voiceQueue.length){setTimeout(speakNext,120);}
+    else{
+     a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;
+     window.malamAudioDuckForVoice(false);
+    }
+   };
    u.lang='id-ID';u.rate=.92;u.pitch=.9;u.volume=1;if(idVoice)u.voice=idVoice;
-   u.onstart=()=>{window.malamAudioDuckForVoice(true);};
-   const advance=()=>{a.voicePending=a.voiceQueue.length;if(a.voiceQueue.length){setTimeout(speakNext,140);}else{a.voiceSpeaking=false;a.voicePending=0;window.malamAudioDuckForVoice(false);setTimeout(speakNext,140);}};
-   u.onend=advance;
-   u.onerror=(event)=>{console.warn('Potongan suara pemandu gagal:',event.error);advance();};
+   u.onstart=()=>window.malamAudioDuckForVoice(true);
+   u.onend=finish;
+   u.onerror=event=>{console.warn('Potongan suara pemandu gagal:',event.error);finish();};
+   a.voiceSpeaking=true;a.voicePending=a.voiceQueue.length+1;
    window.speechSynthesis.speak(u);
+   watchdog=setTimeout(()=>{
+    if(settled)return;
+    console.warn('Pemandu terhenti terlalu lama; antrean dilanjutkan.');
+    try{window.speechSynthesis.cancel();}catch(e){}
+    finish();
+   },Math.max(12000,chunk.length*240));
   };
   speakNext();
- }catch(e){a.voiceSpeaking=false;a.voicePending=0;console.warn('VO gagal diputar:',e);}
+ }catch(e){
+  a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;
+  window.malamAudioDuckForVoice(false);
+  console.warn('VO gagal diputar:',e);
+ }
 };
 window.malamPlayResultAudio=function(outcome,winner){
  const won=outcome==='win';
@@ -6696,7 +6734,7 @@ window.malamAudioOnPhase=function(mode,phase,round,event,winner){
 };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
- a.voice=false;a.voicePending=0;a.voiceQueue=[];window.malamAudioDuckForVoice(false);a.introPlayed=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;a.audio.volume=a.bgmBaseVolume;}a.lastPhase='';window.malamAudioRefreshControls();
+ a.voice=false;a.voiceRunId=(a.voiceRunId||0)+1;a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;a.voiceQueue=[];window.malamAudioDuckForVoice(false);a.introPlayed=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;a.audio.volume=a.bgmBaseVolume;}a.lastPhase='';window.malamAudioRefreshControls();
 };
 
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
@@ -6895,6 +6933,7 @@ window.malamTrialRender=function(){
  const modal='<div id="malam-trial-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamTrialClose()"><div class="malam-trial-modal-card w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-amber-800/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.65)]"><div class="flex justify-between items-center mb-4 shrink-0"><b id="malam-trial-modal-title" class="text-sm">Uji Coba</b><button onclick="malamTrialClose()" class="w-8 h-8 shrink-0 rounded-full bg-gray-800">×</button></div><div id="malam-trial-modal-content" class="min-h-0"></div></div></div>';
  malamAudioOnPhase('trial',s.phase,s.round,s.lastEvent,s.winner);
  p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · '+(s.players.length-1)+' PEMAIN AI · '+s.players.length+' TOTAL</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="malam-utility-actions flex items-center justify-center gap-5 mb-3 py-1"><button type="button" aria-label="Peranku" title="Peranku" data-malam-utility="role" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" data-malam-utility="players" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Catatan" title="Catatan" data-malam-utility="log" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-gray-300/90 hover:text-white"><i class="fa-solid fa-scroll text-[13px]"></i></button>'+(['discussion','voting'].includes(s.phase)?'<button type="button" aria-label="Chat pemain" title="Chat pemain" data-malam-utility="chat" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-amber-200/90 hover:text-amber-100"><i class="fa-solid fa-comments text-[13px]"></i></button>':'')+(s.phase==='night'&&me.alive&&me.role==='siluman'?'<button aria-label="Bisik-bisik Siluman" title="Bisik-bisik Siluman" data-malam-utility="team" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-100"><i class="fa-solid fa-user-secret text-[13px]"></i></button>':'')+'</div>'+tracker+arena+'<div id="malam-trial-countdown" class="text-center text-sm font-black text-amber-200 mb-3">Timer berjalan</div><div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
+ malamBindUtilityButtons(p);
  if(s.phase==='finished'){
   const outcome=(me.role==='siluman')===(s.winner==='siluman')?'win':'lose';
   p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,s.winner,'trial',s.round,s.players.map(x=>({name:x.name,role:x.role,alive:x.alive}))));
@@ -7120,21 +7159,25 @@ window.malamBindChatKeyboard=function(inputId,modalId){
  if(window.visualViewport){window.visualViewport.addEventListener('resize',adjust);window.visualViewport.addEventListener('scroll',adjust);}
  if(document.activeElement===input)adjust();
 };
-// Delegasi klik stabil untuk tombol utilitas pada mode Crew dan Uji Coba AI.
-if(!window.__malamUtilityClickBound){
- window.__malamUtilityClickBound=true;
- document.addEventListener('click',function(event){
-  const button=event.target?.closest?.('#arena-play-panel [data-malam-utility]');
-  if(!button)return;
-  event.preventDefault();
-  event.stopPropagation();
-  const action=button.getAttribute('data-malam-utility');
-  const trial=button.getAttribute('data-malam-utility-mode')==='trial';
-  if(trial){if(typeof window.malamTrialOpen==='function')window.malamTrialOpen(action);return;}
-  if(action==='role'||action==='players')window.malamOpenModal(action);
-  else if(action==='chat')window.malamOpenChat();
-  else if(action==='log'||action==='team')window.malamTrialOpen?.(action);
- },true);
+// Ikat aksi langsung ke tombol setelah renderer membuat ulang panel permainan.
+function malamBindUtilityButtons(root){
+ if(!root)return;
+ root.querySelectorAll('[data-malam-utility]').forEach(button=>{
+  if(button.dataset.malamUtilityBound==='1')return;
+  button.dataset.malamUtilityBound='1';
+  button.addEventListener('click',function(event){
+   event.preventDefault();
+   event.stopPropagation();
+   const action=button.getAttribute('data-malam-utility');
+   const trial=button.getAttribute('data-malam-utility-mode')==='trial';
+   if(trial){
+    if(typeof window.malamTrialOpen==='function')window.malamTrialOpen(action);
+    return;
+   }
+   if(action==='role'||action==='players')window.malamOpenModal(action);
+   else if(action==='chat')window.malamOpenChat();
+  });
+ });
 }
 window.malamOpenModal=function(type){
  const modal=document.getElementById('malam-modal'),content=document.getElementById('malam-modal-content'),title=document.getElementById('malam-modal-title');
@@ -7217,6 +7260,7 @@ function malamRender(s){
  const modal='<div id="malam-modal" class="fixed inset-0 z-[10040] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><div class="flex items-center gap-2">'+(window.__malamModalType!=='chat'?'<button type="button" onclick="event.preventDefault();event.stopPropagation();window.malamOpenModal(\'chat\')" aria-label="Buka chat pemain" title="Chat pemain" class="w-9 h-9 rounded-full bg-amber-950/50 text-amber-200"><i class="fa-solid fa-comments"></i></button>':'')+'<button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div></div><div id="malam-modal-content"></div></div></div>';
  const oldChatInput=document.getElementById('malam-chat-input'),chatDraft=oldChatInput?.value||'',chatHadFocus=!!oldChatInput&&document.activeElement===oldChatInput;
  p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase,s.my_role==='siluman'?teammates:[],{ownId:activeUser.id,role:s.my_role,alive:malamMyAlive,investigationDone:!!s.investigation,selectedTarget:s.my_action_target,teamActionTargets:s.team_action_targets||[]}))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
+ malamBindUtilityButtons(p);
  if(r.phase==='finished'){
   const outcome=(s.my_role==='siluman')===(r.winner==='siluman')?'win':'lose';
   p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,r.winner,'multi',r.round_no,(s.revealed_roles||[]).map(x=>({name:x.nickname,role:x.role,alive:x.is_alive}))));
@@ -7306,7 +7350,7 @@ window.malamExit=async function(){
  const id=malamRoomId;
  if(id){const {error}=await supabaseClient.rpc('malam_leave_room',{p_room:id});if(error){malamMsg(error.message);return;}}
  if(malamChannel)supabaseClient.removeChannel(malamChannel);
- malamChannel=null;malamRoomId=null;sessionStorage.removeItem('gh_malam_room');malamMyAlive=true;malamGameFinished=false;malamHome();
+ malamChannel=null;malamRoomId=null;sessionStorage.removeItem('gh_malam_room');malamMyAlive=true;malamGameFinished=false;malamAudioStop();malamHome();
 };
 async function compressArenaImage(sourceBlob){
  const bitmap=await createImageBitmap(sourceBlob);
