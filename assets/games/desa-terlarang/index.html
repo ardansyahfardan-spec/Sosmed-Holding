@@ -167,12 +167,33 @@ const cameraToggle=document.getElementById('camera-toggle');
 function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
 cameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
 
-const body=mat(0x263b55),pants=mat(0x20232c),face=mat(0xcaa78c),eye=mat(0x090b10);
-const torso=box(player,0,1.35,0,.85,1.05,.48,body),head=box(player,0,2.2,0,.65,.65,.62,face);
-box(player,-.16,2.27,.315,.07,.08,.025,eye);box(player,.16,2.27,.315,.07,.08,.025,eye);
-const legs=[box(player,-.22,.48,0,.3,.8,.34,pants),box(player,.22,.48,0,.3,.8,.34,pants)];
-legs.forEach((leg,i)=>{leg.geometry.translate(0,-.4,0);leg.position.y=.88;leg.userData.phase=i*Math.PI;});
-const arms=[box(player,-.58,1.42,0,.25,.9,.28,face),box(player,.58,1.42,0,.25,.9,.28,face)];
+// Roblox-inspired block avatar: recognizable hair, face, layered clothing and shoes.
+const body=mat(0x1765a8),pants=mat(0x252b38),face=mat(0xd7a783),eye=mat(0x17191d);
+const hair=mat(0x17191f),hairLight=mat(0x292b32),shirtTrim=mat(0xe5edf4),shoeMat=mat(0xe8e9e7),soleMat=mat(0x30343a);
+const torso=box(player,0,1.35,0,.86,1.02,.48,body);
+box(player,0,1.79,.247,.34,.13,.025,shirtTrim);
+box(player,0,1.02,.251,.72,.09,.025,shirtTrim);
+box(player,0,1.89,0,.22,.18,.22,face); // neck
+const head=box(player,0,2.2,0,.68,.68,.62,face);
+box(player,-.37,2.19,0,.09,.2,.18,face);box(player,.37,2.19,0,.09,.2,.18,face); // ears
+// swept black hair and fringe
+box(player,0,2.55,-.015,.72,.19,.65,hair);
+box(player,-.22,2.48,.205,.28,.19,.22,hair);
+box(player,.06,2.49,.23,.34,.2,.2,hairLight);
+box(player,-.31,2.34,-.03,.13,.28,.55,hair);
+box(player,.31,2.35,-.02,.13,.25,.54,hair);
+box(player,-.16,2.27,.317,.105,.105,.025,eye);box(player,.16,2.27,.317,.105,.105,.025,eye);
+box(player,-.16,2.31,.331,.11,.025,.025,hair);box(player,.16,2.31,.331,.11,.025,.025,hair);
+box(player,0,2.13,.32,.13,.035,.035,mat(0x754e43)); // subtle smile
+const legs=[box(player,-.22,.48,0,.32,.8,.36,pants),box(player,.22,.48,0,.32,.8,.36,pants)];
+legs.forEach((leg,i)=>{leg.geometry.translate(0,-.4,0);leg.position.y=.88;leg.userData.phase=i*Math.PI;
+ const shoe=new THREE.Mesh(new THREE.BoxGeometry(.35,.2,.5),shoeMat);shoe.position.set(0,-.77,.075);leg.add(shoe);
+ const sole=new THREE.Mesh(new THREE.BoxGeometry(.355,.055,.505),soleMat);sole.position.set(0,-.865,.075);leg.add(sole);
+});
+const arms=[box(player,-.59,1.42,0,.27,.88,.3,face),box(player,.59,1.42,0,.27,.88,.3,face)];
+// blue short sleeves over the upper arms
+box(player,-.59,1.69,0,.285,.34,.315,body);box(player,.59,1.69,0,.285,.34,.315,body);
+box(player,0,1.36,.249,.12,.22,.025,shirtTrim);
 let isProne=false,jumpVelocity=0,grounded=true,isSprinting=false,sprintHoldTimer=null;
 let cameraYaw=0,cameraPitch=0.16,cameraPointer=null,lastCameraX=0,lastCameraY=0;
 const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone');
