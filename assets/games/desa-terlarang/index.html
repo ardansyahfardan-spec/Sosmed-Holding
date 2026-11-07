@@ -75,7 +75,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <h2>GHOUSTORY:<br>DESA TERLARANG</h2>
  <p>Wanasetra menghilang dari peta sejak Malam Penutupan. Tim dokumentasi terakhir mengirim satu pesan: <i>“Kami menemukan desa itu. Tapi sepertinya ada yang tidak ingin kami pulang.”</i></p>
  <p><b>Misi pertama:</b> temukan tiga bukti di sekitar desa, lalu cari jalan menuju balai desa. Jangan biarkan para penghuni malam mendekat.</p>
-  <div class="mode-choices"><button class="primary" id="begin" type="button">MODE SOLO</button><button id="multiplayer-open" type="button">MODE MULTIPLAYER</button></div>
+  <div class="mode-choices"><button class="primary" id="multiplayer-open" type="button">MASUK KE MULTIPLAYER</button></div>
  </div></div>
 <div id="multiplayer-panel" aria-hidden="true">
  <div class="card">
@@ -104,7 +104,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
   </div>
   <p id="mp-status" class="mp-status" aria-live="polite" style="margin-top:12px"></p>
   <button id="mp-close" class="mp-action" type="button" style="width:100%">KEMBALI</button>
-  <p class="small" style="margin-top:12px">Maksimal 5 pemain per room. Semua pemain harus menekan SIAP sebelum host memulai.</p>
+  <p class="small" style="margin-top:12px">Maksimal 5 pemain. Host otomatis siap dan bisa memulai sendiri; pemain Crew lain menekan SIAP sebelum misi dimulai.</p>
  </div>
 </div>
 <div id="ending"><div class="card">
@@ -114,7 +114,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <p>Di halaman terakhir tertulis satu nama: <b>Wanasetra, 17 Oktober 1987.</b> Tinta merah di bawahnya membentuk lambang yang sama dengan ukiran di pintu bawah tanah.</p>
  <p style="color:#fca5a5">Dari arah sumur terdengar tiga ketukan.</p>
  <p class="small">Ini adalah akhir misi pembuka. Misteri utama belum terungkap.</p>
- <button class="primary" id="again">ULANGI MISI</button>
+
  </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
@@ -650,6 +650,9 @@ async function mpCreateRoom(){
   const {data,error}=await mpClient.rpc('desa_create_room',{p_nickname:nickname});
   if(error)throw error;
   if(!data?.room_id||!data?.code)throw new Error('Server belum mengembalikan kode room. Muat ulang panel dan coba lagi.');
+  // Host otomatis SIAP supaya room bisa langsung dimulai walau bermain sendirian.
+  const readyResult=await mpClient.rpc('desa_set_ready',{p_room:data.room_id,p_ready:true});
+  if(readyResult.error)console.warn('Status siap host belum tersimpan:',readyResult.error.message);
   await mpConnectRoom(data.room_id);
   mpMessage('Room berhasil dibuat. Kode '+data.code+' siap dibagikan.');
  }catch(error){console.error('Gagal membuat room:',error);mpMessage(error?.message||'Room gagal dibuat. Periksa koneksi dan sesi login.',true);}
@@ -991,7 +994,6 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
-document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';document.getElementById('joystick').style.display='block';walkButton.style.display='block';jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();say('Wanasetra, 17 Oktober 1987. Tim dokumentasi sebelumnya menghilang. Temukan tiga bukti dan jangan percaya suara yang memanggil dari sumur. Dekati cahaya kuning untuk memeriksa petunjuk.');});
 document.getElementById('multiplayer-open').addEventListener('click',mpOpen);
 document.getElementById('mp-close').addEventListener('click',mpClosePanel);
 document.getElementById('mp-create').addEventListener('click',mpCreateRoom);
@@ -1000,7 +1002,7 @@ document.getElementById('mp-join').addEventListener('click',mpJoinRoom);
 document.getElementById('mp-ready').addEventListener('click',mpSetReady);
 document.getElementById('mp-start').addEventListener('click',mpStartAsHost);
 document.getElementById('mp-leave').addEventListener('click',async()=>{await mpLeaveRoom();document.getElementById('mp-room-code').value='';mpMessage('Kamu sudah keluar dari room.');});
-document.getElementById('again').addEventListener('click',reset);
+
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
 const audioButton=document.getElementById('audio'),audioMenu=document.getElementById('audio-menu'),bgmButton=document.getElementById('audio-bgm'),voiceButton=document.getElementById('audio-voice');
 let windSource=null,windGain=null,droneOsc=null,droneGain=null,insectTimer=null,footstepClock=0,ghostCueClock=0,lastAudioPos=player.position.clone();
