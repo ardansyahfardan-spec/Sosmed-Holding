@@ -6806,13 +6806,15 @@ window.malamTrialVotePhase=function(){
  const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;
  s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.aiVoteChoices={};
  const alive=s.players.filter(p=>p.alive);
+ s.players.forEach(p=>{p.suspicion_from=[];});
  alive.filter(p=>p.isAI).forEach(voter=>{
   const options=alive.filter(x=>x.id!==voter.id);if(!options.length)return;
   const ranked=options.map(x=>{let score=(x.suspicion||0)+(Math.random()*.9);if(x.role==='siluman')score+=Math.random()*.55;if(x.id==='t0'&&s.players[0].role!=='siluman'&&Math.random()<.18)score+=.45;if(x.role==='siluman'&&voter.role==='siluman')score-=.45;return {x,score};}).sort((a,b)=>b.score-a.score);
-  s.aiVoteChoices[voter.id]=(Math.random()<.24?options[Math.floor(Math.random()*options.length)]:ranked[0].x).id;
+  const target=(Math.random()<.24?options[Math.floor(Math.random()*options.length)]:ranked[0].x);
+  s.aiVoteChoices[voter.id]=target.id;target.suspicion_from=[...(target.suspicion_from||[]),voter.id];
  });
  s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');
- malamTrialRender();malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');
+ malamTrialRender();malamNotify('VOTING DIBUKA','Klik profil pemain yang kamu curigai. Pilihan AI juga ditandai pada profil target.','phase');
 };
 window.malamTrialVote=function(force){
  const s=window.__malamTrial;if(!s||s.phase!=='voting'||!s.players[0]?.alive||(!s.selected&&!force))return;
