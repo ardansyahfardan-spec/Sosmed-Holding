@@ -251,7 +251,21 @@ const toolModels={};
 function makeTool(kind){const g=new THREE.Group();if(kind==='flashlight'){cylinder(g,.34,-.3,-.73,.075,.09,.42,mat(0x202a36),9);cylinder(g,.34,-.08,-.73,.11,.11,.09,metal,9);const lens=new THREE.Mesh(new THREE.CircleGeometry(.085,12),mat(0xf8e7b2,.3,0xffd56a));lens.position.set(.34,-.08,-.681);g.add(lens);}else if(kind==='hoe'){const shaft=cylinder(g,.34,-.36,-.75,.035,.035,.72,handleMat,7);shaft.rotation.x=.18;const blade=box(g,.34,-.02,-.75,.42,.09,.08,metal);blade.rotation.z=-.12;}else if(kind==='sickle'){cylinder(g,.34,-.35,-.75,.035,.035,.62,handleMat,7);const blade=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,12,Math.PI*.82),metal);blade.position.set(.48,-.02,-.75);g.add(blade);}else{const plank=box(g,.34,-.27,-.75,.16,.78,.09,handleMat);plank.rotation.z=-.18;}return g;}
 ['flashlight','hoe','sickle','plank'].forEach(k=>toolModels[k]=makeTool(k));
 let selectedTool='flashlight',flashlightOn=true;
-const flashlightBeam=new THREE.SpotLight(0xffe6ad,5,28,Math.PI/7,.42,1.2);flashlightBeam.position.set(.34,-.08,-.78);flashlightBeam.target.position.set(.34,-.22,-9);camera.add(flashlightBeam,flashlightBeam.target);
+// World-space flashlight: the beam and its target live in the scene, not on the avatar.
+const flashlightBeam=new THREE.SpotLight(0xffe6bd,34,46,Math.PI/5,.58,1.35);
+const flashlightTarget=new THREE.Object3D();scene.add(flashlightBeam,flashlightTarget);flashlightBeam.target=flashlightTarget;
+const flashlightFill=new THREE.PointLight(0xffdca0,4.5,9,1.7);scene.add(flashlightFill);
+const flashlightDirection=new THREE.Vector3(),flashlightWorldPosition=new THREE.Vector3();
+function updateFlashlightWorld(){
+ const on=flashlightOn&&selectedTool==='flashlight';
+ flashlightBeam.visible=on;flashlightFill.visible=on;
+ if(!on)return;
+ camera.getWorldPosition(flashlightWorldPosition);
+ camera.getWorldDirection(flashlightDirection);
+ flashlightBeam.position.copy(flashlightWorldPosition);
+ flashlightTarget.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,24);
+ flashlightFill.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,1.1);
+}
 function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.parent)m.parent.remove(m);});equipment.add(toolModels[k]);flashlightBeam.visible=k==='flashlight'&&flashlightOn;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===k));}
 function toggleFlashlight(){flashlightOn=!flashlightOn;flashlightBeam.visible=selectedTool==='flashlight'&&flashlightOn;document.getElementById('flashlight-toggle').classList.toggle('active',flashlightOn);}
 equipTool('flashlight');
@@ -270,69 +284,77 @@ clue(-13,-7,'Foto keluarga');clue(8,2,'Rekaman sumur');clue(0,-30,'Catatan balai
 const ghosts=[];
 function ghost(type,x,z){
  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- const pale=mat(type==='tuyul'?0x8b947d:type==='genderuwo'?0x49372f:type==='nenek'?0xb7a99a:type==='kakek'?0x9c9388:0xd9d0c8);
- const clothMat=mat(type==='pocong'?0xe5e1d7:type==='kuntilanak'?0xe8e1dc:type==='anak'?0xaaa8a4:0x29252a);
- const shadow=mat(0x08090d),hairMat=mat(type==='genderuwo'?0x17110f:0x17151b),red=mat(0xb51d31,.25,0x68000d),bone=mat(0xbeb6a4);
- const part=(x,y,z,w,h,d,m,rz=0)=>{
-  const o=new THREE.Mesh(new THREE.SphereGeometry(1,14,12),m);
-  o.position.set(x,y,z);o.scale.set(w*.68,h*.58,d*.68);o.rotation.z=rz;g.add(o);return o;
+ const pale=mat(type==='tuyul'?0x89917e:type==='genderuwo'?0x211a1b:type==='nenek'?0xaaa09a:type==='kakek'?0x77716b:0xc8c0b7);
+ const clothMat=mat(type==='pocong'?0xd4d0c5:type==='kuntilanak'?0xd8d0ca:type==='anak'?0x343b46:0x211d22);
+ const shadow=mat(0x030306,.35,0x080008),hairMat=mat(type==='genderuwo'?0x100b0b:0x09090d),red=mat(0x8f061a,.18,0x6f0010),bone=mat(0xb9ad9b);
+ const claw=mat(0x171317,.35),stain=mat(0x4a111b,.5,0x210008);
+ const ell=(x,y,z,rx,ry,rz,m)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,18,14),m);o.position.set(x,y,z);o.scale.set(rx,ry,rz);o.castShadow=true;g.add(o);return o;};
+ const cone=(x,y,z,r,h,m,seg=9)=>{const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o;};
+ const limb=(x,y,z,rx,ry,rz,m,rot=0)=>{const o=ell(x,y,z,rx,ry,rz,m);o.rotation.z=rot;return o;};
+ const eyes=(y,z,spread=.13,size=.075)=>{
+  for(const side of [-1,1]){
+   ell(side*spread,y,z,.105,.135,.045,shadow);
+   ell(side*spread,y,z+.045,size,size*.72,.035,red);
+   ell(side*spread,y,z+.078,size*.24,size*.24,.018,shadow);
+  }
  };
- const eye=(x,y,z,size=.075)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),red);o.position.set(x,y,z);o.scale.set(size,size*.72,.035);g.add(o);const pupil=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),shadow);pupil.position.set(x,y,z+.025);pupil.scale.set(size*.3,size*.3,.018);g.add(pupil);};
- const face=(y=1.9)=>{
-  const head=new THREE.Mesh(new THREE.SphereGeometry(1,18,14),pale);
-  head.position.set(0,y,0);head.scale.set(.34,.34,.3);g.add(head);
-  eye(-.13,y+.035,.263,type==='genderuwo'?.095:.055);eye(.13,y+.035,.263,type==='genderuwo'?.095:.055);
- };
+ const mouth=(y,z,w=.2)=>{ell(0,y,z,w,.105,.045,shadow);for(let i=-2;i<=2;i++)cone(i*w*.32,y-.055,z+.035,.027,.12,bone,5);};
  if(type==='pocong'){
-  // Pocong: bentuk kain membulat dengan simpul dan ikatan khas.
-  part(0,1.12,0,.72,1.18,.5,clothMat);part(0,2.05,0,.66,.65,.58,clothMat);
-  part(0,2.43,-.015,.72,.16,.62,clothMat);part(0,2.05,.296,.42,.12,.025,shadow);
-  eye(-.105,2.07,.32,.045);eye(.105,2.07,.32,.045);
-  part(-.43,1.2,0,.2,.88,.25,clothMat,.12);part(.43,1.2,0,.2,.88,.25,clothMat,-.12);
-  part(0,.42,0,.26,.78,.28,clothMat);
-  for(let j=0;j<3;j++)part(0,1.65-j*.28,.263,.68,.035,.025,bone);
+  // Kain kafan memanjang, ikatan kasar, simpul kepala dan rongga mata gelap.
+  const shroud=new THREE.Mesh(new THREE.ConeGeometry(.53,2.65,9,1),clothMat);shroud.position.y=1.28;shroud.rotation.x=Math.PI;g.add(shroud);
+  ell(0,2.48,0,.39,.38,.34,clothMat);
+  ell(0,2.79,-.02,.23,.16,.2,clothMat);
+  for(let y of [.62,.92,1.22,1.52]){const band=new THREE.Mesh(new THREE.TorusGeometry(.39-y*.055,.035,6,16),bone);band.position.y=y;band.rotation.x=Math.PI/2;g.add(band);}
+  ell(-.11,2.48,.303,.09,.13,.04,shadow);ell(.11,2.48,.303,.09,.13,.04,shadow);
+  ell(-.11,2.48,.34,.04,.045,.025,red);ell(.11,2.48,.34,.04,.045,.025,red);
+  ell(0,2.12,.3,.12,.08,.035,shadow);
  }else if(type==='kuntilanak'){
-  // Gaun panjang, kepala pucat dan rambut hitam menjuntai seperti avatar Roblox.
-  part(0,.92,0,.95,1.65,.58,clothMat);part(0,1.92,0,.58,.62,.52,pale);
-  part(0,2.24,-.04,.68,.2,.62,hairMat);part(0,1.62,-.3,.7,1.15,.12,hairMat);
-  part(-.28,1.55,-.25,.14,1.35,.14,hairMat);part(.28,1.55,-.25,.14,1.35,.14,hairMat);
-  part(-.42,1.35,0,.2,1.05,.22,clothMat,.22);part(.42,1.35,0,.2,1.05,.22,clothMat,-.22);
-  eye(-.1,1.96,.27,.05);eye(.1,1.96,.27,.05);part(0,1.7,.28,.12,.12,.03,shadow);
+  // Gaun sobek menggantung, rambut panjang menutupi sebagian muka dan mata menyala.
+  const dress=new THREE.Mesh(new THREE.ConeGeometry(.83,2.05,12,1),clothMat);dress.position.y=1.02;dress.rotation.x=Math.PI;g.add(dress);
+  ell(0,2.18,0,.34,.4,.3,pale);
+  ell(0,2.51,-.02,.39,.18,.34,hairMat);
+  for(let i=-3;i<=3;i++){const x=i*.105;const strand=ell(x,1.78+Math.abs(i)*.025,-.22,.055,.82+((i+3)%3)*.12,.065,hairMat);strand.rotation.z=x*.18;}
+  ell(-.13,2.22,.27,.105,.13,.035,shadow);ell(.13,2.22,.27,.105,.13,.035,shadow);
+  ell(-.13,2.22,.31,.045,.055,.025,red);ell(.13,2.22,.31,.045,.055,.025,red);
+  mouth(1.98,.3,.13);
+  limb(-.48,1.38,0,.12,.72,.13,clothMat,.18);limb(.48,1.38,0,.12,.72,.13,clothMat,-.18);
+  for(let side of [-1,1])for(let j=0;j<3;j++)cone(side*.5+(j-1)*.055,.88,-.02,.035,.28,claw,5);
  }else if(type==='genderuwo'){
-  // Siluet besar dan lebar, tubuh berbulu gelap, tangan panjang dan taring.
-  part(0,1.55,0,1.35,1.45,.72,hairMat);part(0,2.48,.015,.88,.85,.65,pale);
-  part(0,2.88,-.02,1.02,.28,.75,hairMat);
-  part(-.52,2.48,0,.22,.42,.22,hairMat);part(.52,2.48,0,.22,.42,.22,hairMat);
-  part(-.84,1.48,0,.38,1.55,.4,hairMat,-.12);part(.84,1.48,0,.38,1.55,.4,hairMat,.12);
-  part(-.28,.48,0,.48,.9,.48,hairMat);part(.28,.48,0,.48,.9,.48,hairMat);
-  eye(-.19,2.53,.35,.095);eye(.19,2.53,.35,.095);
-  part(0,2.23,.36,.28,.12,.06,shadow);
-  for(let j=0;j<5;j++)part((j-2)*.09,2.13,.4,.045,.16,.045,bone);
-  for(let j=0;j<7;j++)part((j-3)*.18,1.82+(j%2)*.2,-.4,.15,.45,.16,hairMat,(j-3)*.08);
+  // Tubuh raksasa berpunuk, bahu berbulu, rahang lebar, taring dan cakar panjang.
+  ell(0,1.48,0,.83,.98,.55,hairMat);ell(0,2.52,0,.59,.62,.48,pale);
+  ell(0,2.91,-.05,.72,.3,.58,hairMat);
+  for(let i=0;i<13;i++){const a=i/13*Math.PI*2;cone(Math.cos(a)*.68,1.7+(i%3)*.28,Math.sin(a)*.43,.16,.52,hairMat,6);}
+  ell(-.23,2.57,.39,.14,.17,.055,shadow);ell(.23,2.57,.39,.14,.17,.055,shadow);
+  ell(-.23,2.57,.45,.075,.085,.035,red);ell(.23,2.57,.45,.075,.085,.035,red);
+  mouth(2.25,.46,.31);
+  limb(-.95,1.36,0,.25,.92,.27,hairMat,-.2);limb(.95,1.36,0,.25,.92,.27,hairMat,.2);
+  for(let side of [-1,1])for(let j=0;j<3;j++)cone(side*(1.02+j*.06),.55,(j-1)*.13,.065,.4,claw,5);
+  limb(-.32,.48,0,.28,.55,.3,hairMat);limb(.32,.48,0,.28,.55,.3,hairMat);
  }else if(type==='tuyul'){
-  // Tuyul mungil berkepala besar, telinga lebar dan tubuh pendek.
-  part(0,.68,0,.52,.68,.42,pale);part(0,1.42,0,.72,.72,.62,pale);
-  part(-.43,1.43,0,.2,.32,.18,pale);part(.43,1.43,0,.2,.32,.18,pale);
-  eye(-.14,1.48,.32,.085);eye(.14,1.48,.32,.085);
-  part(0,1.22,.32,.1,.07,.04,shadow);part(0,1.05,.3,.18,.06,.04,red);
-  part(-.36,.68,0,.16,.55,.18,pale,.12);part(.36,.68,0,.16,.55,.18,pale,-.12);
-  part(-.15,.2,0,.2,.4,.22,pale);part(.15,.2,0,.2,.4,.22,pale);
+  // Kepala botak terlalu besar, kulit kusam, telinga lancip dan senyum tidak wajar.
+  ell(0,.65,0,.34,.47,.3,pale);ell(0,1.48,0,.57,.59,.49,pale);
+  ell(-.58,1.49,0,.2,.31,.12,pale);ell(.58,1.49,0,.2,.31,.12,pale);
+  eyes(1.57,.43,.19,.105);mouth(1.28,.45,.24);
+  ell(-.34,.66,.02,.12,.4,.13,pale,.1);ell(.34,.66,.02,.12,.4,.13,pale,-.1);
+  ell(-.17,.2,0,.16,.25,.18,pale);ell(.17,.2,0,.16,.25,.18,pale);
  }else if(type==='anak'){
-  part(0,.78,0,.55,.82,.42,clothMat);part(0,1.62,0,.62,.62,.56,pale);
-  part(0,1.94,-.03,.66,.2,.58,hairMat);part(-.2,1.82,-.02,.18,.25,.55,hairMat);
-  part(-.36,.82,0,.16,.68,.18,clothMat,.1);part(.36,.82,0,.16,.68,.18,clothMat,-.1);
-  part(-.14,.24,0,.2,.45,.22,clothMat);part(.14,.24,0,.2,.45,.22,clothMat);
-  eye(-.11,1.66,.285,.055);eye(.11,1.66,.285,.055);
+  // Anak kecil dengan seragam lusuh, kepala miring dan wajah pucat.
+  ell(0,.78,0,.38,.58,.28,clothMat);ell(0,1.7,0,.4,.43,.36,pale);
+  ell(0,2.02,-.03,.43,.18,.39,hairMat);ell(-.25,1.82,.08,.14,.28,.2,hairMat);
+  eyes(1.73,.31,.13,.05);mouth(1.48,.32,.12);
+  limb(-.46,.84,0,.1,.5,.11,clothMat,.14);limb(.46,.84,0,.1,.5,.11,clothMat,-.14);
+  limb(-.16,.2,0,.13,.3,.14,clothMat);limb(.16,.2,0,.13,.3,.14,clothMat);
+  ell(0,.95,.27,.22,.07,.035,stain);
  }else{
-  const isOldWoman=type==='nenek';
-  part(0,1.05,0,.76,1.2,.52,isOldWoman?clothMat:hairMat,.12);
-  part(0,1.88,0,.58,.62,.52,pale);
-  part(0,2.16,-.02,.64,.2,.56,isOldWoman?bone:hairMat);
-  for(let j=-2;j<=2;j++)part(j*.11,1.98,-.28,.07,.38,.07,bone,j*.08);
-  part(-.42,.98,0,.16,.85,.18,pale,.25);part(.42,.98,0,.16,.85,.18,pale,-.25);
-  eye(-.1,1.92,.27,.045);eye(.1,1.92,.27,.045);part(0,1.72,.28,.22,.025,.025,shadow);
-  if(isOldWoman){part(0,1.38,.25,.3,.1,.1,clothMat);part(.55,.48,0,.07,.95,.07,bone,-.12);}
-  else{part(.52,.62,0,.07,1.2,.07,wood2,.08);part(0,2.1,-.28,.3,.12,.12,bone);}
+  const oldWoman=type==='nenek';
+  ell(0,1.02,0,.43,.67,.32,oldWoman?clothMat:hairMat);
+  ell(0,1.92,0,.34,.4,.3,pale);
+  ell(0,2.23,-.04,.38,.18,.34,oldWoman?bone:hairMat);
+  for(let i=-2;i<=2;i++)ell(i*.11,1.94,.27,.025,.22,.025,bone);
+  eyes(1.99,.27,.12,.045);mouth(1.72,.29,.14);
+  limb(-.5,1.02,0,.12,.7,.13,pale,.18);limb(.5,1.02,0,.12,.7,.13,pale,-.18);
+  if(oldWoman){ell(0,1.35,.29,.2,.09,.06,clothMat);cylinder(g,.55,.5,0,.045,.065,1,bone,6);}
+  else{cylinder(g,.55,.62,0,.055,.07,1.25,wood2,6);ell(0,2.12,-.28,.2,.08,.12,bone);}
  }
  ghosts.push({type,g,home:new THREE.Vector3(x,0,z),phase:Math.random()*6,alert:false});
 }
@@ -391,7 +413,7 @@ function movePlayer(dt){
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
 }
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
