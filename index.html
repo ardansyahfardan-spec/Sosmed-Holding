@@ -7103,7 +7103,9 @@ function malamRender(s){
   '<div class="grid grid-cols-2 gap-2 mt-3"><button onclick="malamReady('+(me?.is_ready?'false':'true')+')" class="rounded-xl border border-gray-700 py-3 text-xs font-semibold">'+(me?.is_ready?'Batalkan Siap':'Saya Siap')+'</button>'+(host?'<button onclick="malamStart()" '+(ps.length<4||ps.some(x=>!x.is_ready)?'disabled':'')+' class="rounded-xl bg-gradient-to-r from-red-800 to-red-950 py-3 text-xs font-bold disabled:opacity-40">Mulai Permainan</button>':'<div class="flex items-center justify-center text-[10px] text-gray-500">Menunggu host memulai</div>')+'</div>';
  }else{
   let action='';
-  if(r.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role)){
+  if(r.phase==='night'&&malamMyAlive&&s.my_role==='paranormal'&&s.investigation_name){
+   action='<div class="rounded-2xl border border-purple-700/50 bg-purple-950/25 p-3 my-3"><b class="text-sm text-purple-100">Pemeriksaan Malam Ini Selesai</b><p class="text-xs text-gray-200 mt-2">'+esc(s.investigation_name)+' memiliki peran <b class="text-purple-200">'+esc(malamRoles[s.investigation]?.[0]||s.investigation)+'</b>.</p><p class="text-[10px] text-gray-400 mt-2">Kamu hanya dapat memeriksa satu orang setiap malam. Tunggu malam berikutnya untuk memilih target baru.</p></div>';
+  }else if(r.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role)){
    const a={siluman:'attack',paranormal:'investigate',penjaga:'protect'}[s.my_role];
    const labels={siluman:'Pilih target serangan',paranormal:'Pilih seseorang untuk diperiksa',penjaga:'Pilih seseorang untuk dilindungi'};
    action='<div class="rounded-2xl border border-indigo-800/60 bg-indigo-950/25 p-3 my-3"><b class="text-sm text-indigo-100">'+labels[s.my_role]+'</b><p class="text-xs text-gray-300 mt-1">Popup aksi rahasia tersedia. Pilih target sebelum waktu malam berakhir.</p><button onclick="malamOpenModal(\'action\')" class="w-full mt-3 rounded-xl bg-gradient-to-r from-red-900 to-blue-950 py-3 text-xs font-bold">BUKA PILIHAN TARGET</button></div>';
@@ -7135,7 +7137,7 @@ function malamRender(s){
   p.insertAdjacentHTML('beforeend',window.malamResultPopupHtml(outcome,r.winner,'multi',r.round_no,(s.revealed_roles||[]).map(x=>({name:x.nickname,role:x.role,alive:x.is_alive}))));
  }
  if(r.phase!=='lobby'){
-  const nightAction=s.room.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role);
+  const nightAction=s.room.phase==='night'&&malamMyAlive&&['siluman','paranormal','penjaga'].includes(s.my_role)&&!(s.my_role==='paranormal'&&s.investigation_name);
   const canVote=s.room.phase==='voting'&&malamMyAlive;
   const targetAction=nightAction?{type:'action',role:s.my_role,action:{siluman:'attack',paranormal:'investigate',penjaga:'protect'}[s.my_role]}:canVote?{type:'vote'}:null;
   const actionLabel={siluman:'Pilih target serangan',paranormal:'Pilih seseorang untuk diperiksa',penjaga:'Pilih seseorang untuk dilindungi'};
