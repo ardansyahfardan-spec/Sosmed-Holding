@@ -7008,10 +7008,10 @@ function malamSubscribe(){
 }
 async function malamLoadStateOnce(roomAtStart){
  if(!roomAtStart||roomAtStart!==malamRoomId)return;
- if(!malamRoomId)return;const loadToken=window.__malamLoadToken=(window.__malamLoadToken||0)+1;malamStartClock();
- const {error:aiError}=await supabaseClient.rpc('malam_process_ai',{p_room:malamRoomId});
+ malamStartClock();
+ const {error:aiError}=await supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart});
  if(aiError&& !/fase|anggota|room/i.test(aiError.message||''))console.warn('AI multiplayer:',aiError.message);
- const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
+ const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:roomAtStart});
  if(error){malamMsg(error.message);return;}
  if(data?.my_role==='paranormal'&&data?.investigation){
   const inv=data.investigation_detail||data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
@@ -7028,7 +7028,7 @@ async function malamLoadStateOnce(roomAtStart){
    data.players=(data.players||[]).map(x=>({...x,avatar_url:avatars.get(x.user_id)||''}));
   }else console.warn('Foto profil pemain belum dapat dimuat:',profileError.message);
  }
- if(['discussion','voting'].includes(data?.room?.phase)&&data?.my_alive){const {data:aiMessages}=await supabaseClient.from('malam_ai_messages').select('player_id,nickname,body,created_at,round_no').eq('room_id',malamRoomId).eq('round_no',data.room.round_no).order('created_at');window.__malamAiChatMessages=aiMessages||[];const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',malamRoomId).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});const aiLatest=new Map((aiMessages||[]).map(m=>[m.player_id,m.body]));data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||aiLatest.get(x.user_id)||'',chat_bubble_at:latest.get(x.user_id)?.at||Date.now()}));}
+ if(['discussion','voting'].includes(data?.room?.phase)&&data?.my_alive){const {data:aiMessages}=await supabaseClient.from('malam_ai_messages').select('player_id,nickname,body,created_at,round_no').eq('room_id',roomAtStart).eq('round_no',data.room.round_no).order('created_at');window.__malamAiChatMessages=aiMessages||[];const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',roomAtStart).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});const aiLatest=new Map((aiMessages||[]).map(m=>[m.player_id,m.body]));data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||aiLatest.get(x.user_id)||'',chat_bubble_at:latest.get(x.user_id)?.at||Date.now()}));}
  if(roomAtStart!==malamRoomId)return;
  malamRender(data);malamLoadMessages();malamLoadTeamMessages();
 };
@@ -7222,7 +7222,7 @@ function malamRender(s){
  }
  if(r.phase!=='lobby'){
   window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent};
-  const revealKey=malamRoomId+':'+String(r.round_no)+':'+String(activeUser.id);
+  const revealKey=malamRoomId+':'+String(activeUser.id);
   window.__malamRoleRevealShown=window.__malamRoleRevealShown||new Set();
   if(role&&!window.__malamRoleRevealShown.has(revealKey)){
    window.__malamModalData.role=roleModalContent;
