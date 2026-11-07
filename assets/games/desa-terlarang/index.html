@@ -601,7 +601,7 @@ async function mpConnectRoom(roomId){
  mpRoomId=roomId;mpGameStarted=false;
  mpChannel=mpClient.channel('desa:'+roomId,{config:{private:true,presence:{key:mpUser.id}}});
  mpChannel.on('broadcast',{event:'player_state'},({payload})=>mpApplyRemoteState(payload));
- mpChannel.on('broadcast',{event:'clue_found'},({payload})=>{if(mpApplyClue(Number(payload?.index)))mpPersistGameState();});
+ mpChannel.on('broadcast',{event:'clue_found'},({payload})=>{if(mpApplyClue(Number(payload?.index),true))mpPersistGameState();});
  mpChannel.on('broadcast',{event:'mission_complete'},({payload})=>finishMission(false,payload?.nickname));
  mpChannel.on('broadcast',{event:'ghost_hit'},({payload})=>applyGhostHit(Number(payload?.index),payload?.hp,!!payload?.defeated,payload?.x,payload?.z));
  mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
@@ -671,7 +671,7 @@ async function mpStartGame(){
  jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();
  const roster=mpRoomData?.players||[],myIndex=Math.max(0,roster.findIndex(p=>p.user_id===mpUser?.id)),spawnOffsets=[[0,0],[-2.2,0],[2.2,0],[-4.2,1.8],[4.2,1.8]],spawn=spawnOffsets[myIndex]||[0,0];
  player.position.set(spawn[0],0,24+spawn[1]);
- say('Tim sudah berkumpul. Temukan tiga bukti bersama-sama.');
+ say('Kita memasuki Wanasetra, desa yang dihapus dari peta. Cari tahu apa yang terjadi pada malam 17 Oktober 1987. Jangan berpencar terlalu jauh.');
 }
 async function mpLeaveRoom(){
  if(mpPoll){clearInterval(mpPoll);mpPoll=null;}
@@ -707,10 +707,18 @@ function resolveToolHit(){
  soundEffect('ghost-hit');say(defeated?ghostLabel(gh.type)+' berhasil diusir sementara!':ghostLabel(gh.type)+' terkena serangan! Sisa tenaga: '+gh.hp+'/'+gh.maxHp);
  if(mpChannel)mpChannel.send({type:'broadcast',event:'ghost_hit',payload:{index:target.index,hp:gh.hp,defeated,x:gh.g.position.x,z:gh.g.position.z}}).catch(()=>{});
 }
-function mpApplyClue(index){
+const storySeen=new Set();
+const storyBeats=[
+ 'Foto keluarga ini ganjil. Semua wajah dicoret, kecuali seorang anak. Di belakang foto tertulis: JANGAN BUKA SUMUR.',
+ 'Rekaman itu berdesis: “Kami menutup pintu bawah tanah. Tapi kentongan sudah berbunyi tiga kali. Penjaga pasti terbangun.”',
+ 'Catatan kepala desa mengungkap kebenaran: warga Wanasetra menghilang pada 17 Oktober 1987 untuk mengurung sesuatu di bawah balai desa. Segelnya mulai terbuka.'
+];
+function mpApplyClue(index,announce=false){
  const item=clues[index];if(!item||item.found)return false;
  item.found=true;item.g.visible=false;updateCount();
- if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';gate.material=mat(0x493d31);}
+ if(announce&&!storySeen.has(index)){storySeen.add(index);say(storyBeats[index]||'Sebuah bukti baru ditemukan.');}
+ if(clues.every(c=>c.found)){objective.textContent='Ketiga bukti mengungkap rahasia Wanasetra. Pergi ke gerbang balai desa!';gate.material=mat(0x493d31);}
+ else objective.textContent='Bukti '+clues.filter(c=>c.found).length+' dari 3 ditemukan. Periksa petunjuk berikutnya.';
  return true;
 }
 async function mpPersistGameState(){
@@ -740,9 +748,9 @@ function mpUpdateRemotePlayers(dt){
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
-function reset(){clearSprintHold();missionCompleted=false;setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;});updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
+function reset(){clearSprintHold();missionCompleted=false;storySeen.clear();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
 function finishMission(announce=true,completedBy=''){if(missionCompleted)return;missionCompleted=true;running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';if(completedBy){say('Misi selesai! '+completedBy+' berhasil membuka gerbang.');}else if(announce){say('Misi selesai! Seluruh tim berhasil keluar dari desa.');}if(mpRoomId)mpPersistGameState();if(announce&&mpChannel)mpChannel.send({type:'broadcast',event:'mission_complete',payload:{nickname:mpNickname}}).catch(error=>console.warn('Pemberitahuan misi selesai gagal dikirim:',error));}
-function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex);if(mpRoomId)mpPersistGameState();if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
+function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex,true);if(mpRoomId)mpPersistGameState();if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='v'&&!e.repeat)setCameraMode(cameraMode==='first'?'third':'first');if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
@@ -868,7 +876,7 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
-document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
+document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();say('Wanasetra, 17 Oktober 1987. Tim dokumentasi sebelumnya menghilang. Temukan tiga bukti dan jangan percaya suara yang memanggil dari sumur. Dekati cahaya kuning untuk memeriksa petunjuk.');});
 document.getElementById('multiplayer-open').addEventListener('click',mpOpen);
 document.getElementById('mp-close').addEventListener('click',mpClosePanel);
 document.getElementById('mp-create').addEventListener('click',mpCreateRoom);
