@@ -879,7 +879,7 @@ function updateGhosts(dt){
     part.pivot.rotation.z=isArm?Math.sin(phase+side)*.025:0;
    }
   }
-  if(ghostAuthority&&d<(isProne?1.35:2.1)&&invuln<=0&&gh.stagger<=0){
+  if(d<(isProne?1.35:2.1)&&invuln<=0&&gh.stagger<=0){
    health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';
    soundEffect('damage');say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);
    if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}
