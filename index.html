@@ -7131,6 +7131,31 @@ window.malamCloseModal=function(){
   setTimeout(()=>malamOpenModal(next),180);
  }
 };
+/* Delegasi tombol Crew: tahan event tetap aktif meski Realtime merender ulang panel. */
+if(!window.__malamCrewUtilityHandlerBound){
+ window.__malamCrewUtilityHandlerBound=true;
+ document.addEventListener('pointerdown',function(e){
+  const button=e.target?.closest?.('#arena-play-panel .malam-utility-actions button');
+  if(!button)return;
+  const label=button.getAttribute('aria-label');
+  if(!['Peranku','Pemain','Buka chat pemain'].includes(label))return;
+  e.preventDefault();e.stopPropagation();
+  if(label==='Peranku')window.malamOpenModal('role');
+  else if(label==='Pemain')window.malamOpenModal('players');
+  else if(label==='Buka chat pemain')window.malamOpenChat();
+ },true);
+ document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const button=e.target?.closest?.('#arena-play-panel .malam-utility-actions button');
+  if(!button)return;
+  const label=button.getAttribute('aria-label');
+  if(!['Peranku','Pemain','Buka chat pemain'].includes(label))return;
+  e.preventDefault();e.stopPropagation();
+  if(label==='Peranku')window.malamOpenModal('role');
+  else if(label==='Pemain')window.malamOpenModal('players');
+  else if(label==='Buka chat pemain')window.malamOpenChat();
+ },true);
+}
 function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no+':'+String(s.room.last_event||'');window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');if(ph==='discussion'&&s.my_role==='paranormal'&&s.investigation){const noticeKey=phaseKey+':'+s.investigation_name+':'+s.investigation;if(window.__malamInvestigationNoticeKey!==noticeKey){window.__malamInvestigationNoticeKey=noticeKey;setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',((s.investigation_name||'Pemain yang diperiksa')+' memiliki peran '+(malamRoles[s.investigation]?.[0]||s.investigation)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.'),'phase'),900);}}}
