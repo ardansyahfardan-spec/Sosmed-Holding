@@ -30,10 +30,35 @@ button:active{transform:scale(.97);background:#273650}
 #portrait p{font-size:13px;line-height:1.6;color:#b7c2d5}
 @media(orientation:portrait){#portrait{display:flex}}
 @media(orientation:landscape) and (max-height:420px){.bottom{align-items:flex-end}.hint{max-width:220px}.pill{padding:6px 9px}}
+
+#multiplayer-lobby{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at center,#17243bdc,#050912f5);backdrop-filter:blur(8px)}
+#multiplayer-card{width:min(440px,100%);padding:24px;border:1px solid #8da1c455;border-radius:22px;background:linear-gradient(145deg,#121d30f2,#090e19f5);box-shadow:0 24px 80px #0009}
+#multiplayer-card h1{font-size:clamp(18px,4vw,25px);font-weight:900;letter-spacing:.08em}
+#multiplayer-card p{font-size:12px;line-height:1.6;color:#b9c5d8}
+#multiplayer-card input{width:100%;margin-top:8px;border:1px solid #64748b66;border-radius:10px;background:#050b16;color:#fff;padding:12px;font-size:16px;letter-spacing:.16em;text-transform:uppercase;outline:none}
+#multiplayer-card button{width:100%;margin-top:10px;padding:13px;border-radius:11px;background:#263c59;border:1px solid #9db5d455}
+#multiplayer-card button.primary{background:linear-gradient(110deg,#8c2634,#263f69);border-color:#c88c9a66}
+#room-status{min-height:18px;margin-top:12px;color:#e4b7b7;font-size:11px}
+#room-code-display{display:none;margin-top:12px;padding:12px;border:1px dashed #a9b9d466;border-radius:10px;text-align:center;font-weight:900;letter-spacing:.3em;color:#f3d6d6}
+#room-presence{position:fixed;right:16px;top:62px;z-index:2;pointer-events:none;font-size:10px;color:#dbe4f5;background:#0a1024b8;border:1px solid #aab8d044;border-radius:999px;padding:7px 10px}
 </style>
 </head>
 <body>
 <canvas id="game" aria-label="Dunia GHOUSTORY Desa Terlarang"></canvas>
+<div id="multiplayer-lobby">
+ <div id="multiplayer-card">
+  <div class="brand">GHOUSTORY ARENA · MULTIPLAYER</div>
+  <h1>DESA TERLARANG</h1>
+  <p>Masuk ke ruang petualangan. Kamu bisa membuat ruang sendiri dan bermain sendirian, atau bergabung dengan teman menggunakan kode ruang.</p>
+  <button id="create-room" class="primary" type="button">BUAT RUANG BARU</button>
+  <div style="margin-top:16px;font-size:10px;letter-spacing:.15em;color:#aab8d0">GABUNG DENGAN KODE</div>
+  <input id="room-code-input" maxlength="6" placeholder="KODE RUANG" autocomplete="off" aria-label="Kode ruang">
+  <button id="join-room" type="button">GABUNG RUANG</button>
+  <div id="room-code-display"></div>
+  <div id="room-status">Menghubungkan layanan multiplayer...</div>
+ </div>
+</div>
+<div id="room-presence" style="display:none">1 PEMAIN DI RUANG</div>
 <div id="hud">
  <div class="top">
   <div><div class="brand">GHOUSTORY ARENA</div><div class="chapter">DESA TERLARANG · PROLOG</div></div>
@@ -47,6 +72,7 @@ button:active{transform:scale(.97);background:#273650}
 <div id="joystick" aria-label="Joystick gerak"><div id="stick"></div></div><div id="move-label">GESER UNTUK BERJALAN</div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{
  'use strict';
@@ -148,6 +174,77 @@ button:active{transform:scale(.97);background:#273650}
  limb(armL,clothes,.14,.12,.72,0,-.34,0);limb(armL,skin,.115,.1,.24,0,-.79,0);limb(armR,clothes,.14,.12,.72,0,-.34,0);limb(armR,skin,.115,.1,.24,0,-.79,0);
  const legL=new THREE.Group();legL.position.set(-.22,1.02,0);player.add(legL);const legR=new THREE.Group();legR.position.set(.22,1.02,0);player.add(legR);
  limb(legL,pants,.17,.14,.78,0,-.38,0);limb(legL,boot,.15,.16,.22,0,-.84,-.06);limb(legR,pants,.17,.14,.78,0,-.38,0);limb(legR,boot,.15,.16,.22,0,-.84,-.06);
+
+ // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
+ const lobby=document.getElementById('multiplayer-lobby');
+ const roomStatus=document.getElementById('room-status');
+ const createRoomBtn=document.getElementById('create-room');
+ const joinRoomBtn=document.getElementById('join-room');
+ const roomInput=document.getElementById('room-code-input');
+ const roomCodeDisplay=document.getElementById('room-code-display');
+ const roomPresence=document.getElementById('room-presence');
+ const playerId=(crypto.randomUUID?crypto.randomUUID():('p'+Date.now()+Math.random().toString(36).slice(2)));
+ const remotePlayers=new Map();
+ let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
+ const realtimeClient=window.supabase?.createClient
+  ? window.supabase.createClient('https://xnbqckfbrrmdjiemfwqf.supabase.co','sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL',{auth:{persistSession:false,autoRefreshToken:false}})
+  : null;
+ function updateRoomCount(){roomPresence.textContent=(remotePlayers.size+1)+' PEMAIN DI RUANG';}
+ function addRemotePlayer(id,data){
+  if(id===playerId)return null;
+  let entry=remotePlayers.get(id);
+  if(!entry){
+   const avatar=player.clone(true);avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
+   entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0};
+   remotePlayers.set(id,entry);
+  }
+  if(data){entry.target.set(Number(data.x)||0,0,Number(data.z)||0);entry.rotation=Number(data.rotation)||0;}
+  updateRoomCount();return entry;
+ }
+ function syncPresence(){
+  if(!multiplayer)return;
+  const state=multiplayer.presenceState(),seen=new Set();
+  Object.values(state).flat().forEach(p=>{if(!p?.player_id||p.player_id===playerId)return;seen.add(p.player_id);addRemotePlayer(p.player_id,p);});
+  for(const [id,entry] of remotePlayers){if(!seen.has(id)){scene.remove(entry.avatar);remotePlayers.delete(id);}}
+  updateRoomCount();
+ }
+ async function enterRoom(code){
+  if(!realtimeClient){roomStatus.textContent='Layanan realtime belum termuat. Muat ulang halaman dan coba lagi.';return;}
+  code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+  if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
+  createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Menghubungkan ke ruang '+code+'...';
+  try{
+   if(multiplayer){await realtimeClient.removeChannel(multiplayer);multiplayer=null;}
+   activeRoom=code;
+   const channel=realtimeClient.channel('desa-terlarang:'+code,{config:{presence:{key:playerId},broadcast:{self:false}}});
+   channel.on('presence',{event:'sync'},syncPresence);
+   channel.on('broadcast',{event:'move'},({payload})=>{
+    if(!payload?.player_id||payload.player_id===playerId)return;
+    const entry=addRemotePlayer(payload.player_id,payload);
+    if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;}
+   });
+   channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)addRemotePlayer(payload.player_id,payload);});
+   channel.subscribe(async status=>{
+    if(status==='SUBSCRIBED'){
+     multiplayer=channel;
+     await channel.track({player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,online_at:new Date().toISOString()});
+     syncPresence();
+     await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y}});
+     roomStatus.textContent='Terhubung. Bagikan kode ini kepada temanmu.';
+     roomCodeDisplay.textContent='KODE RUANG  '+code;roomCodeDisplay.style.display='block';
+     roomPresence.style.display='block';lobby.style.display='none';state.textContent='MULTIPLAYER AKTIF';
+    }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+     roomStatus.textContent='Koneksi ruang gagal ('+status+'). Periksa jaringan lalu coba lagi.';
+     createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
+    }
+   });
+  }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;}
+ }
+ function makeRoomCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
+ createRoomBtn.addEventListener('click',()=>enterRoom(makeRoomCode()));
+ joinRoomBtn.addEventListener('click',()=>enterRoom(roomInput.value));
+ roomInput.addEventListener('input',()=>{roomInput.value=roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
+ addEventListener('beforeunload',()=>{if(multiplayer)realtimeClient.removeChannel(multiplayer);});
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
@@ -163,6 +260,13 @@ button:active{transform:scale(.97);background:#273650}
   let ix=joyX,iz=joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){const speed=5.2;player.position.x+=ix*speed*dt;player.position.z+=iz*speed*dt;player.position.x=THREE.MathUtils.clamp(player.position.x,-3.2,3.2);player.position.z=THREE.MathUtils.clamp(player.position.z,-78,7);player.rotation.y=Math.atan2(ix,-iz);walkingTime+=dt*10;}
+
+  if(multiplayer&&t-lastBroadcast>100){
+   lastBroadcast=t;
+   multiplayer.send({type:'broadcast',event:'move',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,moving}});
+   multiplayer.track({player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,online_at:new Date().toISOString()});
+  }
+  remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   const behind=9;const desired=new THREE.Vector3(player.position.x+Math.sin(player.rotation.y)*behind,5.2,player.position.z+Math.cos(player.rotation.y)*behind);camera.position.lerp(desired,1-Math.exp(-5*dt));camera.lookAt(player.position.x,1.25,player.position.z-1.2);
   renderer.render(scene,camera);
