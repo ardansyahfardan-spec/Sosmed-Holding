@@ -7278,12 +7278,21 @@ function malamRender(s){
  const chatModalContent='<div class="text-[10px] text-gray-500 mb-2">'+chatTitle+' · percakapan pemain muncul di sini.</div><div id="malam-chat-history" class="max-h-[42dvh] min-h-[110px] overflow-y-auto rounded-xl border border-gray-800 bg-black/25 p-2 space-y-2 mb-3"><p class="text-[10px] text-gray-500 text-center py-3">Memuat percakapan...</p></div>'+(chatAllowed?'<div class="malam-chat-composer flex gap-2"><input id="malam-chat-input" maxlength="500" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();malamChat();}" placeholder="Tulis pesan..." class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm"><button type="button" onclick="malamChat()" class="bg-blue-900 rounded-xl px-4 text-xs font-semibold">Kirim</button></div>':!malamMyAlive?'<p class="text-xs text-gray-400 text-center py-3">Pemain gugur wajib diam dan tidak dapat berkomunikasi.</p>':'<p class="text-xs text-gray-400 text-center py-3">Chat tersedia saat fase diskusi dan voting.</p>');
  const modal='<div id="malam-modal" class="fixed inset-0 z-[10040] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamCloseModal()"><div class="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-red-900/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.7)]"><div class="flex items-center justify-between mb-4"><b id="malam-modal-title" class="text-sm text-white">Malam Terlarang</b><div class="flex items-center gap-2">'+(window.__malamModalType!=='chat'?'<button type="button" onclick="event.preventDefault();event.stopPropagation();window.malamOpenModal(\'chat\')" aria-label="Buka chat pemain" title="Chat pemain" class="w-9 h-9 rounded-full bg-amber-950/50 text-amber-200"><i class="fa-solid fa-comments"></i></button>':'')+'<button onclick="malamCloseModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300"><i class="fa-solid fa-xmark"></i></button></div></div><div id="malam-modal-content"></div></div></div>';
  const oldChatInput=document.getElementById('malam-chat-input'),chatDraft=oldChatInput?.value||'',chatHadFocus=!!oldChatInput&&document.activeElement===oldChatInput;
+ const existingGameModal=document.querySelector('body > #malam-modal.malam-modal-portal');
+ const existingModalWasOpen=!!existingGameModal&&!existingGameModal.classList.contains('hidden');
+ const existingModalType=window.__malamModalType;
  p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex justify-between items-center mb-3"><div><small class="text-red-300">RUANG '+esc(r.code)+'</small><p class="text-[9px] text-gray-500">'+(malamPhaseNames[r.phase]||r.phase)+'</p></div><button onclick="malamExit()" class="text-xs text-gray-500 underline">Keluar ruang</button></div>'+tracker+(r.phase==='lobby'?'':malamArenaMarkup(ps,r.phase,s.my_role==='siluman'?teammates:[],{ownId:activeUser.id,role:s.my_role,alive:malamMyAlive,investigationDone:!!s.investigation,selectedTarget:s.my_action_target,teamActionTargets:s.team_action_targets||[]}))+modalButtons+body+'<p id="malam-notice" class="text-xs text-red-300 mt-3"></p>'+modal;
  const gameModal=p.querySelector('#malam-modal');
  if(gameModal){
-  document.querySelectorAll('body > #malam-modal.malam-modal-portal').forEach(el=>el.remove());
-  gameModal.classList.add('malam-modal-portal');
-  document.body.appendChild(gameModal);
+  if(existingGameModal){
+   // Pertahankan node modal yang sudah berada di body; jangan hancurkan modal aktif
+   // pada setiap pembaruan state/realtime.
+   existingGameModal.innerHTML=gameModal.innerHTML;
+   gameModal.remove();
+  }else{
+   gameModal.classList.add('malam-modal-portal');
+   document.body.appendChild(gameModal);
+  }
  }
  malamBindUtilityButtons(p);
  if(r.phase==='finished'){
@@ -7306,6 +7315,17 @@ function malamRender(s){
   }
   const openModal=window.__malamModalType,visibleModal=document.getElementById('malam-modal');
   if(openModal&&['chat','role','players'].includes(openModal)&&(!visibleModal||visibleModal.classList.contains('hidden')))setTimeout(()=>malamOpenModal(openModal),0);
+  else if(existingModalWasOpen&&existingModalType&&['chat','role','players'].includes(existingModalType)){
+   // Sinkronkan isi modal dengan state terbaru tanpa menutup modal atau mengganti node luarnya.
+   malamOpenModal(existingModalType);
+   if(existingModalType==='chat'){
+    const refreshedInput=document.getElementById('malam-chat-input');
+    if(refreshedInput){
+     refreshedInput.value=chatDraft;
+     if(chatHadFocus)setTimeout(()=>{refreshedInput.focus();refreshedInput.setSelectionRange(refreshedInput.value.length,refreshedInput.value.length);},0);
+    }
+   }
+  }
  }else{window.__malamModalData=null;window.__malamModalType=null;}
 
 }
