@@ -142,88 +142,96 @@ button:active{transform:scale(.97);background:#273650}
   scene.add(cloud);mist.push(cloud);
  }
 
- // Avatar GHOUSTORY: siluet humanoid stylized-modern, dengan volume membulat.
- // Bentuk tubuh dibuat dari geometri halus agar tidak tampak seperti susunan kubus.
+ // Avatar GHOUSTORY: custom toy-brick minifigure.
+ // Proporsi figur mainan koleksi: kepala silinder, torso cetak, tangan C,
+ // pinggul dan kaki terpisah. Material plastik glossy dengan detail ekspedisi.
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
- const mat=(color,roughness=.82,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
- const skin=mat(0xc99b78),skinShade=mat(0x986e55),jacket=mat(0x263b52),jacketLight=mat(0x38516b),jacketDark=mat(0x172638),red=mat(0x9e3440),pants=mat(0x202c3c),pantsShade=mat(0x151f2d),boot=mat(0x101720),sole=mat(0x05090e),metal=mat(0xaebed0,.4,.35),hair=mat(0x17191e),hairLight=mat(0x30313a),eye=mat(0x10151d),eyeWhite=mat(0xe8edf4);
- function capsule(parent,radius,length,material,x,y,z,rx=0,ry=0,rz=0){
-  const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,length,6,12),material);
-  mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+ const mat=(color,roughness=.34,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+ const plastic=(color)=>mat(color,.24,0);
+ const yellow=plastic(0xf2bd35),yellowShadow=plastic(0xd99520);
+ const jacket=plastic(0x263e5c),jacketLight=plastic(0x45617d),jacketDark=plastic(0x17283d);
+ const red=plastic(0xa52d3a),pants=plastic(0x202d40),pantsLight=plastic(0x35465b);
+ const boot=plastic(0x141b25),sole=plastic(0x070b12),hair=plastic(0x17191f),hairLight=plastic(0x34343b);
+ const metal=mat(0xb8c5d4,.3,.48),print=mat(0xe8edf3,.45),ink=mat(0x20212a,.5);
+ function mesh(parent,geometry,material,x,y,z,rx=0,ry=0,rz=0){
+  const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;
  }
- function ellipsoid(parent,material,x,y,z,sx,sy,sz,segments=20){
-  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,segments,16),material);
-  mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+ function box(parent,w,h,d,material,x,y,z,bevel=0){
+  // Main body panels are deliberately softened by rounded joint caps and trim.
+  return mesh(parent,new THREE.BoxGeometry(w,h,d),material,x,y,z);
  }
- function detail(parent,w,h,d,material,x,y,z){
-  const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-  mesh.position.set(x,y,z);mesh.castShadow=true;parent.add(mesh);return mesh;
+ function cylinder(parent,rt,rb,h,material,x,y,z,segments=24){
+  return mesh(parent,new THREE.CylinderGeometry(rt,rb,h,segments),material,x,y,z);
  }
- // Kaki: paha dan betis menyatu secara visual, sepatu punya ujung membulat.
- const legL=new THREE.Group();legL.position.set(-.235,1.04,0);player.add(legL);
- const legR=new THREE.Group();legR.position.set(.235,1.04,0);player.add(legR);
+ function sphere(parent,material,x,y,z,sx,sy,sz){
+  const o=mesh(parent,new THREE.SphereGeometry(1,20,16),material,x,y,z);o.scale.set(sx,sy,sz);return o;
+ }
+ // Hip block and separated classic toy legs.
+ const hips=box(player,.73,.34,.38,pants,0,1.08,0);
+ const legL=new THREE.Group();legL.position.set(-.205,.99,0);player.add(legL);
+ const legR=new THREE.Group();legR.position.set(.205,.99,0);player.add(legR);
  for(const leg of [legL,legR]){
-  capsule(leg,.19,.43,pants,0,-.32,0);
-  capsule(leg,.16,.27,pantsShade,0,-.68,0);
-  ellipsoid(leg,boot,0,-.94,-.075,.205,.13,.29);
-  ellipsoid(leg,sole,0,-1.035,-.075,.207,.045,.285);
-  detail(leg,.12,.035,.018,metal,0,-.91,-.276);
+  box(leg,.36,.64,.39,pants,0,-.31,0);
+  box(leg,.36,.13,.405,pantsLight,0,-.12,-.008);
+  box(leg,.37,.13,.43,boot,0,-.64,-.045);
+  box(leg,.37,.055,.435,sole,0,-.72,-.045);
+  box(leg,.045,.19,.018,metal,0,-.34,-.205);
  }
- // Jaket torso dengan bahu membulat dan panel pakaian.
- const torso=new THREE.Group();torso.position.y=1.62;player.add(torso);
- capsule(torso,.405,.43,jacket,0,0,0);
- ellipsoid(torso,jacketLight,0,.34,-.005,.39,.17,.255);
- ellipsoid(torso,jacketDark,0,-.34,.005,.39,.12,.25);
- // Kerah, ritsleting, panel dada dan kantong kecil.
- ellipsoid(torso,jacketDark,0,.43,-.06,.19,.12,.22);
- detail(torso,.035,.62,.018,metal,0,.015,-.405);
- detail(torso,.012,.59,.012,jacketDark,.055,.015,-.414);
- detail(torso,.24,.15,.035,jacketDark,-.235,.18,-.355);
- detail(torso,.24,.15,.035,jacketDark,.235,.18,-.355);
- detail(torso,.18,.045,.025,red,-.235,.27,-.378);
- detail(torso,.18,.045,.025,red,.235,.27,-.378);
- detail(torso,.07,.06,.025,metal,-.235,.17,-.38);
- detail(torso,.07,.06,.025,metal,.235,.17,-.38);
- detail(torso,.83,.085,.43,pantsShade,0,-.43,0);
- detail(torso,.13,.12,.035,metal,.19,-.43,-.235);
- // Leher dan kepala oval dengan rahang lembut, bukan kubus.
- capsule(player,.115,.13,skin,0,2.18,0);
- const head=new THREE.Group();head.position.set(0,2.52,0);player.add(head);
- ellipsoid(head,skin,0,0,0,.335,.365,.295,28);
- ellipsoid(head,skinShade,0,-.17,-.005,.245,.13,.25,24);
- // Telinga dan wajah: mata, alis, hidung dan mulut sederhana.
- ellipsoid(head,skin,-.326,-.005,0,.075,.115,.085);
- ellipsoid(head,skin,.326,-.005,0,.075,.115,.085);
- detail(head,.105,.045,.022,eye,-.135,.075,-.286);
- detail(head,.105,.045,.022,eye,.135,.075,-.286);
- detail(head,.035,.035,.012,eyeWhite,-.135,.075,-.303);
- detail(head,.035,.035,.012,eyeWhite,.135,.075,-.303);
- detail(head,.105,.022,.025,hair,-.135,.145,-.292);
- detail(head,.105,.022,.025,hair,.135,.145,-.292);
- ellipsoid(head,skinShade,0,-.045,-.294,.035,.045,.025,12);
- detail(head,.105,.018,.015,skinShade,0,-.205,-.281);
- // Rambut ber-volume dengan poni dan sisi bertumpuk.
- ellipsoid(head,hair,0,.285,.015,.355,.17,.315,24);
- ellipsoid(head,hairLight,-.17,.265,-.13,.16,.12,.18,18);
- ellipsoid(head,hairLight,.16,.27,-.12,.17,.12,.18,18);
- ellipsoid(head,hair,0,.19,-.255,.24,.115,.105,18);
- ellipsoid(head,hairLight,-.22,.12,-.225,.11,.15,.09,16);
- // Ransel ekspedisi mengikuti punggung, dengan tali bahu melengkung.
- ellipsoid(player,jacketDark,0,1.64,.31,.31,.39,.17);
- ellipsoid(player,jacket,0,1.91,.39,.24,.105,.09);
- detail(player,.11,.075,.025,metal,0,1.9,.474);
- capsule(player,.055,.55,jacketDark,-.36,1.66,.025,0,0,-.12);
- capsule(player,.055,.55,jacketDark,.36,1.66,.025,0,0,.12);
- // Lengan anatomis stylized dengan bahu, lengan bawah dan telapak membulat.
- const armL=new THREE.Group();armL.position.set(-.49,1.99,0);player.add(armL);
- const armR=new THREE.Group();armR.position.set(.49,1.99,0);player.add(armR);
+ // Torso: recognizable minifigure shape with printed field jacket.
+ const torso=new THREE.Group();torso.position.y=1.58;player.add(torso);
+ box(torso,.88,.82,.43,jacket,0,0,0);
+ box(torso,.91,.12,.45,jacketLight,0,.36,-.005);
+ box(torso,.91,.12,.45,jacketDark,0,-.36,-.005);
+ box(torso,.055,.67,.025,metal,0,0,-.229);
+ box(torso,.025,.66,.02,jacketDark,.055,0,-.246);
+ box(torso,.27,.2,.035,jacketDark,-.25,.16,-.235);
+ box(torso,.27,.2,.035,jacketDark,.25,.16,-.235);
+ box(torso,.2,.045,.02,red,-.25,.265,-.257);
+ box(torso,.2,.045,.02,red,.25,.265,-.257);
+ box(torso,.075,.065,.025,metal,-.25,.16,-.26);
+ box(torso,.075,.065,.025,metal,.25,.16,-.26);
+ // Printed harness and radio badge.
+ box(torso,.07,.36,.025,red,-.34,-.02,-.235);
+ box(torso,.07,.36,.025,red,.34,-.02,-.235);
+ box(torso,.17,.12,.025,jacketDark,.23,-.22,-.24);
+ box(torso,.09,.07,.018,metal,.23,-.22,-.26);
+ // Cylindrical neck and classic round minifigure head.
+ cylinder(player,.13,.13,.16,yellow,0,2.07,0,24);
+ const head=new THREE.Group();head.position.set(0,2.48,0);player.add(head);
+ cylinder(head,.34,.34,.63,yellow,0,0,0,32);
+ // Slightly domed top and bottom rims make the plastic head feel molded.
+ sphere(head,yellow,0,.305,0,.337,.075,.337);
+ cylinder(head,.345,.345,.055,yellowShadow,0,-.285,0,32);
+ cylinder(head,.338,.338,.055,yellow,0,-.25,0,32);
+ // Printed face, front faces negative Z.
+ sphere(head,ink,-.125,.055,-.329,.046,.052,.018);
+ sphere(head,ink,.125,.055,-.329,.046,.052,.018);
+ sphere(head,print,-.138,.072,-.346,.012,.014,.008);
+ sphere(head,print,.112,.072,-.346,.012,.014,.008);
+ box(head,.105,.018,.014,ink,0,-.095,-.34);
+ box(head,.09,.018,.014,yellowShadow,0,-.13,-.344);
+ // Molded dark swept hair cap, sitting over the cylindrical head.
+ sphere(head,hair,0,.32,.025,.355,.16,.35);
+ sphere(head,hairLight,-.16,.31,-.13,.18,.11,.2);
+ sphere(head,hair,.15,.29,-.18,.2,.12,.17);
+ sphere(head,hairLight,0,.235,-.285,.2,.095,.09);
+ // Backpack: compact molded accessory.
+ box(player,.48,.56,.2,jacketDark,0,1.57,.31);
+ box(player,.36,.12,.07,jacket,0,1.85,.42);
+ box(player,.16,.12,.025,metal,0,1.85,.464);
+ box(player,.1,.2,.025,red,0,1.55,.422);
+ // Arms use classic cylindrical upper arms and forearms, pivoting at shoulders.
+ const armL=new THREE.Group();armL.position.set(-.54,1.88,0);player.add(armL);
+ const armR=new THREE.Group();armR.position.set(.54,1.88,0);player.add(armR);
  for(const [arm,side] of [[armL,-1],[armR,1]]){
-  ellipsoid(arm,jacketLight,0,-.08,0,.205,.22,.205);
-  capsule(arm,.145,.34,jacket,0,-.34,0);
-  capsule(arm,.125,.22,red,0,-.59,0);
-  capsule(arm,.105,.25,skin,0,-.82,0);
-  ellipsoid(arm,skin,0,-.99,-.012,.115,.12,.12);
-  detail(arm,.025,.14,.018,metal,side*.12,-.32,-.13);
+  sphere(arm,jacketLight,0,-.07,0,.19,.19,.2);
+  cylinder(arm,.145,.16,.43,jacket,0,-.34,0,20);
+  cylinder(arm,.15,.15,.12,red,0,-.58,0,20);
+  cylinder(arm,.115,.115,.2,yellow,0,-.73,0,20);
+  // C-shaped toy hand, opening toward the front.
+  const hand=mesh(arm,new THREE.TorusGeometry(.105,.045,8,20,Math.PI*1.62),yellow,0,-.88,-.015,Math.PI/2,0,Math.PI*.19);
+  hand.scale.set(1,1,1);
+  box(arm,.035,.12,.025,metal,side*.135,-.34,-.12);
  }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
