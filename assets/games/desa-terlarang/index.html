@@ -490,7 +490,7 @@ const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0;
+let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpRefreshBusy=false;
 const mpRemotePlayers=new Map();let mpRoomBusy=false;
 const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
 function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
@@ -559,12 +559,19 @@ function mpRenderRoom(){
  document.getElementById('mp-lobby-controls').style.display='none';
 }
 async function mpRefreshRoom(){
- if(!mpRoomId||!mpClient)return;
- const {data,error}=await mpClient.rpc('desa_get_room',{p_room:mpRoomId});
- if(error){mpMessage(error.message,true);return;}
- mpRoomData=data;mpRenderRoom();
- if(data.room.status==='playing'&&!mpGameStarted)await mpStartGame();
- if(data.room.status==='playing')mpApplySavedGameState(data.room.game_state);
+ if(!mpRoomId||!mpClient||mpRefreshBusy)return;
+ const roomId=mpRoomId;mpRefreshBusy=true;
+ try{
+  const {data,error}=await mpClient.rpc('desa_get_room',{p_room:roomId});
+  if(roomId!==mpRoomId)return;
+  if(error){mpMessage(error.message,true);return;}
+  if(!data?.room)return;
+  mpRoomData=data;
+  if(!mpGameStarted)mpRenderRoom();
+  if(data.room.status==='playing'&&!mpGameStarted)await mpStartGame();
+  if(roomId===mpRoomId&&data.room.status==='playing')mpApplySavedGameState(data.room.game_state);
+ }catch(error){console.warn('Sinkronisasi room Desa Terlarang gagal:',error);mpMessage('Sinkronisasi tertunda. Permainan tetap berjalan.',true);}
+ finally{mpRefreshBusy=false;}
 }
 function mpApplyRemotePose(remote){
  if(!remote?.model)return;
@@ -665,7 +672,7 @@ async function mpStartAsHost(){
 }
 async function mpStartGame(){
  if(mpGameStarted)return;mpGameStarted=true;
- if(mpPoll){clearInterval(mpPoll);mpPoll=null;}
+ // Polling room tetap hidup selama permainan sebagai jalur pemulihan jika Realtime terputus.
  mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');
  await enterImmersive();document.getElementById('start').style.display='none';
  jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();
