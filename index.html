@@ -7063,7 +7063,7 @@ window.malamCloseModal=function(){
 };
 function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
- if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');}
+ if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');if(ph==='discussion'&&s.my_role==='paranormal'&&s.investigation){const noticeKey=phaseKey+':'+s.investigation_name+':'+s.investigation;if(window.__malamInvestigationNoticeKey!==noticeKey){window.__malamInvestigationNoticeKey=noticeKey;setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',((s.investigation_name||'Pemain yang diperiksa')+' memiliki peran '+(malamRoles[s.investigation]?.[0]||s.investigation)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.'),'phase'),900);}}}
  window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
  const p=document.getElementById('arena-play-panel'),r=s.room,ps=s.players||[];
  if(p){p.classList.remove('malam-wallpaper-night','malam-wallpaper-day');if(r.phase!=='lobby')p.classList.add(r.phase==='night'?'malam-wallpaper-night':'malam-wallpaper-day');}
