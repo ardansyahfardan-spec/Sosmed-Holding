@@ -601,7 +601,7 @@ async function mpConnectRoom(roomId){
  mpRoomId=roomId;mpGameStarted=false;
  mpChannel=mpClient.channel('desa:'+roomId,{config:{private:true,presence:{key:mpUser.id}}});
  mpChannel.on('broadcast',{event:'player_state'},({payload})=>mpApplyRemoteState(payload));
- mpChannel.on('broadcast',{event:'clue_found'},({payload})=>mpApplyClue(Number(payload?.index)));
+ mpChannel.on('broadcast',{event:'clue_found'},({payload})=>{if(mpApplyClue(Number(payload?.index)))mpPersistGameState();});
  mpChannel.on('broadcast',{event:'mission_complete'},({payload})=>finishMission(false,payload?.nickname));
  mpChannel.on('broadcast',{event:'ghost_hit'},({payload})=>applyGhostHit(Number(payload?.index),payload?.hp,!!payload?.defeated,payload?.x,payload?.z));
  mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
@@ -708,9 +708,10 @@ function resolveToolHit(){
  if(mpChannel)mpChannel.send({type:'broadcast',event:'ghost_hit',payload:{index:target.index,hp:gh.hp,defeated,x:gh.g.position.x,z:gh.g.position.z}}).catch(()=>{});
 }
 function mpApplyClue(index){
- const item=clues[index];if(!item||item.found)return;
+ const item=clues[index];if(!item||item.found)return false;
  item.found=true;item.g.visible=false;updateCount();
  if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';gate.material=mat(0x493d31);}
+ return true;
 }
 async function mpPersistGameState(){
  if(!mpRoomId||!mpClient||!mpGameStarted)return;
