@@ -138,14 +138,12 @@ function house(x,z,w=8,d=7){
 house(-13,-11,9,8);house(13,-16,10,8);house(-18,12,8,7);house(16,13,9,8);house(0,-30,12,9);
 function tree(x,z,s=1){
  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- cylinder(g,0,1.5,0,.38,.55,3,wood2,8);
- // Pohon low-poly berlapis seperti aset dunia Roblox klasik.
- const greens=[mat(0x294a35),mat(0x35583e),mat(0x243f30)];
- const crown=(x,y,z,w,h,d,m,rz=0)=>{const o=box(g,x,y,z,w,h,d,m);o.rotation.z=rz;};
- crown(0,3.55,0,3.4,2.1,3.1,greens[0]);
- crown(-.85,4.25,0,2.1,1.8,2.2,greens[1],-.08);
- crown(.85,4.25,0,2.1,1.8,2.2,greens[2],.08);
- crown(0,5.05,0,1.9,1.6,1.9,greens[1]);
+ cylinder(g,0,1.55,0,.34,.48,3.1,wood2,9);
+ const crown=(x,y,z,sx,sy,sz,color)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),mat(color));m.position.set(x,y,z);m.scale.set(sx,sy,sz);g.add(m);};
+ crown(0,3.65,0,1.65,1.5,1.55,0x294a35);
+ crown(-.85,4.05,.12,1.05,1.1,1.08,0x35583e);
+ crown(.82,4.12,-.08,1.12,1.18,1.1,0x243f30);
+ crown(.05,4.85,0,.9,.95,.92,0x3c6242);
  g.scale.setScalar(s);
 }
 for(let i=0;i<35;i++){const a=i*2.399;const r=24+(i%5)*4;tree(Math.cos(a)*r,Math.sin(a)*r,.8+(i%4)*.12);}
@@ -153,13 +151,30 @@ for(let i=0;i<8;i++){tree(-26+i*7,-37-(i%2)*5,1.1);}
 // Detail lingkungan: pagar kayu lapuk, batu, rumput dan genangan di sepanjang jalan.
 function fence(x,z,length,alongX=true){
  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const count=Math.floor(length/2.2);
- for(let i=0;i<=count;i++){const p=i*length/count-length/2;box(g,alongX?p:0,.72,alongX?0:p,.13,1.45,.13,wood2);}
- for(const y of [.42,1.05])box(g,0,y,0,alongX?length:.13,.13,alongX?.13:length,wood2);
+ for(let i=0;i<=count;i++){
+  const p=i*length/count-length/2;
+  cylinder(g,alongX?p:0,.72,alongX?0:p,.085,.105,1.45,wood2,7);
+ }
+ for(const y of [.42,1.05]){
+  const rail=cylinder(g,0,y,0,.075,.075,length,wood2,7);
+  rail.rotation.z=alongX?Math.PI/2:0;
+ }
 }
 fence(-17,-1,14,true);fence(17,-3,13,true);fence(-24,8,12,false);fence(24,8,12,false);
-function rock(x,z,s=1){const r=new THREE.Mesh(new THREE.BoxGeometry(.8*s,.45*s,.72*s),mat(0x686b65));r.position.set(x,.12*s,z);r.rotation.set(0,Math.random()*Math.PI,Math.random()*.15);scene.add(r);}
+function rock(x,z,s=1){
+ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(.48*s,1),mat(0x686b65));
+ r.position.set(x,.16*s,z);r.rotation.set(Math.random()*.25,Math.random()*Math.PI,Math.random()*.2);
+ r.scale.set(1.15,.72,.95);scene.add(r);
+}
 for(let i=0;i<34;i++){const x=(Math.random()-.5)*58,z=(Math.random()-.5)*70;if(Math.abs(x)>4)rock(x,z,.45+Math.random()*.8);}
-function grassTuft(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(let i=0;i<4;i++){const blade=box(g,(Math.random()-.5)*.22,.25,(Math.random()-.5)*.22,.09,.5,.09,mat(i%2?0x486b45:0x66804e));blade.rotation.z=(Math.random()-.5)*.35;}}
+function grassTuft(x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ for(let i=0;i<4;i++){
+  const blade=new THREE.Mesh(new THREE.ConeGeometry(.09,.58,5),mat(i%2?0x486b45:0x66804e));
+  blade.position.set((Math.random()-.5)*.24,.28,(Math.random()-.5)*.24);
+  blade.rotation.z=(Math.random()-.5)*.5;blade.rotation.x=(Math.random()-.5)*.3;g.add(blade);
+ }
+}
 for(let i=0;i<110;i++){const x=(Math.random()-.5)*65,z=(Math.random()-.5)*75;if(Math.abs(x)>4)grassTuft(x,z);}
 function puddle(x,z,sx,sz){const p=new THREE.Mesh(new THREE.CircleGeometry(1,16),new THREE.MeshStandardMaterial({color:0x263b48,roughness:.18,metalness:.15,transparent:true,opacity:.72}));p.rotation.x=-Math.PI/2;p.position.set(x,-.035,z);p.scale.set(sx,sz,1);scene.add(p);}
 puddle(-3,9,1.8,.65);puddle(4,-12,1.3,.5);puddle(-7,-27,1.7,.55);
@@ -241,11 +256,18 @@ function ghost(type,x,z){
  const pale=mat(type==='tuyul'?0x8b947d:type==='genderuwo'?0x49372f:type==='nenek'?0xb7a99a:type==='kakek'?0x9c9388:0xd9d0c8);
  const clothMat=mat(type==='pocong'?0xe5e1d7:type==='kuntilanak'?0xe8e1dc:type==='anak'?0xaaa8a4:0x29252a);
  const shadow=mat(0x08090d),hairMat=mat(type==='genderuwo'?0x17110f:0x17151b),red=mat(0xb51d31,.25,0x68000d),bone=mat(0xbeb6a4);
- const part=(x,y,z,w,h,d,m,rz=0)=>{const o=box(g,x,y,z,w,h,d,m);o.rotation.z=rz;return o;};
+ const part=(x,y,z,w,h,d,m,rz=0)=>{
+  const o=new THREE.Mesh(new THREE.SphereGeometry(1,14,12),m);
+  o.position.set(x,y,z);o.scale.set(w*.68,h*.58,d*.68);o.rotation.z=rz;g.add(o);return o;
+ };
  const eye=(x,y,z,size=.075)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),red);o.position.set(x,y,z);o.scale.set(size,size*.72,.035);g.add(o);const pupil=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),shadow);pupil.position.set(x,y,z+.025);pupil.scale.set(size*.3,size*.3,.018);g.add(pupil);};
- const face=(y=1.9)=>{part(0,y,0,.58,.58,.5,pale);eye(-.13,y+.035,.263,type==='genderuwo'?.095:.055);eye(.13,y+.035,.263,type==='genderuwo'?.095:.055);};
+ const face=(y=1.9)=>{
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1,18,14),pale);
+  head.position.set(0,y,0);head.scale.set(.34,.34,.3);g.add(head);
+  eye(-.13,y+.035,.263,type==='genderuwo'?.095:.055);eye(.13,y+.035,.263,type==='genderuwo'?.095:.055);
+ };
  if(type==='pocong'){
-  // Pocong R6: tubuh kafan berbentuk balok, ikatan dan simpul kepala.
+  // Pocong: bentuk kain membulat dengan simpul dan ikatan khas.
   part(0,1.12,0,.72,1.18,.5,clothMat);part(0,2.05,0,.66,.65,.58,clothMat);
   part(0,2.43,-.015,.72,.16,.62,clothMat);part(0,2.05,.296,.42,.12,.025,shadow);
   eye(-.105,2.07,.32,.045);eye(.105,2.07,.32,.045);
