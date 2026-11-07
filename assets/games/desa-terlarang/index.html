@@ -217,7 +217,7 @@ const pendopo=new THREE.Group();pendopo.position.set(0,0,-34);scene.add(pendopo)
 const player=new THREE.Group();scene.add(player);player.position.set(0,0,24);
 let cameraMode='first';
 const cameraToggle=document.getElementById('camera-toggle');
-function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
+function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';thirdPersonToolRoot.visible=cameraMode==='third'&&selectedTool!=='flashlight';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
 cameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
 
 // Smooth Roblox-inspired avatar: rounded silhouette, articulated limbs and layered details.
@@ -282,10 +282,22 @@ const hand=box(equipment,.34,-.34,-.72,.17,.2,.18,handMat);
 let toolSwing=0,toolSwingCooldown=0;
 const useToolButton=document.getElementById('use-tool');
 function useEquippedTool(){if(!running||selectedTool==='flashlight'||isProne)return;toolSwing=1;toolSwingCooldown=.18;useToolButton.classList.remove('active');void useToolButton.offsetWidth;useToolButton.classList.add('active');setTimeout(()=>useToolButton.classList.remove('active'),150);resolveToolHit();}
-useToolButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();useEquippedTool();});
+useToolButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{useToolButton.setPointerCapture(e.pointerId);}catch(_){}useEquippedTool();});
 const toolModels={};
 function makeTool(kind){const g=new THREE.Group();if(kind==='flashlight'){cylinder(g,.34,-.3,-.73,.075,.09,.42,mat(0x202a36),9);cylinder(g,.34,-.08,-.73,.11,.11,.09,metal,9);const lens=new THREE.Mesh(new THREE.CircleGeometry(.085,12),mat(0xf8e7b2,.3,0xffd56a));lens.position.set(.34,-.08,-.681);g.add(lens);}else if(kind==='hoe'){const shaft=cylinder(g,.34,-.36,-.75,.035,.035,.72,handleMat,7);shaft.rotation.x=.18;const blade=box(g,.34,-.02,-.75,.42,.09,.08,metal);blade.rotation.z=-.12;}else if(kind==='sickle'){cylinder(g,.34,-.35,-.75,.035,.035,.62,handleMat,7);const blade=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,12,Math.PI*.82),metal);blade.position.set(.48,-.02,-.75);g.add(blade);}else{const plank=box(g,.34,-.27,-.75,.16,.78,.09,handleMat);plank.rotation.z=-.18;}return g;}
 ['flashlight','hoe','sickle','plank'].forEach(k=>toolModels[k]=makeTool(k));
+// TPS: senjata juga dipasang pada tangan kanan avatar, bukan hanya pada kamera FPS.
+const thirdPersonToolRoot=new THREE.Group();
+thirdPersonToolRoot.position.set(0,-.58,.08);
+arms[1].add(thirdPersonToolRoot);
+thirdPersonToolRoot.visible=false;
+let thirdPersonToolModel=null;
+function syncThirdPersonTool(kind){
+ thirdPersonToolRoot.clear();
+ thirdPersonToolModel=toolModels[kind].clone(true);
+ thirdPersonToolModel.position.set(-.34,.36,.75);
+ thirdPersonToolRoot.add(thirdPersonToolModel);
+}
 let selectedTool='flashlight',flashlightOn=true;
 // World-space flashlight: the beam and its target live in the scene, not on the avatar.
 const flashlightBeam=new THREE.SpotLight(0xffe6bd,34,46,Math.PI/5,.58,1.35);
@@ -302,19 +314,22 @@ function updateFlashlightWorld(){
  flashlightTarget.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,24);
  flashlightFill.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,1.1);
 }
-function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.parent)m.parent.remove(m);});equipment.add(toolModels[k]);flashlightBeam.visible=k==='flashlight'&&flashlightOn;useToolButton.style.display=k==='flashlight'?'none':(document.getElementById('start').style.display==='none'?'block':'none');useToolButton.textContent=k==='plank'?'AYUNKAN':'SERANG';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===k));}
+function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.parent)m.parent.remove(m);});equipment.add(toolModels[k]);syncThirdPersonTool(k);thirdPersonToolRoot.visible=cameraMode==='third'&&k!=='flashlight';flashlightBeam.visible=k==='flashlight'&&flashlightOn;useToolButton.style.display=k==='flashlight'?'none':(document.getElementById('start').style.display==='none'?'block':'none');useToolButton.textContent=k==='plank'?'AYUNKAN':'SERANG';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===k));}
 function updateToolSwing(dt){
  toolSwingCooldown=Math.max(0,toolSwingCooldown-dt);
  if(toolSwing>0){
   toolSwing=Math.max(0,toolSwing-dt*2.6);
-  const progress=1-toolSwing;
-  const arc=Math.sin(progress*Math.PI);
-  // Ayunan lebar dan tegas, tetap berjalan tanpa perlu mengenai target.
+  const progress=1-toolSwing,arc=Math.sin(progress*Math.PI);
+  // FPS: ayunkan objek di depan kamera. TPS: ayunkan senjata dan lengan kanan avatar.
   equipment.rotation.set(-arc*1.9,arc*.48,-arc*1.65);
   equipment.position.set(arc*.2,-arc*.22,-arc*.12);
+  thirdPersonToolRoot.rotation.set(-arc*.9,arc*.25,-arc*1.75);
+  arms[1].rotation.x=-arc*1.15;
+  arms[1].rotation.z=-arc*.38;
  }else{
-  equipment.rotation.set(0,0,0);
-  equipment.position.set(0,0,0);
+  equipment.rotation.set(0,0,0);equipment.position.set(0,0,0);
+  thirdPersonToolRoot.rotation.set(0,0,0);
+  if(!isProne){arms[1].rotation.x=0;arms[1].rotation.z=0;}
  }
 }
 function toggleFlashlight(){flashlightOn=!flashlightOn;flashlightBeam.visible=selectedTool==='flashlight'&&flashlightOn;document.getElementById('flashlight-toggle').classList.toggle('active',flashlightOn);}
