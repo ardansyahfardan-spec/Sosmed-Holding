@@ -141,78 +141,89 @@ button:active{transform:scale(.97);background:#273650}
   cloud.position.set((Math.random()-.5)*22,.35+Math.random()*1.2,-Math.random()*75);
   scene.add(cloud);mist.push(cloud);
  }
- // Avatar pemain 3D — proporsi blocky bergaya Roblox modern dengan detail pakaian.
+
+ // Avatar GHOUSTORY: siluet humanoid stylized-modern, dengan volume membulat.
+ // Bentuk tubuh dibuat dari geometri halus agar tidak tampak seperti susunan kubus.
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
- const mat=(color,roughness=.86,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
- const skin=mat(0xc99f7c), skinShadow=mat(0x9e765d), jacket=mat(0x26394d), jacketDark=mat(0x172638), jacketRed=mat(0x9e3440), pants=mat(0x202a38), pantsDark=mat(0x121b27), boot=mat(0x0b111a), sole=mat(0x05090e), metal=mat(0x9eafc2,.42,.35), hairMat=mat(0x17191e), hairHi=mat(0x292b32), eyeWhite=mat(0xe9edf2), eyeDark=mat(0x10151d);
- function block(parent,w,h,d,material,x,y,z){
+ const mat=(color,roughness=.82,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+ const skin=mat(0xc99b78),skinShade=mat(0x986e55),jacket=mat(0x263b52),jacketLight=mat(0x38516b),jacketDark=mat(0x172638),red=mat(0x9e3440),pants=mat(0x202c3c),pantsShade=mat(0x151f2d),boot=mat(0x101720),sole=mat(0x05090e),metal=mat(0xaebed0,.4,.35),hair=mat(0x17191e),hairLight=mat(0x30313a),eye=mat(0x10151d),eyeWhite=mat(0xe8edf4);
+ function capsule(parent,radius,length,material,x,y,z,rx=0,ry=0,rz=0){
+  const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,length,6,12),material);
+  mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+ }
+ function ellipsoid(parent,material,x,y,z,sx,sy,sz,segments=20){
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,segments,16),material);
+  mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+ }
+ function detail(parent,w,h,d,material,x,y,z){
   const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-  mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+  mesh.position.set(x,y,z);mesh.castShadow=true;parent.add(mesh);return mesh;
  }
- // Kaki dan sepatu bersegmen kotak untuk siluet avatar blocky.
- const legL=new THREE.Group();legL.position.set(-.23,1.02,0);player.add(legL);
- const legR=new THREE.Group();legR.position.set(.23,1.02,0);player.add(legR);
+ // Kaki: paha dan betis menyatu secara visual, sepatu punya ujung membulat.
+ const legL=new THREE.Group();legL.position.set(-.235,1.04,0);player.add(legL);
+ const legR=new THREE.Group();legR.position.set(.235,1.04,0);player.add(legR);
  for(const leg of [legL,legR]){
-  block(leg,.35,.57,.39,pants,0,-.29,0);
-  block(leg,.33,.31,.37,pantsDark,0,-.72,0);
-  block(leg,.39,.23,.5,boot,0,-.96,-.055);
-  block(leg,.4,.055,.51,sole,0,-1.075,-.055);
-  block(leg,.24,.055,.018,metal,0,-.91,-.309);
+  capsule(leg,.19,.43,pants,0,-.32,0);
+  capsule(leg,.16,.27,pantsShade,0,-.68,0);
+  ellipsoid(leg,boot,0,-.94,-.075,.205,.13,.29);
+  ellipsoid(leg,sole,0,-1.035,-.075,.207,.045,.285);
+  detail(leg,.12,.035,.018,metal,0,-.91,-.276);
  }
- // Torso berlapis: jaket lapangan, kerah, resleting, saku, sabuk, dan strap.
- const torso=new THREE.Group();torso.position.y=1.58;player.add(torso);
- block(torso,.94,1.08,.5,jacket,0,0,0);
- block(torso,.98,.16,.51,jacketDark,0,.45,0);
- block(torso,.18,.86,.025,jacketDark,0,.015,-.258);
- block(torso,.035,.82,.018,metal,0,.015,-.278);
- block(torso,.28,.2,.035,jacketRed,-.29,.25,-.27);
- block(torso,.28,.2,.035,jacketRed,.29,.25,-.27);
- block(torso,.3,.22,.045,jacketDark,-.27,-.23,-.278);
- block(torso,.3,.22,.045,jacketDark,.27,-.23,-.278);
- block(torso,.2,.12,.025,metal,-.27,-.23,-.307);
- block(torso,.2,.12,.025,metal,.27,-.23,-.307);
- block(torso,.98,.1,.53,boot,0,-.49,0);
- block(torso,.16,.13,.035,metal,.22,-.49,-.28);
- block(torso,.25,.16,.12,jacketDark,-.16,.49,-.19);
- block(torso,.25,.16,.12,jacketDark,.16,.49,-.19);
- block(torso,.12,.3,.035,jacketRed,.02,.34,-.267);
- // Leher dan kepala kotak dengan detail wajah menghadap arah depan (-Z).
- block(player,.24,.2,.24,skin,0,2.17,0);
+ // Jaket torso dengan bahu membulat dan panel pakaian.
+ const torso=new THREE.Group();torso.position.y=1.62;player.add(torso);
+ capsule(torso,.405,.43,jacket,0,0,0);
+ ellipsoid(torso,jacketLight,0,.34,-.005,.39,.17,.255);
+ ellipsoid(torso,jacketDark,0,-.34,.005,.39,.12,.25);
+ // Kerah, ritsleting, panel dada dan kantong kecil.
+ ellipsoid(torso,jacketDark,0,.43,-.06,.19,.12,.22);
+ detail(torso,.035,.62,.018,metal,0,.015,-.405);
+ detail(torso,.012,.59,.012,jacketDark,.055,.015,-.414);
+ detail(torso,.24,.15,.035,jacketDark,-.235,.18,-.355);
+ detail(torso,.24,.15,.035,jacketDark,.235,.18,-.355);
+ detail(torso,.18,.045,.025,red,-.235,.27,-.378);
+ detail(torso,.18,.045,.025,red,.235,.27,-.378);
+ detail(torso,.07,.06,.025,metal,-.235,.17,-.38);
+ detail(torso,.07,.06,.025,metal,.235,.17,-.38);
+ detail(torso,.83,.085,.43,pantsShade,0,-.43,0);
+ detail(torso,.13,.12,.035,metal,.19,-.43,-.235);
+ // Leher dan kepala oval dengan rahang lembut, bukan kubus.
+ capsule(player,.115,.13,skin,0,2.18,0);
  const head=new THREE.Group();head.position.set(0,2.52,0);player.add(head);
- block(head,.68,.72,.62,skin,0,0,0);
- block(head,.09,.2,.13,skin,-.385,.015,0);
- block(head,.09,.2,.13,skin,.385,.015,0);
- block(head,.13,.065,.025,eyeDark,-.16,.105,-.322);
- block(head,.13,.065,.025,eyeDark,.16,.105,-.322);
- block(head,.065,.075,.025,eyeWhite,-.16,.105,-.342);
- block(head,.065,.075,.025,eyeWhite,.16,.105,-.342);
- block(head,.045,.055,.018,eyeDark,-.16,.105,-.36);
- block(head,.045,.055,.018,eyeDark,.16,.105,-.36);
- block(head,.16,.035,.025,hairMat,-.16,.205,-.326);
- block(head,.16,.035,.025,hairMat,.16,.205,-.326);
- block(head,.12,.025,.02,skinShadow,0,-.19,-.326);
- // Rambut hitam berlapis.
- block(head,.72,.19,.66,hairMat,0,.37,.015);
- block(head,.72,.34,.18,hairMat,0,.22,.235);
- block(head,.2,.18,.24,hairHi,-.23,.28,-.16);
- block(head,.2,.18,.24,hairHi,.23,.28,-.16);
- block(head,.24,.14,.18,hairMat,-.24,.08,-.245);
- // Ransel ekspedisi, flap, pengunci, dan strap bahu.
- block(player,.55,.66,.23,jacketDark,0,1.62,.34);
- block(player,.43,.18,.035,jacket,0,1.91,.47);
- block(player,.12,.08,.035,metal,0,1.88,.493);
- block(player,.12,.78,.07,jacketDark,-.39,1.62,.035);
- block(player,.12,.78,.07,jacketDark,.39,1.62,.035);
- // Lengan berengsel untuk ayunan saat berjalan.
- const armL=new THREE.Group();armL.position.set(-.53,1.98,0);player.add(armL);
- const armR=new THREE.Group();armR.position.set(.53,1.98,0);player.add(armR);
+ ellipsoid(head,skin,0,0,0,.335,.365,.295,28);
+ ellipsoid(head,skinShade,0,-.17,-.005,.245,.13,.25,24);
+ // Telinga dan wajah: mata, alis, hidung dan mulut sederhana.
+ ellipsoid(head,skin,-.326,-.005,0,.075,.115,.085);
+ ellipsoid(head,skin,.326,-.005,0,.075,.115,.085);
+ detail(head,.105,.045,.022,eye,-.135,.075,-.286);
+ detail(head,.105,.045,.022,eye,.135,.075,-.286);
+ detail(head,.035,.035,.012,eyeWhite,-.135,.075,-.303);
+ detail(head,.035,.035,.012,eyeWhite,.135,.075,-.303);
+ detail(head,.105,.022,.025,hair,-.135,.145,-.292);
+ detail(head,.105,.022,.025,hair,.135,.145,-.292);
+ ellipsoid(head,skinShade,0,-.045,-.294,.035,.045,.025,12);
+ detail(head,.105,.018,.015,skinShade,0,-.205,-.281);
+ // Rambut ber-volume dengan poni dan sisi bertumpuk.
+ ellipsoid(head,hair,0,.285,.015,.355,.17,.315,24);
+ ellipsoid(head,hairLight,-.17,.265,-.13,.16,.12,.18,18);
+ ellipsoid(head,hairLight,.16,.27,-.12,.17,.12,.18,18);
+ ellipsoid(head,hair,0,.19,-.255,.24,.115,.105,18);
+ ellipsoid(head,hairLight,-.22,.12,-.225,.11,.15,.09,16);
+ // Ransel ekspedisi mengikuti punggung, dengan tali bahu melengkung.
+ ellipsoid(player,jacketDark,0,1.64,.31,.31,.39,.17);
+ ellipsoid(player,jacket,0,1.91,.39,.24,.105,.09);
+ detail(player,.11,.075,.025,metal,0,1.9,.474);
+ capsule(player,.055,.55,jacketDark,-.36,1.66,.025,0,0,-.12);
+ capsule(player,.055,.55,jacketDark,.36,1.66,.025,0,0,.12);
+ // Lengan anatomis stylized dengan bahu, lengan bawah dan telapak membulat.
+ const armL=new THREE.Group();armL.position.set(-.49,1.99,0);player.add(armL);
+ const armR=new THREE.Group();armR.position.set(.49,1.99,0);player.add(armR);
  for(const [arm,side] of [[armL,-1],[armR,1]]){
-  block(arm,.32,.62,.38,jacket,0,-.32,0);
-  block(arm,.34,.12,.4,jacketRed,0,-.62,0);
-  block(arm,.3,.32,.35,skin,0,-.83,0);
-  block(arm,.28,.18,.32,skin,0,-1.075,-.015);
-  block(arm,.34,.08,.4,jacketDark,0,-.69,0);
-  block(arm,.035,.18,.025,metal,side*.17,-.3,-.195);
+  ellipsoid(arm,jacketLight,0,-.08,0,.205,.22,.205);
+  capsule(arm,.145,.34,jacket,0,-.34,0);
+  capsule(arm,.125,.22,red,0,-.59,0);
+  capsule(arm,.105,.25,skin,0,-.82,0);
+  ellipsoid(arm,skin,0,-.99,-.012,.115,.12,.12);
+  detail(arm,.025,.14,.018,metal,side*.12,-.32,-.13);
  }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
