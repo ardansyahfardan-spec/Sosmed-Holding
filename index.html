@@ -7053,9 +7053,11 @@ function malamSubscribe(){
 }
 async function malamLoadStateOnce(roomAtStart){
  if(!roomAtStart||roomAtStart!==malamRoomId)return;
+ window.__malamLoadStage='memulai sinkronisasi';
  malamStartClock();
  // Ambil state Crew lebih dahulu. Pemrosesan AI tidak boleh menggagalkan
  // sinkronisasi pemain manusia; jalankan terpisah dan abaikan error nonfatal.
+ window.__malamLoadStage='mengambil status ruang dan pemain';
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:roomAtStart});
  if(error){
   console.error('[Crew] malam_get_state gagal:',error);
@@ -7065,6 +7067,7 @@ async function malamLoadStateOnce(roomAtStart){
  supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart}).then(({error:aiError})=>{
   if(aiError)console.warn('[Crew] Pemrosesan AI dilewati:',aiError.message);
  }).catch(aiError=>console.warn('[Crew] Pemrosesan AI gagal:',aiError));
+ window.__malamLoadStage='memproses informasi peran';
  if(data?.my_role==='paranormal'&&data?.investigation){
   const inv=data.investigation_detail||data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
   if(window.__malamLastInvestigationKey!==resultKey){
@@ -7072,6 +7075,7 @@ async function malamLoadStateOnce(roomAtStart){
    malamNotify('HASIL PEMERIKSAAN',(inv.nickname||'Target')+' memiliki peran '+(malamRoles[inv.role]?.[0]||inv.role)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.','phase');
   }
  }
+ window.__malamLoadStage='memuat foto profil pemain';
  const ids=(data?.players||[]).map(x=>x.user_id).filter(Boolean);
  if(ids.length){
   const {data:profiles,error:profileError}=await supabaseClient.from('ghoustory_profiles').select('user_id,avatar_url').in('user_id',ids);
@@ -7082,7 +7086,12 @@ async function malamLoadStateOnce(roomAtStart){
  }
  if(['discussion','voting'].includes(data?.room?.phase)&&data?.my_alive){const {data:aiMessages}=await supabaseClient.from('malam_ai_messages').select('player_id,nickname,body,created_at,round_no').eq('room_id',roomAtStart).eq('round_no',data.room.round_no).order('created_at');window.__malamAiChatMessages=aiMessages||[];const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',roomAtStart).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});const aiLatest=new Map((aiMessages||[]).map(m=>[m.player_id,m.body]));data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||aiLatest.get(x.user_id)||'',chat_bubble_at:latest.get(x.user_id)?.at||Date.now()}));}
  if(roomAtStart!==malamRoomId)return;
- malamRender(data);malamLoadMessages();malamLoadTeamMessages();
+ window.__malamLoadStage='menampilkan papan permainan';
+ malamRender(data);
+ window.__malamLoadStage='memuat chat di latar belakang';
+ malamLoadMessages().catch(e=>console.warn('[Crew] Chat gagal dimuat:',e));
+ malamLoadTeamMessages().catch(e=>console.warn('[Crew] Chat tim gagal dimuat:',e));
+ window.__malamLoadStage='selesai';
 };
 window.malamLoadState=async function(){
  if(!malamRoomId)return;
@@ -7099,8 +7108,14 @@ window.malamLoadState=async function(){
     await malamLoadStateOnce(roomAtStart);
    }while(window.__malamLoadPending&&malamRoomId);
   }catch(e){
-   console.warn('Pembaruan state Malam Terlarang gagal:',e);
-   malamMsg('Permainan belum dapat diperbarui. Periksa koneksi lalu coba lagi.');
+   const stage=window.__malamLoadStage||'proses sinkronisasi';
+   console.warn('[Crew] Pembaruan state gagal pada tahap: '+stage,e);
+   // State terakhir tetap dipertahankan; jangan memberi kesan seluruh game berhenti.
+   if(window.__malamCurrentState&&malamRoomId){
+    malamMsg('Pembaruan data sementara tertunda ('+stage+'). Permainan tetap berjalan.');
+   }else{
+    malamMsg('Data permainan belum berhasil dimuat ('+stage+'). Coba perbarui kembali.');
+   }
   }
  })();
  window.__malamLoadPromise=runner;
