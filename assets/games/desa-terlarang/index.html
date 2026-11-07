@@ -81,67 +81,51 @@ button:active{transform:scale(.97);background:#273650}
  const hint=document.getElementById('hint');
  const fullscreen=document.getElementById('fullscreen');
  if(!window.THREE){state.textContent='GAGAL MEMUAT ENGINE';hint.textContent='Engine grafis belum tersedia. Periksa koneksi lalu muat ulang.';return;}
- const scene=new THREE.Scene();
- scene.background=new THREE.Color(0x080d18);
- scene.fog=new THREE.FogExp2(0x111827,0.027);
- const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,220);
- camera.position.set(0,7,18);
- camera.lookAt(0,1,0);
- const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));
- renderer.setSize(innerWidth,innerHeight,false);
- renderer.shadowMap.enabled=true;
- renderer.shadowMap.type=THREE.PCFSoftShadowMap;
- renderer.outputColorSpace=THREE.SRGBColorSpace;
- scene.add(new THREE.HemisphereLight(0x9aafd0,0x15110e,1.15));
- const moonLight=new THREE.DirectionalLight(0x9db8e8,1.4);
- moonLight.position.set(-12,22,8);moonLight.castShadow=true;scene.add(moonLight);
- const moon=new THREE.Mesh(new THREE.SphereGeometry(2,24,24),new THREE.MeshBasicMaterial({color:0xd9e4f5}));
- moon.position.set(-24,22,-55);scene.add(moon);
- const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),new THREE.MeshStandardMaterial({color:0x182019,roughness:1}));
- ground.rotation.x=-Math.PI/2;ground.position.y=-.08;ground.receiveShadow=true;scene.add(ground);
- const path=new THREE.Mesh(new THREE.PlaneGeometry(7,100),new THREE.MeshStandardMaterial({color:0x34302a,roughness:1}));
- path.rotation.x=-Math.PI/2;path.position.set(0,.005,-28);scene.add(path);
- function box(w,h,d,color,x,y,z){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.95}));
-  m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
- }
- function hut(x,z,scale=1){
-  const w=5*scale,h=3.2*scale,d=4.5*scale;
-  box(w,h,d,0x39332d,x,h/2,z);
-  const roof=new THREE.Mesh(new THREE.ConeGeometry(4.1*scale,2.4*scale,4),new THREE.MeshStandardMaterial({color:0x211e20,roughness:1}));
-  roof.rotation.y=Math.PI/4;roof.position.set(x,h+1.05*scale,z);roof.castShadow=true;scene.add(roof);
-  box(.75*scale,1.6*scale,.12,0x17191d,x,h*.34,z+d/2+.07);
-  const glow=new THREE.PointLight(0xd18a4c,.65,8);glow.position.set(x-1,h*.6,z+d/2+1);scene.add(glow);
- }
- function tree(x,z,s=1){
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.35*s,2.4*s,7),new THREE.MeshStandardMaterial({color:0x28221d}));
-  trunk.position.set(x,1.2*s,z);trunk.castShadow=true;scene.add(trunk);
-  for(let i=0;i<3;i++){
-   const crown=new THREE.Mesh(new THREE.ConeGeometry((1.5-i*.18)*s,2.8*s,7),new THREE.MeshStandardMaterial({color:i===1?0x17231e:0x1c2922,roughness:1}));
-   crown.position.set(x,(3+i*.72)*s,z);crown.castShadow=true;scene.add(crown);
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x080d18);scene.fog=new THREE.FogExp2(0x111827,.018);
+  const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,240);camera.position.set(0,7,18);camera.lookAt(0,1,0);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight,false);
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  scene.add(new THREE.HemisphereLight(0x9aafd0,0x17130f,1.25));
+  const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=true;moonLight.shadow.mapSize.set(1024,1024);moonLight.shadow.camera.left=-35;moonLight.shadow.camera.right=35;moonLight.shadow.camera.top=35;moonLight.shadow.camera.bottom=-35;scene.add(moonLight);
+  const moon=new THREE.Mesh(new THREE.SphereGeometry(2.2,32,24),new THREE.MeshBasicMaterial({color:0xd9e4f5}));moon.position.set(-24,22,-55);scene.add(moon);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(190,190),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.1;ground.receiveShadow=true;scene.add(ground);
+  const path=new THREE.Mesh(new THREE.PlaneGeometry(6.8,110),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-32);path.receiveShadow=true;scene.add(path);
+  const M={
+   wall:new THREE.MeshStandardMaterial({color:0x51483d,roughness:.96}),wood:new THREE.MeshStandardMaterial({color:0x30251e,roughness:.9}),
+   timber:new THREE.MeshStandardMaterial({color:0x6a4930,roughness:.9}),roof:new THREE.MeshStandardMaterial({color:0x29272a,roughness:.96}),
+   tile:new THREE.MeshStandardMaterial({color:0x494044,roughness:.92}),glass:new THREE.MeshStandardMaterial({color:0xe1a65b,emissive:0x9b4c18,emissiveIntensity:.75,roughness:.35}),
+   stone:new THREE.MeshStandardMaterial({color:0x55534b,roughness:1}),bark:new THREE.MeshStandardMaterial({color:0x30251d,roughness:1}),
+   leaves:new THREE.MeshStandardMaterial({color:0x18251e,roughness:1})
+  };
+  function box(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof material==='number'?new THREE.MeshStandardMaterial({color:material,roughness:.95}):material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+  function hut(x,z,scale=1,variant=0){
+   const w=5.2*scale,h=3.25*scale,d=4.7*scale;
+   box(w,h,d,variant?new THREE.MeshStandardMaterial({color:0x49463f,roughness:1}):M.wall,x,h/2,z);
+   for(const side of [-1,1]){box(.16*scale,h+.08*scale,.18*scale,M.wood,x+side*(w/2-.12*scale),h/2,z-d/2);box(.13*scale,h+.08*scale,.18*scale,M.wood,x+side*(w/2-.12*scale),h/2,z+d/2);}
+   box(w+.12*scale,.16*scale,.2*scale,M.wood,x,h-.12*scale,z-d/2);box(w+.12*scale,.16*scale,.2*scale,M.wood,x,.18*scale,z-d/2);
+   const ra=box(w*.76*scale,.16*scale,d*1.12*scale,M.roof,x-w*.22*scale,h+.88*scale,z);ra.rotation.z=-.48;
+   const rb=box(w*.76*scale,.16*scale,d*1.12*scale,M.roof,x+w*.22*scale,h+.88*scale,z);rb.rotation.z=.48;
+   box(.22*scale,.2*scale,d*1.18*scale,M.wood,x,h+1.62*scale,z);
+   for(let row=0;row<3;row++)for(let col=0;col<5;col++){const t=box(.72*scale,.055*scale,.34*scale,M.tile,x+(col-2)*.78*scale,h+1.2*scale-row*.13*scale,z+(row-1)*1.15*scale);t.rotation.z=col<2?-.48:.48;}
+   box(.92*scale,1.95*scale,.12*scale,M.wood,x,h*.31,z+d/2+.075*scale);box(.72*scale,1.72*scale,.035*scale,M.timber,x,h*.31,z+d/2+.15*scale);
+   for(let k=0;k<4;k++)box(.025*scale,1.6*scale,.018*scale,M.wood,x+(-.27+k*.18)*scale,h*.31,z+d/2+.174*scale);
+   box(.07*scale,.07*scale,.04*scale,M.tile,x+.25*scale,h*.31,z+d/2+.2*scale);
+   for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);const glow=new THREE.PointLight(0xd18a4c,.8,9);glow.position.set(x+wx*scale,wy,z+d/2+1.2);scene.add(glow);}
+   box(w+.35*scale,.22*scale,d+.3*scale,M.stone,x,.12*scale,z);
   }
- }
- for(let i=0;i<12;i++){
-  const z=-i*8-8;
-  tree(-8-(i%3)*2,z,.9+(i%2)*.25);tree(8+(i%4)*1.6,z-3,.85+(i%3)*.2);
- }
- hut(-7,-17,1);hut(7,-31,.95);hut(-8,-48,1.15);hut(9,-61,1.05);
- // Siluet pagar dan batu pembatas di sisi jalan.
- for(let i=0;i<18;i++){
-  const z=-i*5-5;
-  box(.18,.8,.18,0x39342e,-4.4,.4,z);
-  box(.18,.8,.18,0x39342e,4.4,.4,z-2);
- }
- const mist=[];
- for(let i=0;i<24;i++){
-  const material=new THREE.MeshBasicMaterial({color:0xaab8c9,transparent:true,opacity:.035,depthWrite:false});
-  const cloud=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),material);
-  cloud.scale.set(3+Math.random()*4,.35+Math.random()*.35,1.4);
-  cloud.position.set((Math.random()-.5)*22,.35+Math.random()*1.2,-Math.random()*75);
-  scene.add(cloud);mist.push(cloud);
- }
-
+  function tree(x,z,s=1){
+   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.42*s,3.4*s,9),M.bark);trunk.position.set(x,1.7*s,z);trunk.castShadow=true;scene.add(trunk);
+   for(let j=0;j<3;j++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.13*s,1.7*s,7),M.bark);b.position.set(x+(j-1)*.55*s,2.5*s,z);b.rotation.z=(j-1)*-.55;scene.add(b);}
+   for(let j=0;j<5;j++){const c=new THREE.Mesh(new THREE.SphereGeometry(1,12,9),M.leaves);c.scale.set((1.25+(j%2)*.35)*s,(1.45+(j%3)*.18)*s,(1.15+(j%2)*.22)*s);c.position.set(x+((j%3)-1)*.65*s,(3.65+Math.floor(j/3)*.65)*s,z+((j%2)-.5)*.6*s);c.castShadow=true;scene.add(c);}
+  }
+  for(let i=0;i<15;i++){const z=-i*7-9;tree(-9-(i%3)*1.7,z,.9+(i%2)*.2);tree(9+(i%4)*1.2,z-3,.85+(i%3)*.16);}
+  hut(-7,-17,1,0);hut(7,-31,.95,1);hut(-8,-48,1.15,0);hut(9,-61,1.05,1);
+  for(let i=0;i<22;i++){const z=-i*4.3-4;for(const side of [-1,1]){const x=side*(4.45+(i%3)*.12);box(.15,.9,.15,M.wood,x,.45,z);if(i%2===0)box(.13,.12,2.2,M.timber,side*4.45,.67,z-.9);}}
+  for(let i=0;i<90;i++){const side=Math.random()<.5?-1:1,x=side*(4.2+Math.random()*8),z=4-Math.random()*85;const t=new THREE.Mesh(new THREE.ConeGeometry(.12+Math.random()*.13,.35+Math.random()*.35,5),new THREE.MeshStandardMaterial({color:[0x343c28,0x41422c,0x252f25][i%3],roughness:1}));t.position.set(x,.12,z);t.rotation.z=(Math.random()-.5)*.5;t.castShadow=true;scene.add(t);}
+  for(let i=0;i<44;i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(.12+Math.random()*.22,0),M.stone);stone.position.set((Math.random()-.5)*12,.04,2-Math.random()*85);stone.scale.y=.45;stone.rotation.set(Math.random(),Math.random(),Math.random());scene.add(stone);}
+  const mist=[];
+  for(let i=0;i<28;i++){const material=new THREE.MeshBasicMaterial({color:0xaab8c9,transparent:true,opacity:.045,depthWrite:false});const cloud=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);cloud.scale.set(4+Math.random()*5,.3+Math.random()*.35,1.8);cloud.position.set((Math.random()-.5)*24,.35+Math.random()*1.1,-Math.random()*85);scene.add(cloud);mist.push(cloud);}
  // Avatar GHOUSTORY: custom toy-brick minifigure.
  // Proporsi figur mainan koleksi: kepala silinder, torso cetak, tangan C,
  // pinggul dan kaki terpisah. Material plastik glossy dengan detail ekspedisi.
