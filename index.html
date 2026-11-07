@@ -7054,10 +7054,17 @@ function malamSubscribe(){
 async function malamLoadStateOnce(roomAtStart){
  if(!roomAtStart||roomAtStart!==malamRoomId)return;
  malamStartClock();
- const {error:aiError}=await supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart});
- if(aiError&& !/fase|anggota|room/i.test(aiError.message||''))console.warn('AI multiplayer:',aiError.message);
+ // Ambil state Crew lebih dahulu. Pemrosesan AI tidak boleh menggagalkan
+ // sinkronisasi pemain manusia; jalankan terpisah dan abaikan error nonfatal.
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:roomAtStart});
- if(error){malamMsg(error.message);return;}
+ if(error){
+  console.error('[Crew] malam_get_state gagal:',error);
+  malamMsg('Gagal memperbarui permainan: '+(error.message||error.details||error.hint||'kesalahan server'));
+  return;
+ }
+ supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart}).then(({error:aiError})=>{
+  if(aiError)console.warn('[Crew] Pemrosesan AI dilewati:',aiError.message);
+ }).catch(aiError=>console.warn('[Crew] Pemrosesan AI gagal:',aiError));
  if(data?.my_role==='paranormal'&&data?.investigation){
   const inv=data.investigation_detail||data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
   if(window.__malamLastInvestigationKey!==resultKey){
