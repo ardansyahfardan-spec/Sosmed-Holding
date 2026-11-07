@@ -6873,6 +6873,7 @@ window.malamTrialRender=function(){
  const s=window.__malamTrial;if(!s)return;
  const p=document.getElementById('arena-play-panel'),me=s.players[0],alive=s.players.filter(x=>x.alive);
  if(!p)return;
+ malamAudioOnPhase('trial',s.phase,s.round,s.lastEvent,s.winner);
  p.classList.remove('malam-wallpaper-night','malam-wallpaper-day');p.classList.add(s.phase==='night'?'malam-wallpaper-night':'malam-wallpaper-day');
  const phases=['MALAM','DISKUSI','VOTING','SELESAI'],idx=s.phase==='night'?0:s.phase==='discussion'?1:s.phase==='voting'?2:3;
  let action='';
