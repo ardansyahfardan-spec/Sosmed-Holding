@@ -2931,11 +2931,17 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         // Jangan hentikan seluruh aplikasi jika CDN SDK terlambat/gagal dimuat.
         let supabaseClient = (window.supabase && typeof window.supabase.createClient === 'function')
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        // Berbagi instance autentikasi yang sama dengan game di iframe satu-origin.
+        if (supabaseClient) window.__ghoustorySupabaseClient = supabaseClient;
         let supabaseSdkLoadPromise = null;
         async function ensureSupabaseClient() {
-            if (supabaseClient) return supabaseClient;
+            if (supabaseClient) {
+                window.__ghoustorySupabaseClient = supabaseClient;
+                return supabaseClient;
+            }
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                window.__ghoustorySupabaseClient = supabaseClient;
                 return supabaseClient;
             }
             if (!supabaseSdkLoadPromise) {
