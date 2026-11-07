@@ -453,8 +453,16 @@ function mpNicknameValue(){return (document.getElementById('mp-nickname').value|
 async function mpInit(){
  try{
   if(!mpClient){
-   // Game berada di iframe satu-origin; gunakan client induk agar sesi login persis sama.
-   try{if(window.parent!==window&&window.parent.__ghoustorySupabaseClient)mpClient=window.parent.__ghoustorySupabaseClient;}catch(parentAccessError){console.warn('Client induk tidak dapat diakses:',parentAccessError);}
+   // Prioritaskan client aplikasi induk dan tunggu SDK/auth siap sebelum fallback.
+   try{
+    if(window.parent!==window){
+     if(typeof window.parent.__getGhoustorySupabaseClient==='function'){
+      mpClient=await window.parent.__getGhoustorySupabaseClient();
+     }else if(window.parent.__ghoustorySupabaseClient){
+      mpClient=window.parent.__ghoustorySupabaseClient;
+     }
+    }
+   }catch(parentAccessError){console.warn('Client induk tidak dapat diakses:',parentAccessError);}
    if(!mpClient){
     if(!window.supabase?.createClient)throw new Error('Layanan multiplayer belum siap. Muat ulang halaman.');
     mpClient=window.supabase.createClient(MP_SUPABASE_URL,MP_SUPABASE_KEY);
