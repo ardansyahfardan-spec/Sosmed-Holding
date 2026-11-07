@@ -1901,7 +1901,7 @@ nav.sticky {
 #arena-play-panel .malam-arena-board>.flex.justify-center{flex-wrap:wrap;row-gap:6px;padding-top:8px;}
 #arena-play-panel #malam-trial-countdown{padding:9px 12px;border:1px solid rgba(251,191,36,.22);border-radius:14px;background:rgba(5,8,18,.58);line-height:1.35;}
 #arena-play-panel #malam-trial-modal,#arena-play-panel #malam-modal{overscroll-behavior:contain;}
-#arena-play-panel .malam-trial-modal-card,#arena-play-panel #malam-modal>div{width:min(100%,440px);max-height:min(82dvh,760px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:16px;}
+#arena-play-panel .malam-trial-modal-card,#arena-play-panel #malam-modal>div{width:min(100%,440px);max-height:min(82dvh,760px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:16px;min-height:0;}\n#arena-play-panel #malam-modal.chat-keyboard-open,#arena-play-panel #malam-trial-modal.chat-keyboard-open{align-items:flex-start!important;overflow:hidden!important;}\n#arena-play-panel #malam-modal.chat-keyboard-open>div,#arena-play-panel #malam-trial-modal.chat-keyboard-open .malam-trial-modal-card{max-height:calc(100% - 16px)!important;min-height:0!important;overflow-y:auto!important;}\n#arena-play-panel #malam-chat-history,#arena-play-panel #malam-trial-chat-history{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 #arena-play-panel #malam-trial-modal-content,#arena-play-panel #malam-modal-content{min-width:0;overflow-wrap:anywhere;}
 #arena-play-panel #malam-trial-chat-list,#arena-play-panel #malam-chat-list{max-height:min(42dvh,340px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
 #arena-play-panel :is(#malam-trial-chat-input,#malam-chat-input,#malam-team-chat-input){min-width:0;width:100%;max-width:100%;font-size:16px;}
@@ -6600,7 +6600,7 @@ window.malamAudioToggleBgm=async function(){
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;window.malamAudioSetVolume(.34);}else{a.lastPhase='';window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;const trial=window.__malamTrial,state=window.__malamCurrentState;if(trial)window.malamAudioOnPhase('trial',trial.phase,trial.round,trial.lastEvent,trial.winner);else if(state)window.malamAudioOnPhase('multi',state.room?.phase,state.room?.round_no,state.room?.last_event,state.room?.winner);else window.malamAudioSpeak('Suara pemandu aktif. Selamat bermain Malam Terlarang.');}
+ a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;}else{a.lastPhase='';window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;const trial=window.__malamTrial,state=window.__malamCurrentState;if(trial)window.malamAudioOnPhase('trial',trial.phase,trial.round,trial.lastEvent,trial.winner);else if(state)window.malamAudioOnPhase('multi',state.room?.phase,state.room?.round_no,state.room?.last_event,state.room?.winner);else window.malamAudioSpeak('Suara pemandu aktif. Selamat bermain Malam Terlarang.');}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
@@ -6762,13 +6762,13 @@ window.malamTrialOpen=function(type){
   const messages=s.teamMessages||[],partners=s.players.filter(x=>x.alive&&x.role==='siluman');
   content.innerHTML='<div class="rounded-xl border border-red-900/50 bg-red-950/25 p-3 mb-3"><b class="text-xs text-red-200"><i class="fa-solid fa-user-secret mr-1"></i>Kanal rahasia Siluman</b><p class="text-[10px] text-gray-300 mt-1">Hanya kamu dan rekan Siluman yang masih hidup yang dapat melihat bisikan ini. Pemain lain tidak ditampilkan.</p><p class="text-[9px] text-red-300 mt-2">Rekan Siluman: '+partners.filter(x=>x.id!=='t0').map(x=>esc(x.name)).join(', ')+'</p></div><div id="malam-trial-team-list" class="max-h-[42vh] min-h-[150px] overflow-y-auto space-y-2 py-2">'+(messages.map(m=>'<div class="flex '+(m.self?'justify-end':'justify-start')+'"><div class="max-w-[88%] rounded-2xl '+(m.self?'rounded-br-sm bg-red-900/70':'rounded-bl-sm bg-gray-800')+' px-3 py-2"><b class="block text-[9px] text-red-200">'+esc(m.name)+'</b><p class="text-xs text-gray-100 whitespace-pre-wrap break-words mt-1">'+esc(m.body)+'</p></div></div>').join('')||'<p class="text-xs text-gray-500 text-center py-8">Belum ada bisikan. Hubungi rekanmu sebelum fajar.</p>')+'</div><div class="flex gap-2 mt-2"><input id="malam-trial-team-input" maxlength="300" autocomplete="off" placeholder="Bisikkan strategi..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();malamTrialSendTeamChat();}" class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-red-900/60 px-3 py-3 text-sm text-white"><button type="button" onclick="malamTrialSendTeamChat()" class="rounded-xl bg-red-900 px-4 text-xs font-bold text-white">Kirim</button></div>';
  }else if(type==='chat'){
-  content.innerHTML='<div class="rounded-xl border border-blue-900/40 bg-blue-950/15 p-3 mb-3"><p class="text-[10px] text-blue-200">Ketik pesan di bawah. Pesan akan muncul sebagai bubble di dekat profil pengirim.</p></div><div id="malam-trial-chat-history" class="max-h-[38dvh] overflow-y-auto space-y-2 mb-3">'+(s.chatMessages||[]).filter(m=>m.phase===s.phase||m.name==='Sistem').map(m=>'<div class="rounded-xl '+(m.self?'bg-blue-950/50':'bg-gray-900/90')+' p-2"><b class="block text-[10px] '+(m.self?'text-blue-200':'text-amber-200')+'">'+esc(m.name)+'</b><p class="text-xs text-gray-100 mt-1">'+esc(m.body)+'</p></div>').join('')+'</div><div class="flex gap-2 mt-2"><input id="malam-trial-chat-input" maxlength="300" autocomplete="off" placeholder="Tulis pesan..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();malamTrialSendChat();}" class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm text-white"><button type="button" onclick="malamTrialSendChat()" class="rounded-xl bg-blue-800 px-4 text-xs font-bold text-white">Kirim</button></div>';
+  content.innerHTML='<div class="rounded-xl border border-blue-900/40 bg-blue-950/15 p-3 mb-3"><p class="text-[10px] text-blue-200">Ketik pesan di bawah. Pesan akan tampil di riwayat chat, bukan sebagai bubble di arena.</p></div><div id="malam-trial-chat-history" class="max-h-[38dvh] overflow-y-auto space-y-2 mb-3">'+(s.chatMessages||[]).filter(m=>m.phase===s.phase||m.name==='Sistem').map(m=>'<div class="rounded-xl '+(m.self?'bg-blue-950/50':'bg-gray-900/90')+' p-2"><b class="block text-[10px] '+(m.self?'text-blue-200':'text-amber-200')+'">'+esc(m.name)+'</b><p class="text-xs text-gray-100 mt-1">'+esc(m.body)+'</p></div>').join('')+'</div><div class="flex gap-2 mt-2"><input id="malam-trial-chat-input" maxlength="300" autocomplete="off" placeholder="Tulis pesan..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();malamTrialSendChat();}" class="min-w-0 flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm text-white"><button type="button" onclick="malamTrialSendChat()" class="rounded-xl bg-blue-800 px-4 text-xs font-bold text-white">Kirim</button></div>';
  }else content.innerHTML='<div class="space-y-2">'+s.log.map(m=>'<div class="rounded-xl bg-gray-900/80 p-3 text-xs text-gray-200">'+esc(m)+'</div>').join('')+'</div>';
  content.innerHTML=malamPopupHero(type==='role'?'role':type==='players'?'players':isVote?'voting':isAction?'night':s.phase==='discussion'?'morning':'night')+content.innerHTML;
  modal.classList.remove('hidden');modal.classList.add('flex');clearTimeout(window.__malamTrialModalAutoClose);
  if(type==='chat'){
   const chatInput=document.getElementById('malam-trial-chat-input'),sendButton=content.querySelector('button[onclick="malamTrialSendChat()"]');
-  if(chatInput){chatInput.type='text';chatInput.inputMode='text';chatInput.autocapitalize='sentences';chatInput.autocomplete='off';chatInput.spellcheck=true;chatInput.style.cssText+=';pointer-events:auto;touch-action:manipulation;user-select:text;-webkit-user-select:text;';chatInput.removeAttribute('readonly');chatInput.disabled=false;chatInput.value=chatDraft;const syncChatViewport=()=>{const vv=window.visualViewport,active=document.activeElement===chatInput,modal=document.getElementById('malam-trial-modal');if(!modal)return;if(active&&vv){modal.classList.add('chat-keyboard-open');modal.style.top=Math.max(0,vv.offsetTop)+'px';modal.style.height=vv.height+'px';modal.style.bottom='auto';modal.style.setProperty('--trial-visible-height',vv.height+'px');}else{modal.classList.remove('chat-keyboard-open');modal.style.top='';modal.style.height='';modal.style.bottom='';modal.style.removeProperty('--trial-visible-height');}};chatInput.addEventListener('focus',()=>setTimeout(syncChatViewport,80));chatInput.addEventListener('blur',()=>setTimeout(syncChatViewport,120));if(window.visualViewport){window.visualViewport.addEventListener('resize',syncChatViewport);window.visualViewport.addEventListener('scroll',syncChatViewport);}if(chatHadFocus){chatInput.focus({preventScroll:true});setTimeout(syncChatViewport,100);}const chatList=document.getElementById('malam-trial-chat-history');if(chatList)requestAnimationFrame(()=>{chatList.scrollTop=chatList.scrollHeight;});}
+  if(chatInput){chatInput.type='text';chatInput.inputMode='text';chatInput.autocapitalize='sentences';chatInput.autocomplete='off';chatInput.spellcheck=true;chatInput.style.cssText+=';pointer-events:auto;touch-action:manipulation;user-select:text;-webkit-user-select:text;';chatInput.removeAttribute('readonly');chatInput.disabled=false;chatInput.value=chatDraft;window.malamBindChatKeyboard('malam-trial-chat-input','malam-trial-modal');if(chatHadFocus){chatInput.focus({preventScroll:true});setTimeout(()=>window.malamBindChatKeyboard('malam-trial-chat-input','malam-trial-modal'),100);}const chatList=document.getElementById('malam-trial-chat-history');if(chatList)requestAnimationFrame(()=>{chatList.scrollTop=chatList.scrollHeight;});}
   if(sendButton){sendButton.type='button';sendButton.style.pointerEvents='auto';}
  }
  clearTimeout(window.__malamTrialModalAutoClose);
@@ -7067,6 +7067,25 @@ window.malamStartClock=function(){
  },1000);
 };
 window.malamStopClock=function(){if(window.__malamClockInterval){clearInterval(window.__malamClockInterval);window.__malamClockInterval=null;}if(window.__malamTeamPollInterval){clearInterval(window.__malamTeamPollInterval);window.__malamTeamPollInterval=null;}window.__malamCurrentState=null;};
+window.malamBindChatKeyboard=function(inputId,modalId){
+ const input=document.getElementById(inputId),modal=document.getElementById(modalId);if(!input||!modal)return;
+ const card=modal.querySelector('.malam-trial-modal-card')||modal.querySelector('#malam-modal-content')?.parentElement||modal.firstElementChild;
+ const adjust=()=>{
+  const vv=window.visualViewport,focused=document.activeElement===input;
+  if(focused&&vv){
+   modal.classList.add('chat-keyboard-open');modal.style.position='fixed';modal.style.top=Math.max(0,vv.offsetTop)+'px';modal.style.height=Math.max(160,vv.height)+'px';modal.style.bottom='auto';modal.style.alignItems='flex-start';modal.style.paddingTop='8px';modal.style.paddingBottom='8px';
+   if(card){card.style.maxHeight=Math.max(140,vv.height-16)+'px';card.style.marginTop='0';card.style.marginBottom='0';}
+   requestAnimationFrame(()=>{input.scrollIntoView({block:'nearest',behavior:'auto'});const scroller=card;if(scroller&&input.getBoundingClientRect().bottom>vv.offsetTop+vv.height-8)scroller.scrollTop+=input.getBoundingClientRect().bottom-(vv.offsetTop+vv.height-8);});
+  }else{
+   modal.classList.remove('chat-keyboard-open');modal.style.position='';modal.style.top='';modal.style.height='';modal.style.bottom='';modal.style.alignItems='';modal.style.paddingTop='';modal.style.paddingBottom='';
+   if(card){card.style.maxHeight='';card.style.marginTop='';card.style.marginBottom='';}
+  }
+ };
+ input.addEventListener('focus',()=>{adjust();setTimeout(adjust,100);setTimeout(adjust,280);});
+ input.addEventListener('blur',()=>setTimeout(adjust,180));
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',adjust);window.visualViewport.addEventListener('scroll',adjust);}
+ if(document.activeElement===input)adjust();
+};
 window.malamOpenModal=function(type){
  const modal=document.getElementById('malam-modal'),content=document.getElementById('malam-modal-content'),title=document.getElementById('malam-modal-title');
  const data=window.__malamModalData||{};if(!modal||!content)return;
@@ -7076,7 +7095,7 @@ window.malamOpenModal=function(type){
  const hero=type==='role'?'role':type==='players'?'players':type==='vote'?'voting':'night';
  content.innerHTML=malamPopupHero(hero)+data[type];
  modal.classList.remove('hidden');modal.classList.add('flex');
- if(type==='chat'){malamLoadMessages();malamLoadTeamMessages();}
+ if(type==='chat'){malamLoadMessages();malamLoadTeamMessages();window.malamBindChatKeyboard('malam-chat-input','malam-modal');}
  else{clearTimeout(window.__malamModalAutoClose);}
 };
 window.malamOpenChat=async function(){
