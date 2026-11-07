@@ -300,7 +300,7 @@ function ghost(type,x,z){
  const darkCloth=mat(0x171514,1),hairMat=mat(isG?0x100e0d:0x100e12,1),socketMat=mat(0x09090b,.65),eyeMat=mat(0x171516,.28),boneMat=mat(0x958b7b,1),bloodMat=mat(0x321719,1);
  const add=(geo,m,x,y,z,sx=1,sy=1,sz=1)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;g.add(o);return o;};
  const ell=(x,y,z,sx,sy,sz,m)=>add(new THREE.SphereGeometry(1,28,20),m,x,y,z,sx,sy,sz);
- const limb=(a,b,r1,r2,m,radial=12)=>{const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),d=new THREE.Vector3().subVectors(vb,va);const o=add(new THREE.CylinderGeometry(r2,r1,d.length(),radial,1),m,(va.x+vb.x)/2,(va.y+vb.y)/2,(va.z+vb.z)/2);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return o;};
+ const limb=(a,b,r1,r2,m,radial=12)=>{const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),d=new THREE.Vector3().subVectors(vb,va),pivot=new THREE.Group();pivot.position.copy(va);const o=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,d.length(),radial,1),m);o.position.copy(d).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());o.castShadow=true;o.receiveShadow=true;pivot.add(o);g.add(pivot);(g.userData.limbs||(g.userData.limbs=[])).push({pivot,midY:(va.y+vb.y)/2,midX:(va.x+vb.x)/2});return pivot;};
  const hairStrand=(points,r=.025)=>{const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));return add(new THREE.TubeGeometry(curve,18,r,6,false),hairMat,0,0,0);};
  const robe=(profile,m,segments=24)=>add(new THREE.LatheGeometry(profile.map(p=>new THREE.Vector2(p[0],p[1])),segments),m,0,0,0);
  const face=(y=2.15,scale=1)=>{
@@ -433,17 +433,83 @@ function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
 function updateGhosts(dt){
  for(const gh of ghosts){
   const p=gh.g.position,d=distance(p,player.position);gh.phase+=dt;
-  const active=d<(isProne?5.5:12),moving=active&&d>1.8;
-  if(moving){const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;const speed=gh.type==='genderuwo'?1.55:gh.type==='tuyul'?2.35:gh.type==='pocong'?1.8:gh.type==='anak'?1.15:gh.type==='nenek'?.85:gh.type==='kuntilanak'?1.05:1.1;p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);}
-  else if(!active){p.x=gh.home.x+Math.sin(gh.phase*.35)*1.5;p.z=gh.home.z+Math.cos(gh.phase*.3)*1.5;}
-  // Kaki tetap menapak tanah. Hanya pocong yang melompat kecil; hantu lain tidak melayang.
-  const step=moving?Math.sin(gh.phase*8):Math.sin(gh.phase*1.4)*.12;
-  const hop=gh.type==='pocong'&&moving?Math.max(0,Math.sin(gh.phase*5.5))*.19:0;
-  gh.g.position.y=hop+(moving?Math.abs(step)*.012:0);
-  gh.g.rotation.z=gh.type==='kuntilanak'?(moving?Math.sin(gh.phase*5)*.025:Math.sin(gh.phase*1.1)*.012):gh.type==='nenek'?(moving?Math.sin(gh.phase*5)*.018:0):gh.type==='kakek'?(moving?Math.sin(gh.phase*5)*.015:0):gh.type==='anak'?(moving?Math.sin(gh.phase*8)*.025:0):0;
-  gh.g.rotation.x=gh.type==='genderuwo'?(moving?-.035:0):0;
-  gh.g.scale.setScalar(gh.type==='genderuwo'?1+Math.sin(gh.phase*2)*.008:1);
-  if(d<(isProne?1.35:2.1)&&invuln<=0){health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';soundEffect('damage');say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}}
+  const active=d<(isProne?5.5:12),moving=active&&d>1.8,t=gh.phase;
+  const speed=gh.type==='genderuwo'?1.42:gh.type==='tuyul'?2.5:gh.type==='pocong'?1.72:gh.type==='anak'?1.18:gh.type==='nenek'?.72:gh.type==='kakek'?.9:gh.type==='kuntilanak'?.92:1.05;
+  if(moving){
+   const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;
+   p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);
+  }else if(!active){
+   p.x=gh.home.x+Math.sin(t*(gh.type==='tuyul'?.55:.28))*1.25;
+   p.z=gh.home.z+Math.cos(t*(gh.type==='tuyul'?.48:.24))*1.25;
+  }
+  const gait=moving?1:0;
+  // Setiap jenis arwah punya pola langkah dan postur sendiri, bukan satu animasi seragam.
+  let stride=0,armSwing=0,bob=0,lean=0,roll=0;
+  switch(gh.type){
+   case 'pocong':
+    // Lompatan pendek dengan kaki terikat; badan dan ikatan berguncang saat mendarat.
+    bob=moving?Math.max(0,Math.sin(t*5.4))*.2:Math.sin(t*1.5)*.012;
+    stride=moving?Math.sin(t*5.4)*.09:0;armSwing=moving?Math.sin(t*5.4+.7)*.055:Math.sin(t)*.018;
+    lean=moving?-.035:0;break;
+   case 'kuntilanak':
+    // Meluncur rendah tanpa langkah kaki; lengan dan tubuh bergoyang seperti tertiup angin.
+    bob=.055+Math.sin(t*1.65)*.035;
+    stride=0;armSwing=Math.sin(t*1.8)*.12;roll=Math.sin(t*1.35)*.025;
+    lean=moving?-.018:Math.sin(t*.8)*.012;break;
+   case 'genderuwo':
+    // Langkah berat dan lebar, bahu condong ke depan serta lengan mengayun kuat.
+    stride=moving?Math.sin(t*4.2)*.42:Math.sin(t*.7)*.025;
+    armSwing=moving?Math.sin(t*4.2+Math.PI)*.34:Math.sin(t*.8)*.035;
+    bob=moving?Math.abs(Math.sin(t*4.2))*.045:0;lean=moving?-.12: -.075;
+    roll=moving?Math.sin(t*2.1)*.035:0;break;
+   case 'tuyul':
+    // Lari kecil yang cepat dan tidak beraturan.
+    stride=moving?Math.sin(t*10)*.62:Math.sin(t*2)*.025;
+    armSwing=moving?Math.sin(t*10+Math.PI)*.42:Math.sin(t*1.7)*.04;
+    bob=moving?Math.abs(Math.sin(t*10))*.075:Math.sin(t*2)*.018;
+    lean=moving?-.16:-.035;roll=moving?Math.sin(t*5)*.055:0;break;
+   case 'anak':
+    // Langkah anak kecil yang ringan, sedikit memantul dan mengayun tangan.
+    stride=moving?Math.sin(t*6.8)*.48:Math.sin(t*1.3)*.018;
+    armSwing=moving?Math.sin(t*6.8+Math.PI)*.3:Math.sin(t)*.025;
+    bob=moving?Math.abs(Math.sin(t*6.8))*.055:Math.sin(t*1.5)*.012;
+    lean=moving?-.045:0;roll=moving?Math.sin(t*3.4)*.025:0;break;
+   case 'nenek':
+    // Tertatih pelan, badan condong, langkah pendek dengan tangan agak kaku.
+    stride=moving?Math.sin(t*3.1)*.19:0;
+    armSwing=moving?Math.sin(t*3.1+Math.PI)*.1:Math.sin(t*.8)*.018;
+    bob=moving?Math.abs(Math.sin(t*3.1))*.018:0;
+    lean=-.19;roll=moving?Math.sin(t*1.55)*.018:0;break;
+   case 'kakek':
+    // Menyeret kaki bergantian dengan punggung membungkuk dan ayunan lambat.
+    stride=moving?Math.sin(t*3.6)*.24:0;
+    armSwing=moving?Math.sin(t*3.6+Math.PI)*.13:0;
+    bob=moving?Math.abs(Math.sin(t*3.6))*.012:0;
+    lean=-.24;roll=moving?Math.sin(t*1.8)*.014:0;break;
+  }
+  gh.g.position.y=bob;
+  gh.g.rotation.x=lean;gh.g.rotation.z=roll;
+  gh.g.scale.setScalar(gh.type==='genderuwo'?1+Math.sin(t*1.7)*.006:1);
+  for(const part of (gh.g.userData.limbs||[])){
+   const isArm=part.midY>(gh.type==='tuyul'?.5:.72);
+   const side=part.midX<0?-1:1;
+   if(gh.type==='pocong'){
+    part.pivot.rotation.x=isArm?armSwing*side:0;
+    part.pivot.rotation.z=isArm?Math.sin(t*5.4+side)*.025:0;
+   }else if(gh.type==='kuntilanak'){
+    part.pivot.rotation.x=isArm?armSwing*side:0;
+    part.pivot.rotation.z=isArm?Math.sin(t*1.6+side)*.045:0;
+   }else{
+    const phase=t*(gh.type==='genderuwo'?4.2:gh.type==='tuyul'?10:gh.type==='anak'?6.8:gh.type==='nenek'?3.1:3.6);
+    part.pivot.rotation.x=isArm?armSwing*side:stride*side;
+    part.pivot.rotation.z=isArm?Math.sin(phase+side)*.025:0;
+   }
+  }
+  if(d<(isProne?1.35:2.1)&&invuln<=0){
+   health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';
+   soundEffect('damage');say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);
+   if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}
+  }
  }
 }
 function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)continue;const d=distance(player.position,c.g.position);if(d<best){best=d;near={kind:'clue',item:c};}}
