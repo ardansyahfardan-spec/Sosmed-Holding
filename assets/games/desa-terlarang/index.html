@@ -490,7 +490,7 @@ const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpPresenceClock=0,mpRefreshBusy=false;
+let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpPresenceClock=0,mpGhostClock=0,mpRefreshBusy=false;
 const mpRemotePlayers=new Map();let mpRoomBusy=false;
 const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
 function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
@@ -611,6 +611,7 @@ async function mpConnectRoom(roomId){
  mpChannel.on('broadcast',{event:'clue_found'},({payload})=>{if(mpApplyClue(Number(payload?.index),true))mpPersistGameState();});
  mpChannel.on('broadcast',{event:'mission_complete'},({payload})=>finishMission(false,payload?.nickname));
  mpChannel.on('broadcast',{event:'ghost_hit'},({payload})=>applyGhostHit(Number(payload?.index),payload?.hp,!!payload?.defeated,payload?.x,payload?.z));
+ mpChannel.on('broadcast',{event:'ghost_state'},({payload})=>mpApplyGhostState(payload));
  mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
  mpChannel.on('presence',{event:'sync'},mpPresenceSync);
  mpChannel.subscribe(async state=>{
@@ -747,6 +748,26 @@ function mpBroadcastPlayer(dt){
  mpPresenceClock+=dt;
  if(mpPresenceClock>=1.2){mpPresenceClock=0;mpChannel.track(payload).catch(error=>console.warn('Pembaruan presence pemain gagal:',error));}
 }
+function mpApplyGhostState(payload){
+ if(!mpRoomId||mpRoomData?.room?.host_id===mpUser?.id||!Array.isArray(payload?.ghosts))return;
+ payload.ghosts.forEach((state,index)=>{
+  const gh=ghosts[index];if(!gh||!Number.isFinite(state?.x)||!Number.isFinite(state?.z))return;
+  gh.userData.mpTarget=new THREE.Vector3(state.x,0,state.z);
+  gh.userData.mpMoving=!!state.moving;
+  gh.hp=Math.max(0,Math.min(gh.maxHp,Number(state.hp)||0));
+  gh.stagger=Math.max(0,Number(state.stagger)||0);
+  gh.defeatedTimer=Math.max(0,Number(state.defeatedTimer)||0);
+  gh.phase=Number.isFinite(state.phase)?state.phase:gh.phase;
+  gh.g.rotation.y=Number.isFinite(state.yaw)?state.yaw:gh.g.rotation.y;
+  gh.g.visible=state.visible!==false;
+ });
+}
+function mpBroadcastGhostState(dt){
+ if(!mpChannel||!mpGameStarted||mpRoomData?.room?.host_id!==mpUser?.id)return;
+ mpGhostClock+=dt;if(mpGhostClock<.12)return;mpGhostClock=0;
+ const payload={ghosts:ghosts.map(gh=>({x:gh.g.position.x,z:gh.g.position.z,yaw:gh.g.rotation.y,hp:gh.hp,stagger:gh.stagger,defeatedTimer:gh.defeatedTimer,visible:gh.g.visible,phase:gh.phase,moving:!!gh.userData.mpMoving}))};
+ mpChannel.send({type:'broadcast',event:'ghost_state',payload}).catch(error=>console.warn('Sinkronisasi posisi hantu gagal:',error));
+}
 function mpUpdateRemotePlayers(dt){
  for(const remote of mpRemotePlayers.values()){
   remote.model.position.lerp(remote.target,Math.min(1,dt*12));remote.model.rotation.y=remote.yaw;
@@ -759,7 +780,7 @@ function mpUpdateRemotePlayers(dt){
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
-function reset(){clearSprintHold();missionCompleted=false;storySeen.clear();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
+function reset(){clearSprintHold();missionCompleted=false;storySeen.clear();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;delete g.userData.mpTarget;g.userData.mpMoving=false;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
 function finishMission(announce=true,completedBy=''){if(missionCompleted)return;missionCompleted=true;running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';if(completedBy){say('Misi selesai! '+completedBy+' berhasil membuka gerbang.');}else if(announce){say('Misi selesai! Seluruh tim berhasil keluar dari desa.');}if(mpRoomId)mpPersistGameState();if(announce&&mpChannel)mpChannel.send({type:'broadcast',event:'mission_complete',payload:{nickname:mpNickname}}).catch(error=>console.warn('Pemberitahuan misi selesai gagal dikirim:',error));}
 function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex,true);if(mpRoomId)mpPersistGameState();if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
@@ -774,19 +795,25 @@ function joyEnd(e){if(e.pointerId===joyId){joyId=null;move.x=move.y=0;clearSprin
 joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
 function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
 function updateGhosts(dt){
+ const ghostAuthority=!mpRoomId||(mpGameStarted&&mpRoomData?.room?.host_id===mpUser?.id);
  for(const gh of ghosts){
   gh.phase+=dt;
-  if(gh.defeatedTimer>0){gh.defeatedTimer-=dt;if(gh.defeatedTimer<=0){gh.hp=gh.maxHp;gh.g.position.copy(gh.home);gh.g.visible=true;gh.stagger=0;}else continue;}
-  gh.stagger=Math.max(0,gh.stagger-dt);
-  const p=gh.g.position,d=distance(p,player.position);
-  const active=d<(isProne?5.5:12),moving=active&&d>1.8&&gh.stagger<=0,t=gh.phase;
+  const p=gh.g.position;
+  if(!ghostAuthority&&gh.userData.mpTarget){p.lerp(gh.userData.mpTarget,Math.min(1,dt*12));}
+  if(ghostAuthority&&gh.defeatedTimer>0){gh.defeatedTimer-=dt;if(gh.defeatedTimer<=0){gh.hp=gh.maxHp;gh.g.position.copy(gh.home);gh.g.visible=true;gh.stagger=0;}else continue;}
+  if(ghostAuthority)gh.stagger=Math.max(0,gh.stagger-dt);
+  const d=distance(p,player.position);
+  const active=d<(isProne?5.5:12),moving=ghostAuthority?(active&&d>1.8&&gh.stagger<=0):!!gh.userData.mpMoving,t=gh.phase;
   const speed=gh.type==='genderuwo'?1.42:gh.type==='tuyul'?2.5:gh.type==='pocong'?1.72:gh.type==='anak'?1.18:gh.type==='nenek'?.72:gh.type==='kakek'?.9:gh.type==='kuntilanak'?.92:1.05;
-  if(moving){
-   const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;
-   p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);
-  }else if(!active){
-   p.x=gh.home.x+Math.sin(t*(gh.type==='tuyul'?.55:.28))*1.25;
-   p.z=gh.home.z+Math.cos(t*(gh.type==='tuyul'?.48:.24))*1.25;
+  if(ghostAuthority){
+   gh.userData.mpMoving=moving;
+   if(moving){
+    const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;
+    p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);
+   }else if(!active){
+    p.x=gh.home.x+Math.sin(t*(gh.type==='tuyul'?.55:.28))*1.25;
+    p.z=gh.home.z+Math.cos(t*(gh.type==='tuyul'?.48:.24))*1.25;
+   }
   }
   const gait=moving?1:0;
   // Setiap jenis arwah punya pola langkah dan postur sendiri, bukan satu animasi seragam.
@@ -852,7 +879,7 @@ function updateGhosts(dt){
     part.pivot.rotation.z=isArm?Math.sin(phase+side)*.025:0;
    }
   }
-  if(d<(isProne?1.35:2.1)&&invuln<=0&&gh.stagger<=0){
+  if(ghostAuthority&&d<(isProne?1.35:2.1)&&invuln<=0&&gh.stagger<=0){
    health--;invuln=3;status.textContent='Nalar: '+health+' / 3 · Mereka menemukanmu!';
    soundEffect('damage');say('LARI! Sesuatu menyentuhmu.');player.position.set(0,0,24);
    if(health<=0){health=3;say('Kamu kehilangan kesadaran dan terbangun di jalan masuk.');}
@@ -883,7 +910,7 @@ function movePlayer(dt){
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
 }
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();mpUpdateRemotePlayers(dt);mpBroadcastPlayer(dt);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateToolSwing(dt);updateGhosts(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();mpUpdateRemotePlayers(dt);mpBroadcastPlayer(dt);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateToolSwing(dt);updateGhosts(dt);mpBroadcastGhostState(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
