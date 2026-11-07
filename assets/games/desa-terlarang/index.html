@@ -769,7 +769,8 @@ function mpApplySavedGameState(state){
 }
 function mpBroadcastPlayer(dt){
  if(!mpChannel||!mpGameStarted)return;
- const inputX=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x,inputZ=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y-(walkHold?1:0);\n const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(inputX,inputZ)>.08,sprinting:isSprinting,prone:isProne};
+ const inputX=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x,inputZ=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y-(walkHold?1:0);
+ const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(inputX,inputZ)>.08,sprinting:isSprinting,prone:isProne};
  mpSendClock+=dt;
  if(mpSendClock>=.12){mpSendClock=0;mpChannel.send({type:'broadcast',event:'player_state',payload}).catch(()=>{});}
  // Presence menyimpan pose terbaru agar pemain yang baru bergabung tidak melihat posisi awal yang sudah kedaluwarsa.
