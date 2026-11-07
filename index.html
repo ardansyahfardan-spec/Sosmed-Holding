@@ -6734,7 +6734,7 @@ window.malamAudioOnPhase=function(mode,phase,round,event,winner){
 };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
- a.voice=false;a.voiceRunId=(a.voiceRunId||0)+1;a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;a.voiceQueue=[];window.malamAudioDuckForVoice(false);a.introPlayed=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;a.audio.volume=a.bgmBaseVolume;}a.lastPhase='';window.malamAudioRefreshControls();
+ a.voice=false;a.voiceRunId=(a.voiceRunId||0)+1;a.voiceQueueRunning=false;a.voiceSpeaking=false;a.voicePending=0;a.voiceQueue=[];a.bgm=false;window.malamAudioDuckForVoice(false);a.introPlayed=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;a.audio.volume=a.bgmBaseVolume;}a.lastPhase='';window.malamAudioRefreshControls();
 };
 
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
@@ -7074,18 +7074,32 @@ async function malamLoadStateOnce(roomAtStart){
 };
 window.malamLoadState=async function(){
  if(!malamRoomId)return;
- if(window.__malamLoadInFlight){window.__malamLoadPending=true;return;}
+ if(window.__malamLoadInFlight){
+  window.__malamLoadPending=true;
+  return window.__malamLoadPromise;
+ }
  window.__malamLoadInFlight=true;
- try{
-  do{
-   window.__malamLoadPending=false;
-   const roomAtStart=malamRoomId;
-   await malamLoadStateOnce(roomAtStart);
-  }while(window.__malamLoadPending&&malamRoomId);
- }catch(e){console.warn('Pembaruan state Malam Terlarang gagal:',e);malamMsg('Permainan belum dapat diperbarui. Periksa koneksi lalu coba lagi.');}
+ const runner=(async()=>{
+  try{
+   do{
+    window.__malamLoadPending=false;
+    const roomAtStart=malamRoomId;
+    await malamLoadStateOnce(roomAtStart);
+   }while(window.__malamLoadPending&&malamRoomId);
+  }catch(e){
+   console.warn('Pembaruan state Malam Terlarang gagal:',e);
+   malamMsg('Permainan belum dapat diperbarui. Periksa koneksi lalu coba lagi.');
+  }
+ })();
+ window.__malamLoadPromise=runner;
+ try{return await runner;}
  finally{
+  if(window.__malamLoadPromise===runner)window.__malamLoadPromise=null;
   window.__malamLoadInFlight=false;
-  if(window.__malamLoadPending&&malamRoomId)window.malamLoadState();
+  if(window.__malamLoadPending&&malamRoomId){
+   window.__malamLoadPending=false;
+   return window.malamLoadState();
+  }
  }
 };
 function malamPlayerCard(x,phase){
