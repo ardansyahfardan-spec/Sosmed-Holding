@@ -33,7 +33,9 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 #sprint{left:24px;right:auto;bottom:calc(170px + env(safe-area-inset-bottom));background:linear-gradient(145deg,#7c2d12eb,#1e293bed)}
 #sprint.active{border-color:#fdba74;background:linear-gradient(145deg,#c2410c,#7c2d12);box-shadow:0 0 20px #f9731666}
 .actionbtn.active{border-color:#fca5a5;background:linear-gradient(145deg,#991b1b,#31213a);box-shadow:0 0 18px #dc262666}
-#joystick{position:absolute;left:18px;bottom:calc(25px + env(safe-area-inset-bottom));width:118px;height:118px;border-radius:50%;border:1px solid #ffffff45;background:#07101d88;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;z-index:25;display:none}
+#joystick{position:absolute;left:18px;bottom:calc(25px + env(safe-area-inset-bottom));width:118px;height:118px;border-radius:50%;border:1px solid #ffffff45;background:#07101d88;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;z-index:25;display:none}
+#walk-button{position:absolute;left:150px;bottom:calc(57px + env(safe-area-inset-bottom));width:62px;height:62px;border-radius:50%;border:1px solid #ffffff66;background:linear-gradient(145deg,#1d4ed8eb,#172554ed);color:#fff;font-weight:900;font-size:10px;box-shadow:0 5px 18px #0009;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;z-index:25;display:none}
+#walk-button.active{border-color:#93c5fd;background:linear-gradient(145deg,#2563eb,#1e3a8a);box-shadow:0 0 20px #3b82f666}
 #stick{position:absolute;width:48px;height:48px;left:34px;top:34px;border-radius:50%;background:linear-gradient(135deg,#64748b,#1e293b);border:1px solid #ffffff77;box-shadow:0 3px 12px #0009}
 #start,#ending{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(ellipse at center,#152238e8,#05070bf5 70%);z-index:5}
 .card{width:min(460px,100%);border:1px solid #9f343d88;border-radius:20px;padding:22px;background:linear-gradient(145deg,#101827f5,#160d16f5);box-shadow:0 20px 70px #000b}
@@ -62,6 +64,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <div id="inventory"><button class="toolslot selected" data-tool="flashlight">🔦<small>SENTER</small></button><button class="toolslot" data-tool="hoe">⛏️<small>CANGKUL</small></button><button class="toolslot" data-tool="sickle">🌙<small>ARIT</small></button><button class="toolslot" data-tool="plank">🪵<small>KAYU</small></button></div>
  <button id="flashlight-toggle" class="active" aria-label="Nyalakan atau matikan senter">🔦</button>
  <div id="joystick"><div id="stick"></div></div>
+ <button id="walk-button" type="button" aria-label="Berjalan maju">JALAN</button>
  <button id="jump" class="actionbtn" aria-label="Lompat">LOMPAT</button>
  <button id="prone" class="actionbtn" aria-label="Tiarap">TIARAP</button>
  <button id="use-tool" class="actionbtn" aria-label="Ayunkan senjata">AYUNKAN</button>
@@ -487,7 +490,7 @@ function ghost(type,x,z){
 ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,-24);ghost('kuntilanak',-22,-23);ghost('genderuwo',24,-31);ghost('tuyul',-28,2);
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
 const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
-let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
+let running=false,keys={},move={x:0,y:0},walkHold=false,health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
 let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpPresenceClock=0,mpGhostClock=0,mpRefreshBusy=false;
@@ -678,6 +681,7 @@ async function mpStartGame(){
  mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');
  await enterImmersive();document.getElementById('start').style.display='none';
  document.getElementById('joystick').style.display='block';
+ walkButton.style.display='block';
  jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();
  const roster=mpRoomData?.players||[],myIndex=Math.max(0,roster.findIndex(p=>p.user_id===mpUser?.id)),spawnOffsets=[[0,0],[-2.2,0],[2.2,0],[-4.2,1.8],[4.2,1.8]],spawn=spawnOffsets[myIndex]||[0,0];
  player.position.set(spawn[0],0,24+spawn[1]);
@@ -802,14 +806,18 @@ function mpUpdateRemotePlayers(dt){
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
-function reset(){clearSprintHold();missionCompleted=false;storySeen.clear();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;delete g.userData.mpTarget;g.userData.mpMoving=false;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
+function reset(){clearSprintHold();setWalkHold(false);missionCompleted=false;storySeen.clear();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;delete g.userData.mpTarget;g.userData.mpMoving=false;});updateCount();objective.textContent='Temukan tiga bukti tentang Malam Penutupan.';document.getElementById('ending').style.display='none';running=true;}
 function finishMission(announce=true,completedBy=''){if(missionCompleted)return;missionCompleted=true;running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';if(completedBy){say('Misi selesai! '+completedBy+' berhasil membuka gerbang.');}else if(announce){say('Misi selesai! Seluruh tim berhasil keluar dari desa.');}if(mpRoomId)mpPersistGameState();if(announce&&mpChannel)mpChannel.send({type:'broadcast',event:'mission_complete',payload:{nickname:mpNickname}}).catch(error=>console.warn('Pemberitahuan misi selesai gagal dikirim:',error));}
 function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex,true);if(mpRoomId)mpPersistGameState();if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='v'&&!e.repeat)setCameraMode(cameraMode==='first'?'third':'first');if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-const joy=document.getElementById('joystick'),stick=document.getElementById('stick');let joyId=null;
+const joy=document.getElementById('joystick'),stick=document.getElementById('stick'),walkButton=document.getElementById('walk-button');let joyId=null,walkPointer=null;
+function setWalkHold(value){walkHold=!!value;walkButton.classList.toggle('active',walkHold);}
+walkButton.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();e.stopPropagation();walkPointer=e.pointerId;try{walkButton.setPointerCapture(e.pointerId);}catch(_){}setWalkHold(true);});
+function endWalkHold(e){if(walkPointer===e.pointerId){walkPointer=null;setWalkHold(false);}}
+walkButton.addEventListener('pointerup',endWalkHold);walkButton.addEventListener('pointercancel',endWalkHold);walkButton.addEventListener('lostpointercapture',endWalkHold);
 joy.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();joyId=e.pointerId;try{joy.setPointerCapture(joyId);}catch(_){}joyMove(e);});
 joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e);});
 function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy),scale=Math.min(1,48/(len||1));move.x=dx*scale/48;move.y=dy*scale/48;stick.style.transform='translate('+move.x*34+'px,'+move.y*34+'px)';updateSprintHold();}
@@ -926,7 +934,7 @@ function endCameraDrag(e){if(e.pointerId===cameraPointer)cameraPointer=null;}
 cameraSurface.addEventListener('pointerup',endCameraDrag);cameraSurface.addEventListener('pointercancel',endCameraDrag);
 function movePlayer(dt){
  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x;
- let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y;
+ let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y-(walkHold?1:0);
  const len=Math.hypot(x,z);if(len>.08){x/=Math.max(1,len);z/=Math.max(1,len);const forwardX=-Math.sin(cameraYaw),forwardZ=-Math.cos(cameraYaw),rightX=Math.cos(cameraYaw),rightZ=-Math.sin(cameraYaw);const worldX=rightX*x-forwardX*z,worldZ=rightZ*x-forwardZ*z;const speed=isProne?2.25:isSprinting?8.2:5.1;player.position.x+=worldX*speed*dt;player.position.z+=worldZ*speed*dt;player.rotation.y=Math.atan2(worldX,worldZ);const step=Math.sin(elapsed*(isProne?5:10));if(!isProne){legs[0].rotation.x=step*.58;legs[1].rotation.x=-step*.58;arms[0].rotation.x=-step*.32;arms[1].rotation.x=step*.32;}else{legs[0].rotation.x=.12+step*.08;legs[1].rotation.x=.12-step*.08;}}
  else if(!isProne){legs[0].rotation.x=THREE.MathUtils.damp(legs[0].rotation.x,0,9,dt);legs[1].rotation.x=THREE.MathUtils.damp(legs[1].rotation.x,0,9,dt);arms[0].rotation.x=THREE.MathUtils.damp(arms[0].rotation.x,0,9,dt);arms[1].rotation.x=THREE.MathUtils.damp(arms[1].rotation.x,0,9,dt);}
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
@@ -936,7 +944,7 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
 document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
-document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';document.getElementById('joystick').style.display='block';jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();say('Wanasetra, 17 Oktober 1987. Tim dokumentasi sebelumnya menghilang. Temukan tiga bukti dan jangan percaya suara yang memanggil dari sumur. Dekati cahaya kuning untuk memeriksa petunjuk.');});
+document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';document.getElementById('joystick').style.display='block';walkButton.style.display='block';jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();say('Wanasetra, 17 Oktober 1987. Tim dokumentasi sebelumnya menghilang. Temukan tiga bukti dan jangan percaya suara yang memanggil dari sumur. Dekati cahaya kuning untuk memeriksa petunjuk.');});
 document.getElementById('multiplayer-open').addEventListener('click',mpOpen);
 document.getElementById('mp-close').addEventListener('click',mpClosePanel);
 document.getElementById('mp-create').addEventListener('click',mpCreateRoom);
