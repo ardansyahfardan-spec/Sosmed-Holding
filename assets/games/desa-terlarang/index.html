@@ -141,6 +141,74 @@ button:active{transform:scale(.97);background:#273650}
   for(let i=0;i<6;i++){const z=-8-i*14;streetLamp(i%2===0?-5.1:5.1,z);}
   for(let i=0;i<15;i++){const z=-i*7-9;tree(-9-(i%3)*1.7,z,.9+(i%2)*.2);tree(9+(i%4)*1.2,z-3,.85+(i%3)*.16);}
   hut(-7,-17,1,0);hut(7,-31,.95,1);hut(-8,-48,1.15,0);hut(9,-61,1.05,1);
+
+  // Detail lingkungan desa terbengkalai: teras lapuk, pagar rusak, tong,
+  // peti, sumur tua, gerobak dan puing agar dunia terasa lebih hidup.
+  const weatheredWood=new THREE.MeshStandardMaterial({color:0x49372a,roughness:1});
+  const oldIron=new THREE.MeshStandardMaterial({color:0x30363a,metalness:.62,roughness:.72});
+  const moss=new THREE.MeshStandardMaterial({color:0x303c2b,roughness:1});
+  function cylinderProp(rt,rb,h,material,x,y,z,segments=12){
+   const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),material);
+   o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o;
+  }
+  function barrel(x,z){
+   cylinderProp(.43,.48,.95,weatheredWood,x,.49,z,14);
+   for(const y of [.2,.72]){const hoop=new THREE.Mesh(new THREE.TorusGeometry(.445,.035,6,18),oldIron);hoop.rotation.x=Math.PI/2;hoop.position.set(x,y,z);hoop.castShadow=true;scene.add(hoop);}
+   const lid=box(.68,.045,.68,weatheredWood,x,.98,z);lid.rotation.y=.18;
+  }
+  function crate(x,z,s=1){
+   box(.82*s,.72*s,.78*s,weatheredWood,x,.38*s,z);
+   for(let i=0;i<4;i++){box(.12*s,.76*s,.035*s,oldIron,x+(-.3+i*.2)*s,.38*s,z-.405*s);}
+   box(.86*s,.09*s,.84*s,M.wood,x,.78*s,z);
+   box(.035*s,.68*s,.035*s,oldIron,x-.43*s,.38*s,z-.42*s);
+  }
+  function fenceRun(x,z,count,spacing=1.05){
+   for(let i=0;i<count;i++){
+    const px=x+i*spacing;
+    const post=box(.17,1.12,.18,weatheredWood,px,.56,z);
+    post.rotation.z=(i%3===0?.08:-.035);
+    box(spacing+.05,.13,.13,weatheredWood,px+spacing/2,.83,z);
+    if(i%2===0)box(spacing+.02,.11,.13,weatheredWood,px+spacing/2,.43,z);
+   }
+  }
+  function porch(x,z,dir=1){
+   box(2.1,.16,.72,weatheredWood,x,.24,z);
+   box(2.25,.12,.18,M.wood,x,.12,z+dir*.28);
+   for(const px of [-.92,.92]){box(.13,1.45,.13,M.wood,x+px,.95,z+dir*.25);box(.2,.12,.2,oldIron,x+px,1.68,z+dir*.25);}
+   for(let i=0;i<5;i++){const plank=box(.37,.045,.68,weatheredWood,x-.74+i*.37,.34,z);plank.rotation.y=(i%2?.025:-.02);}
+  }
+  function well(x,z){
+   for(let i=0;i<10;i++){const a=i*Math.PI/5;const stoneBlock=box(.48,.52,.32,M.stone,x+Math.cos(a)*.57,.27,z+Math.sin(a)*.57);stoneBlock.rotation.y=a;}
+   cylinderProp(.42,.42,.08,oldIron,x,.57,z,16);
+   box(.12,1.9,.13,weatheredWood,x-.78,1.02,z);
+   box(.12,1.9,.13,weatheredWood,x+.78,1.02,z);
+   const beam=box(1.85,.14,.16,weatheredWood,x,1.98,z);beam.rotation.z=.02;
+   const roofA=box(1.05,.12,.8,M.roof,x-.48,2.35,z);roofA.rotation.z=-.55;
+   const roofB=box(1.05,.12,.8,M.roof,x+.48,2.35,z);roofB.rotation.z=.55;
+   cylinderProp(.035,.035,1.15,oldIron,x,1.15,z,8);
+  }
+  function handCart(x,z){
+   box(1.25,.14,1.8,weatheredWood,x,.72,z);
+   for(let i=0;i<5;i++)box(.2,.08,1.72,weatheredWood,x-.5+i*.25,.83,z);
+   for(const side of [-1,1]){
+    const wheel=new THREE.Mesh(new THREE.TorusGeometry(.42,.075,8,20),oldIron);wheel.position.set(x+side*.76,.45,z+.2);wheel.rotation.y=Math.PI/2;wheel.castShadow=true;scene.add(wheel);
+    const axle=box(.12,.12,1.65,oldIron,x,.45,z+.2);axle.rotation.z=0;
+    const handle=box(.09,.09,1.35,weatheredWood,x+side*.3,.53,z+1.45);handle.rotation.x=-.12;
+   }
+  }
+  // Pagar tua yang putus-putus, tidak menutup jalur utama.
+  fenceRun(-10.2,-19,5);fenceRun(6.2,-34,4);fenceRun(-11,-51,5);fenceRun(8.2,-64,5);
+  porch(-7,-14.15,1);porch(7,-28.8,1);porch(-8,-45.35,1);porch(9,-58.55,1);
+  barrel(-10.1,-15.2);barrel(-4.8,-18.2);barrel(10.1,-29.1);barrel(4.8,-33.1);
+  crate(-4.9,-46.8,.9);crate(5.1,-60.2,.95);crate(10.7,-63.5,.8);
+  well(11.1,-43.2);handCart(-10.7,-55.5);
+  // Papan lapuk, batu berlumut, dan ranting berserakan di tepi jalan.
+  for(let i=0;i<34;i++){
+   const side=i%2?-1:1,x=side*(5.1+Math.random()*4.5),z=-3-Math.random()*78;
+   const plank=box(.12+Math.random()*.16,.055,.55+Math.random()*.85,weatheredWood,x,.08,z);
+   plank.rotation.y=(Math.random()-.5)*1.4;plank.rotation.z=(Math.random()-.5)*.12;
+   if(i%3===0){const mossPatch=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),moss);mossPatch.scale.set(1,.12,.7);mossPatch.position.set(x,.08,z);scene.add(mossPatch);}
+  }
   for(let i=0;i<22;i++){const z=-i*4.3-4;for(const side of [-1,1]){const x=side*(4.45+(i%3)*.12);box(.15,.9,.15,M.wood,x,.45,z);if(i%2===0)box(.13,.12,2.2,M.timber,side*4.45,.67,z-.9);}}
   for(let i=0;i<90;i++){const side=Math.random()<.5?-1:1,x=side*(4.2+Math.random()*8),z=4-Math.random()*85;const t=new THREE.Mesh(new THREE.ConeGeometry(.12+Math.random()*.13,.35+Math.random()*.35,5),new THREE.MeshStandardMaterial({color:[0x343c28,0x41422c,0x252f25][i%3],roughness:1}));t.position.set(x,.12,z);t.rotation.z=(Math.random()-.5)*.5;t.castShadow=true;scene.add(t);}
   for(let i=0;i<44;i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(.12+Math.random()*.22,0),M.stone);stone.position.set((Math.random()-.5)*12,.04,2-Math.random()*85);stone.scale.y=.45;stone.rotation.set(Math.random(),Math.random(),Math.random());scene.add(stone);}
