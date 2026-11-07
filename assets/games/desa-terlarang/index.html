@@ -590,7 +590,8 @@ function mpApplyRemotePose(remote){
  for(const name of ['avatar-leg-left','avatar-leg-right']){const leg=model.getObjectByName(name);if(leg)leg.position.y=prone?.42:.88;}
 }
 function mpApplyRemoteState(payload){
- if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z)||!Number.isFinite(Number(payload.yaw??0))||payload.x< -35||payload.x>35||payload.z< -43||payload.z>34)return;
+ // Presence saat lobby hanya dipakai untuk status room; jangan render avatar di titik awal yang sama.
+ if(!mpGameStarted||!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z)||!Number.isFinite(Number(payload.yaw??0))||payload.x< -35||payload.x>35||payload.z< -43||payload.z>34)return;
  let remote=mpRemotePlayers.get(payload.user_id);
  if(!remote){
   const model=player.clone(true);model.visible=true;model.name='remote-player-'+payload.user_id;
@@ -699,6 +700,12 @@ async function mpStartGame(){
  if(myIndex>=0)spawn=spawnOffsets[myIndex]||spawnOffsets[0];
  else{let hash=0;for(const ch of String(mpUser?.id||mpNickname))hash=(hash*31+ch.charCodeAt(0))>>>0;const angle=(hash%360)*Math.PI/180;spawn=[Math.cos(angle)*5,Math.sin(angle)*5];}
  player.position.set(spawn[0],0,24+spawn[1]);
+ // Kirim spawn final segera agar Crew lain tidak menampilkan pose lobby yang bertumpuk.
+ if(mpChannel&&mpUser){
+  const initialPose={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:false,sprinting:false,prone:false};
+  mpChannel.track(initialPose).catch(error=>console.warn('Sinkronisasi spawn awal gagal:',error));
+  mpChannel.send({type:'broadcast',event:'player_state',payload:initialPose}).catch(error=>console.warn('Broadcast spawn awal gagal:',error));
+ }
  say('Kita memasuki Wanasetra, desa yang dihapus dari peta. Cari tahu apa yang terjadi pada malam 17 Oktober 1987. Jangan berpencar terlalu jauh.');
 }
 async function mpLeaveRoom(){
