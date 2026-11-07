@@ -276,7 +276,7 @@ let cameraYaw=0,cameraPitch=0.16,cameraPointer=null,lastCameraX=0,lastCameraY=0;
 const jumpButton=document.getElementById('jump'),proneButton=document.getElementById('prone');
 function setSprint(value){isSprinting=!!value&&!isProne;}
 function clearSprintHold(){if(sprintHoldTimer!==null){clearTimeout(sprintHoldTimer);sprintHoldTimer=null;}setSprint(false);}
-function updateSprintHold(){const pushedFullyUp=move.y<=-.92&&Math.abs(move.x)<=.38;if(!pushedFullyUp||isProne){clearSprintHold();return;}if(!isSprinting&&sprintHoldTimer===null){sprintHoldTimer=setTimeout(()=>{sprintHoldTimer=null;if(move.y<=-.92&&Math.abs(move.x)<=.38&&!isProne)setSprint(true);},2000);}}
+function updateSprintHold(){const pushedFullyUp=move.y<=-.92&&Math.abs(move.x)<=.38;if(!pushedFullyUp||isProne||walkHold){clearSprintHold();return;}if(!isSprinting&&sprintHoldTimer===null){sprintHoldTimer=setTimeout(()=>{sprintHoldTimer=null;if(move.y<=-.92&&Math.abs(move.x)<=.38&&!isProne)setSprint(true);},2000);}}
 function setProne(value){if(value&&!grounded)return;isProne=!!value;if(isProne)clearSprintHold();avatarRig.rotation.set(isProne?Math.PI/2:0,0,0);avatarRig.position.y=isProne?.24:0;proneButton.textContent=isProne?'BANGUN':'TIARAP';proneButton.classList.toggle('active',isProne);}
 function doJump(){if(!running||!grounded)return;if(isProne)setProne(false);jumpVelocity=6.4;grounded=false;}
 jumpButton.addEventListener('pointerdown',e=>{e.preventDefault();try{jumpButton.setPointerCapture(e.pointerId);}catch(_){}doJump();});
@@ -814,7 +814,7 @@ interact.addEventListener('click',collect);
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='v'&&!e.repeat)setCameraMode(cameraMode==='first'?'third':'first');if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const joy=document.getElementById('joystick'),stick=document.getElementById('stick'),walkButton=document.getElementById('walk-button');let joyId=null,walkPointer=null;
-function setWalkHold(value){walkHold=!!value;walkButton.classList.toggle('active',walkHold);}
+function setWalkHold(value){walkHold=!!value;if(walkHold)clearSprintHold();walkButton.classList.toggle('active',walkHold);}
 walkButton.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();e.stopPropagation();walkPointer=e.pointerId;try{walkButton.setPointerCapture(e.pointerId);}catch(_){}setWalkHold(true);});
 function endWalkHold(e){if(walkPointer===e.pointerId){walkPointer=null;setWalkHold(false);}}
 walkButton.addEventListener('pointerup',endWalkHold);walkButton.addEventListener('pointercancel',endWalkHold);walkButton.addEventListener('lostpointercapture',endWalkHold);
