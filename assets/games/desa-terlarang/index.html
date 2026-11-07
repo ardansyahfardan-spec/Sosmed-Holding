@@ -110,7 +110,7 @@ function proceduralTexture(base,grain,lines=false){
  const t=new THREE.CanvasTexture(canvas);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=2;return t;
 }
 const dirtTex=proceduralTexture('#30352c'),woodTex=proceduralTexture('#44352b',true,true),roofTex=proceduralTexture('#20242a',true,true),stoneTex=proceduralTexture('#555650');
-const groundMat=mat(0xffffff,1,0,{map:dirtTex}),wood=mat(0xffffff,1,0,{map:woodTex}),wood2=mat(0x514037),roof=mat(0xffffff,1,0,{map:roofTex}),cloth=mat(0xd8d5c9),dark=mat(0x17151a),skin=mat(0xb9a18b),hair=mat(0x24212a),gold=mat(0x8b642c),glow=mat(0xe6b65b,.4,0x8c4b12);
+const groundMat=mat(0xffffff,1,0,{map:dirtTex}),wood=mat(0xffffff,1,0,{map:woodTex}),wood2=mat(0x514037),roof=mat(0xffffff,1,0,{map:roofTex}),cloth=mat(0xd8d5c9),dark=mat(0x17151a),skin=mat(0xb9a18b),hairBase=mat(0x24212a),gold=mat(0x8b642c),glow=mat(0xe6b65b,.4,0x8c4b12);
 function box(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);parent.add(o);return o}
 function cylinder(parent,x,y,z,rt,rb,h,m,seg=7){const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),m);o.position.set(x,y,z);parent.add(o);return o}
 const floor=box(scene,0,-.45,0,100,.8,100,groundMat);
