@@ -55,7 +55,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 <div id="rotate">PUTAR PONSEL KE POSISI LANDSCAPE<br><span style="font-size:13px;font-weight:500;color:#cbd5e1">GHOUSTORY: DESA TERLARANG dimainkan dalam layar mendatar.</span></div>
 <div id="hud">
  <button id="exitgame" aria-label="Kembali ke Arena" title="Kembali ke Arena">‹</button>
- <button id="camera-toggle" type="button" aria-label="Ganti sudut kamera">KAMERA: FPS</button>
+ <button id="camera-toggle" type="button" aria-label="Ganti sudut kamera">KAMERA: TPS</button>
  <div class="top">
   <div class="panel"><div class="kicker">GHOUSTORY · CHAPTER 01</div><h1>DESA TERLARANG</h1><div id="objective">Cari petunjuk di sekitar desa.</div><div id="status">Malam Penutupan · 00.13</div></div>
   <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio" aria-label="Kontrol audio" aria-expanded="false" title="Kontrol audio">🔊</button><div id="audio-menu" hidden><button id="audio-bgm" type="button">♫ BGM: MATI</button><button id="audio-voice" type="button">🎙 PEMANDU: MATI</button></div></div>
@@ -218,7 +218,7 @@ lamp(-5,-5);lamp(6,-21);lamp(-15,18);lamp(18,6);
 const well=new THREE.Group();well.position.set(8,0,2);scene.add(well);cylinder(well,0,.45,0,1.35,1.5,.9,mat(0x45484a),9);cylinder(well,0,.95,0,1.05,1.05,.12,mat(0x080b10),9);box(well,0,2,0,.18,2.3,.18,wood2);box(well,0,3.05,0,2.4,.18,.18,wood2);
 const pendopo=new THREE.Group();pendopo.position.set(0,0,-34);scene.add(pendopo);box(pendopo,0,.25,0,13,.5,10,wood2);for(let x of [-5.5,5.5])for(let z of [-4,4])box(pendopo,x,2.1,z,.35,4.2,.35,wood2);box(pendopo,0,4.35,0,14,.3,11,roof);box(pendopo,0,4.9,0,9,.9,7,roof);
 const player=new THREE.Group();scene.add(player);player.position.set(0,0,24);
-let cameraMode='first';
+let cameraMode='third'; // Kamera TPS sebagai default agar avatar pemain selalu terlihat.
 const cameraToggle=document.getElementById('camera-toggle');
 function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';thirdPersonToolRoot.visible=cameraMode==='third'&&selectedTool!=='flashlight';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
 cameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
