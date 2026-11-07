@@ -461,7 +461,8 @@ async function mpInit(){
   const {data:profile,error:profileError}=await mpClient.from('ghoustory_profiles').select('nickname').eq('user_id',mpUser.id).maybeSingle();
   if(profileError)throw profileError;
   mpNickname=profile?.nickname||mpUser.user_metadata?.full_name||mpUser.email?.split('@')[0]||'Pemain';
-  document.getElementById('mp-nickname').value=mpNickname.slice(0,24);
+  const nicknameInput=document.getElementById('mp-nickname');
+  if(!nicknameInput.value.trim())nicknameInput.value=mpNickname.slice(0,24);else mpNickname=nicknameInput.value.trim().slice(0,24);
   document.getElementById('mp-auth-note').textContent='Login sebagai '+mpNickname+'. Buat room baru atau masukkan kode room teman.';
   document.getElementById('mp-create').disabled=false;document.getElementById('mp-join').disabled=false;
   return true;
@@ -497,14 +498,15 @@ function mpApplyRemoteState(payload){
   ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(payload.nickname||'Pemain').slice(0,18),128,40);
   const texture=new THREE.CanvasTexture(canvas);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
   sprite.position.set(0,3.25,0);sprite.scale.set(2.2,.55,1);model.add(sprite);scene.add(model);
-  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0};mpRemotePlayers.set(payload.user_id,remote);
+  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0,phase:0,walking:!!payload.walking,sprinting:!!payload.sprinting};mpRemotePlayers.set(payload.user_id,remote);
  }
- remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;
+ remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;remote.walking=!!payload.walking;remote.sprinting=!!payload.sprinting;
 }
 function mpPresenceSync(){
  if(!mpChannel)return;
- const state=mpChannel.presenceState();
- Object.values(state).flat().forEach(p=>mpApplyRemoteState(p));
+ const state=mpChannel.presenceState(),active=new Set();
+ Object.values(state).flat().forEach(p=>{if(p.user_id&&p.user_id!==mpUser?.id)active.add(p.user_id);mpApplyRemoteState(p);});
+ for(const [id,remote] of mpRemotePlayers){if(!active.has(id)){scene.remove(remote.model);remote.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});mpRemotePlayers.delete(id);}}
 }
 async function mpConnectRoom(roomId){
  mpRoomId=roomId;mpGameStarted=false;
@@ -585,6 +587,8 @@ function mpBroadcastPlayer(dt){
 function mpUpdateRemotePlayers(dt){
  for(const remote of mpRemotePlayers.values()){
   remote.model.position.lerp(remote.target,Math.min(1,dt*12));remote.model.rotation.y=remote.yaw;
+  remote.phase+=dt*(remote.sprinting?12:8);
+  remote.model.children.filter(child=>typeof child.userData?.phase==='number').forEach((leg,i)=>{const target=remote.walking?Math.sin(remote.phase+leg.userData.phase)*.58:0;leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,target,10,dt);});
  }
 }
 
