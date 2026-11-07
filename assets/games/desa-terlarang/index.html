@@ -493,7 +493,7 @@ const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},walkHold=false,health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpPresenceClock=0,mpGhostClock=0,mpRefreshBusy=false;
+let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpGhostClock=0,mpRefreshBusy=false;
 const mpRemotePlayers=new Map(),mpAttackCooldowns=new Map();let mpRoomBusy=false;
 const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
 function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
@@ -650,9 +650,7 @@ async function mpCreateRoom(){
   const {data,error}=await mpClient.rpc('desa_create_room',{p_nickname:nickname});
   if(error)throw error;
   if(!data?.room_id||!data?.code)throw new Error('Server belum mengembalikan kode room. Muat ulang panel dan coba lagi.');
-  // Host otomatis SIAP supaya room bisa langsung dimulai walau bermain sendirian.
-  const readyResult=await mpClient.rpc('desa_set_ready',{p_room:data.room_id,p_ready:true});
-  if(readyResult.error)console.warn('Status siap host belum tersimpan:',readyResult.error.message);
+  // Status SIAP host dibuat atomik oleh RPC desa_create_room di Supabase.
   await mpConnectRoom(data.room_id);
   mpMessage('Room berhasil dibuat. Kode '+data.code+' siap dibagikan.');
  }catch(error){console.error('Gagal membuat room:',error);mpMessage(error?.message||'Room gagal dibuat. Periksa koneksi dan sesi login.',true);}
@@ -677,16 +675,25 @@ async function mpJoinRoom(){
 }
 async function mpSetReady(){
  if(!mpRoomId)return;
- const me=(mpRoomData?.players||[]).find(p=>p.user_id===mpUser?.id);
- const {error}=await mpClient.rpc('desa_set_ready',{p_room:mpRoomId,p_ready:!me?.is_ready});
- if(error){mpMessage(error.message,true);return;}await mpRefreshRoom();
+ const button=document.getElementById('mp-ready');button.disabled=true;
+ try{
+  const me=(mpRoomData?.players||[]).find(p=>p.user_id===mpUser?.id);
+  const {error}=await mpClient.rpc('desa_set_ready',{p_room:mpRoomId,p_ready:!me?.is_ready});
+  if(error)throw error;
+  await mpRefreshRoom();
+ }catch(error){console.error('Gagal mengubah status siap:',error);mpMessage(error?.message||'Status siap gagal diperbarui.',true);}
+ finally{button.disabled=false;}
 }
 async function mpStartAsHost(){
- if(!mpRoomId)return;
- const {error}=await mpClient.rpc('desa_start_room',{p_room:mpRoomId});
- if(error){mpMessage(error.message,true);return;}
- await mpChannel?.send({type:'broadcast',event:'room_started',payload:{started:true}});
- mpStartGame();
+ if(!mpRoomId||mpRoomBusy)return;
+ const button=document.getElementById('mp-start');button.disabled=true;
+ try{
+  const {error}=await mpClient.rpc('desa_start_room',{p_room:mpRoomId});
+  if(error)throw error;
+  if(mpChannel)mpChannel.send({type:'broadcast',event:'room_started',payload:{started:true}}).catch(error=>console.warn('Notifikasi mulai room tertunda:',error));
+  await mpStartGame();
+ }catch(error){console.error('Gagal memulai misi:',error);mpMessage(error?.message||'Misi gagal dimulai. Coba lagi.',true);await mpRefreshRoom();}
+ finally{if(!mpGameStarted)button.disabled=false;}
 }
 async function mpStartGame(){
  if(mpGameStarted)return;mpGameStarted=true;
@@ -706,7 +713,6 @@ async function mpStartGame(){
  // Kirim spawn final segera agar Crew lain tidak menampilkan pose lobby yang bertumpuk.
  if(mpChannel&&mpUser){
   const initialPose={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:false,sprinting:false,prone:false};
-  mpChannel.track(initialPose).catch(error=>console.warn('Sinkronisasi spawn awal gagal:',error));
   mpChannel.send({type:'broadcast',event:'player_state',payload:initialPose}).catch(error=>console.warn('Broadcast spawn awal gagal:',error));
  }
  say('Kita memasuki Wanasetra, desa yang dihapus dari peta. Cari tahu apa yang terjadi pada malam 17 Oktober 1987. Jangan berpencar terlalu jauh.');
@@ -799,10 +805,7 @@ function mpBroadcastPlayer(dt){
  const inputX=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x,inputZ=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y-(walkHold?1:0);
  const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(inputX,inputZ)>.08,sprinting:isSprinting,prone:isProne};
  mpSendClock+=dt;
- if(mpSendClock>=.12){mpSendClock=0;mpChannel.send({type:'broadcast',event:'player_state',payload}).catch(()=>{});}
- // Presence menyimpan pose terbaru agar pemain yang baru bergabung tidak melihat posisi awal yang sudah kedaluwarsa.
- mpPresenceClock+=dt;
- if(mpPresenceClock>=1.2){mpPresenceClock=0;mpChannel.track(payload).catch(error=>console.warn('Pembaruan presence pemain gagal:',error));}
+ if(mpSendClock>=.18){mpSendClock=0;mpChannel.send({type:'broadcast',event:'player_state',payload}).catch(error=>console.warn('Sinkronisasi posisi pemain tertunda:',error));}
 }
 function mpApplyGhostState(payload){
  if(!mpRoomId||mpRoomData?.room?.host_id===mpUser?.id||!Array.isArray(payload?.ghosts))return;
@@ -820,7 +823,7 @@ function mpApplyGhostState(payload){
 }
 function mpBroadcastGhostState(dt){
  if(!mpChannel||!mpGameStarted||mpRoomData?.room?.host_id!==mpUser?.id)return;
- mpGhostClock+=dt;if(mpGhostClock<.12)return;mpGhostClock=0;
+ mpGhostClock+=dt;if(mpGhostClock<.35)return;mpGhostClock=0;
  const payload={ghosts:ghosts.map(gh=>({x:gh.g.position.x,z:gh.g.position.z,yaw:gh.g.rotation.y,hp:gh.hp,stagger:gh.stagger,defeatedTimer:gh.defeatedTimer,visible:gh.g.visible,phase:gh.phase,moving:!!gh.userData.mpMoving}))};
  mpChannel.send({type:'broadcast',event:'ghost_state',payload}).catch(error=>console.warn('Sinkronisasi posisi hantu gagal:',error));
 }
@@ -981,7 +984,7 @@ const cameraSurface=document.getElementById('game');
 cameraSurface.addEventListener('pointerdown',e=>{if(!running||e.clientX<innerWidth*.34||e.target.closest('button')||e.target.closest('#joystick'))return;cameraPointer=e.pointerId;lastCameraX=e.clientX;lastCameraY=e.clientY;try{cameraSurface.setPointerCapture(cameraPointer);}catch(_){}});
 cameraSurface.addEventListener('pointermove',e=>{if(e.pointerId!==cameraPointer)return;const dx=e.clientX-lastCameraX,dy=e.clientY-lastCameraY;lastCameraX=e.clientX;lastCameraY=e.clientY;cameraYaw-=dx*.006;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.004,-1.15,1.15);});
 function endCameraDrag(e){if(e.pointerId===cameraPointer)cameraPointer=null;}
-cameraSurface.addEventListener('pointerup',endCameraDrag);cameraSurface.addEventListener('pointercancel',endCameraDrag);
+cameraSurface.addEventListener('pointerup',endCameraDrag);cameraSurface.addEventListener('pointercancel',endCameraDrag);cameraSurface.addEventListener('lostpointercapture',endCameraDrag);
 function movePlayer(dt){
  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+move.x;
  let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+move.y-(walkHold?1:0);
