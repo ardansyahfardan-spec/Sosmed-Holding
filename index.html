@@ -6570,20 +6570,39 @@ window.malamAudioToggleBgm=async function(){
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');else{window.speechSynthesis.cancel();window.malamAudioSetVolume(.34);}
+ a.voice=!a.voice;if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');else{window.speechSynthesis.cancel();a.voicePending=0;window.malamAudioSetVolume(.34);}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
  const a=window.__malamAudioState;if(!a.voice||!text||!('speechSynthesis'in window))return;
  try{
-  window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='id-ID';u.rate=.86;u.pitch=.78;u.volume=1;
-  const voices=window.speechSynthesis.getVoices()||[],idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
-  if(idVoice)u.voice=idVoice;
-  u.onstart=()=>window.malamAudioSetVolume(.16);
-  u.onend=()=>window.malamAudioSetVolume(.34);
-  u.onerror=()=>window.malamAudioSetVolume(.34);
-  window.speechSynthesis.speak(u);
- }catch(e){window.malamAudioSetVolume(.34);console.warn('VO gagal diputar:',e);}
+  // Jangan membatalkan kalimat yang sedang berjalan. Safari/iOS lebih stabil
+  // saat narasi panjang dipecah menjadi beberapa kalimat pendek berurutan.
+  const sentences=String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[String(text)];
+  const chunks=[];
+  sentences.forEach(sentence=>{
+   let rest=sentence.trim();
+   while(rest.length>112){
+    let cut=Math.max(rest.lastIndexOf(', ',112),rest.lastIndexOf(' ',112));
+    if(cut<45)cut=112;
+    chunks.push(rest.slice(0,cut).trim());
+    rest=rest.slice(cut).trim();
+   }
+   if(rest)chunks.push(rest);
+  });
+  const voices=window.speechSynthesis.getVoices()||[];
+  const idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
+  a.voicePending=(a.voicePending||0)+chunks.length;
+  const finish=()=>{a.voicePending=Math.max(0,(a.voicePending||0)-1);if(a.voicePending===0)window.malamAudioSetVolume(.34);};
+  chunks.forEach(chunk=>{
+   const u=new SpeechSynthesisUtterance(chunk);u.lang='id-ID';u.rate=.86;u.pitch=.78;u.volume=1;
+   if(idVoice)u.voice=idVoice;
+   u.onstart=()=>window.malamAudioSetVolume(.16);
+   u.onend=finish;
+   u.onerror=finish;
+   window.speechSynthesis.speak(u);
+  });
+ }catch(e){a.voicePending=0;window.malamAudioSetVolume(.34);console.warn('VO gagal diputar:',e);}
 };
 window.malamPlayResultAudio=function(outcome,winner){
  const won=outcome==='win';
@@ -6628,7 +6647,7 @@ window.malamAudioOnPhase=function(mode,phase,round,event,winner){
 };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
- a.voice=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
+ a.voice=false;a.voicePending=0;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
 };
 
 const malamRoles={siluman:['Siluman','fa-eye','Kubu Siluman','Pilih korban setiap malam. Siluman menang saat jumlahnya menyamai atau melebihi warga.'],paranormal:['Paranormal','fa-wand-sparkles','Kubu Warga','Periksa satu pemain setiap malam. Hasilnya hanya terlihat olehmu.'],penjaga:['Penjaga','fa-shield-halved','Kubu Warga','Lindungi satu pemain dari serangan malam.'],warga:['Warga','fa-users','Kubu Warga','Gunakan diskusi dan voting untuk menemukan Siluman.']};
