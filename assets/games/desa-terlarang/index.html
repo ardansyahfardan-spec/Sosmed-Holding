@@ -24,6 +24,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 #joystick{position:fixed;left:22px;bottom:22px;width:124px;height:124px;border:1px solid #d6e2f044;border-radius:50%;background:#101a2b88;backdrop-filter:blur(5px);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;user-select:none}
 #stick{width:54px;height:54px;border-radius:50%;background:#b9c9df99;border:2px solid #e5edf8aa;box-shadow:0 4px 18px #0008;transform:translate(0,0);pointer-events:none}
 #move-label{position:fixed;left:0;bottom:155px;width:168px;text-align:center;color:#d1d8e5;font-size:9px;letter-spacing:.12em;pointer-events:none;text-shadow:0 2px 5px #000}
+#action-controls{position:fixed;right:20px;bottom:22px;z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:auto}
+.control-row{display:flex;gap:10px;align-items:center}
+.game-control{width:68px;height:68px;border-radius:50%;padding:6px;background:#111c30d9;border:1px solid #d7e2f077;color:#fff;font-size:10px;font-weight:900;box-shadow:0 5px 18px #0008;touch-action:none}
+.game-control.jump{width:78px;height:78px;background:linear-gradient(145deg,#9c3542dd,#4c263fdd);font-size:12px}
+.game-control.active{background:linear-gradient(145deg,#426d8f,#243c5a);border-color:#c5e4ff}
+#move-label{width:168px}
+@media(orientation:landscape) and (max-height:420px){#action-controls{right:14px;bottom:12px;gap:6px}.game-control{width:56px;height:56px}.game-control.jump{width:64px;height:64px}#move-label{bottom:122px}}
 @media(orientation:landscape) and (max-height:420px){#joystick{width:104px;height:104px;left:18px;bottom:16px}#stick{width:46px;height:46px}#move-label{bottom:122px;width:140px}.hint{margin-left:125px}}
 button{border:1px solid #8da1c455;border-radius:12px;background:#10182acc;color:#f5f2eb;padding:11px 14px;font-weight:700;font-size:12px}
 button:active{transform:scale(.97);background:#273650}
@@ -73,7 +80,11 @@ button:active{transform:scale(.97);background:#273650}
  </div>
 </div>
 <div id="mission">MISI: SELIDIKI 3 TITIK MISTERI<br><span id="mission-progress">0 / 3 TITIK DITEMUKAN</span></div><button id="interact" type="button">PERIKSA LOKASI</button>
-<div id="joystick" aria-label="Joystick gerak"><div id="stick"></div></div><div id="move-label">GESER UNTUK BERJALAN</div>
+<div id="joystick" aria-label="Joystick gerak"><div id="stick"></div></div><div id="move-label">JOYSTICK · GERAK BEBAS</div>
+<div id="action-controls" aria-label="Kontrol karakter">
+ <div class="control-row"><button class="game-control" id="crouch-btn" type="button">JONGKOK</button><button class="game-control" id="sprint-btn" type="button">LARI</button></div>
+ <button class="game-control jump" id="jump-btn" type="button">LOMPAT</button>
+</div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -448,6 +459,12 @@ button:active{transform:scale(.97);background:#273650}
  });
 
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
+ const jumpBtn=document.getElementById('jump-btn'),sprintBtn=document.getElementById('sprint-btn'),crouchBtn=document.getElementById('crouch-btn');
+ let verticalVelocity=0,onGround=true,sprinting=false,crouching=false;
+ function jump(){if(onGround){verticalVelocity=7.2;onGround=false;}}
+ jumpBtn.addEventListener('pointerdown',e=>{e.preventDefault();jump();});
+ sprintBtn.addEventListener('click',()=>{sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
+ crouchBtn.addEventListener('click',()=>{crouching=!crouching;crouchBtn.classList.toggle('active',crouching);crouchBtn.textContent=crouching?'BANGUN':'JONGKOK';player.scale.y=crouching?.72:1;});
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
  joystick.addEventListener('pointermove',e=>{if(e.pointerId===joyPointer){e.preventDefault();setJoystick(e);}});
@@ -468,7 +485,11 @@ button:active{transform:scale(.97);background:#273650}
   missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
   interactBtn.style.display=nearbyMission?'block':'none';
   if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';
-  if(moving){const speed=5.2;player.position.x+=ix*speed*dt;player.position.z+=iz*speed*dt;player.position.x=THREE.MathUtils.clamp(player.position.x,-3.2,3.2);player.position.z=THREE.MathUtils.clamp(player.position.z,-78,7);player.rotation.y=Math.atan2(ix,-iz);walkingTime+=dt*10;}
+  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);player.position.x+=ix*speed*dt;player.position.z+=iz*speed*dt;player.rotation.y=Math.atan2(ix,-iz);walkingTime+=dt*(sprinting?15:10);}
+  // Area eksplorasi diperluas ke halaman rumah, pepohonan, dan sisi desa.
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-24,24);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-92,10);
+  if(!onGround||player.position.y>0){verticalVelocity-=18*dt;player.position.y+=verticalVelocity*dt;if(player.position.y<=0){player.position.y=0;verticalVelocity=0;onGround=true;}}
 
   if(multiplayer&&t-lastBroadcast>140){
    lastBroadcast=t;
@@ -476,6 +497,7 @@ button:active{transform:scale(.97);background:#273650}
   }
   remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
+  if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
   const behind=9;const desired=new THREE.Vector3(player.position.x+Math.sin(player.rotation.y)*behind,5.2,player.position.z+Math.cos(player.rotation.y)*behind);camera.position.lerp(desired,1-Math.exp(-5*dt));camera.lookAt(player.position.x,1.25,player.position.z-1.2);
   renderer.render(scene,camera);
  }
