@@ -7064,9 +7064,24 @@ async function malamLoadStateOnce(roomAtStart){
   malamMsg('Gagal memperbarui permainan: '+(error.message||error.details||error.hint||'kesalahan server'));
   return;
  }
- supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart}).then(({error:aiError})=>{
-  if(aiError)console.warn('[Crew] Pemrosesan AI dilewati:',aiError.message);
- }).catch(aiError=>console.warn('[Crew] Pemrosesan AI gagal:',aiError));
+ // Hanya HOST yang mengoordinasikan giliran AI. Tanpa ini, setiap klien
+ // manusia memanggil RPC yang sama dan saling menunggu pada row lock ruang.
+ const me=(data?.players||[]).find(p=>p.user_id===activeUser?.id);
+ const aiPhaseKey=roomAtStart+':'+data?.room?.round_no+':'+data?.room?.phase;
+ if(me?.is_host&&['night','voting'].includes(data?.room?.phase)){
+  const now=Date.now();
+  if(window.__malamAiProcessKey!==aiPhaseKey){
+   window.__malamAiProcessKey=aiPhaseKey;
+   window.__malamAiProcessAt=0;
+  }
+  if(!window.__malamAiProcessPromise&&now-(window.__malamAiProcessAt||0)>=1800){
+   window.__malamAiProcessAt=now;
+   window.__malamAiProcessPromise=supabaseClient.rpc('malam_process_ai',{p_room:roomAtStart})
+    .then(({error:aiError})=>{if(aiError)console.warn('[Crew] Pemrosesan AI dilewati:',aiError.message);})
+    .catch(aiError=>console.warn('[Crew] Pemrosesan AI gagal:',aiError))
+    .finally(()=>{window.__malamAiProcessPromise=null;});
+  }
+ }
  window.__malamLoadStage='memproses informasi peran';
  if(data?.my_role==='paranormal'&&data?.investigation){
   const inv=data.investigation_detail||data.investigation,resultKey=malamRoomId+':'+data.room?.round_no+':'+inv.nickname+':'+inv.role;
