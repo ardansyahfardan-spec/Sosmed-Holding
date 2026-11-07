@@ -488,6 +488,7 @@ ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
 const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
+let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
 let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0;
 const mpRemotePlayers=new Map();let mpRoomBusy=false;
@@ -600,6 +601,7 @@ async function mpConnectRoom(roomId){
  mpChannel=mpClient.channel('desa:'+roomId,{config:{private:true,presence:{key:mpUser.id}}});
  mpChannel.on('broadcast',{event:'player_state'},({payload})=>mpApplyRemoteState(payload));
  mpChannel.on('broadcast',{event:'clue_found'},({payload})=>mpApplyClue(Number(payload?.index)));
+ mpChannel.on('broadcast',{event:'mission_complete'},({payload})=>finishMission(false,payload?.nickname));
  mpChannel.on('broadcast',{event:'ghost_hit'},({payload})=>applyGhostHit(Number(payload?.index),payload?.hp,!!payload?.defeated,payload?.x,payload?.z));
  mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
  mpChannel.on('presence',{event:'sync'},mpPresenceSync);
@@ -726,8 +728,9 @@ function mpUpdateRemotePlayers(dt){
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
-function reset(){clearSprintHold();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;});updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
-function collect(){if(!near)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex);if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
+function reset(){clearSprintHold();missionCompleted=false;setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>{g.g.position.copy(g.home);g.hp=g.maxHp;g.stagger=0;g.defeatedTimer=0;g.g.visible=true;});updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
+function finishMission(announce=true,completedBy=''){if(missionCompleted)return;missionCompleted=true;running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';if(completedBy){say('Misi selesai! '+completedBy+' berhasil membuka gerbang.');}else if(announce){say('Misi selesai! Seluruh tim berhasil keluar dari desa.');}if(announce&&mpChannel)mpChannel.send({type:'broadcast',event:'mission_complete',payload:{nickname:mpNickname}}).catch(error=>console.warn('Pemberitahuan misi selesai gagal dikirim:',error));}
+function collect(){if(!near||missionCompleted)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex);if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){finishMission(true);}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='v'&&!e.repeat)setCameraMode(cameraMode==='first'?'third':'first');if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
