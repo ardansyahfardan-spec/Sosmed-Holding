@@ -6764,7 +6764,16 @@ window.malamTrialClose=function(){clearTimeout(window.__malamTrialModalAutoClose
 window.malamTrialSelect=function(id){
  const s=window.__malamTrial;if(!s||s.ended)return;
  const p=s.players.find(x=>x.id===id);if(!p||!p.alive||id==='t0')return;
- s.selected=id;const type=s.phase==='voting'?'vote':'action';malamTrialRender();setTimeout(()=>malamTrialOpen(type),0);
+ s.selected=id;
+ const me=s.players[0];
+ if(s.phase==='night'&&me.alive&&me.role==='paranormal'){
+  s.investigation={name:p.name,role:p.role};
+  malamNotify('HASIL PEMERIKSAAN',p.name+' memiliki peran '+(malamRoles[p.role]?.[0]||p.role)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.','phase');
+ }
+ if(s.phase==='night'&&me.alive&&me.role==='penjaga'){
+  malamNotify('PERLINDUNGAN DIPILIH',p.name+' sekarang kamu lindungi. Jika Siluman menyerangnya malam ini, ia akan selamat.','phase');
+ }
+ const type=s.phase==='voting'?'vote':'action';malamTrialRender();setTimeout(()=>malamTrialOpen(type),0);
 };
 window.malamTrialNight=function(force){
  const s=window.__malamTrial;if(!s||s.phase!=='night'||s.ended)return;
@@ -6773,7 +6782,7 @@ window.malamTrialNight=function(force){
  let attack=null;
  if(me.alive&&me.role==='siluman'){attack=s.selected;if(!attack){const picks=alive.filter(p=>p.role!=='siluman');if(picks.length)attack=picks[Math.floor(Math.random()*picks.length)].id;}}
  else if(aiSiluman.length){
-  const choices=alive.filter(p=>p.role!=='siluman'&&p.id!=='t0');
+  const choices=alive.filter(p=>p.role!=='siluman');
   if(choices.length){const votes={};aiSiluman.forEach(()=>{const pick=choices[Math.floor(Math.random()*choices.length)];votes[pick.id]=(votes[pick.id]||0)+1;});attack=Object.keys(votes).sort((a,b)=>votes[b]-votes[a])[0];}
  }
  if(me.alive&&['siluman','paranormal','penjaga'].includes(me.role)&&!s.selected&&!force){malamTrialNotice('Pilih target terlebih dahulu.');return;}
@@ -6834,7 +6843,7 @@ window.malamTrialVote=function(force){
  s.players.filter(p=>p.alive&&p.isAI).forEach(p=>{p.suspicion=Math.max(0,Math.min(1,(p.suspicion||0)+(Math.random()*.16-.04)));});
  s.selected=null;
  malamTrialCheck();
- if(!s.ended){s.phase='night';s.phaseStartedAt=Date.now();s.round++;s.modal=null;s.lastEvent='Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);}
+ if(!s.ended){s.phase='night';s.phaseStartedAt=Date.now();s.round++;s.modal=null;s.investigation=null;s.selected=null;s.lastEvent='Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);}
  malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else{if(['siluman','paranormal','penjaga'].includes(s.players[0].role))setTimeout(()=>malamTrialOpen('action'),180);malamNotify('MALAM KEMBALI TIBA',s.lastEvent,'phase');}
 };
 window.malamTrialCheck=function(){
