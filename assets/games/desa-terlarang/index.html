@@ -452,8 +452,14 @@ function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.
 function mpNicknameValue(){return (document.getElementById('mp-nickname').value||'').trim().slice(0,24);}
 async function mpInit(){
  try{
-  if(!window.supabase?.createClient)throw new Error('Layanan multiplayer belum siap. Muat ulang halaman.');
-  if(!mpClient)mpClient=window.supabase.createClient(MP_SUPABASE_URL,MP_SUPABASE_KEY);
+  if(!mpClient){
+   // Game berada di iframe satu-origin; gunakan client induk agar sesi login persis sama.
+   try{if(window.parent!==window&&window.parent.__ghoustorySupabaseClient)mpClient=window.parent.__ghoustorySupabaseClient;}catch(parentAccessError){console.warn('Client induk tidak dapat diakses:',parentAccessError);}
+   if(!mpClient){
+    if(!window.supabase?.createClient)throw new Error('Layanan multiplayer belum siap. Muat ulang halaman.');
+    mpClient=window.supabase.createClient(MP_SUPABASE_URL,MP_SUPABASE_KEY);
+   }
+  }
   const {data,error}=await mpClient.auth.getSession();if(error)throw error;
   mpUser=data.session?.user||null;
   if(!mpUser){document.getElementById('mp-auth-note').textContent='Silakan login ke akun Ghoustory Control Room terlebih dahulu.';document.getElementById('mp-create').disabled=true;document.getElementById('mp-join').disabled=true;mpMessage('Akun Crew belum terdeteksi di sesi game.',true);return false;}
