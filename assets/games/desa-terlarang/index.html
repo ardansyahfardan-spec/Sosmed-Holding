@@ -18,6 +18,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 .bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
 .hint{font-size:11px;line-height:1.5;color:#d1d8e5;max-width:290px;text-shadow:0 2px 8px #000}
 .actions{display:flex;gap:8px;pointer-events:auto;flex-wrap:wrap}
+#audio-controls{position:fixed;top:max(68px,calc(env(safe-area-inset-top) + 58px));right:max(12px,env(safe-area-inset-right));z-index:5;display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #d7e2f044;border-radius:12px;background:#08101de8;backdrop-filter:blur(8px);pointer-events:auto;max-width:calc(100vw - 24px)}
+#audio-controls #sound-toggle{min-height:34px;padding:7px 12px;border-radius:9px;background:linear-gradient(110deg,#8c2634,#263f69);border:1px solid #e0b6be88;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+@media(orientation:landscape) and (max-height:420px){#audio-controls{top:max(58px,calc(env(safe-area-inset-top) + 48px));right:12px;padding:5px 7px}#audio-controls #sound-toggle{min-height:30px;padding:5px 9px}}
 #mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
 #interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}
 #sound-state{font-size:9px;color:#e9d6b4;letter-spacing:.08em}
@@ -70,6 +73,7 @@ button:active{transform:scale(.97);background:#273650}
  </div>
 </div>
 <div id="room-presence" style="display:none">1 PEMAIN DI RUANG</div>
+<div id="audio-controls" aria-label="Pengaturan audio"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button></div>
 <div id="hud">
  <div class="top">
   <div><div class="brand">GHOUSTORY ARENA</div><div class="chapter">DESA TERLARANG · PROLOG</div></div>
@@ -77,7 +81,7 @@ button:active{transform:scale(.97);background:#273650}
  </div>
  <div class="bottom">
   <div class="hint" id="hint">Kabut menyelimuti jalan masuk desa. Sesuatu bergerak di balik rumah-rumah tua.</div>
-  <div class="actions"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button></div>
+
  </div>
 </div>
 <div id="mission">MISI: SELIDIKI 3 TITIK MISTERI<br><span id="mission-progress">0 / 3 TITIK DITEMUKAN</span></div><button id="interact" type="button">PERIKSA LOKASI</button>
