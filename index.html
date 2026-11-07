@@ -6520,7 +6520,7 @@ window.loadArenaImages=function(){
 };
 let malamRoomId=null,malamChannel=null,malamMyAlive=true,malamGameFinished=false;
 /* AUDIO MALAM TERLARANG · BGM MP3 milik pengguna + ducking saat pemandu */
-window.__malamAudioState={audio:null,bgm:false,voice:false,panelOpen:false,lastPhase:'',timer:null};
+window.__malamAudioState={audio:null,bgm:false,voice:false,introPlayed:false,panelOpen:false,lastPhase:'',timer:null};
 window.malamAudioControls=function(){
  const a=window.__malamAudioState;
  return '<div class="malam-audio-controls" aria-label="Kontrol audio">'+
@@ -6550,6 +6550,7 @@ window.malamAudioStart=function(){
    a.audio.addEventListener('error',()=>window.malamNotify?.('BGM TIDAK DAPAT DIMUAT','Periksa koneksi internet atau file musik di repo.','phase'));
   }
   a.voice=true;
+  if(!a.introPlayed){a.introPlayed=true;window.malamAudioSpeak('Selamat datang di Malam Terlarang. Dengarkan arahan permainan dan bersiaplah menghadapi malam.');}
   if(!a.bgm){
    const play=a.audio.play();
    if(play&&typeof play.then==='function')play.then(()=>{a.bgm=true;window.malamAudioRefreshControls();}).catch(e=>{
@@ -6570,7 +6571,7 @@ window.malamAudioToggleBgm=async function(){
 window.malamAudioToggleVoice=function(){
  const a=window.__malamAudioState;
  if(!('speechSynthesis'in window)||!('SpeechSynthesisUtterance'in window)){window.malamNotify?.('SUARA TIDAK TERSEDIA','Browser ini belum mendukung suara pemandu.','phase');return;}
- a.voice=!a.voice;if(a.voice)window.malamAudioSpeak('Pemandu permainan siap. Selamat datang di Malam Terlarang.');else{window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;window.malamAudioSetVolume(.34);}
+ a.voice=!a.voice;if(!a.voice){window.speechSynthesis.cancel();a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;window.malamAudioSetVolume(.34);}
  window.malamAudioRefreshControls();
 };
 window.malamAudioSpeak=function(text){
@@ -6624,13 +6625,7 @@ window.malamPlayResultAudio=function(outcome,winner){
    setTimeout(()=>ctx.close().catch(()=>{}),1800);
   }
  }catch(e){console.warn('Efek hasil tidak tersedia:',e);}
- try{
-  if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
-   window.speechSynthesis.cancel();
-   const line=won?(winner==='siluman'?'Kemenangan! Siluman berhasil menguasai desa. Selamat untuk kubu Siluman!':'Kemenangan! Desa berhasil diselamatkan. Selamat untuk kubu Warga!'):(winner==='siluman'?'Kekalahan... Siluman telah menguasai desa. Desa jatuh dalam kegelapan.':'Kekalahan... Siluman berhasil dikalahkan. Desa kembali aman, tetapi misimu telah berakhir.');
-   const u=new SpeechSynthesisUtterance(line);u.lang='id-ID';u.rate=.88;u.pitch=won?1.02:.78;u.volume=.95;window.speechSynthesis.speak(u);
-  }
- }catch(e){console.warn('Voice hasil tidak tersedia:',e);}
+ // Pemandu hanya bersuara sekali pada awal permainan; hasil memakai efek nada saja.
 };
 window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
  const won=outcome==='win',title=winner==='siluman'?'KUBU SILUMAN MENANG':'KUBU WARGA MENANG';
@@ -6639,16 +6634,7 @@ window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
  if(window.__malamResultAudioKey!==key){window.__malamResultAudioKey=key;setTimeout(()=>window.malamPlayResultAudio(outcome,winner),350);}
  return '<div id="malam-result-popup" class="fixed inset-0 z-[10020] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onclick="if(event.target===this)this.remove()"><div class="relative w-full max-w-sm overflow-hidden rounded-3xl border '+(won?'border-amber-400/60':'border-red-500/50')+' bg-gradient-to-b from-[#171923] via-[#101116] to-black p-5 text-center shadow-2xl"><div class="absolute inset-x-0 top-0 h-1 '+(won?'bg-gradient-to-r from-amber-600 via-yellow-200 to-amber-600':'bg-gradient-to-r from-red-900 via-red-400 to-red-900')+'"></div><img src="./assets/images/malam-terlarang/results/'+(won?'Menang.JPG':'Kalah.JPG')+'" alt="'+(won?'Ilustrasi kemenangan':'Ilustrasi kekalahan')+'" class="mx-auto mb-3 max-h-48 w-full rounded-xl object-contain" loading="eager"><div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full '+(won?'bg-amber-400/10 text-amber-300 ring-1 ring-amber-300/40':'bg-red-500/10 text-red-300 ring-1 ring-red-400/40')+'"><i class="fa-solid '+(won?'fa-trophy':'fa-skull-crossbones')+' text-4xl"></i></div><p class="mt-4 text-[10px] font-black tracking-[.35em] '+(won?'text-amber-300':'text-red-300')+'">'+(won?'KEMENANGAN':'KEKALAHAN')+'</p><h2 class="mt-2 text-2xl font-black text-white">'+(won?'KAMU MENANG':'KAMU KALAH')+'</h2><p class="mt-1 text-sm font-bold '+(won?'text-amber-200':'text-red-200')+'">'+title+'</p><p class="mt-3 text-xs leading-relaxed text-gray-300">'+(won?'Perjuanganmu menentukan nasib desa malam ini.':'Malam ini bukan milikmu. Permainan telah berakhir.')+'</p><div class="mt-4 max-h-36 space-y-1 overflow-y-auto text-left">'+people+'</div><button onclick="window.malamPlayResultAudio(\''+outcome+'\',\''+winner+'\')" class="mt-4 w-full rounded-xl border border-gray-600 bg-gray-800/80 py-3 text-xs font-bold text-white"><i class="fa-solid fa-volume-high mr-2"></i>Putar audio hasil</button><button onclick="document.getElementById(\'malam-result-popup\')?.remove()" class="mt-2 w-full rounded-xl '+(won?'bg-amber-700':'bg-red-900')+' py-3 text-sm font-black text-white">LANJUT</button></div></div>';
 };
-window.malamAudioOnPhase=function(mode,phase,round,event,winner){
- const a=window.__malamAudioState,key=mode+':'+round+':'+phase;if(a.lastPhase===key)return;a.lastPhase=key;
- const lines={
-  night:'Malam telah tiba... Desa kembali sunyi. Semua warga, pejamkan mata. Biarkan malam menjalankan rahasianya.',
-  discussion:'Fajar mulai menyingsing... Warga, bukalah mata kalian. Perhatikan kejadian semalam. Jangan mudah percaya pada siapa pun.',
-  voting:'Waktu diskusi telah usai... Sekarang saatnya menentukan pilihan. Siapa yang paling kalian curigai? Suarakan pilihan kalian.',
-  finished:winner==='siluman'?'Permainan berakhir... Siluman berhasil menguasai desa. Tak seorang pun lagi aman.':winner==='warga'?'Permainan berakhir... Desa berhasil diselamatkan. Siluman telah dikalahkan.':'Permainan telah berakhir... Inilah akhir dari malam terlarang.'
- };
- if(lines[phase])window.malamAudioSpeak(lines[phase]);
-};
+window.malamAudioOnPhase=function(){ /* Pemandu tidak mengumumkan pergantian fase. */ };
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
  a.voice=false;a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
@@ -7118,7 +7104,7 @@ function malamRender(s){
 
 }
 window.malamReady=async v=>{const {error}=await supabaseClient.rpc('malam_set_ready',{p_room:malamRoomId,p_ready:!!v});if(error)malamMsg(error.message);else malamLoadState();};
-window.malamStart=async()=>{const {error}=await supabaseClient.rpc('malam_start_game',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
+window.malamStart=async()=>{malamAudioStart();const {error}=await supabaseClient.rpc('malam_start_game',{p_room:malamRoomId});if(error)malamMsg(error.message);else malamLoadState();};
 window.malamArenaPlayerClick=async function(targetId){
  const trial=window.__malamTrial;
  if(trial){malamTrialSelect(targetId);return;}
