@@ -7007,7 +7007,7 @@ function malamSubscribe(){
  },1800);
 }
 window.malamLoadState=async function(){
- if(!malamRoomId)return;malamStartClock();
+ if(!malamRoomId)return;const loadToken=window.__malamLoadToken=(window.__malamLoadToken||0)+1;malamStartClock();
  const {error:aiError}=await supabaseClient.rpc('malam_process_ai',{p_room:malamRoomId});
  if(aiError&& !/fase|anggota|room/i.test(aiError.message||''))console.warn('AI multiplayer:',aiError.message);
  const {data,error}=await supabaseClient.rpc('malam_get_state',{p_room:malamRoomId});
@@ -7029,6 +7029,7 @@ window.malamLoadState=async function(){
  }
  if(['discussion','voting'].includes(data?.room?.phase)&&malamMyAlive){const {data:aiMessages}=await supabaseClient.from('malam_ai_messages').select('player_id,nickname,body,created_at,round_no').eq('room_id',malamRoomId).eq('round_no',data.room.round_no).order('created_at');window.__malamAiChatMessages=aiMessages||[];const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',malamRoomId).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});const aiLatest=new Map((aiMessages||[]).map(m=>[m.player_id,m.body]));data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||aiLatest.get(x.user_id)||'',chat_bubble_at:latest.get(x.user_id)?.at||Date.now()}));}
  if(['discussion','voting'].includes(data?.room?.phase)&&malamMyAlive){const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',malamRoomId).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||'',chat_bubble_at:latest.get(x.user_id)?.at||now}));}
+ if(loadToken!==window.__malamLoadToken)return;
  malamRender(data);malamLoadMessages();malamLoadTeamMessages();
 };
 function malamPlayerCard(x,phase){
