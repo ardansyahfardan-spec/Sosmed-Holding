@@ -6940,6 +6940,7 @@ window.malamLoadState=async function(){
   }else console.warn('Foto profil pemain belum dapat dimuat:',profileError.message);
  }
  if(['discussion','voting'].includes(data?.room?.phase)&&malamMyAlive){const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',malamRoomId).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||'',chat_bubble_at:latest.get(x.user_id)?.at||now}));}
+ if(['discussion','voting'].includes(data?.room?.phase)&&malamMyAlive){const {data:recentMessages}=await supabaseClient.from('malam_messages').select('user_id,body,created_at').eq('room_id',malamRoomId).eq('channel','living').order('created_at',{ascending:false}).limit(30);const now=Date.now(),latest=new Map();(recentMessages||[]).forEach(m=>{const age=now-Date.parse(m.created_at);if(m.user_id&&age>=0&&age<7000&&!latest.has(m.user_id))latest.set(m.user_id,{body:m.body,at:Date.parse(m.created_at)});});data.players=(data.players||[]).map(x=>({...x,chat_bubble:latest.get(x.user_id)?.body||'',chat_bubble_at:latest.get(x.user_id)?.at||now}));}
  malamRender(data);malamLoadMessages();malamLoadTeamMessages();
 };
 function malamPlayerCard(x,phase){
