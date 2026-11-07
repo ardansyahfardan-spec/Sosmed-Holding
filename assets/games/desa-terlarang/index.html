@@ -579,6 +579,8 @@ async function mpRefreshRoom(){
 function mpApplyRemotePose(remote){
  if(!remote?.model)return;
  const model=remote.model,prone=!!remote.prone;
+ const avatarRig=model.getObjectByName('avatar-rig');
+ if(avatarRig){avatarRig.rotation.set(prone?Math.PI/2:0,0,0);avatarRig.position.y=prone?.24:0;}
  const torso=model.getObjectByName('avatar-torso'),headRig=model.getObjectByName('avatar-head');
  if(torso){torso.position.y=prone?.78:1.35;torso.scale.y=prone?.62:1;}
  if(headRig){headRig.position.y=prone?1.25:2.2;headRig.rotation.x=prone?-.42:0;}
@@ -591,7 +593,14 @@ function mpApplyRemoteState(payload){
  if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z)||!Number.isFinite(Number(payload.yaw??0))||payload.x< -35||payload.x>35||payload.z< -43||payload.z>34)return;
  let remote=mpRemotePlayers.get(payload.user_id);
  if(!remote){
-  const model=player.clone(true);model.visible=true;model.position.set(payload.x,0,payload.z);
+  const model=player.clone(true);model.visible=true;model.name='remote-player-'+payload.user_id;
+  model.position.set(payload.x,0,payload.z);model.rotation.set(0,Number(payload.yaw)||0,0);
+  // Jangan mewarisi pose lokal (mis. tiarap/ayunan) saat avatar Crew lain dibuat.
+  const remoteRig=model.getObjectByName('avatar-rig');
+  if(remoteRig){remoteRig.position.set(0,0,0);remoteRig.rotation.set(0,0,0);remoteRig.scale.set(1,1,1);}
+  for(const [name,y] of [['avatar-torso',1.35],['avatar-head',2.2],['avatar-arm-left',1.42],['avatar-arm-right',1.42],['avatar-leg-left',.88],['avatar-leg-right',.88]]){
+   const part=model.getObjectByName(name);if(part){part.position.y=y;part.rotation.set(0,0,0);}
+  }
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const ctx=canvas.getContext('2d');
   ctx.fillStyle='rgba(5,9,16,.78)';ctx.beginPath();ctx.roundRect(5,5,246,54,16);ctx.fill();
   ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(payload.nickname||'Pemain').slice(0,18),128,40);
@@ -683,7 +692,12 @@ async function mpStartGame(){
  document.getElementById('joystick').style.display='block';
  walkButton.style.display='block';
  jumpButton.style.display='block';proneButton.style.display='block';useToolButton.style.display=selectedTool==='flashlight'?'none':'block';clearSprintHold();reset();
- const roster=mpRoomData?.players||[],myIndex=Math.max(0,roster.findIndex(p=>p.user_id===mpUser?.id)),spawnOffsets=[[0,0],[-2.2,0],[2.2,0],[-4.2,1.8],[4.2,1.8]],spawn=spawnOffsets[myIndex]||[0,0];
+ const roster=(mpRoomData?.players||[]).slice().sort((a,b)=>String(a.user_id||'').localeCompare(String(b.user_id||'')));
+ const myIndex=roster.findIndex(p=>p.user_id===mpUser?.id);
+ const spawnOffsets=[[0,0],[-2.8,0],[2.8,0],[-5.2,2.2],[5.2,2.2]];
+ let spawn;
+ if(myIndex>=0)spawn=spawnOffsets[myIndex]||spawnOffsets[0];
+ else{let hash=0;for(const ch of String(mpUser?.id||mpNickname))hash=(hash*31+ch.charCodeAt(0))>>>0;const angle=(hash%360)*Math.PI/180;spawn=[Math.cos(angle)*5,Math.sin(angle)*5];}
  player.position.set(spawn[0],0,24+spawn[1]);
  say('Kita memasuki Wanasetra, desa yang dihapus dari peta. Cari tahu apa yang terjadi pada malam 17 Oktober 1987. Jangan berpencar terlalu jauh.');
 }
@@ -836,7 +850,7 @@ joy.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();joy
 joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e);});
 function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy),scale=Math.min(1,48/(len||1));move.x=dx*scale/48;move.y=dy*scale/48;stick.style.transform='translate('+move.x*34+'px,'+move.y*34+'px)';updateSprintHold();}
 function joyEnd(e){if(e.pointerId===joyId){joyId=null;move.x=move.y=0;clearSprintHold();stick.style.transform='';}}
-joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);joy.addEventListener('lostpointercapture',joyEnd);
 function releaseAllControls(){keys={};move.x=move.y=0;joyId=null;walkPointer=null;clearSprintHold();setWalkHold(false);const stickEl=document.getElementById('stick');if(stickEl)stickEl.style.transform='';}
 addEventListener('blur',releaseAllControls);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAllControls();});
