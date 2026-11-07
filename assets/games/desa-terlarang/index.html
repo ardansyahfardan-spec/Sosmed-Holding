@@ -302,7 +302,7 @@ function updateFlashlightWorld(){
  flashlightTarget.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,24);
  flashlightFill.position.copy(flashlightWorldPosition).addScaledVector(flashlightDirection,1.1);
 }
-function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.parent)m.parent.remove(m);});equipment.add(toolModels[k]);flashlightBeam.visible=k==='flashlight'&&flashlightOn;useToolButton.style.display=k==='flashlight'?'none':(running?'block':'none');useToolButton.textContent=k==='plank'?'AYUNKAN':'SERANG';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===k));}
+function equipTool(k){selectedTool=k;Object.values(toolModels).forEach(m=>{if(m.parent)m.parent.remove(m);});equipment.add(toolModels[k]);flashlightBeam.visible=k==='flashlight'&&flashlightOn;useToolButton.style.display=k==='flashlight'?'none':(document.getElementById('start').style.display==='none'?'block':'none');useToolButton.textContent=k==='plank'?'AYUNKAN':'SERANG';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===k));}
 function updateToolSwing(dt){toolSwingCooldown=Math.max(0,toolSwingCooldown-dt);toolSwing=Math.max(0,toolSwing-dt*4.2);const arc=Math.sin((1-toolSwing)*Math.PI);equipment.rotation.x=-arc*.95;equipment.rotation.z=arc*.42;}
 function toggleFlashlight(){flashlightOn=!flashlightOn;flashlightBeam.visible=selectedTool==='flashlight'&&flashlightOn;document.getElementById('flashlight-toggle').classList.toggle('active',flashlightOn);}
 equipTool('flashlight');
