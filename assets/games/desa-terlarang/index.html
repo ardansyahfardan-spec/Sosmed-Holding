@@ -17,7 +17,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 .pill{border:1px solid #aab8d044;border-radius:999px;background:#0a1024a8;padding:8px 12px;color:#dbe4f5;font-size:11px}
 .bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
 .hint{font-size:11px;line-height:1.5;color:#d1d8e5;max-width:290px;text-shadow:0 2px 8px #000}
-.actions{display:flex;gap:8px;pointer-events:auto}
+.actions{display:flex;gap:8px;pointer-events:auto;flex-wrap:wrap}
+#mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
+#interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}
+#sound-state{font-size:9px;color:#e9d6b4;letter-spacing:.08em}
 #joystick{position:fixed;left:22px;bottom:22px;width:124px;height:124px;border:1px solid #d6e2f044;border-radius:50%;background:#101a2b88;backdrop-filter:blur(5px);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;user-select:none}
 #stick{width:54px;height:54px;border-radius:50%;background:#b9c9df99;border:2px solid #e5edf8aa;box-shadow:0 4px 18px #0008;transform:translate(0,0);pointer-events:none}
 #move-label{position:fixed;left:0;bottom:155px;width:168px;text-align:center;color:#d1d8e5;font-size:9px;letter-spacing:.12em;pointer-events:none;text-shadow:0 2px 5px #000}
@@ -66,9 +69,10 @@ button:active{transform:scale(.97);background:#273650}
  </div>
  <div class="bottom">
   <div class="hint" id="hint">Kabut menyelimuti jalan masuk desa. Sesuatu bergerak di balik rumah-rumah tua.</div>
-  <div class="actions"><button id="fullscreen" type="button">LAYAR PENUH</button></div>
+  <div class="actions"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button><button id="fullscreen" type="button">LAYAR PENUH</button></div>
  </div>
 </div>
+<div id="mission">MISI: SELIDIKI 3 TITIK MISTERI<br><span id="mission-progress">0 / 3 TITIK DITEMUKAN</span></div><button id="interact" type="button">PERIKSA LOKASI</button>
 <div id="joystick" aria-label="Joystick gerak"><div id="stick"></div></div><div id="move-label">GESER UNTUK BERJALAN</div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -114,16 +118,21 @@ button:active{transform:scale(.97);background:#273650}
    for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);const glow=new THREE.PointLight(0xd18a4c,.8,9);glow.position.set(x+wx*scale,wy,z+d/2+1.2);scene.add(glow);}
    box(w+.35*scale,.22*scale,d+.3*scale,M.stone,x,.12*scale,z);
   }
+  const swayingTrees=[];
   function tree(x,z,s=1){
-   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.42*s,3.4*s,9),M.bark);trunk.position.set(x,1.7*s,z);trunk.castShadow=true;scene.add(trunk);
-   for(let j=0;j<3;j++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.13*s,1.7*s,7),M.bark);b.position.set(x+(j-1)*.55*s,2.5*s,z);b.rotation.z=(j-1)*-.55;scene.add(b);}
-   for(let j=0;j<5;j++){const c=new THREE.Mesh(new THREE.SphereGeometry(1,12,9),M.leaves);c.scale.set((1.25+(j%2)*.35)*s,(1.45+(j%3)*.18)*s,(1.15+(j%2)*.22)*s);c.position.set(x+((j%3)-1)*.65*s,(3.65+Math.floor(j/3)*.65)*s,z+((j%2)-.5)*.6*s);c.castShadow=true;scene.add(c);}
+   const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);
+   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.42*s,3.4*s,9),M.bark);trunk.position.y=1.7*s;trunk.castShadow=true;group.add(trunk);
+   for(let j=0;j<3;j++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.13*s,1.7*s,7),M.bark);b.position.set((j-1)*.55*s,2.5*s,0);b.rotation.z=(j-1)*-.55;group.add(b);}
+   const canopy=new THREE.Group();canopy.position.y=2.75*s;group.add(canopy);
+   for(let j=0;j<5;j++){const c=new THREE.Mesh(new THREE.SphereGeometry(1,12,9),M.leaves);c.scale.set((1.25+(j%2)*.35)*s,(1.45+(j%3)*.18)*s,(1.15+(j%2)*.22)*s);c.position.set(((j%3)-1)*.65*s,(.9+Math.floor(j/3)*.65)*s,((j%2)-.5)*.6*s);c.castShadow=true;canopy.add(c);}
+   swayingTrees.push({canopy,phase:Math.random()*Math.PI*2});return group;
   }
 
   // Lampu jalan desa: tiang besi tua dengan lentera hangat dan cahaya nyata.
   const lampMetal=new THREE.MeshStandardMaterial({color:0x252a30,metalness:.72,roughness:.42});
   const lampTrim=new THREE.MeshStandardMaterial({color:0x594936,metalness:.58,roughness:.48});
   const lampGlass=new THREE.MeshStandardMaterial({color:0xffc477,emissive:0xff9a3d,emissiveIntensity:4.5,transparent:true,opacity:.98,roughness:.22});
+  const lampLights=[];
   function streetLamp(x,z){
    const base=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,.22,12),lampMetal);base.position.set(x,.11,z);base.castShadow=true;scene.add(base);
    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.075,.12,4.25,12),lampMetal);pole.position.set(x,2.28,z);pole.castShadow=true;scene.add(pole);
@@ -134,7 +143,7 @@ button:active{transform:scale(.97);background:#273650}
    const lantern=new THREE.Mesh(new THREE.BoxGeometry(.48,.68,.48),lampGlass);lantern.position.set(hoodX,4.02,z);scene.add(lantern);
    const frame=new THREE.Mesh(new THREE.BoxGeometry(.58,.08,.58),lampTrim);frame.position.set(hoodX,3.66,z);scene.add(frame);
    // Cahaya diperkuat agar benar-benar menerangi jalan dan tanah di sekitarnya.
-   const glow=new THREE.PointLight(0xffb66b,8.5,27,1.45);glow.position.set(hoodX,4.02,z);scene.add(glow);
+   const glow=new THREE.PointLight(0xffb66b,8.5,27,1.45);glow.position.set(hoodX,4.02,z);scene.add(glow);lampLights.push({light:glow,phase:Math.random()*6.28});
    const fill=new THREE.PointLight(0xffc987,3.2,16,1.7);fill.position.set(hoodX,2.15,z);scene.add(fill);
    const halo=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.34}));halo.position.copy(glow.position);scene.add(halo);
   }
@@ -371,10 +380,73 @@ button:active{transform:scale(.97);background:#273650}
   }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;}
  }
  function makeRoomCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
- createRoomBtn.addEventListener('click',()=>enterRoom(makeRoomCode()));
- joinRoomBtn.addEventListener('click',()=>enterRoom(roomInput.value));
+ createRoomBtn.addEventListener('click',()=>{startAmbientAudio();enterRoom(makeRoomCode());});
+ joinRoomBtn.addEventListener('click',()=>{startAmbientAudio();enterRoom(roomInput.value);});
  roomInput.addEventListener('input',()=>{roomInput.value=roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
  addEventListener('beforeunload',()=>{if(multiplayer)realtimeClient.removeChannel(multiplayer);});
+ // Titik investigasi yang dapat dijangkau di sepanjang jalan utama.
+ const missionPoints=[
+  {x:0,z:-13,name:'Jejak di gerbang desa',done:false},
+  {x:0,z:-36,name:'Suara dari sumur tua',done:false},
+  {x:0,z:-59,name:'Bayangan di ujung jalan',done:false}
+ ];
+ const missionProgress=document.getElementById('mission-progress'),interactBtn=document.getElementById('interact');
+ let nearbyMission=null;
+ const missionMarkers=missionPoints.map((p,i)=>{
+  const g=new THREE.Group();g.position.set(p.x,.08,p.z);scene.add(g);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.58,.045,8,24),new THREE.MeshBasicMaterial({color:0xc68c78,transparent:true,opacity:.8}));ring.rotation.x=-Math.PI/2;g.add(ring);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.16,1.5,10),new THREE.MeshBasicMaterial({color:0xb7cbe8,transparent:true,opacity:.16}));beam.position.y=.82;g.add(beam);
+  const light=new THREE.PointLight(0x9dbce8,.7,5);light.position.y=.8;g.add(light);
+  return {group:g,ring,beam,light,point:p,phase:i*2};
+ });
+ function updateMission(){
+  missionProgress.textContent=missionPoints.filter(p=>p.done).length+' / 3 TITIK DITEMUKAN';
+  if(missionPoints.every(p=>p.done)){hint.textContent='Semua petunjuk terkumpul. Desa ini menyimpan sesuatu yang jauh lebih gelap...';state.textContent='MISI SELESAI';}
+ }
+ // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
+ const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state');
+ let audioContext=null,masterGain=null,ambienceStarted=false,audioEnabled=true;
+ function startAmbientAudio(){
+  if(ambienceStarted||!audioEnabled)return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{
+   audioContext=new AC();masterGain=audioContext.createGain();masterGain.gain.value=1;masterGain.connect(audioContext.destination);
+   const buffer=audioContext.createBuffer(1,audioContext.sampleRate*3,audioContext.sampleRate),data=buffer.getChannelData(0);
+   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.22;
+   const wind=audioContext.createBufferSource();wind.buffer=buffer;wind.loop=true;
+   const filter=audioContext.createBiquadFilter();filter.type='lowpass';filter.frequency.value=420;
+   const windGain=audioContext.createGain();windGain.gain.value=.55;
+   wind.connect(filter);filter.connect(windGain);windGain.connect(masterGain);wind.start();
+   const drone=audioContext.createOscillator();drone.type='sine';drone.frequency.value=48;
+   const droneGain=audioContext.createGain();droneGain.gain.value=.12;drone.connect(droneGain);droneGain.connect(masterGain);drone.start();
+   const pulse=audioContext.createOscillator();pulse.type='sine';pulse.frequency.value=73;
+   const pulseGain=audioContext.createGain();pulseGain.gain.value=.035;pulse.connect(pulseGain);pulseGain.connect(masterGain);pulse.start();
+   ambienceStarted=true;
+  }catch(err){console.warn('Audio ambience tidak tersedia',err);}
+ }
+ function playDiscoverySound(){
+  if(!audioContext||!masterGain||!audioEnabled)return;
+  const now=audioContext.currentTime;
+  [523.25,659.25,783.99].forEach((hz,i)=>{
+   const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=hz;
+   gain.gain.setValueAtTime(.0001,now+i*.11);gain.gain.exponentialRampToValueAtTime(.18,now+i*.11+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.11+.55);
+   osc.connect(gain);gain.connect(masterGain);osc.start(now+i*.11);osc.stop(now+i*.11+.6);
+  });
+ }
+ soundToggle.addEventListener('click',()=>{
+  audioEnabled=!audioEnabled;
+  if(audioEnabled){startAmbientAudio();if(audioContext&&audioContext.state==='suspended')audioContext.resume();if(masterGain)masterGain.gain.setTargetAtTime(1,audioContext.currentTime,.08);}
+  else if(masterGain&&audioContext)masterGain.gain.setTargetAtTime(0,audioContext.currentTime,.08);
+  soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO 100%':'AUDIO MATI';
+ });
+ interactBtn.addEventListener('click',()=>{
+  if(!nearbyMission)return;
+  nearbyMission.done=true;
+  const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
+  hint.textContent=nearbyMission.name+': kamu menemukan petunjuk yang tertinggal. Ada sesuatu yang mengawasimu.';
+  nearbyMission=null;interactBtn.style.display='none';updateMission();playDiscoverySound();
+ });
+
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
@@ -386,12 +458,19 @@ button:active{transform:scale(.97);background:#273650}
  function frame(t){
   requestAnimationFrame(frame);
   const dt=Math.min((t-last)/1000||0,.05);last=t;const time=t*.0001;
-  mist.forEach((m,i)=>{m.position.x+=Math.sin(time+i)*.0018;if(m.position.x>13)m.position.x=-13;});
+  mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
+  swayingTrees.forEach(t=>{t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
+  lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
+  missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
   let ix=joyX,iz=joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
+  nearbyMission=null;let nearest=Infinity;
+  missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
+  interactBtn.style.display=nearbyMission?'block':'none';
+  if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';
   if(moving){const speed=5.2;player.position.x+=ix*speed*dt;player.position.z+=iz*speed*dt;player.position.x=THREE.MathUtils.clamp(player.position.x,-3.2,3.2);player.position.z=THREE.MathUtils.clamp(player.position.z,-78,7);player.rotation.y=Math.atan2(ix,-iz);walkingTime+=dt*10;}
 
-  if(multiplayer&&t-lastBroadcast>100){
+  if(multiplayer&&t-lastBroadcast>140){
    lastBroadcast=t;
    multiplayer.send({type:'broadcast',event:'move',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,moving}});
   }
