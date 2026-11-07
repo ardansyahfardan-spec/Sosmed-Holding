@@ -6867,8 +6867,8 @@ window.malamTrialVote=function(force){
 window.malamTrialCheck=function(){
  const s=window.__malamTrial;if(!s)return;
  const alive=s.players.filter(p=>p.alive),wolves=alive.filter(p=>p.role==='siluman').length,others=alive.length-wolves;
- if(!wolves){s.ended=true;s.winner='warga';s.phase='finished';s.lastEvent='Kedua Siluman telah disingkirkan. Desa akhirnya selamat!';s.log.push(s.lastEvent);}
- else if(wolves>=others){s.ended=true;s.winner='siluman';s.phase='finished';s.lastEvent='Jumlah Siluman menyamai warga yang tersisa. Desa jatuh ke tangan Siluman.';s.log.push(s.lastEvent);}
+ if(!wolves){s.ended=true;s.winner='warga';s.phase='finished';s.lastEvent=(/gugur|dibunuh|dikeluarkan|tereliminasi/i.test(s.lastEvent||'')?s.lastEvent+' ':'')+'Kedua Siluman telah disingkirkan. Desa akhirnya selamat!';s.log.push(s.lastEvent);}
+ else if(wolves>=others){s.ended=true;s.winner='siluman';s.phase='finished';s.lastEvent=(/gugur|dibunuh|dikeluarkan|tereliminasi/i.test(s.lastEvent||'')?s.lastEvent+' ':'')+'Jumlah Siluman menyamai warga yang tersisa. Desa jatuh ke tangan Siluman.';s.log.push(s.lastEvent);}
 };
 window.malamTrialTick=function(){const s=window.__malamTrial;if(!s||s.ended)return;const duration=malamPhaseSeconds(s.phase);if(!duration)return;const left=Math.max(0,duration-Math.floor((Date.now()-(s.phaseStartedAt||Date.now()))/1000));const el=document.getElementById('malam-trial-countdown');if(el)el.textContent=left>0?'Berakhir dalam '+String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0'):'Waktu habis · fase berganti…';if(left===0){if(s.phase==='night')malamTrialNight(true);else if(s.phase==='discussion')malamTrialVotePhase();else if(s.phase==='voting')malamTrialVote(true);}};
 window.malamTrialNotice=function(t){const e=document.getElementById('malam-trial-notice');if(e)e.textContent=t;};
