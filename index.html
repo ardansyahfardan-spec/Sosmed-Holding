@@ -6966,8 +6966,8 @@ window.malamJoinRoom=async function(){
  if(!activeUser?.id){malamMsg('Silakan login dahulu.');return;}
  const code=(document.getElementById('malam-join-code')?.value||'').trim().toUpperCase();
  if(code.length!==6){malamMsg('Masukkan kode 6 karakter.');return;}
- window.malamAudioStart();
  const n=prompt('Nama pemain:',activeUser.user_metadata?.full_name||activeUser.email?.split('@')[0]||'Crew');if(!n)return;
+ window.malamAudioStart();
  const {data,error}=await supabaseClient.rpc('malam_join_room',{p_code:code,p_nickname:n.trim()});
  if(error){malamMsg(error.message);return;}
  malamRoomId=data.room_id;sessionStorage.setItem('gh_malam_room',malamRoomId);malamSubscribe();malamLoadState();
@@ -7131,31 +7131,6 @@ window.malamCloseModal=function(){
   setTimeout(()=>malamOpenModal(next),180);
  }
 };
-/* Delegasi tombol Crew: tahan event tetap aktif meski Realtime merender ulang panel. */
-if(!window.__malamCrewUtilityHandlerBound){
- window.__malamCrewUtilityHandlerBound=true;
- document.addEventListener('pointerdown',function(e){
-  const button=e.target?.closest?.('#arena-play-panel .malam-utility-actions button');
-  if(!button)return;
-  const label=button.getAttribute('aria-label');
-  if(!['Peranku','Pemain','Buka chat pemain'].includes(label))return;
-  e.preventDefault();e.stopPropagation();
-  if(label==='Peranku')window.malamOpenModal('role');
-  else if(label==='Pemain')window.malamOpenModal('players');
-  else if(label==='Buka chat pemain')window.malamOpenChat();
- },true);
- document.addEventListener('keydown',function(e){
-  if(e.key!=='Enter'&&e.key!==' ')return;
-  const button=e.target?.closest?.('#arena-play-panel .malam-utility-actions button');
-  if(!button)return;
-  const label=button.getAttribute('aria-label');
-  if(!['Peranku','Pemain','Buka chat pemain'].includes(label))return;
-  e.preventDefault();e.stopPropagation();
-  if(label==='Peranku')window.malamOpenModal('role');
-  else if(label==='Pemain')window.malamOpenModal('players');
-  else if(label==='Buka chat pemain')window.malamOpenChat();
- },true);
-}
 function malamRender(s){
  const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no+':'+String(s.room.last_event||'');window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');if(ph==='discussion'&&s.my_role==='paranormal'&&s.investigation){const noticeKey=phaseKey+':'+s.investigation_name+':'+s.investigation;if(window.__malamInvestigationNoticeKey!==noticeKey){window.__malamInvestigationNoticeKey=noticeKey;setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',((s.investigation_name||'Pemain yang diperiksa')+' memiliki peran '+(malamRoles[s.investigation]?.[0]||s.investigation)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.'),'phase'),900);}}}
@@ -7214,10 +7189,18 @@ function malamRender(s){
  }
  if(r.phase!=='lobby'){
   window.__malamModalData={role:roleModalContent,players:playersModalContent,chat:chatModalContent};
-  const seenKey='gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id,showRole=!!role&&!sessionStorage.getItem(seenKey)&&window.__malamRoleRevealRoomKey!==malamRoomId;
-  if(showRole&&!window.__malamRoleRevealPending){window.__malamRoleRevealPending=true;let attempts=0;const revealRoleCard=()=>{const latest=window.__malamCurrentState,modal=document.getElementById('malam-modal');if(!latest||latest.room?.phase==='lobby'||!latest.my_role){window.__malamRoleRevealPending=false;return;}if(!malamRoles[latest.my_role]){window.__malamRoleRevealPending=false;return;}if(!modal||!document.getElementById('malam-modal-content')){if(++attempts<12){requestAnimationFrame(revealRoleCard);return;}window.__malamRoleRevealPending=false;return;}window.__malamModalData={...(window.__malamModalData||{}),role:roleModalContent};malamOpenModal('role');if(!modal.classList.contains('hidden')){sessionStorage.setItem(seenKey,'1');window.__malamRoleRevealRoomKey=malamRoomId;window.__malamRoleRevealPending=false;return;}if(++attempts<12)setTimeout(revealRoleCard,180);else window.__malamRoleRevealPending=false;};requestAnimationFrame(()=>setTimeout(revealRoleCard,180));}
-  const openModal=window.__malamModalType;
-  if(openModal&&['chat','role','players'].includes(openModal))setTimeout(()=>malamOpenModal(openModal),0);
+  const seenKey='gh_malam_role_seen_'+malamRoomId+'_'+activeUser.id;
+  if(role&&!sessionStorage.getItem(seenKey)&&window.__malamRoleRevealRoomKey!==malamRoomId){
+   window.__malamModalData.role=roleModalContent;
+   malamOpenModal('role');
+   const roleModal=document.getElementById('malam-modal');
+   if(roleModal&&!roleModal.classList.contains('hidden')){
+    sessionStorage.setItem(seenKey,'1');
+    window.__malamRoleRevealRoomKey=malamRoomId;
+   }
+  }
+  const openModal=window.__malamModalType,visibleModal=document.getElementById('malam-modal');
+  if(openModal&&['chat','role','players'].includes(openModal)&&(!visibleModal||visibleModal.classList.contains('hidden')))setTimeout(()=>malamOpenModal(openModal),0);
  }else{window.__malamModalData=null;window.__malamModalType=null;}
 
 }
