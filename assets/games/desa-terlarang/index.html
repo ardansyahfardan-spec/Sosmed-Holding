@@ -922,14 +922,22 @@ addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const joy=document.getElementById('joystick'),stick=document.getElementById('stick'),walkButton=document.getElementById('walk-button');let joyId=null,walkPointer=null;
 function setWalkHold(value){walkHold=!!value;if(walkHold)clearSprintHold();walkButton.classList.toggle('active',walkHold);walkButton.textContent=walkHold?'BERHENTI':'JALAN';}
-// Tombol JALAN memakai mode tekan-untuk-jalan (toggle), bukan harus ditahan.
-// Ini lebih andal di layar sentuh dan tetap bisa dihentikan dengan satu ketukan.
-walkButton.addEventListener('click',e=>{e.preventDefault();if(!running)return;setWalkHold(!walkHold);});
-joy.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();joyId=e.pointerId;try{joy.setPointerCapture(joyId);}catch(_){}joyMove(e);});
-joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e);});
-function joyMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy),scale=Math.min(1,48/(len||1));move.x=dx*scale/48;move.y=dy*scale/48;stick.style.transform='translate('+move.x*34+'px,'+move.y*34+'px)';updateSprintHold();}
-function joyEnd(e){if(e.pointerId===joyId){joyId=null;move.x=move.y=0;clearSprintHold();stick.style.transform='';}}
-joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);joy.addEventListener('lostpointercapture',joyEnd);
+// Tombol JALAN kembali ke pola tekan-tahan agar input tidak tertinggal setelah sentuhan.
+walkButton.addEventListener('pointerdown',e=>{if(!running||walkPointer!==null)return;e.preventDefault();walkPointer=e.pointerId;try{walkButton.setPointerCapture(e.pointerId);}catch(_){}setWalkHold(true);});
+function endWalkPointer(e){if(walkPointer===e.pointerId){walkPointer=null;setWalkHold(false);}}
+walkButton.addEventListener('pointerup',endWalkPointer);
+walkButton.addEventListener('pointercancel',endWalkPointer);
+walkButton.addEventListener('lostpointercapture',endWalkPointer);
+function joyMoveAt(clientX,clientY){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=clientX-cx,dy=clientY-cy,len=Math.hypot(dx,dy),scale=Math.min(1,48/(len||1));move.x=dx*scale/48;move.y=dy*scale/48;stick.style.transform='translate('+move.x*34+'px,'+move.y*34+'px)';updateSprintHold();}
+joy.addEventListener('pointerdown',e=>{if(!running||joyId!==null)return;e.preventDefault();joyId=e.pointerId;try{joy.setPointerCapture(joyId);}catch(_){}joyMoveAt(e.clientX,e.clientY);});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMoveAt(e.clientX,e.clientY);});
+function joyEndPointer(e){if(e.pointerId===joyId){joyId=null;move.x=move.y=0;clearSprintHold();stick.style.transform='';}}
+joy.addEventListener('pointerup',joyEndPointer);joy.addEventListener('pointercancel',joyEndPointer);joy.addEventListener('lostpointercapture',joyEndPointer);
+// Fallback sentuhan untuk WebView yang tidak meneruskan PointerEvent dengan konsisten.
+joy.addEventListener('touchstart',e=>{if(!running||joyId!==null)return;e.preventDefault();const t=e.changedTouches[0];if(!t)return;joyId='touch:'+t.identifier;joyMoveAt(t.clientX,t.clientY);},{passive:false});
+joy.addEventListener('touchmove',e=>{if(typeof joyId!=='string'||!joyId.startsWith('touch:'))return;e.preventDefault();const id=Number(joyId.slice(6));for(const t of e.changedTouches){if(t.identifier===id){joyMoveAt(t.clientX,t.clientY);break;}}},{passive:false});
+function joyEndTouch(e){if(typeof joyId!=='string'||!joyId.startsWith('touch:'))return;const id=Number(joyId.slice(6));for(const t of e.changedTouches){if(t.identifier===id){joyId=null;move.x=move.y=0;clearSprintHold();stick.style.transform='';break;}}}
+joy.addEventListener('touchend',joyEndTouch,{passive:false});joy.addEventListener('touchcancel',joyEndTouch,{passive:false});
 function releaseAllControls(){keys={};move.x=move.y=0;joyId=null;walkPointer=null;clearSprintHold();setWalkHold(false);const stickEl=document.getElementById('stick');if(stickEl)stickEl.style.transform='';}
 addEventListener('blur',releaseAllControls);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAllControls();});
