@@ -490,7 +490,7 @@ const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 let missionCompleted=false;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
-let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpRefreshBusy=false;
+let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0,mpPresenceClock=0,mpRefreshBusy=false;
 const mpRemotePlayers=new Map();let mpRoomBusy=false;
 const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
 function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
@@ -740,8 +740,12 @@ function mpApplySavedGameState(state){
 }
 function mpBroadcastPlayer(dt){
  if(!mpChannel||!mpGameStarted)return;
- mpSendClock+=dt;if(mpSendClock<.12)return;mpSendClock=0;
- mpChannel.send({type:'broadcast',event:'player_state',payload:{user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(move.x,move.y)>.08,sprinting:isSprinting,prone:isProne}}).catch(()=>{});
+ const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(move.x,move.y)>.08,sprinting:isSprinting,prone:isProne};
+ mpSendClock+=dt;
+ if(mpSendClock>=.12){mpSendClock=0;mpChannel.send({type:'broadcast',event:'player_state',payload}).catch(()=>{});}
+ // Presence menyimpan pose terbaru agar pemain yang baru bergabung tidak melihat posisi awal yang sudah kedaluwarsa.
+ mpPresenceClock+=dt;
+ if(mpPresenceClock>=1.2){mpPresenceClock=0;mpChannel.track(payload).catch(error=>console.warn('Pembaruan presence pemain gagal:',error));}
 }
 function mpUpdateRemotePlayers(dt){
  for(const remote of mpRemotePlayers.values()){
