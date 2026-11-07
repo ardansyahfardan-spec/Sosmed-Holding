@@ -2962,6 +2962,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                             });
                             if (window.supabase && typeof window.supabase.createClient === 'function') {
                                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                                window.__ghoustorySupabaseClient = supabaseClient;
                                 return supabaseClient;
                             }
                         } catch (error) { console.warn(error.message); }
@@ -2971,6 +2972,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             }
             return supabaseSdkLoadPromise;
         }
+        // API satu-origin untuk iframe game: tunggu sampai client utama benar-benar siap.
+        window.__getGhoustorySupabaseClient = ensureSupabaseClient;
 
         // ================= STRUKTUR DATA DALAM MEMORI + DATABASE CLOUD =================
         const DEFAULT_DB = {
