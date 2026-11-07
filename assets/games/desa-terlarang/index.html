@@ -13,7 +13,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 canvas{display:block;width:100%;height:100%}
 #hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
 #exitgame{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;pointer-events:auto;width:44px;height:44px;border-radius:14px;border:1px solid #ffffff55;background:#080d18dd;color:#fff;font-size:23px;line-height:1;box-shadow:0 5px 20px #0009;z-index:4}
-#camera-toggle{position:absolute;top:calc(64px + env(safe-area-inset-top));left:12px;pointer-events:auto;padding:9px 11px;border-radius:11px;border:1px solid #ffffff55;background:#080d18dd;color:#fff;font-size:10px;font-weight:900;letter-spacing:.04em;box-shadow:0 5px 20px #0009;z-index:4}#camera-toggle:active{background:#26364e}\n#hud .top{padding-left:54px}
+#camera-toggle{position:absolute;top:calc(64px + env(safe-area-inset-top));left:12px;pointer-events:auto;padding:9px 11px;border-radius:11px;border:1px solid #ffffff55;background:#080d18dd;color:#fff;font-size:10px;font-weight:900;letter-spacing:.04em;box-shadow:0 5px 20px #0009;z-index:4}#camera-toggle:active{background:#26364e}
+#hud .top{padding-left:54px}
 #rotate{display:none;position:fixed;inset:0;z-index:20;background:#070b13;color:white;align-items:center;justify-content:center;text-align:center;padding:28px;font-weight:800}
 @media(orientation:portrait) and (max-width:900px){#rotate{display:flex}#hud,#start,#ending{visibility:hidden}}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -50,7 +51,8 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 <div id="game"></div>
 <div id="rotate">PUTAR PONSEL KE POSISI LANDSCAPE<br><span style="font-size:13px;font-weight:500;color:#cbd5e1">GHOUSTORY: DESA TERLARANG dimainkan dalam layar mendatar.</span></div>
 <div id="hud">
- <button id="exitgame" aria-label="Kembali ke Arena" title="Kembali ke Arena">‹</button>\n <button id="camera-toggle" type="button" aria-label="Ganti sudut kamera">KAMERA: FPS</button>
+ <button id="exitgame" aria-label="Kembali ke Arena" title="Kembali ke Arena">‹</button>
+ <button id="camera-toggle" type="button" aria-label="Ganti sudut kamera">KAMERA: FPS</button>
  <div class="top">
   <div class="panel"><div class="kicker">GHOUSTORY · CHAPTER 01</div><h1>DESA TERLARANG</h1><div id="objective">Cari petunjuk di sekitar desa.</div><div id="status">Malam Penutupan · 00.13</div></div>
   <div class="panel" style="text-align:right"><div class="kicker">BUKTI DITEMUKAN</div><div id="cluecount">0 / 3</div><button id="audio" aria-label="Kontrol audio" aria-expanded="false" title="Kontrol audio">🔊</button><div id="audio-menu" hidden><button id="audio-bgm" type="button">♫ BGM: MATI</button><button id="audio-voice" type="button">🎙 PEMANDU: MATI</button></div></div>
@@ -159,7 +161,11 @@ function lamp(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
 lamp(-5,-5);lamp(6,-21);lamp(-15,18);lamp(18,6);
 const well=new THREE.Group();well.position.set(8,0,2);scene.add(well);cylinder(well,0,.45,0,1.35,1.5,.9,mat(0x45484a),9);cylinder(well,0,.95,0,1.05,1.05,.12,mat(0x080b10),9);box(well,0,2,0,.18,2.3,.18,wood2);box(well,0,3.05,0,2.4,.18,.18,wood2);
 const pendopo=new THREE.Group();pendopo.position.set(0,0,-34);scene.add(pendopo);box(pendopo,0,.25,0,13,.5,10,wood2);for(let x of [-5.5,5.5])for(let z of [-4,4])box(pendopo,x,2.1,z,.35,4.2,.35,wood2);box(pendopo,0,4.35,0,14,.3,11,roof);box(pendopo,0,4.9,0,9,.9,7,roof);
-const player=new THREE.Group();scene.add(player);player.position.set(0,0,24);\nlet cameraMode='first';\nconst cameraToggle=document.getElementById('camera-toggle');\nfunction setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}\ncameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
+const player=new THREE.Group();scene.add(player);player.position.set(0,0,24);
+let cameraMode='first';
+const cameraToggle=document.getElementById('camera-toggle');
+function setCameraMode(mode){cameraMode=mode==='third'?'third':'first';player.visible=cameraMode==='third';equipment.visible=cameraMode==='first';cameraToggle.textContent=cameraMode==='first'?'KAMERA: FPS':'KAMERA: TPS';cameraToggle.setAttribute('aria-label',cameraMode==='first'?'Ganti ke kamera Third Person':'Ganti ke kamera First Person');}
+cameraToggle.addEventListener('click',()=>setCameraMode(cameraMode==='first'?'third':'first'));
 
 const body=mat(0x263b55),pants=mat(0x20232c),face=mat(0xcaa78c),eye=mat(0x090b10);
 const torso=box(player,0,1.35,0,.85,1.05,.48,body),head=box(player,0,2.2,0,.65,.65,.62,face);
@@ -312,7 +318,14 @@ function updateGhosts(dt){
 function updateClues(){near=null;let best=2.7;for(const c of clues){if(c.found)continue;const d=distance(player.position,c.g.position);if(d<best){best=d;near={kind:'clue',item:c};}}
  const gd=distance(player.position,{x:0,z:-40});if(gd<3.8&&gd<best+1){near={kind:'gate'};}
  interact.style.opacity=near?'1':'.55';interact.textContent=near?(near.kind==='gate'?'BUKA':'PERIKSA'):'CARI';interact.disabled=!near;interact.setAttribute('aria-label',near?'Periksa objek':'Dekati petunjuk');}
-function updateCamera(dt){\n if(cameraMode==='first'){const eyeHeight=isProne?1.02:1.62;camera.position.set(player.position.x,player.position.y+eyeHeight,player.position.z);camera.rotation.order='YXZ';camera.rotation.y=cameraYaw;camera.rotation.x=cameraPitch;return;}\n const target=new THREE.Vector3(player.position.x,player.position.y+(isProne?.85:1.35),player.position.z);\n const distance=isProne?4.1:5.2, pitch=THREE.MathUtils.clamp(cameraPitch,-.35,.55), horizontal=Math.cos(pitch)*distance;\n const desired=new THREE.Vector3(target.x+Math.sin(cameraYaw)*horizontal,target.y+1.15+Math.sin(pitch)*distance,target.z+Math.cos(cameraYaw)*horizontal);\n camera.position.lerp(desired,Math.min(1,dt*10));camera.lookAt(target);\n if(Math.hypot(move.x,move.y)<.08&&!keys.w&&!keys.a&&!keys.s&&!keys.d&&!keys.arrowup&&!keys.arrowdown&&!keys.arrowleft&&!keys.arrowright)player.rotation.y=cameraYaw+Math.PI;\n}
+function updateCamera(dt){
+ if(cameraMode==='first'){const eyeHeight=isProne?1.02:1.62;camera.position.set(player.position.x,player.position.y+eyeHeight,player.position.z);camera.rotation.order='YXZ';camera.rotation.y=cameraYaw;camera.rotation.x=cameraPitch;return;}
+ const target=new THREE.Vector3(player.position.x,player.position.y+(isProne?.85:1.35),player.position.z);
+ const distance=isProne?4.1:5.2, pitch=THREE.MathUtils.clamp(cameraPitch,-.35,.55), horizontal=Math.cos(pitch)*distance;
+ const desired=new THREE.Vector3(target.x+Math.sin(cameraYaw)*horizontal,target.y+1.15+Math.sin(pitch)*distance,target.z+Math.cos(cameraYaw)*horizontal);
+ camera.position.lerp(desired,Math.min(1,dt*10));camera.lookAt(target);
+ if(Math.hypot(move.x,move.y)<.08&&!keys.w&&!keys.a&&!keys.s&&!keys.d&&!keys.arrowup&&!keys.arrowdown&&!keys.arrowleft&&!keys.arrowright)player.rotation.y=cameraYaw+Math.PI;
+}
 const cameraSurface=document.getElementById('game');
 cameraSurface.addEventListener('pointerdown',e=>{if(!running||e.clientX<innerWidth*.34||e.target.closest('button')||e.target.closest('#joystick'))return;cameraPointer=e.pointerId;lastCameraX=e.clientX;lastCameraY=e.clientY;try{cameraSurface.setPointerCapture(cameraPointer);}catch(_){}});
 cameraSurface.addEventListener('pointermove',e=>{if(e.pointerId!==cameraPointer)return;const dx=e.clientX-lastCameraX,dy=e.clientY-lastCameraY;lastCameraX=e.clientX;lastCameraY=e.clientY;cameraYaw-=dx*.006;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.004,-1.15,1.15);});
