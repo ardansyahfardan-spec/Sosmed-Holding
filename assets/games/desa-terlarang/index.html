@@ -90,7 +90,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
    <input id="mp-room-code" class="mp-input" maxlength="6" placeholder="6 KARAKTER" autocomplete="off">
   </div>
   <div id="mp-room-controls">
-   <div class="mp-player" style="align-items:center"><span class="small">KODE ROOM</span><strong id="mp-room-code-display" style="font-size:18px;letter-spacing:.2em;color:#fca5a5">------</strong></div>
+   <div class="mp-player" style="align-items:center;flex-wrap:wrap"><span class="small">KODE ROOM</span><strong id="mp-room-code-display" style="font-size:18px;letter-spacing:.2em;color:#fca5a5">------</strong><button id="mp-copy-code" class="mp-action" type="button" style="margin-left:auto;padding:7px 10px">SALIN KODE</button></div>
    <p class="small" style="margin-top:12px">PEMAIN DI DALAM ROOM</p>
    <ul id="mp-player-list"></ul>
    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
@@ -481,7 +481,7 @@ const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
 const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
 let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0;
-const mpRemotePlayers=new Map();
+const mpRemotePlayers=new Map();let mpRoomBusy=false;
 const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
 function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
 function mpNicknameValue(){return (document.getElementById('mp-nickname').value||'').trim().slice(0,24);}
@@ -521,6 +521,22 @@ async function mpInit(){
 }
 function mpOpen(){mpPanel.classList.add('open');mpPanel.setAttribute('aria-hidden','false');mpInit();}
 function mpClosePanel(){if(!mpRoomId){mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');}}
+function mpSetRoomBusy(busy,label='MEMPROSES...'){
+ mpRoomBusy=!!busy;
+ const create=document.getElementById('mp-create'),join=document.getElementById('mp-join');
+ create.disabled=join.disabled=mpRoomBusy||!mpUser;
+ create.textContent=mpRoomBusy&&label==='MEMBUAT ROOM...'?'MEMBUAT...':'BUAT ROOM';
+ join.textContent=mpRoomBusy&&label==='MENGGABUNG ROOM...'?'MENGGABUNG...':'GABUNG ROOM';
+}
+async function mpCopyRoomCode(){
+ const code=document.getElementById('mp-room-code-display').textContent.trim();
+ if(!/^[A-Z0-9]{6}$/.test(code)){mpMessage('Kode room belum tersedia.',true);return;}
+ try{
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(code);
+  else{const field=document.createElement('textarea');field.value=code;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const ok=document.execCommand('copy');field.remove();if(!ok)throw new Error('Clipboard tidak tersedia di browser ini.');}
+  mpMessage('Kode '+code+' berhasil disalin. Kirim ke temanmu.');
+ }catch(error){mpMessage('Tidak bisa menyalin otomatis. Kode room: '+code,true);}
+}
 function mpRenderRoom(){
  if(!mpRoomData)return;
  document.getElementById('mp-room-code-display').textContent=mpRoomData.room.code;
@@ -591,26 +607,36 @@ async function mpConnectRoom(roomId){
  await mpRefreshRoom();
 }
 async function mpCreateRoom(){
+ if(mpRoomBusy)return;
+ mpSetRoomBusy(true,'MEMBUAT ROOM...');
  try{
   if(!await mpInit())return;
-  const nickname=mpNicknameValue();if(nickname.length<2){mpMessage('Nama pemain minimal 2 karakter.',true);return;}
-  mpNickname=nickname;mpMessage('Membuat room...');
+  const nickname=mpNicknameValue();if(nickname.length<2)throw new Error('Nama pemain minimal 2 karakter.');
+  mpNickname=nickname;mpMessage('Menghubungkan ke server dan membuat room...');
   const {data,error}=await mpClient.rpc('desa_create_room',{p_nickname:nickname});
   if(error)throw error;
-  if(!data?.room_id||!data?.code)throw new Error('Server belum mengembalikan kode room. Coba muat ulang lalu ulangi.');
+  if(!data?.room_id||!data?.code)throw new Error('Server belum mengembalikan kode room. Muat ulang panel dan coba lagi.');
   await mpConnectRoom(data.room_id);
-  mpMessage('Room berhasil dibuat. Kode room: '+data.code);
- }catch(error){console.error('Gagal membuat room:',error);mpMessage(error.message||'Room gagal dibuat. Periksa koneksi dan sesi login.',true);}
+  mpMessage('Room berhasil dibuat. Kode '+data.code+' siap dibagikan.');
+ }catch(error){console.error('Gagal membuat room:',error);mpMessage(error?.message||'Room gagal dibuat. Periksa koneksi dan sesi login.',true);}
+ finally{mpSetRoomBusy(false);}
 }
 async function mpJoinRoom(){
- if(!await mpInit())return;
- const nickname=mpNicknameValue(),code=(document.getElementById('mp-room-code').value||'').trim().toUpperCase();
- if(nickname.length<2){mpMessage('Nama pemain minimal 2 karakter.',true);return;}
- if(!/^[A-Z0-9]{6}$/.test(code)){mpMessage('Masukkan kode room 6 karakter.',true);return;}
- mpNickname=nickname;mpMessage('Mencari room '+code+'...');
- const {data,error}=await mpClient.rpc('desa_join_room',{p_code:code,p_nickname:nickname});
- if(error){mpMessage(error.message,true);return;}
- await mpConnectRoom(data.room_id);
+ if(mpRoomBusy)return;
+ mpSetRoomBusy(true,'MENGGABUNG ROOM...');
+ try{
+  if(!await mpInit())return;
+  const nickname=mpNicknameValue(),code=(document.getElementById('mp-room-code').value||'').trim().toUpperCase();
+  if(nickname.length<2)throw new Error('Nama pemain minimal 2 karakter.');
+  if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('Masukkan kode room 6 karakter.');
+  mpNickname=nickname;mpMessage('Mencari room '+code+'...');
+  const {data,error}=await mpClient.rpc('desa_join_room',{p_code:code,p_nickname:nickname});
+  if(error)throw error;
+  if(!data?.room_id)throw new Error('Server tidak mengembalikan ID room.');
+  await mpConnectRoom(data.room_id);
+  mpMessage('Berhasil bergabung ke room '+code+'.');
+ }catch(error){console.error('Gagal bergabung room:',error);mpMessage(error?.message||'Gagal bergabung. Periksa kode dan koneksi.',true);}
+ finally{mpSetRoomBusy(false);}
 }
 async function mpSetReady(){
  if(!mpRoomId)return;
@@ -822,6 +848,7 @@ document.getElementById('begin').addEventListener('click',async()=>{await enterI
 document.getElementById('multiplayer-open').addEventListener('click',mpOpen);
 document.getElementById('mp-close').addEventListener('click',mpClosePanel);
 document.getElementById('mp-create').addEventListener('click',mpCreateRoom);
+document.getElementById('mp-copy-code').addEventListener('click',mpCopyRoomCode);
 document.getElementById('mp-join').addEventListener('click',mpJoinRoom);
 document.getElementById('mp-ready').addEventListener('click',mpSetReady);
 document.getElementById('mp-start').addEventListener('click',mpStartAsHost);
