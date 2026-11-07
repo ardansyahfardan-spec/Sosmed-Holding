@@ -6802,7 +6802,18 @@ window.malamTrialNight=function(force){
  malamTrialCheck();malamTrialRender();
  if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else malamNotify('PAGI TIBA',event,'phase');
 };
-window.malamTrialVotePhase=function(){const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');malamTrialRender();malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');};
+window.malamTrialVotePhase=function(){
+ const s=window.__malamTrial;if(!s||s.phase!=='discussion')return;
+ s.phase='voting';s.phaseStartedAt=Date.now();s.selected=null;s.modal=null;s.aiVoteChoices={};
+ const alive=s.players.filter(p=>p.alive);
+ alive.filter(p=>p.isAI).forEach(voter=>{
+  const options=alive.filter(x=>x.id!==voter.id);if(!options.length)return;
+  const ranked=options.map(x=>{let score=(x.suspicion||0)+(Math.random()*.9);if(x.role==='siluman')score+=Math.random()*.55;if(x.id==='t0'&&s.players[0].role!=='siluman'&&Math.random()<.18)score+=.45;if(x.role==='siluman'&&voter.role==='siluman')score-=.45;return {x,score};}).sort((a,b)=>b.score-a.score);
+  s.aiVoteChoices[voter.id]=(Math.random()<.24?options[Math.floor(Math.random()*options.length)]:ranked[0].x).id;
+ });
+ s.lastEvent='Warga harus menentukan siapa yang paling dicurigai.';s.log.push('Diskusi selesai. Voting dibuka.');
+ malamTrialRender();malamNotify('VOTING DIBUKA','Waktu voting dimulai. Tentukan siapa yang kamu curigai.','phase');
+};
 window.malamTrialVote=function(force){
  const s=window.__malamTrial;if(!s||s.phase!=='voting'||!s.players[0]?.alive||(!s.selected&&!force))return;
  const alive=s.players.filter(p=>p.alive),target=s.selected;
@@ -6810,19 +6821,7 @@ window.malamTrialVote=function(force){
  const tally={};const votes=[];
  const cast=(voter,choice)=>{if(choice&&alive.some(p=>p.id===choice&&choice!==voter.id)){tally[choice]=(tally[choice]||0)+1;votes.push({voter:voter.name,target:choice});}};
  if(target)cast(s.players[0],target);
- alive.filter(p=>p.isAI).forEach(p=>{
-  const options=alive.filter(x=>x.id!==p.id);
-  if(!options.length)return;
-  const ranked=options.map(x=>{
-   let score=(x.suspicion||0)+(Math.random()*.9);
-   if(x.role==='siluman')score+=Math.random()*.55;
-   if(x.id==='t0'&&s.players[0].role!=='siluman'&&Math.random()<.18)score+=.45;
-   if(x.role==='siluman'&&p.role==='siluman')score-=.45;
-   return {x,score};
-  }).sort((a,b)=>b.score-a.score);
-  const pick=Math.random()<.24?options[Math.floor(Math.random()*options.length)]:ranked[0].x;
-  cast(p,pick.id);
- });
+ alive.filter(p=>p.isAI).forEach(p=>cast(p,s.aiVoteChoices?.[p.id]||null));
  const ordered=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
  const top=ordered[0],tied=ordered.filter(x=>x[1]===top?.[1]);
  let out=null;
@@ -6865,7 +6864,7 @@ window.malamTrialRender=function(){
  }else{
   action='<div class="rounded-2xl border border-yellow-700/50 bg-yellow-950/20 p-4 text-center"><i class="fa-solid fa-trophy text-3xl text-yellow-300"></i><h3 class="text-lg font-bold mt-2">'+(s.winner==='warga'?'Kubu Warga Menang':'Kubu Siluman Menang')+'</h3><p class="text-xs text-gray-300 mt-1">'+esc(s.lastEvent)+'</p><div class="space-y-1 text-left mt-3">'+s.players.map(x=>'<div class="rounded-lg bg-gray-900 p-2 text-xs flex justify-between"><span>'+esc(x.name)+'</span><b class="text-red-200">'+malamRoles[x.role][0]+' · '+(x.alive?'Hidup':'Gugur')+'</b></div>').join('')+'</div><button onclick="malamTrialStart()" class="w-full rounded-xl bg-yellow-800 py-3 mt-4 text-xs font-bold">Main Lagi</button><button onclick="malamTrialExit()" class="w-full rounded-xl border border-gray-700 py-3 mt-2 text-xs">Kembali ke Menu</button></div>';
  }
- const arenaPlayers=s.players.map(x=>({...x,nickname:x.name,is_alive:x.alive,avatar_url:x.avatar_url||'',user_id:x.id,is_ready:true,is_protected:s.phase==='night'&&((me.role==='penjaga'&&s.selected===x.id)||s.aiProtectedTarget===x.id),suspicion_from:s.phase==='voting'&&s.selected===x.id?['t0']:[]}));
+ const arenaPlayers=s.players.map(x=>({...x,nickname:x.name,is_alive:x.alive,avatar_url:x.avatar_url||'',user_id:x.id,is_ready:true,is_protected:s.phase==='night'&&((me.role==='penjaga'&&s.selected===x.id)||s.aiProtectedTarget===x.id),suspicion_from:s.phase==='voting'?s.players.filter(v=>v.alive&&((v.id==='t0'&&s.selected===x.id)||(v.isAI&&s.aiVoteChoices?.[v.id]===x.id))).map(v=>v.id):[]}));
  const trialTeamIds=me.alive&&me.role==='siluman'&&s.phase==='night'?s.players.filter(x=>x.alive&&x.role==='siluman').map(x=>x.id):[];
  const arena=malamArenaMarkup(arenaPlayers,s.phase,trialTeamIds,{ownId:'t0',role:me.role,alive:me.alive,investigationDone:!!s.investigation,selectedTarget:s.selected});
  const tracker='<div class="flex items-center justify-between gap-1 mb-4 px-1">'+phases.map((x,i)=>'<div class="flex min-w-0 flex-1 flex-col items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full '+(i===idx?'bg-red-400 ring-4 ring-red-500/15':i<idx?'bg-blue-400':'bg-gray-700')+'"></span><span class="text-[8px] tracking-wide whitespace-nowrap '+(i===idx?'text-red-200 font-bold':i<idx?'text-blue-200':'text-gray-600')+'">'+x+'</span></div>').join('')+'</div>';
