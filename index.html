@@ -6638,7 +6638,31 @@ window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
  if(window.__malamResultAudioKey!==key){window.__malamResultAudioKey=key;setTimeout(()=>window.malamPlayResultAudio(outcome,winner),350);}
  return '<div id="malam-result-popup" class="fixed inset-0 z-[10020] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onclick="if(event.target===this)this.remove()"><div class="relative w-full max-w-sm overflow-hidden rounded-3xl border '+(won?'border-amber-400/60':'border-red-500/50')+' bg-gradient-to-b from-[#171923] via-[#101116] to-black p-5 text-center shadow-2xl"><div class="absolute inset-x-0 top-0 h-1 '+(won?'bg-gradient-to-r from-amber-600 via-yellow-200 to-amber-600':'bg-gradient-to-r from-red-900 via-red-400 to-red-900')+'"></div><img src="./assets/images/malam-terlarang/results/'+(won?'Menang.JPG':'Kalah.JPG')+'" alt="'+(won?'Ilustrasi kemenangan':'Ilustrasi kekalahan')+'" class="mx-auto mb-3 max-h-48 w-full rounded-xl object-contain" loading="eager"><div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full '+(won?'bg-amber-400/10 text-amber-300 ring-1 ring-amber-300/40':'bg-red-500/10 text-red-300 ring-1 ring-red-400/40')+'"><i class="fa-solid '+(won?'fa-trophy':'fa-skull-crossbones')+' text-4xl"></i></div><p class="mt-4 text-[10px] font-black tracking-[.35em] '+(won?'text-amber-300':'text-red-300')+'">'+(won?'KEMENANGAN':'KEKALAHAN')+'</p><h2 class="mt-2 text-2xl font-black text-white">'+(won?'KAMU MENANG':'KAMU KALAH')+'</h2><p class="mt-1 text-sm font-bold '+(won?'text-amber-200':'text-red-200')+'">'+title+'</p><p class="mt-3 text-xs leading-relaxed text-gray-300">'+(won?'Perjuanganmu menentukan nasib desa malam ini.':'Malam ini bukan milikmu. Permainan telah berakhir.')+'</p><div class="mt-4 max-h-36 space-y-1 overflow-y-auto text-left">'+people+'</div><button onclick="window.malamPlayResultAudio(\''+outcome+'\',\''+winner+'\')" class="mt-4 w-full rounded-xl border border-gray-600 bg-gray-800/80 py-3 text-xs font-bold text-white"><i class="fa-solid fa-volume-high mr-2"></i>Putar audio hasil</button><button onclick="document.getElementById(\'malam-result-popup\')?.remove()" class="mt-2 w-full rounded-xl '+(won?'bg-amber-700':'bg-red-900')+' py-3 text-sm font-black text-white">LANJUT</button></div></div>';
 };
-window.malamAudioOnPhase=function(){ /* Pemandu tidak mengumumkan pergantian fase. */ };
+window.malamAudioOnPhase=function(mode,phase,round,event,winner){
+ const a=window.__malamAudioState;if(!a||!a.voice||!phase)return;
+ const key=String(mode)+':'+String(phase)+':'+String(round||0);
+ if(a.lastPhase===key)return;
+ a.lastPhase=key;
+ const trial=window.__malamTrial;
+ const state=window.__malamCurrentState;
+ const role=mode==='trial'?trial?.players?.[0]?.role:state?.my_role;
+ let line='';
+ if(phase==='lobby') line='Ruang persiapan. Pastikan seluruh pemain sudah bergabung dan menekan tombol siap. Permainan akan dimulai setelah semua siap.';
+ else if(phase==='night'){
+  line='Malam telah tiba. Semua warga diminta terlelap dan tidak membocorkan identitas.';
+  if(role==='siluman')line+=' Siluman, pilih satu korban melalui profil pemain. Kalian harus menentukan pilihan sebelum malam berakhir.';
+  else if(role==='paranormal')line+=' Paranormal, pilih satu pemain untuk diperiksa. Kamu hanya boleh memeriksa satu orang malam ini.';
+  else if(role==='penjaga')line+=' Penjaga, pilih satu pemain untuk dilindungi. Kamu boleh melindungi diri sendiri.';
+  else line+=' Warga biasa, kamu tidak memiliki aksi malam. Tunggu hingga pagi tiba.';
+ }else if(phase==='discussion'){
+  line='Pagi telah tiba. Dengarkan pengumuman kejadian malam tadi. Sekarang waktunya berdiskusi, menyampaikan alibi, dan membahas siapa yang dicurigai. Gunakan kolom chat untuk mengirim pesan. Pesan akan muncul di dekat profilmu.';
+ }else if(phase==='voting'){
+  line='Waktu diskusi selesai. Voting telah dibuka. Klik profil pemain yang kamu curigai untuk memberikan suara. Kamu masih dapat mengganti pilihan selama voting berlangsung. Gunakan chat untuk membela diri atau menanggapi tuduhan.';
+ }else if(phase==='finished'){
+  line=winner==='siluman'?'Permainan selesai. Kubu Siluman memenangkan permainan. Seluruh peran kini akan terungkap.':'Permainan selesai. Kubu Warga memenangkan permainan. Seluruh Siluman berhasil disingkirkan. Terima kasih telah bermain Malam Terlarang.';
+ }
+ if(line)window.malamAudioSpeak(line);
+};
 window.malamAudioStop=function(){
  const a=window.__malamAudioState;if(window.speechSynthesis)window.speechSynthesis.cancel();
  a.voice=false;a.voicePending=0;a.voiceQueue=[];a.voiceSpeaking=false;a.introPlayed=false;a.bgm=false;if(a.audio){a.audio.pause();a.audio.currentTime=0;}a.lastPhase='';window.malamAudioRefreshControls();
@@ -6663,8 +6687,8 @@ window.malamTrialStart=async function(total){
  clearInterval(window.__malamTrialInterval);
  total=Math.max(4,Math.min(10,Number(total)||8));
  const names=['Kamu','Raka','Mira','Bimo','Sinta','Damar','Naya','Jati','Laras','Bagas'];
- const wolfCount=2;
- const roles=['siluman','siluman','paranormal','penjaga',...Array(total-4).fill('warga')];
+ const wolfCount=total>=9?3:2;
+ const roles=[...Array(wolfCount).fill('siluman'),'paranormal','penjaga',...Array(total-wolfCount-2).fill('warga')];
  for(let i=roles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[roles[i],roles[j]]=[roles[j],roles[i]];}
  const setup=document.getElementById('malam-trial-setup');if(setup)setup.remove();
  let avatar='';
