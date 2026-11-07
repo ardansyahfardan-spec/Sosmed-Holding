@@ -264,7 +264,6 @@ button:active{transform:scale(.97);background:#273650}
   if(multiplayer&&t-lastBroadcast>100){
    lastBroadcast=t;
    multiplayer.send({type:'broadcast',event:'move',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,moving}});
-   multiplayer.track({player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,online_at:new Date().toISOString()});
   }
   remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
