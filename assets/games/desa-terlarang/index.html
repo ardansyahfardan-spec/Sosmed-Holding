@@ -45,7 +45,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
 #audio{pointer-events:auto;border:1px solid #ffffff45;background:#080d18eF;color:#fff;border-radius:50%;width:38px;height:38px;font-size:17px;margin-top:5px}#audio-menu{position:absolute;right:12px;top:82px;z-index:30;display:flex;flex-direction:column;gap:7px;padding:9px;border:1px solid #ffffff35;border-radius:13px;background:#080d18f2;box-shadow:0 8px 24px #0009}#audio-menu[hidden]{display:none}#audio-menu button{pointer-events:auto;white-space:nowrap;border:1px solid #ffffff24;border-radius:9px;background:#101a2b;color:#f1f5f9;padding:9px 12px;font-size:10px;text-align:left}
 @media(hover:none),(pointer:coarse){#joystick,#interact{display:block}}
 @media(max-width:420px){.panel{padding:8px 9px}h1{font-size:12px}#objective{font-size:10px}}
-#inventory{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:5px;pointer-events:auto;padding:6px;border:1px solid #ffffff35;border-radius:14px;background:#080d18d9;backdrop-filter:blur(8px)}.toolslot{width:46px;height:46px;border:1px solid #ffffff35;border-radius:10px;background:#111b2a;color:#e5e7eb;font-size:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.toolslot small{font-size:8px}.toolslot.selected{border-color:#fbbf24;box-shadow:0 0 14px #f59e0b66;background:#3b2c19}#flashlight-toggle{position:absolute;right:18px;top:calc(132px + env(safe-area-inset-top));pointer-events:auto;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff55;background:#101a2b;color:white;font-size:18px}#flashlight-toggle.active{border-color:#fbbf24;box-shadow:0 0 16px #fbbf2466}@media(max-width:420px){.toolslot{width:40px;height:43px}#inventory{gap:3px;padding:5px}}</style>
+#inventory{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:5px;pointer-events:auto;padding:6px;border:1px solid #ffffff35;border-radius:14px;background:#080d18d9;backdrop-filter:blur(8px)}.toolslot{width:46px;height:46px;border:1px solid #ffffff35;border-radius:10px;background:#111b2a;color:#e5e7eb;font-size:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.toolslot small{font-size:8px}.toolslot.selected{border-color:#fbbf24;box-shadow:0 0 14px #f59e0b66;background:#3b2c19}#flashlight-toggle{position:absolute;right:18px;top:calc(132px + env(safe-area-inset-top));pointer-events:auto;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff55;background:#101a2b;color:white;font-size:18px}#flashlight-toggle.active{border-color:#fbbf24;box-shadow:0 0 16px #fbbf2466}@media(max-width:420px){.toolslot{width:40px;height:43px}#inventory{gap:3px;padding:5px}}#multiplayer-panel{position:fixed;inset:0;z-index:12;display:none;align-items:center;justify-content:center;padding:18px;background:#05070bf2;overflow:auto}#multiplayer-panel.open{display:flex}#multiplayer-panel .card{max-height:92vh;overflow:auto}.mp-input{width:100%;border:1px solid #475569;background:#080f1c;color:#fff;border-radius:10px;padding:12px;font-size:14px;outline:none}.mp-action{border:1px solid #ffffff35;border-radius:10px;padding:11px 12px;background:#172337;color:#fff;font-size:11px;font-weight:800}.mp-action:disabled{opacity:.38;cursor:not-allowed}.mp-primary{background:linear-gradient(100deg,#991b1b,#1d4ed8);border-color:#ffffff55}.mp-player{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid #ffffff18;border-radius:10px;background:#080e19;margin-top:6px;font-size:11px}.mp-status{min-height:32px;font-size:11px;color:#fca5a5;line-height:1.45}#multiplayer-open{margin-top:8px;background:#172337;border:1px solid #64748b;width:100%;border-radius:12px;padding:12px;color:#e2e8f0;font-size:11px;font-weight:900}#mp-room-code{letter-spacing:.18em;text-transform:uppercase;text-align:center;font-weight:900}#mp-player-list{padding:0;list-style:none;margin:8px 0}#mp-room-controls{display:none}#mp-room-controls.show{display:block}</style>
 </head>
 <body>
 <div id="game"></div>
@@ -71,8 +71,38 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <p>Wanasetra menghilang dari peta sejak Malam Penutupan. Tim dokumentasi terakhir mengirim satu pesan: <i>“Kami menemukan desa itu. Tapi sepertinya ada yang tidak ingin kami pulang.”</i></p>
  <p><b>Misi pertama:</b> temukan tiga bukti di sekitar desa, lalu cari jalan menuju balai desa. Jangan biarkan para penghuni malam mendekat.</p>
  <p class="small">PC: WASD / tombol panah untuk bergerak, mouse untuk melihat, 1–4 untuk perlengkapan, F untuk senter, V untuk ganti kamera FPS/TPS, SPACE untuk lompat, C untuk tiarap, E untuk memeriksa. Ponsel: joystick kiri (tahan arah atas penuh 2 detik untuk berlari), geser area layar untuk melihat, pilih perlengkapan dari slot bawah, tombol KAMERA untuk berganti FPS/TPS, tombol senter, LOMPAT, TIARAP, dan PERIKSA.</p>
- <button class="primary" id="begin">MASUKI DESA</button>
+ <button class="primary" id="begin">MASUKI DESA · SOLO</button><button id="multiplayer-open" type="button">BERMAIN BERSAMA · MULTIPLAYER</button>
  </div></div>
+<div id="multiplayer-panel" aria-hidden="true">
+ <div class="card">
+  <div class="kicker">GHOUSTORY ONLINE · CO-OP</div>
+  <h2>MASUK BERSAMA<br>KE DESA TERLARANG</h2>
+  <p id="mp-auth-note" class="small">Memeriksa akun Crew...</p>
+  <div id="mp-lobby-controls">
+   <label class="small" for="mp-nickname">NAMA PEMAIN</label>
+   <input id="mp-nickname" class="mp-input" maxlength="24" minlength="2" autocomplete="nickname" placeholder="Nama pemain">
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+    <button id="mp-create" class="mp-action mp-primary" type="button">BUAT ROOM</button>
+    <button id="mp-join" class="mp-action" type="button">GABUNG ROOM</button>
+   </div>
+   <label class="small" for="mp-room-code" style="display:block;margin-top:12px">KODE ROOM TEMAN</label>
+   <input id="mp-room-code" class="mp-input" maxlength="6" placeholder="6 KARAKTER" autocomplete="off">
+  </div>
+  <div id="mp-room-controls">
+   <div class="mp-player" style="align-items:center"><span class="small">KODE ROOM</span><strong id="mp-room-code-display" style="font-size:18px;letter-spacing:.2em;color:#fca5a5">------</strong></div>
+   <p class="small" style="margin-top:12px">PEMAIN DI DALAM ROOM</p>
+   <ul id="mp-player-list"></ul>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+    <button id="mp-ready" class="mp-action" type="button">SIAP</button>
+    <button id="mp-start" class="mp-action mp-primary" type="button" disabled>MULAI MISI</button>
+   </div>
+   <button id="mp-leave" class="mp-action" type="button" style="width:100%;margin-top:8px">KELUAR ROOM</button>
+  </div>
+  <p id="mp-status" class="mp-status" aria-live="polite" style="margin-top:12px"></p>
+  <button id="mp-close" class="mp-action" type="button" style="width:100%">KEMBALI</button>
+  <p class="small" style="margin-top:12px">Maksimal 5 pemain per room. Semua pemain harus menekan SIAP sebelum host memulai.</p>
+ </div>
+</div>
 <div id="ending"><div class="card">
  <div class="kicker">BAB 1 · DESA YANG HILANG</div>
  <h2>CATATAN TERAKHIR</h2>
@@ -82,6 +112,7 @@ h1{font-size:14px;margin:3px 0 0;letter-spacing:.04em}
  <p class="small">Ini adalah akhir misi pembuka. Misteri utama belum terungkap.</p>
  <button class="primary" id="again">ULANGI MISI</button>
  </div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 const mount=document.getElementById('game');
@@ -414,11 +445,154 @@ ghost('anak',8,5);ghost('nenek',-18,10);ghost('kakek',18,-12);ghost('pocong',-3,
 const gate=box(scene,0,2,-42,7,4,.45,wood2);gate.material=mat(0x24191c);
 const sign=box(scene,0,4.1,-42,5,.55,.3,gold);
 let running=false,keys={},move={x:0,y:0},health=3,invuln=0,elapsed=0,near=null,audioCtx=null,audioOn=false,voiceOn=false,ambientOsc=null,ambientGain=null;
+const MP_SUPABASE_URL='https://xnbqckfbrrmdjiemfwqf.supabase.co',MP_SUPABASE_KEY='sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL';
+let mpClient=null,mpUser=null,mpNickname='Pemain',mpRoomId=null,mpRoomData=null,mpChannel=null,mpPoll=null,mpGameStarted=false,mpSendClock=0;
+const mpRemotePlayers=new Map();
+const mpPanel=document.getElementById('multiplayer-panel'),mpStatus=document.getElementById('mp-status'),mpPlayerList=document.getElementById('mp-player-list');
+function mpMessage(message,isError=false){mpStatus.textContent=message;mpStatus.style.color=isError?'#fca5a5':'#86efac';}
+function mpNicknameValue(){return (document.getElementById('mp-nickname').value||'').trim().slice(0,24);}
+async function mpInit(){
+ try{
+  if(!window.supabase?.createClient)throw new Error('Layanan multiplayer belum siap. Muat ulang halaman.');
+  if(!mpClient)mpClient=window.supabase.createClient(MP_SUPABASE_URL,MP_SUPABASE_KEY);
+  const {data,error}=await mpClient.auth.getSession();if(error)throw error;
+  mpUser=data.session?.user||null;
+  if(!mpUser){document.getElementById('mp-auth-note').textContent='Silakan login ke akun Ghoustory Control Room terlebih dahulu.';document.getElementById('mp-create').disabled=true;document.getElementById('mp-join').disabled=true;mpMessage('Akun Crew belum terdeteksi di sesi game.',true);return false;}
+  const {data:profile,error:profileError}=await mpClient.from('ghoustory_profiles').select('nickname').eq('user_id',mpUser.id).maybeSingle();
+  if(profileError)throw profileError;
+  mpNickname=profile?.nickname||mpUser.user_metadata?.full_name||mpUser.email?.split('@')[0]||'Pemain';
+  document.getElementById('mp-nickname').value=mpNickname.slice(0,24);
+  document.getElementById('mp-auth-note').textContent='Login sebagai '+mpNickname+'. Buat room baru atau masukkan kode room teman.';
+  document.getElementById('mp-create').disabled=false;document.getElementById('mp-join').disabled=false;
+  return true;
+ }catch(error){mpMessage(error.message||'Gagal menghubungkan multiplayer.',true);return false;}
+}
+function mpOpen(){mpPanel.classList.add('open');mpPanel.setAttribute('aria-hidden','false');mpInit();}
+function mpClosePanel(){if(!mpRoomId){mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');}}
+function mpRenderRoom(){
+ if(!mpRoomData)return;
+ document.getElementById('mp-room-code-display').textContent=mpRoomData.room.code;
+ const players=mpRoomData.players||[];mpPlayerList.replaceChildren();
+ players.forEach(p=>{const li=document.createElement('li');li.className='mp-player';const name=document.createElement('span');name.textContent=p.nickname+(p.is_host?' · HOST':'');const ready=document.createElement('strong');ready.textContent=p.is_ready?'SIAP':'MENUNGGU';ready.style.color=p.is_ready?'#86efac':'#fbbf24';li.append(name,ready);mpPlayerList.append(li);});
+ const me=players.find(p=>p.user_id===mpUser?.id),host=!!me?.is_host,allReady=players.length>0&&players.every(p=>p.is_ready);
+ document.getElementById('mp-ready').textContent=me?.is_ready?'BATAL SIAP':'SIAP';
+ document.getElementById('mp-start').disabled=!host||!allReady||mpRoomData.room.status!=='lobby';
+ document.getElementById('mp-room-controls').classList.add('show');
+ document.getElementById('mp-lobby-controls').style.display='none';
+}
+async function mpRefreshRoom(){
+ if(!mpRoomId||!mpClient)return;
+ const {data,error}=await mpClient.rpc('desa_get_room',{p_room:mpRoomId});
+ if(error){mpMessage(error.message,true);return;}
+ mpRoomData=data;mpRenderRoom();
+ if(data.room.status==='playing'&&!mpGameStarted)mpStartGame();
+}
+function mpApplyRemoteState(payload){
+ if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z))return;
+ let remote=mpRemotePlayers.get(payload.user_id);
+ if(!remote){
+  const model=player.clone(true);model.visible=true;model.position.set(payload.x,0,payload.z);
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;const ctx=canvas.getContext('2d');
+  ctx.fillStyle='rgba(5,9,16,.78)';ctx.beginPath();ctx.roundRect(5,5,246,54,16);ctx.fill();
+  ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(payload.nickname||'Pemain').slice(0,18),128,40);
+  const texture=new THREE.CanvasTexture(canvas);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
+  sprite.position.set(0,3.25,0);sprite.scale.set(2.2,.55,1);model.add(sprite);scene.add(model);
+  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0};mpRemotePlayers.set(payload.user_id,remote);
+ }
+ remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;
+}
+function mpPresenceSync(){
+ if(!mpChannel)return;
+ const state=mpChannel.presenceState();
+ Object.values(state).flat().forEach(p=>mpApplyRemoteState(p));
+}
+async function mpConnectRoom(roomId){
+ mpRoomId=roomId;mpGameStarted=false;
+ mpChannel=mpClient.channel('desa:'+roomId,{config:{private:true,presence:{key:mpUser.id}}});
+ mpChannel.on('broadcast',{event:'player_state'},({payload})=>mpApplyRemoteState(payload));
+ mpChannel.on('broadcast',{event:'clue_found'},({payload})=>mpApplyClue(Number(payload?.index)));
+ mpChannel.on('broadcast',{event:'room_started'},()=>{if(!mpGameStarted)mpStartGame();});
+ mpChannel.on('presence',{event:'sync'},mpPresenceSync);
+ mpChannel.subscribe(async state=>{
+  if(state==='SUBSCRIBED'){
+   await mpChannel.track({user_id:mpUser.id,nickname:mpNickname,x:player.position.x,z:player.position.z,yaw:player.rotation.y});
+   mpMessage('Terhubung. Bagikan kode room ke temanmu.');
+   mpPresenceSync();
+  }else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')mpMessage('Koneksi room terputus. Periksa jaringan dan coba lagi.',true);
+ });
+ document.getElementById('mp-room-controls').classList.add('show');
+ document.getElementById('mp-lobby-controls').style.display='none';
+ mpPoll=setInterval(mpRefreshRoom,2200);
+ await mpRefreshRoom();
+}
+async function mpCreateRoom(){
+ if(!await mpInit())return;
+ const nickname=mpNicknameValue();if(nickname.length<2){mpMessage('Nama pemain minimal 2 karakter.',true);return;}
+ mpNickname=nickname;mpMessage('Membuat room...');
+ const {data,error}=await mpClient.rpc('desa_create_room',{p_nickname:nickname});
+ if(error){mpMessage(error.message,true);return;}
+ mpRoomId=data.room_id;await mpConnectRoom(data.room_id);mpMessage('Room berhasil dibuat. Kirim kode '+data.code+' ke temanmu.');
+}
+async function mpJoinRoom(){
+ if(!await mpInit())return;
+ const nickname=mpNicknameValue(),code=(document.getElementById('mp-room-code').value||'').trim().toUpperCase();
+ if(nickname.length<2){mpMessage('Nama pemain minimal 2 karakter.',true);return;}
+ if(!/^[A-Z0-9]{6}$/.test(code)){mpMessage('Masukkan kode room 6 karakter.',true);return;}
+ mpNickname=nickname;mpMessage('Mencari room '+code+'...');
+ const {data,error}=await mpClient.rpc('desa_join_room',{p_code:code,p_nickname:nickname});
+ if(error){mpMessage(error.message,true);return;}
+ await mpConnectRoom(data.room_id);
+}
+async function mpSetReady(){
+ if(!mpRoomId)return;
+ const me=(mpRoomData?.players||[]).find(p=>p.user_id===mpUser?.id);
+ const {error}=await mpClient.rpc('desa_set_ready',{p_room:mpRoomId,p_ready:!me?.is_ready});
+ if(error){mpMessage(error.message,true);return;}await mpRefreshRoom();
+}
+async function mpStartAsHost(){
+ if(!mpRoomId)return;
+ const {error}=await mpClient.rpc('desa_start_room',{p_room:mpRoomId});
+ if(error){mpMessage(error.message,true);return;}
+ await mpChannel?.send({type:'broadcast',event:'room_started',payload:{started:true}});
+ mpStartGame();
+}
+async function mpStartGame(){
+ if(mpGameStarted)return;mpGameStarted=true;
+ if(mpPoll){clearInterval(mpPoll);mpPoll=null;}
+ mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');
+ await enterImmersive();document.getElementById('start').style.display='none';
+ jumpButton.style.display='block';proneButton.style.display='block';clearSprintHold();reset();
+ say('Tim sudah berkumpul. Temukan tiga bukti bersama-sama.');
+}
+async function mpLeaveRoom(){
+ if(mpPoll){clearInterval(mpPoll);mpPoll=null;}
+ if(mpChannel){try{await mpClient.removeChannel(mpChannel);}catch(e){}mpChannel=null;}
+ const roomId=mpRoomId;mpRoomId=null;mpRoomData=null;mpGameStarted=false;
+ if(roomId&&mpClient){const {error}=await mpClient.rpc('desa_leave_room',{p_room:roomId});if(error)console.warn('Gagal keluar room:',error.message);}
+ mpRemotePlayers.forEach(r=>{scene.remove(r.model);r.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});});mpRemotePlayers.clear();
+ document.getElementById('mp-room-controls').classList.remove('show');document.getElementById('mp-lobby-controls').style.display='';
+}
+function mpApplyClue(index){
+ const item=clues[index];if(!item||item.found)return;
+ item.found=true;item.g.visible=false;updateCount();
+ if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';gate.material=mat(0x493d31);}
+}
+function mpBroadcastPlayer(dt){
+ if(!mpChannel||!mpGameStarted)return;
+ mpSendClock+=dt;if(mpSendClock<.12)return;mpSendClock=0;
+ mpChannel.send({type:'broadcast',event:'player_state',payload:{user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(move.x,move.y)>.08,sprinting:isSprinting,prone:isProne}}).catch(()=>{});
+}
+function mpUpdateRemotePlayers(dt){
+ for(const remote of mpRemotePlayers.values()){
+  remote.model.position.lerp(remote.target,Math.min(1,dt*12));remote.model.rotation.y=remote.yaw;
+ }
+}
+
 const objective=document.getElementById('objective'),status=document.getElementById('status'),count=document.getElementById('cluecount'),hint=document.getElementById('hint'),interact=document.getElementById('interact');
 function say(t){hint.textContent=t;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),2400);if(voiceOn&&('speechSynthesis'in window)){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';u.rate=.92;u.pitch=.82;speechSynthesis.speak(u);}catch(e){console.warn('Pemandu tidak tersedia:',e);}}}
 function updateCount(){count.textContent=clues.filter(c=>c.found).length+' / 3';}
 function reset(){clearSprintHold();setCameraMode(cameraMode);player.position.set(0,0,24);health=3;clues.forEach(c=>{c.found=false;c.g.visible=true;});ghosts.forEach(g=>g.g.position.copy(g.home));updateCount();objective.textContent='Cari 3 bukti di sekitar desa.';document.getElementById('ending').style.display='none';running=true;}
-function collect(){if(!near)return;if(near.kind==='clue'){near.item.found=true;near.item.g.visible=false;updateCount();soundEffect('collect');say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){objective.textContent='Semua bukti terkumpul. Pergi ke gerbang balai desa di ujung jalan.';soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');gate.material=mat(0x493d31);}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
+function collect(){if(!near)return;if(near.kind==='clue'){const clueIndex=clues.indexOf(near.item);mpApplyClue(clueIndex);if(mpChannel)mpChannel.send({type:'broadcast',event:'clue_found',payload:{index:clueIndex}}).catch(()=>{});soundEffect('collect');say('Bukti ditemukan: '+near.item.label);if(clues.every(c=>c.found)){soundEffect('gate');say('Tiga bukti lengkap. Gerbang balai desa terbuka!');}}else if(near.kind==='gate'){if(clues.every(c=>c.found)){running=false;soundEffect('gate');document.getElementById('ending').style.display='flex';}else{soundEffect('locked');say('Gerbang terkunci. Masih ada bukti yang belum ditemukan.');}}}
 interact.addEventListener('click',collect);
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='v'&&!e.repeat)setCameraMode(cameraMode==='first'?'third':'first');if(k==='e')collect();if(k===' '){e.preventDefault();if(!e.repeat)doJump();}if(k==='c'&&!e.repeat&&running&&grounded)setProne(!isProne);});
@@ -536,11 +710,18 @@ function movePlayer(dt){
  if(!grounded){jumpVelocity-=16*dt;player.position.y=Math.max(0,player.position.y+jumpVelocity*dt);if(player.position.y===0){grounded=true;jumpVelocity=0;}}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-35,35);player.position.z=THREE.MathUtils.clamp(player.position.z,-43,34);
 }
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);updateFlashlightWorld();mpUpdateRemotePlayers(dt);mpBroadcastPlayer(dt);if(running){elapsed+=dt;if(invuln>0)invuln-=dt;movePlayer(dt);updateGhosts(dt);updateAudio(dt);updateClues();updateCamera(dt);clues.forEach(c=>{c.g.rotation.y+=dt*.7;c.g.position.y=.2+Math.sin(elapsed*2)*.12;});status.textContent='Nalar: '+health+' / 3 · Malam Penutupan';}renderer.render(scene,camera);}
 const clock=new THREE.Clock();
 async function enterImmersive(){try{const frame=window.frameElement;if(frame&&frame.requestFullscreen)await frame.requestFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
-document.getElementById('exitgame').addEventListener('click',async()=>{try{if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
+document.getElementById('exitgame').addEventListener('click',async()=>{try{await mpLeaveRoom();if(parent&&parent!==window){if(parent.document.fullscreenElement)await parent.document.exitFullscreen();if(typeof parent.closeArenaGame==='function')parent.closeArenaGame();else history.back();}else if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}});
 document.getElementById('begin').addEventListener('click',async()=>{await enterImmersive();document.getElementById('start').style.display='none';jumpButton.style.display='block';proneButton.style.display='block';clearSprintHold();reset();say('Dekati cahaya kuning, lalu tekan PERIKSA.');});
+document.getElementById('multiplayer-open').addEventListener('click',mpOpen);
+document.getElementById('mp-close').addEventListener('click',mpClosePanel);
+document.getElementById('mp-create').addEventListener('click',mpCreateRoom);
+document.getElementById('mp-join').addEventListener('click',mpJoinRoom);
+document.getElementById('mp-ready').addEventListener('click',mpSetReady);
+document.getElementById('mp-start').addEventListener('click',mpStartAsHost);
+document.getElementById('mp-leave').addEventListener('click',async()=>{await mpLeaveRoom();document.getElementById('mp-room-code').value='';mpMessage('Kamu sudah keluar dari room.');});
 document.getElementById('again').addEventListener('click',reset);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));});
 const audioButton=document.getElementById('audio'),audioMenu=document.getElementById('audio-menu'),bgmButton=document.getElementById('audio-bgm'),voiceButton=document.getElementById('audio-voice');
