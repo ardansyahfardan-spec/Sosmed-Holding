@@ -597,9 +597,9 @@ function mpApplyRemoteState(payload){
   ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(payload.nickname||'Pemain').slice(0,18),128,40);
   const texture=new THREE.CanvasTexture(canvas);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
   sprite.position.set(0,3.25,0);sprite.scale.set(2.2,.55,1);model.add(sprite);scene.add(model);
-  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0,phase:0,walking:!!payload.walking,sprinting:!!payload.sprinting,prone:!!payload.prone};mpRemotePlayers.set(payload.user_id,remote);
+  remote={model,target:new THREE.Vector3(payload.x,payload.y||0,payload.z),yaw:payload.yaw||0,phase:0,walking:!!payload.walking,sprinting:!!payload.sprinting,prone:!!payload.prone,lastSeen:Date.now()};mpRemotePlayers.set(payload.user_id,remote);
  }
- remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;remote.walking=!!payload.walking;remote.sprinting=!!payload.sprinting;remote.prone=!!payload.prone;mpApplyRemotePose(remote);
+ remote.target.set(payload.x,payload.y||0,payload.z);remote.yaw=Number(payload.yaw)||0;remote.walking=!!payload.walking;remote.sprinting=!!payload.sprinting;remote.prone=!!payload.prone;remote.lastSeen=Date.now();mpApplyRemotePose(remote);
 }
 function mpPresenceSync(){
  if(!mpChannel)return;
@@ -692,7 +692,7 @@ async function mpLeaveRoom(){
  if(mpChannel){try{await mpClient.removeChannel(mpChannel);}catch(e){}mpChannel=null;}
  const roomId=mpRoomId;mpRoomId=null;mpRoomData=null;mpGameStarted=false;
  if(roomId&&mpClient){const {error}=await mpClient.rpc('desa_leave_room',{p_room:roomId});if(error)console.warn('Gagal keluar room:',error.message);}
- mpRemotePlayers.forEach(r=>{scene.remove(r.model);r.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});});mpRemotePlayers.clear();
+ setWalkHold(false);walkButton.style.display='none';mpRemotePlayers.forEach(r=>{scene.remove(r.model);r.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});});mpRemotePlayers.clear();
  document.getElementById('mp-room-controls').classList.remove('show');document.getElementById('mp-lobby-controls').style.display='';
 }
 function ghostLabel(type){return ({pocong:'Pocong',kuntilanak:'Kuntilanak',genderuwo:'Genderuwo',tuyul:'Tuyul',anak:'Anak kecil',nenek:'Nenek',kakek:'Kakek'})[type]||'Hantu';}
@@ -704,7 +704,7 @@ function applyGhostHit(index,hp,defeated,x,z){
 }
 function mpHandleGhostAttack(payload){
  if(!mpRoomId||!mpChannel||mpRoomData?.room?.host_id!==mpUser?.id||!payload?.user_id)return;
- const attacker=payload.user_id===mpUser.id?{x:player.position.x,z:player.position.z,yaw:player.rotation.y}:mpRemotePlayers.get(payload.user_id);
+ const remoteAttacker=mpRemotePlayers.get(payload.user_id);\n if(payload.user_id!==mpUser.id&&(!remoteAttacker||Date.now()-(remoteAttacker.lastSeen||0)>3000))return;\n const attacker=payload.user_id===mpUser.id?{x:player.position.x,z:player.position.z,yaw:player.rotation.y}:{x:remoteAttacker.target.x,z:remoteAttacker.target.z,yaw:remoteAttacker.yaw};
  if(!attacker)return;
  const ax=Number(attacker.x??attacker.model?.position.x),az=Number(attacker.z??attacker.model?.position.z),yaw=Number(attacker.yaw);
  if(!Number.isFinite(ax)||!Number.isFinite(az)||!Number.isFinite(yaw))return;
@@ -767,7 +767,7 @@ function mpApplySavedGameState(state){
 }
 function mpBroadcastPlayer(dt){
  if(!mpChannel||!mpGameStarted)return;
- const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(move.x,move.y)>.08,sprinting:isSprinting,prone:isProne};
+ const payload={user_id:mpUser.id,nickname:mpNickname,x:player.position.x,y:player.position.y,z:player.position.z,yaw:player.rotation.y,walking:Math.hypot(move.x,move.y-(walkHold?1:0))>.08,sprinting:isSprinting,prone:isProne};
  mpSendClock+=dt;
  if(mpSendClock>=.12){mpSendClock=0;mpChannel.send({type:'broadcast',event:'player_state',payload}).catch(()=>{});}
  // Presence menyimpan pose terbaru agar pemain yang baru bergabung tidak melihat posisi awal yang sudah kedaluwarsa.
