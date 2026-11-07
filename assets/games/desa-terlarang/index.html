@@ -24,11 +24,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 #joystick{position:fixed;left:22px;bottom:22px;width:124px;height:124px;border:1px solid #d6e2f044;border-radius:50%;background:#101a2b88;backdrop-filter:blur(5px);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;user-select:none}
 #stick{width:54px;height:54px;border-radius:50%;background:#b9c9df99;border:2px solid #e5edf8aa;box-shadow:0 4px 18px #0008;transform:translate(0,0);pointer-events:none}
 #move-label{position:fixed;left:0;bottom:155px;width:168px;text-align:center;color:#d1d8e5;font-size:9px;letter-spacing:.12em;pointer-events:none;text-shadow:0 2px 5px #000}
-#action-controls{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:4;display:flex;flex-direction:row;align-items:flex-end;gap:9px;pointer-events:auto}
-.game-control{width:62px;height:62px;flex:0 0 auto;border-radius:50%;padding:5px;background:#111c30ed;border:1px solid #d7e2f077;color:#fff;font-size:9px;font-weight:900;box-shadow:0 5px 18px #0008;touch-action:none;white-space:nowrap}
-.game-control.jump{width:70px;height:70px;background:linear-gradient(145deg,#9c3542ee,#4c263fee);font-size:10px}
+#action-controls{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:4;display:grid;grid-template-columns:62px 70px;grid-template-rows:62px 70px;gap:9px;align-items:center;justify-items:center;pointer-events:auto}
+.game-control{width:60px;height:60px;flex:0 0 auto;border-radius:50%;padding:5px;background:#111c30ed;border:1px solid #d7e2f077;color:#fff;font-size:9px;font-weight:900;box-shadow:0 5px 18px #0008;touch-action:none;white-space:nowrap}
+#crouch-btn{grid-column:1;grid-row:1}
+#sprint-btn{grid-column:1;grid-row:2}
+.game-control.jump{grid-column:2;grid-row:2;width:70px;height:70px;background:linear-gradient(145deg,#9c3542ee,#4c263fee);font-size:10px}
 .game-control.active{background:linear-gradient(145deg,#426d8f,#243c5a);border-color:#c5e4ff}
-@media(orientation:landscape) and (max-height:420px){#action-controls{right:12px;bottom:10px;gap:7px}.game-control{width:52px;height:52px;font-size:8px}.game-control.jump{width:58px;height:58px;font-size:9px}}
+@media(orientation:landscape) and (max-height:420px){#action-controls{right:12px;bottom:10px;grid-template-columns:52px 60px;grid-template-rows:52px 60px;gap:6px}.game-control{width:50px;height:50px;font-size:8px}.game-control.jump{width:58px;height:58px;font-size:9px}}
 @media(max-width:700px){#joystick{width:108px;height:108px;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom))}#stick{width:48px;height:48px}#move-label{bottom:132px;width:140px;font-size:8px}}
 @media(orientation:landscape) and (max-height:420px){#joystick{width:104px;height:104px;left:18px;bottom:16px}#stick{width:46px;height:46px}#move-label{bottom:122px;width:140px}.hint{margin-left:125px}}
 button{border:1px solid #8da1c455;border-radius:12px;background:#10182acc;color:#f5f2eb;padding:11px 14px;font-weight:700;font-size:12px}
