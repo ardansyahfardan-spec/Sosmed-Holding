@@ -6585,7 +6585,7 @@ window.malamAudioSetVolume=function(level){
 window.malamAudioDuckForVoice=function(isSpeaking){
  const a=window.__malamAudioState;if(!a)return;
  a.voiceSpeaking=!!isSpeaking;
- if(a.audio&&a.bgm)a.audio.volume=a.voiceSpeaking?Math.min(a.bgmBaseVolume,a.bgmDuckVolume):a.bgmBaseVolume;
+ if(a.audio)a.audio.volume=a.voiceSpeaking?Math.min(a.bgmBaseVolume,a.bgmDuckVolume):a.bgmBaseVolume;
 };
 window.malamAudioStart=function(){
  const a=window.__malamAudioState;
@@ -6599,7 +6599,7 @@ window.malamAudioStart=function(){
   if(!a.introPlayed){a.introPlayed=true;window.malamAudioSpeak('Selamat datang di Malam Terlarang. Dengarkan arahan permainan dan bersiaplah menghadapi malam.');}
   if(!a.bgm){
    const play=a.audio.play();
-   if(play&&typeof play.then==='function')play.then(()=>{a.bgm=true;window.malamAudioRefreshControls();}).catch(e=>{
+   if(play&&typeof play.then==='function')play.then(()=>{a.bgm=true;if(a.audio)a.audio.volume=a.voiceSpeaking?Math.min(a.bgmBaseVolume,a.bgmDuckVolume):a.bgmBaseVolume;window.malamAudioRefreshControls();}).catch(e=>{
     console.warn('BGM gagal autoplay:',e);window.malamNotify?.('KETUK UNTUK MEMULAI BGM','Browser membatasi autoplay. Ketuk tombol BGM sekali jika musik belum terdengar.','phase');
    });
    else {a.bgm=true;window.malamAudioRefreshControls();}
@@ -6642,12 +6642,12 @@ window.malamAudioSpeak=function(text){
   const voices=window.speechSynthesis.getVoices()||[];
   const idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
   const speakNext=()=>{
-   if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;return;}
+   if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;window.malamAudioDuckForVoice(false);return;}
    a.voiceSpeaking=true;a.voicePending=a.voiceQueue.length;
    const chunk=a.voiceQueue.shift(),u=new SpeechSynthesisUtterance(chunk);
    u.lang='id-ID';u.rate=.92;u.pitch=.9;u.volume=1;if(idVoice)u.voice=idVoice;
    u.onstart=()=>{window.malamAudioDuckForVoice(true);};
-   const advance=()=>{a.voicePending=a.voiceQueue.length;if(a.voiceQueue.length){setTimeout(speakNext,140);}else{window.malamAudioDuckForVoice(false);setTimeout(speakNext,140);}};
+   const advance=()=>{a.voicePending=a.voiceQueue.length;if(a.voiceQueue.length){setTimeout(speakNext,140);}else{a.voiceSpeaking=false;a.voicePending=0;window.malamAudioDuckForVoice(false);setTimeout(speakNext,140);}};
    u.onend=advance;
    u.onerror=(event)=>{console.warn('Potongan suara pemandu gagal:',event.error);advance();};
    window.speechSynthesis.speak(u);
