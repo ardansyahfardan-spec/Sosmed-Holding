@@ -6625,18 +6625,18 @@ window.malamAudioSpeak=function(text){
   const voices=window.speechSynthesis.getVoices()||[];
   const idVoice=voices.find(v=>/^id(-|_)/i.test(v.lang)&&/natural|premium|enhanced/i.test(v.name))||voices.find(v=>/^id(-|_)/i.test(v.lang));
   const speakNext=()=>{
-   if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;window.malamAudioSetVolume(.34);return;}
+   if(!a.voice||!a.voiceQueue?.length){a.voiceSpeaking=false;a.voicePending=0;return;}
    a.voiceSpeaking=true;a.voicePending=a.voiceQueue.length;
    const chunk=a.voiceQueue.shift(),u=new SpeechSynthesisUtterance(chunk);
    u.lang='id-ID';u.rate=.92;u.pitch=.9;u.volume=1;if(idVoice)u.voice=idVoice;
-   u.onstart=()=>window.malamAudioSetVolume(.16);
+   u.onstart=()=>{a.voiceSpeaking=true;};
    const advance=()=>{a.voiceSpeaking=false;a.voicePending=a.voiceQueue.length;setTimeout(speakNext,140);};
    u.onend=advance;
    u.onerror=(event)=>{console.warn('Potongan suara pemandu gagal:',event.error);advance();};
    window.speechSynthesis.speak(u);
   };
   speakNext();
- }catch(e){a.voiceSpeaking=false;a.voicePending=0;window.malamAudioSetVolume(.34);console.warn('VO gagal diputar:',e);}
+ }catch(e){a.voiceSpeaking=false;a.voicePending=0;console.warn('VO gagal diputar:',e);}
 };
 window.malamPlayResultAudio=function(outcome,winner){
  const won=outcome==='win';
@@ -6665,26 +6665,35 @@ window.malamResultPopupHtml=function(outcome,winner,mode,round,roster){
 };
 window.malamAudioOnPhase=function(mode,phase,round,event,winner){
  const a=window.__malamAudioState;if(!a||!a.voice||!phase)return;
- const key=String(mode)+':'+String(phase)+':'+String(round||0);
+ const eventText=String(event||'').trim();
+ const key=String(mode)+':'+String(phase)+':'+String(round||0)+':'+eventText;
  if(a.lastPhase===key)return;
  a.lastPhase=key;
- const trial=window.__malamTrial;
- const state=window.__malamCurrentState;
+ const trial=window.__malamTrial,state=window.__malamCurrentState;
  const role=mode==='trial'?trial?.players?.[0]?.role:state?.my_role;
+ const elimination=/(gugur|dikeluarkan melalui voting|tereliminasi)/i.test(eventText);
  let line='';
- if(phase==='lobby') line='Selamat datang di Malam Terlarang. Saya akan memandu permainan dari awal hingga akhir. Pastikan seluruh pemain sudah bergabung dan menekan tombol siap. Setelah semua siap, host dapat memulai permainan. Perhatikan setiap arahan saya dan jangan membocorkan peran rahasia kalian.';
+ if(phase==='lobby')line='Selamat datang di Malam Terlarang. Saya akan memandu permainan dari awal hingga akhir. Pastikan seluruh pemain sudah bergabung dan menekan tombol siap. Setelah semua siap, host dapat memulai permainan.';
  else if(phase==='night'){
-  line='Malam telah tiba. Seluruh warga diminta memejamkan mata. Jangan berbicara dan jangan membocorkan identitas. '+(event?String(event)+'. ':'');
-  if(role==='siluman')line+=' Siluman, pilih satu korban melalui profil pemain. Kalian harus menentukan pilihan sebelum malam berakhir.';
-  else if(role==='paranormal')line+=' Paranormal, pilih satu pemain untuk diperiksa. Kamu hanya boleh memeriksa satu orang malam ini.';
-  else if(role==='penjaga')line+=' Penjaga, pilih satu pemain untuk dilindungi. Kamu boleh melindungi diri sendiri.';
-  else line+=' Warga biasa, kamu tidak memiliki aksi malam. Tunggu hingga pagi tiba.';
+  if(elimination)line='Pengumuman. '+eventText.replace(/Malam kembali tiba\.?/i,'').trim()+'. ';
+  line+='Malam telah tiba. Seluruh warga diminta memejamkan mata. Jangan berbicara dan jangan membocorkan identitas. ';
+  if(role==='siluman')line+='Siluman, pilih satu korban melalui profil pemain.';
+  else if(role==='paranormal')line+='Paranormal, pilih satu pemain untuk diperiksa. Kamu hanya boleh memeriksa satu orang malam ini.';
+  else if(role==='penjaga')line+='Penjaga, pilih satu pemain untuk dilindungi. Kamu boleh melindungi diri sendiri.';
+  else line+='Warga biasa, kamu tidak memiliki aksi malam. Tunggu hingga pagi tiba.';
  }else if(phase==='discussion'){
-  line='Pagi telah tiba. Seluruh pemain yang masih hidup, silakan bangun. '+(event?String(event)+'. ':'')+'Sekarang waktunya diskusi. Sampaikan alibi, dengarkan keterangan pemain lain, dan perhatikan siapa yang saling melindungi. Buka ruang chat untuk berdiskusi. Setelah waktu diskusi berakhir, saya akan membuka voting.';
+  line='Pagi telah tiba. Seluruh pemain yang masih hidup, silakan bangun. ';
+  if(eventText){
+   if(/ditemukan gugur/i.test(eventText))line+='Pengumuman korban. '+eventText+'. ';
+   else if(/tidak ada korban/i.test(eventText))line+=eventText+'. ';
+   else line+=eventText+'. ';
+  }
+  line+='Sekarang waktunya diskusi. Sampaikan alibi, dengarkan keterangan pemain lain, dan perhatikan siapa yang saling melindungi. Setelah waktu diskusi berakhir, voting akan dibuka.';
  }else if(phase==='voting'){
-  line='Perhatian, waktu diskusi telah selesai. Sekarang voting dibuka. Pilih satu pemain yang paling kamu curigai dengan mengetuk profilnya. Pilihan dapat diganti sebelum waktu habis. Pemain yang mendapat suara terbanyak akan dikeluarkan dari permainan.';
+  line='Perhatian, waktu diskusi telah selesai. Sekarang voting dibuka. Pilih satu pemain yang paling kamu curigai dengan mengetuk profilnya. Pilihan dapat diganti sebelum waktu habis.';
  }else if(phase==='finished'){
-  line=winner==='siluman'?'Permainan telah berakhir. Kubu Siluman memenangkan permainan. Seluruh identitas dan peran pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.':'Permainan telah berakhir. Kubu Warga memenangkan permainan. Seluruh Siluman berhasil ditemukan dan disingkirkan. Seluruh identitas pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.';
+  if(eventText)line=eventText+'. ';
+  line+=winner==='siluman'?'Permainan telah berakhir. Kubu Siluman memenangkan permainan. Seluruh identitas dan peran pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.':'Permainan telah berakhir. Kubu Warga memenangkan permainan. Seluruh Siluman berhasil ditemukan dan disingkirkan. Seluruh identitas pemain akan diumumkan. Terima kasih telah mengikuti Malam Terlarang.';
  }
  if(line)window.malamAudioSpeak(line);
 };
@@ -6852,7 +6861,7 @@ window.malamTrialVote=function(force){
  s.players.filter(p=>p.alive&&p.isAI).forEach(p=>{p.suspicion=Math.max(0,Math.min(1,(p.suspicion||0)+(Math.random()*.16-.04)));});
  s.selected=null;s.players.forEach(p=>{p.suspicion_from=[];p.is_protected=false;});
  malamTrialCheck();
- if(!s.ended){s.phase='night';s.phaseStartedAt=Date.now();s.round++;s.modal=null;s.investigation=null;s.selected=null;s.lastEvent='Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);const aiGuard=s.players.find(x=>x.alive&&x.role==='penjaga'&&x.isAI),guardChoices=s.players.filter(x=>x.alive);s.aiProtectedTarget=aiGuard&&guardChoices.length?guardChoices[Math.floor(Math.random()*guardChoices.length)].id:null;}
+ if(!s.ended){s.phase='night';s.phaseStartedAt=Date.now();s.round++;s.modal=null;s.investigation=null;s.selected=null;s.lastEvent=(out?out.name+' gugur akibat voting. ':'')+'Malam ke-'+s.round+' dimulai. Siluman kembali bergerak dalam kegelapan.';s.log.push(s.lastEvent);const aiGuard=s.players.find(x=>x.alive&&x.role==='penjaga'&&x.isAI),guardChoices=s.players.filter(x=>x.alive);s.aiProtectedTarget=aiGuard&&guardChoices.length?guardChoices[Math.floor(Math.random()*guardChoices.length)].id:null;}
  malamTrialRender();if(s.ended)malamNotify('PERMAINAN SELESAI',s.lastEvent,'phase');else{const voteSummary=s.lastVoteTally?.length?'Hasil suara: '+s.lastVoteTally.map(v=>v.name+' '+v.votes+' suara').join(', ')+'. '+(out?'Peran '+out.name+': '+malamRoles[out.role][0]+'.':''):'Tidak ada suara yang masuk.';malamNotify('HASIL VOTING',s.lastEvent+' '+voteSummary,'phase');setTimeout(()=>malamNotify('MALAM KEMBALI TIBA','Malam ke-'+s.round+' dimulai.','phase'),4200);}
 };
 window.malamTrialCheck=function(){
@@ -7088,7 +7097,7 @@ window.malamCloseModal=function(){
  }
 };
 function malamRender(s){
- const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no;window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
+ const prev=window.__malamLastPhaseState,phaseKey=s.room.phase+':'+s.room.round_no+':'+String(s.room.last_event||'');window.__malamCurrentState=s;malamAudioOnPhase('multi',s.room.phase,s.room.round_no,s.room.last_event,s.room.winner);
  if(prev&&prev.key!==phaseKey){if(['action','vote'].includes(window.__malamModalType))malamCloseModal();const ph=s.room.phase,head=ph==='discussion'?'PAGI TIBA':ph==='voting'?'VOTING DIBUKA':ph==='night'?'MALAM KEMBALI TIBA':'PERMAINAN SELESAI';malamNotify(head,s.room.last_event||'Fase permainan berubah.','phase');if(ph==='discussion'&&s.my_role==='paranormal'&&s.investigation){const noticeKey=phaseKey+':'+s.investigation_name+':'+s.investigation;if(window.__malamInvestigationNoticeKey!==noticeKey){window.__malamInvestigationNoticeKey=noticeKey;setTimeout(()=>malamNotify('HASIL PEMERIKSAAN',((s.investigation_name||'Pemain yang diperiksa')+' memiliki peran '+(malamRoles[s.investigation]?.[0]||s.investigation)+'. Hanya kamu sebagai Paranormal yang dapat melihat hasil ini.'),'phase'),900);}}}
  window.__malamLastPhaseState={key:phaseKey,event:s.room.last_event};
  const p=document.getElementById('arena-play-panel'),r=s.room,rawPlayers=s.players||[],voteCounts=new Map((s.vote_tally||[]).map(v=>[v.user_id,Number(v.votes)||0])),aiBubbleByUser=new Map((window.__malamAiChatMessages||[]).filter(m=>m.round_no===r.round_no).map(m=>[m.player_id,m.body])),ps=rawPlayers.map(x=>({...x,chat_bubble:'',vote_count:voteCounts.get(x.user_id)||0,suspicion_from:(s.suspicion_marks||[]).filter(m=>m.target_id===x.user_id).map(m=>m.actor_id),is_protected:r.phase==='night'&&x.user_id===s.protected_target_id}));
