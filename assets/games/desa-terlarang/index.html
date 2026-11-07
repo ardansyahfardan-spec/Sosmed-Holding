@@ -123,7 +123,7 @@ button:active{transform:scale(.97);background:#273650}
   // Lampu jalan desa: tiang besi tua dengan lentera hangat dan cahaya nyata.
   const lampMetal=new THREE.MeshStandardMaterial({color:0x252a30,metalness:.72,roughness:.42});
   const lampTrim=new THREE.MeshStandardMaterial({color:0x594936,metalness:.58,roughness:.48});
-  const lampGlass=new THREE.MeshStandardMaterial({color:0xffc477,emissive:0xff9a3d,emissiveIntensity:2.2,transparent:true,opacity:.92,roughness:.22});
+  const lampGlass=new THREE.MeshStandardMaterial({color:0xffc477,emissive:0xff9a3d,emissiveIntensity:4.5,transparent:true,opacity:.98,roughness:.22});
   function streetLamp(x,z){
    const base=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,.22,12),lampMetal);base.position.set(x,.11,z);base.castShadow=true;scene.add(base);
    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.075,.12,4.25,12),lampMetal);pole.position.set(x,2.28,z);pole.castShadow=true;scene.add(pole);
@@ -133,8 +133,10 @@ button:active{transform:scale(.97);background:#273650}
    const cap=new THREE.Mesh(new THREE.ConeGeometry(.42,.28,8),lampMetal);cap.position.set(hoodX,4.42,z);cap.rotation.y=Math.PI/8;cap.castShadow=true;scene.add(cap);
    const lantern=new THREE.Mesh(new THREE.BoxGeometry(.48,.68,.48),lampGlass);lantern.position.set(hoodX,4.02,z);scene.add(lantern);
    const frame=new THREE.Mesh(new THREE.BoxGeometry(.58,.08,.58),lampTrim);frame.position.set(hoodX,3.66,z);scene.add(frame);
-   const glow=new THREE.PointLight(0xffb66b,2.6,15,2);glow.position.set(hoodX,3.95,z);scene.add(glow);
-   const halo=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.2}));halo.position.copy(glow.position);scene.add(halo);
+   // Cahaya diperkuat agar benar-benar menerangi jalan dan tanah di sekitarnya.
+   const glow=new THREE.PointLight(0xffb66b,8.5,27,1.45);glow.position.set(hoodX,4.02,z);scene.add(glow);
+   const fill=new THREE.PointLight(0xffc987,3.2,16,1.7);fill.position.set(hoodX,2.15,z);scene.add(fill);
+   const halo=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.34}));halo.position.copy(glow.position);scene.add(halo);
   }
   for(let i=0;i<6;i++){const z=-8-i*14;streetLamp(i%2===0?-5.1:5.1,z);}
   for(let i=0;i<15;i++){const z=-i*7-9;tree(-9-(i%3)*1.7,z,.9+(i%2)*.2);tree(9+(i%4)*1.2,z-3,.85+(i%3)*.16);}
