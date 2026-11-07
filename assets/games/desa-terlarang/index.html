@@ -704,7 +704,9 @@ function applyGhostHit(index,hp,defeated,x,z){
 }
 function mpHandleGhostAttack(payload){
  if(!mpRoomId||!mpChannel||mpRoomData?.room?.host_id!==mpUser?.id||!payload?.user_id)return;
- const remoteAttacker=mpRemotePlayers.get(payload.user_id);\n if(payload.user_id!==mpUser.id&&(!remoteAttacker||Date.now()-(remoteAttacker.lastSeen||0)>3000))return;\n const attacker=payload.user_id===mpUser.id?{x:player.position.x,z:player.position.z,yaw:player.rotation.y}:{x:remoteAttacker.target.x,z:remoteAttacker.target.z,yaw:remoteAttacker.yaw};
+ const remoteAttacker=mpRemotePlayers.get(payload.user_id);
+ if(payload.user_id!==mpUser.id&&(!remoteAttacker||Date.now()-(remoteAttacker.lastSeen||0)>3000))return;
+ const attacker=payload.user_id===mpUser.id?{x:player.position.x,z:player.position.z,yaw:player.rotation.y}:{x:remoteAttacker.target.x,z:remoteAttacker.target.z,yaw:remoteAttacker.yaw};
  if(!attacker)return;
  const ax=Number(attacker.x??attacker.model?.position.x),az=Number(attacker.z??attacker.model?.position.z),yaw=Number(attacker.yaw);
  if(!Number.isFinite(ax)||!Number.isFinite(az)||!Number.isFinite(yaw))return;
@@ -840,13 +842,22 @@ function updateGhosts(dt){
   if(!ghostAuthority&&gh.userData.mpTarget){p.lerp(gh.userData.mpTarget,Math.min(1,dt*12));}
   if(ghostAuthority&&gh.defeatedTimer>0){gh.defeatedTimer-=dt;if(gh.defeatedTimer<=0){gh.hp=gh.maxHp;gh.g.position.copy(gh.home);gh.g.visible=true;gh.stagger=0;}else continue;}
   if(ghostAuthority)gh.stagger=Math.max(0,gh.stagger-dt);
-  const d=distance(p,player.position);
-  const active=d<(isProne?5.5:12),moving=ghostAuthority?(active&&d>1.8&&gh.stagger<=0):!!gh.userData.mpMoving,t=gh.phase;
+  // Host memilih anggota Crew terdekat yang masih mengirim pose; hantu tidak hanya mengejar host.
+  let targetPlayer=player,targetProne=isProne,targetDistance=distance(p,player.position);
+  if(ghostAuthority&&mpRoomId){
+   for(const remote of mpRemotePlayers.values()){
+    if(Date.now()-(remote.lastSeen||0)>3000)continue;
+    const dRemote=distance(p,remote.target);
+    if(dRemote<targetDistance){targetDistance=dRemote;targetPlayer=remote.target;targetProne=remote.prone;}
+   }
+  }
+  const d=distance(p,targetPlayer);
+  const active=d<(targetProne?5.5:12),moving=ghostAuthority?(active&&d>1.8&&gh.stagger<=0):!!gh.userData.mpMoving,t=gh.phase;
   const speed=gh.type==='genderuwo'?1.42:gh.type==='tuyul'?2.5:gh.type==='pocong'?1.72:gh.type==='anak'?1.18:gh.type==='nenek'?.72:gh.type==='kakek'?.9:gh.type==='kuntilanak'?.92:1.05;
   if(ghostAuthority){
    gh.userData.mpMoving=moving;
    if(moving){
-    const dx=player.position.x-p.x,dz=player.position.z-p.z,len=Math.hypot(dx,dz)||1;
+    const dx=targetPlayer.x-p.x,dz=targetPlayer.z-p.z,len=Math.hypot(dx,dz)||1;
     p.x+=dx/len*speed*dt;p.z+=dz/len*speed*dt;gh.g.rotation.y=Math.atan2(dx,dz);
    }else if(!active){
     p.x=gh.home.x+Math.sin(t*(gh.type==='tuyul'?.55:.28))*1.25;
