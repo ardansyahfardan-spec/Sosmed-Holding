@@ -564,6 +564,8 @@ async function mpStartGame(){
  mpPanel.classList.remove('open');mpPanel.setAttribute('aria-hidden','true');
  await enterImmersive();document.getElementById('start').style.display='none';
  jumpButton.style.display='block';proneButton.style.display='block';clearSprintHold();reset();
+ const roster=mpRoomData?.players||[],myIndex=Math.max(0,roster.findIndex(p=>p.user_id===mpUser?.id)),spawnOffsets=[[0,0],[-2.2,0],[2.2,0],[-4.2,1.8],[4.2,1.8]],spawn=spawnOffsets[myIndex]||[0,0];
+ player.position.set(spawn[0],0,24+spawn[1]);
  say('Tim sudah berkumpul. Temukan tiga bukti bersama-sama.');
 }
 async function mpLeaveRoom(){
