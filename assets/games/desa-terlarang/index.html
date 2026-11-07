@@ -588,7 +588,7 @@ function mpApplyRemotePose(remote){
  for(const name of ['avatar-leg-left','avatar-leg-right']){const leg=model.getObjectByName(name);if(leg)leg.position.y=prone?.42:.88;}
 }
 function mpApplyRemoteState(payload){
- if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z))return;
+ if(!payload?.user_id||payload.user_id===mpUser?.id||!Number.isFinite(payload.x)||!Number.isFinite(payload.z)||!Number.isFinite(Number(payload.yaw??0))||payload.x< -35||payload.x>35||payload.z< -43||payload.z>34)return;
  let remote=mpRemotePlayers.get(payload.user_id);
  if(!remote){
   const model=player.clone(true);model.visible=true;model.position.set(payload.x,0,payload.z);
@@ -605,7 +605,7 @@ function mpPresenceSync(){
  if(!mpChannel)return;
  const state=mpChannel.presenceState(),active=new Set();
  Object.values(state).flat().forEach(p=>{if(p.user_id&&p.user_id!==mpUser?.id)active.add(p.user_id);mpApplyRemoteState(p);});
- for(const [id,remote] of mpRemotePlayers){if(!active.has(id)){scene.remove(remote.model);remote.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});mpRemotePlayers.delete(id);}}
+ for(const [id,remote] of mpRemotePlayers){if(!active.has(id)){scene.remove(remote.model);remote.model.traverse(o=>{if(o.isSprite)o.material.map?.dispose();});mpRemotePlayers.delete(id);mpAttackCooldowns.delete(id);}}
 }
 async function mpConnectRoom(roomId){
  mpRoomId=roomId;mpGameStarted=false;
@@ -703,7 +703,7 @@ function applyGhostHit(index,hp,defeated,x,z){
  gh.defeatedTimer=defeated?7:0;gh.g.visible=!defeated;
 }
 function mpHandleGhostAttack(payload){
- if(!mpRoomId||!mpChannel||mpRoomData?.room?.host_id!==mpUser?.id||!payload?.user_id||!['hoe','sickle','plank'].includes(payload.tool))return;
+ if(!mpRoomId||!mpChannel||mpRoomData?.room?.host_id!==mpUser?.id||!payload?.user_id||!Number.isInteger(payload.index)||!['hoe','sickle','plank'].includes(payload.tool))return;
  const now=Date.now(),lastAttack=mpAttackCooldowns.get(payload.user_id)||0;
  if(now-lastAttack<480)return;
  const remoteAttacker=mpRemotePlayers.get(payload.user_id);
@@ -712,7 +712,7 @@ function mpHandleGhostAttack(payload){
  if(!attacker)return;
  const ax=Number(attacker.x??attacker.model?.position.x),az=Number(attacker.z??attacker.model?.position.z),yaw=Number(attacker.yaw);
  if(!Number.isFinite(ax)||!Number.isFinite(az)||!Number.isFinite(yaw))return;
- const index=Number(payload.index),gh=ghosts[index];if(!Number.isInteger(index)||!gh||!gh.g.visible||gh.defeatedTimer>0)return;
+ const index=payload.index,gh=ghosts[index];if(!gh||!gh.g.visible||gh.defeatedTimer>0)return;
  const dx=gh.g.position.x-ax,dz=gh.g.position.z-az,d=Math.hypot(dx,dz);
  if(d>3.65||d<.001||(dx/d)*Math.sin(yaw)+(dz/d)*Math.cos(yaw)<=.22)return;
  mpAttackCooldowns.set(payload.user_id,now);
