@@ -7178,25 +7178,28 @@ window.malamBindChatKeyboard=function(inputId,modalId){
  if(window.visualViewport){window.visualViewport.addEventListener('resize',adjust);window.visualViewport.addEventListener('scroll',adjust);}
  if(document.activeElement===input)adjust();
 };
-// Ikat aksi langsung ke tombol setelah renderer membuat ulang panel permainan.
+// Delegasi klik di document (capture) agar tombol tetap aktif meski arena/modal
+// dirender ulang dengan innerHTML atau berada di luar subtree panel utama.
 function malamBindUtilityButtons(root){
- if(!root)return;
- root.querySelectorAll('[data-malam-utility]').forEach(button=>{
-  if(button.dataset.malamUtilityBound==='1')return;
-  button.dataset.malamUtilityBound='1';
-  button.addEventListener('click',function(event){
-   event.preventDefault();
-   event.stopPropagation();
-   const action=button.getAttribute('data-malam-utility');
-   const trial=button.getAttribute('data-malam-utility-mode')==='trial';
-   if(trial){
-    if(typeof window.malamTrialOpen==='function')window.malamTrialOpen(action);
-    return;
-   }
-   if(action==='role'||action==='players')window.malamOpenModal(action);
-   else if(action==='chat')window.malamOpenChat();
-  });
- });
+ if(window.__malamUtilityDelegateInstalled)return;
+ window.__malamUtilityDelegateInstalled=true;
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('[data-malam-utility]'):null;
+  if(!button)return;
+  event.preventDefault();
+  event.stopPropagation();
+  const action=button.getAttribute('data-malam-utility');
+  const trial=button.getAttribute('data-malam-utility-mode')==='trial';
+  if(trial){
+   if(typeof window.malamTrialOpen==='function')window.malamTrialOpen(action);
+   return;
+  }
+  if(action==='role'||action==='players'){
+   if(typeof window.malamOpenModal==='function')window.malamOpenModal(action);
+  }else if(action==='chat'){
+   if(typeof window.malamOpenChat==='function')window.malamOpenChat();
+  }
+ },true);
 }
 window.malamOpenModal=function(type){
  const modal=document.getElementById('malam-modal'),content=document.getElementById('malam-modal-content'),title=document.getElementById('malam-modal-title');
