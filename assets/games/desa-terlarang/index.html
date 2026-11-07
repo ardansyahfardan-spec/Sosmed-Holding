@@ -156,7 +156,7 @@ button:active{transform:scale(.97);background:#273650}
  function mesh(parent,geometry,material,x,y,z,rx=0,ry=0,rz=0){
   const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;
  }
- function box(parent,w,h,d,material,x,y,z,bevel=0){
+ function partBox(parent,w,h,d,material,x,y,z,bevel=0){
   // Main body panels are deliberately softened by rounded joint caps and trim.
   return mesh(parent,new THREE.BoxGeometry(w,h,d),material,x,y,z);
  }
@@ -167,34 +167,34 @@ button:active{transform:scale(.97);background:#273650}
   const o=mesh(parent,new THREE.SphereGeometry(1,20,16),material,x,y,z);o.scale.set(sx,sy,sz);return o;
  }
  // Hip block and separated classic toy legs.
- const hips=box(player,.73,.34,.38,pants,0,1.08,0);
+ const hips=partBox(player,.73,.34,.38,pants,0,1.08,0);
  const legL=new THREE.Group();legL.position.set(-.205,.99,0);player.add(legL);
  const legR=new THREE.Group();legR.position.set(.205,.99,0);player.add(legR);
  for(const leg of [legL,legR]){
-  box(leg,.36,.64,.39,pants,0,-.31,0);
-  box(leg,.36,.13,.405,pantsLight,0,-.12,-.008);
-  box(leg,.37,.13,.43,boot,0,-.64,-.045);
-  box(leg,.37,.055,.435,sole,0,-.72,-.045);
-  box(leg,.045,.19,.018,metal,0,-.34,-.205);
+  partBox(leg,.36,.64,.39,pants,0,-.31,0);
+  partBox(leg,.36,.13,.405,pantsLight,0,-.12,-.008);
+  partBox(leg,.37,.13,.43,boot,0,-.64,-.045);
+  partBox(leg,.37,.055,.435,sole,0,-.72,-.045);
+  partBox(leg,.045,.19,.018,metal,0,-.34,-.205);
  }
  // Torso: recognizable minifigure shape with printed field jacket.
  const torso=new THREE.Group();torso.position.y=1.58;player.add(torso);
- box(torso,.88,.82,.43,jacket,0,0,0);
- box(torso,.91,.12,.45,jacketLight,0,.36,-.005);
- box(torso,.91,.12,.45,jacketDark,0,-.36,-.005);
- box(torso,.055,.67,.025,metal,0,0,-.229);
- box(torso,.025,.66,.02,jacketDark,.055,0,-.246);
- box(torso,.27,.2,.035,jacketDark,-.25,.16,-.235);
- box(torso,.27,.2,.035,jacketDark,.25,.16,-.235);
- box(torso,.2,.045,.02,red,-.25,.265,-.257);
- box(torso,.2,.045,.02,red,.25,.265,-.257);
- box(torso,.075,.065,.025,metal,-.25,.16,-.26);
- box(torso,.075,.065,.025,metal,.25,.16,-.26);
+ partBox(torso,.88,.82,.43,jacket,0,0,0);
+ partBox(torso,.91,.12,.45,jacketLight,0,.36,-.005);
+ partBox(torso,.91,.12,.45,jacketDark,0,-.36,-.005);
+ partBox(torso,.055,.67,.025,metal,0,0,-.229);
+ partBox(torso,.025,.66,.02,jacketDark,.055,0,-.246);
+ partBox(torso,.27,.2,.035,jacketDark,-.25,.16,-.235);
+ partBox(torso,.27,.2,.035,jacketDark,.25,.16,-.235);
+ partBox(torso,.2,.045,.02,red,-.25,.265,-.257);
+ partBox(torso,.2,.045,.02,red,.25,.265,-.257);
+ partBox(torso,.075,.065,.025,metal,-.25,.16,-.26);
+ partBox(torso,.075,.065,.025,metal,.25,.16,-.26);
  // Printed harness and radio badge.
- box(torso,.07,.36,.025,red,-.34,-.02,-.235);
- box(torso,.07,.36,.025,red,.34,-.02,-.235);
- box(torso,.17,.12,.025,jacketDark,.23,-.22,-.24);
- box(torso,.09,.07,.018,metal,.23,-.22,-.26);
+ partBox(torso,.07,.36,.025,red,-.34,-.02,-.235);
+ partBox(torso,.07,.36,.025,red,.34,-.02,-.235);
+ partBox(torso,.17,.12,.025,jacketDark,.23,-.22,-.24);
+ partBox(torso,.09,.07,.018,metal,.23,-.22,-.26);
  // Cylindrical neck and classic round minifigure head.
  cylinder(player,.13,.13,.16,yellow,0,2.07,0,24);
  const head=new THREE.Group();head.position.set(0,2.48,0);player.add(head);
@@ -208,18 +208,18 @@ button:active{transform:scale(.97);background:#273650}
  sphere(head,ink,.125,.055,-.329,.046,.052,.018);
  sphere(head,print,-.138,.072,-.346,.012,.014,.008);
  sphere(head,print,.112,.072,-.346,.012,.014,.008);
- box(head,.105,.018,.014,ink,0,-.095,-.34);
- box(head,.09,.018,.014,yellowShadow,0,-.13,-.344);
+ partBox(head,.105,.018,.014,ink,0,-.095,-.34);
+ partBox(head,.09,.018,.014,yellowShadow,0,-.13,-.344);
  // Molded dark swept hair cap, sitting over the cylindrical head.
  sphere(head,hair,0,.32,.025,.355,.16,.35);
  sphere(head,hairLight,-.16,.31,-.13,.18,.11,.2);
  sphere(head,hair,.15,.29,-.18,.2,.12,.17);
  sphere(head,hairLight,0,.235,-.285,.2,.095,.09);
  // Backpack: compact molded accessory.
- box(player,.48,.56,.2,jacketDark,0,1.57,.31);
- box(player,.36,.12,.07,jacket,0,1.85,.42);
- box(player,.16,.12,.025,metal,0,1.85,.464);
- box(player,.1,.2,.025,red,0,1.55,.422);
+ partBox(player,.48,.56,.2,jacketDark,0,1.57,.31);
+ partBox(player,.36,.12,.07,jacket,0,1.85,.42);
+ partBox(player,.16,.12,.025,metal,0,1.85,.464);
+ partBox(player,.1,.2,.025,red,0,1.55,.422);
  // Arms use classic cylindrical upper arms and forearms, pivoting at shoulders.
  const armL=new THREE.Group();armL.position.set(-.54,1.88,0);player.add(armL);
  const armR=new THREE.Group();armR.position.set(.54,1.88,0);player.add(armR);
@@ -231,7 +231,7 @@ button:active{transform:scale(.97);background:#273650}
   // C-shaped toy hand, opening toward the front.
   const hand=mesh(arm,new THREE.TorusGeometry(.105,.045,8,20,Math.PI*1.62),yellow,0,-.88,-.015,Math.PI/2,0,Math.PI*.19);
   hand.scale.set(1,1,1);
-  box(arm,.035,.12,.025,metal,side*.135,-.34,-.12);
+  partBox(arm,.035,.12,.025,metal,side*.135,-.34,-.12);
  }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
