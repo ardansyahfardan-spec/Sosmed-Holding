@@ -798,8 +798,16 @@ function mpUpdateRemotePlayers(dt){
  for(const remote of mpRemotePlayers.values()){
   remote.model.position.lerp(remote.target,Math.min(1,dt*12));remote.model.rotation.y=remote.yaw;
   remote.phase+=dt*(remote.sprinting?12:8);
-  remote.model.children.filter(child=>typeof child.userData?.phase==='number').forEach((leg,i)=>{const target=remote.walking&&!remote.prone?Math.sin(remote.phase+leg.userData.phase)*.58:remote.prone?Math.sin(remote.phase*.55+leg.userData.phase)*.08:0;leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,target,10,dt);});
-  if(remote.prone){const left=remote.model.getObjectByName('avatar-arm-left'),right=remote.model.getObjectByName('avatar-arm-right');if(left)left.rotation.x=0;if(right)right.rotation.x=0;}
+  // Limb pivots berada di dalam avatar-rig, jadi ambil berdasarkan nama, bukan children langsung.
+  for(const [name,phaseOffset] of [['avatar-leg-left',0],['avatar-leg-right',Math.PI]]){
+   const leg=remote.model.getObjectByName(name);if(!leg)continue;
+   const target=remote.walking&&!remote.prone?Math.sin(remote.phase+phaseOffset)*(remote.sprinting?.72:.52):remote.prone?Math.sin(remote.phase*.55+phaseOffset)*.08:0;
+   leg.rotation.x=THREE.MathUtils.damp(leg.rotation.x,target,10,dt);
+  }
+  const left=remote.model.getObjectByName('avatar-arm-left'),right=remote.model.getObjectByName('avatar-arm-right');
+  const armSwing=remote.walking&&!remote.prone?Math.sin(remote.phase+Math.PI)*.3:0;
+  if(left)left.rotation.x=THREE.MathUtils.damp(left.rotation.x,remote.prone?0:armSwing,10,dt);
+  if(right)right.rotation.x=THREE.MathUtils.damp(right.rotation.x,remote.prone?0:-armSwing,10,dt);
  }
 }
 
