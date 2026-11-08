@@ -104,16 +104,17 @@ button:active{transform:scale(.97);background:#273650}
  if(!window.THREE){state.textContent='GAGAL MEMUAT ENGINE';hint.textContent='Engine grafis belum tersedia. Periksa koneksi lalu muat ulang.';return;}
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x080d18);scene.fog=new THREE.FogExp2(0x111827,.012);
-  const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,520);camera.position.set(0,7,18);camera.lookAt(0,1,0);
+  const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,320);camera.position.set(0,7,18);camera.lookAt(0,1,0);
   let cameraYaw=0,cameraPitch=.42,lookPointer=null,lastLookX=0,lastLookY=0;
   canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer)return;e.preventDefault();const dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;cameraYaw-=dx*.006;cameraPitch=THREE.MathUtils.clamp(cameraPitch+dy*.004,.16,1.05);});
   function stopLook(e){if(e.pointerId===lookPointer)lookPointer=null;}
   canvas.addEventListener('pointerup',stopLook);canvas.addEventListener('pointercancel',stopLook);canvas.addEventListener('lostpointercapture',()=>{lookPointer=null;});
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight,false);
-  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  const mobileQuality=matchMedia('(pointer: coarse)').matches||/Android|iPhone|iPad/i.test(navigator.userAgent);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobileQuality,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?1.1:1.35));renderer.setSize(innerWidth,innerHeight,false);
+  renderer.shadowMap.enabled=!mobileQuality;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   scene.add(new THREE.HemisphereLight(0x9aafd0,0x17130f,1.25));
-  const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=true;moonLight.shadow.mapSize.set(1024,1024);moonLight.shadow.camera.left=-90;moonLight.shadow.camera.right=90;moonLight.shadow.camera.top=90;moonLight.shadow.camera.bottom=-90;scene.add(moonLight);
+  const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=!mobileQuality;moonLight.shadow.mapSize.set(mobileQuality?512:1024,mobileQuality?512:1024);moonLight.shadow.camera.left=-90;moonLight.shadow.camera.right=90;moonLight.shadow.camera.top=90;moonLight.shadow.camera.bottom=-90;scene.add(moonLight);
   const moon=new THREE.Mesh(new THREE.SphereGeometry(2.2,32,24),new THREE.MeshBasicMaterial({color:0xd9e4f5}));moon.position.set(-24,22,-55);scene.add(moon);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,400),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-90);ground.receiveShadow=true;scene.add(ground);
   const path=new THREE.Mesh(new THREE.PlaneGeometry(9,245),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-112);path.receiveShadow=true;scene.add(path);
@@ -157,9 +158,9 @@ button:active{transform:scale(.97);background:#273650}
    for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);const glow=new THREE.PointLight(0xd18a4c,.8,9);glow.position.set(x+wx*scale,wy,z+d/2+1.2);scene.add(glow);}
    box(w+.35*scale,.22*scale,d+.3*scale,M.stone,x,.12*scale,z);
   }
-  const swayingTrees=[];
+  const swayingTrees=[],forestGroups=[];
   function tree(x,z,s=1){
-   const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);
+   const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);forestGroups.push(group);
    const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22*s,.42*s,3.4*s,9),M.bark);trunk.position.y=1.7*s;trunk.castShadow=true;group.add(trunk);
    for(let j=0;j<3;j++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.07*s,.13*s,1.7*s,7),M.bark);b.position.set((j-1)*.55*s,2.5*s,0);b.rotation.z=(j-1)*-.55;group.add(b);}
    const canopy=new THREE.Group();canopy.position.y=2.75*s;group.add(canopy);
@@ -573,12 +574,13 @@ button:active{transform:scale(.97);background:#273650}
  function releaseJoy(e){if(e.pointerId!==joyPointer)return;joyPointer=null;joyX=0;joyY=0;stick.style.transform='translate(0,0)';}
  joystick.addEventListener('pointerup',releaseJoy);joystick.addEventListener('pointercancel',releaseJoy);joystick.addEventListener('lostpointercapture',()=>{joyPointer=null;joyX=0;joyY=0;stick.style.transform='translate(0,0)';});
  const keys=Object.create(null);addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
- state.textContent='AVATAR SIAP';let last=0;
+ state.textContent='AVATAR SIAP';let last=0,lastCull=0;
  function frame(t){
   requestAnimationFrame(frame);
   const dt=Math.min((t-last)/1000||0,.05);last=t;const time=t*.0001;
+   if(t-lastCull>450){lastCull=t;for(const g of forestGroups){const dx=g.position.x-player.position.x,dz=g.position.z-player.position.z;g.visible=dx*dx+dz*dz<112*112;}}
   mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
-  swayingTrees.forEach(t=>{t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
+  swayingTrees.forEach(t=>{if(!t.canopy.parent.parent.visible)return;t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
   lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
   missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
   worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
@@ -610,7 +612,7 @@ button:active{transform:scale(.97);background:#273650}
   renderer.render(scene,camera);
  }
  requestAnimationFrame(frame);
- function resize(){const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));}
+ function resize(){const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?1.1:1.35));}
  addEventListener('resize',resize,{passive:true});
  try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
 })();
