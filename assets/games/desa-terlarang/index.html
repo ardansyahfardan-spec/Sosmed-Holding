@@ -114,7 +114,6 @@ button:active{transform:scale(.97);background:#273650}
 </div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{
  'use strict';
@@ -131,7 +130,7 @@ button:active{transform:scale(.97);background:#273650}
   function stopLook(e){if(e.pointerId===lookPointer)lookPointer=null;}
   canvas.addEventListener('pointerup',stopLook);canvas.addEventListener('pointercancel',stopLook);canvas.addEventListener('lostpointercapture',()=>{lookPointer=null;});
   const mobileQuality=matchMedia('(pointer: coarse)').matches||/Android|iPhone|iPad/i.test(navigator.userAgent);
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobileQuality,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?.82:1.2));renderer.setSize(innerWidth,innerHeight,false);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobileQuality,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?.74:1.2));renderer.setSize(innerWidth,innerHeight,false);
   renderer.shadowMap.enabled=!mobileQuality;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   scene.add(new THREE.HemisphereLight(0x9aafd0,0x17130f,1.25));
   const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=!mobileQuality;moonLight.shadow.mapSize.set(mobileQuality?512:1024,mobileQuality?512:1024);moonLight.shadow.camera.left=-90;moonLight.shadow.camera.right=90;moonLight.shadow.camera.top=90;moonLight.shadow.camera.bottom=-90;scene.add(moonLight);
@@ -709,9 +708,22 @@ button:active{transform:scale(.97);background:#273650}
  const playerId=(crypto.randomUUID?crypto.randomUUID():('p'+Date.now()+Math.random().toString(36).slice(2)));
  const remotePlayers=new Map();
  let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
- const realtimeClient=window.supabase?.createClient
-  ? window.supabase.createClient('https://xnbqckfbrrmdjiemfwqf.supabase.co','sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL',{auth:{persistSession:false,autoRefreshToken:false}})
-  : null;
+ let realtimeClient=null,realtimeLoading=null;
+ async function ensureRealtimeClient(){
+  if(realtimeClient)return realtimeClient;
+  if(!realtimeLoading)realtimeLoading=new Promise((resolve,reject)=>{
+   if(window.supabase?.createClient){resolve();return;}
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+   script.async=true;
+   script.onload=()=>window.supabase?.createClient?resolve():reject(new Error('Library realtime tidak tersedia.'));
+   script.onerror=()=>reject(new Error('Gagal memuat layanan multiplayer.'));
+   document.head.appendChild(script);
+  });
+  await realtimeLoading;
+  realtimeClient=window.supabase.createClient('https://xnbqckfbrrmdjiemfwqf.supabase.co','sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL',{auth:{persistSession:false,autoRefreshToken:false}});
+  return realtimeClient;
+ }
  function updateRoomCount(){roomPresence.textContent=(remotePlayers.size+1)+' PEMAIN DI RUANG';}
  function addRemotePlayer(id,data){
   if(id===playerId)return null;
@@ -732,11 +744,12 @@ button:active{transform:scale(.97);background:#273650}
   updateRoomCount();
  }
  async function enterRoom(code){
-  if(!realtimeClient){roomStatus.textContent='Layanan realtime belum termuat. Muat ulang halaman dan coba lagi.';return;}
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
   if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
-  createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Menghubungkan ke ruang '+code+'...';
+  createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Memuat layanan multiplayer...';
   try{
+   await ensureRealtimeClient();
+   roomStatus.textContent='Menghubungkan ke ruang '+code+'...';
    if(multiplayer){await realtimeClient.removeChannel(multiplayer);multiplayer=null;}
    activeRoom=code;
    const channel=realtimeClient.channel('desa-terlarang:'+code,{config:{presence:{key:playerId},broadcast:{self:false}}});
@@ -987,7 +1000,7 @@ button:active{transform:scale(.97);background:#273650}
   renderer.render(scene,camera);
  }
  requestAnimationFrame(frame);
- function resize(){const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?.82:1.2));}
+ function resize(){const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?.74:1.2));}
  addEventListener('resize',resize,{passive:true});
  try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
 })();
