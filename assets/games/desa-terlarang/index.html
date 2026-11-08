@@ -22,7 +22,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 #audio-controls #sound-toggle{min-height:34px;padding:7px 12px;border-radius:9px;background:linear-gradient(110deg,#8c2634,#263f69);border:1px solid #e0b6be88;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
 @media(orientation:landscape) and (max-height:420px){#audio-controls{top:max(58px,calc(env(safe-area-inset-top) + 48px));right:12px;padding:5px 7px}#audio-controls #sound-toggle{min-height:30px;padding:5px 9px}}
 #mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
-#interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}
+#interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}#house-transition{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:#03060bef;opacity:0;pointer-events:none;transition:opacity .42s ease}#house-transition.active{opacity:1}#house-transition span{font-size:clamp(13px,2.5vw,20px);font-weight:900;letter-spacing:.24em;color:#e8d9c4;text-shadow:0 0 24px #a94c4c88}
 #sound-state{font-size:9px;color:#e9d6b4;letter-spacing:.08em}
 #joystick{position:fixed;left:22px;bottom:22px;width:124px;height:124px;border:1px solid #d6e2f044;border-radius:50%;background:#101a2b88;backdrop-filter:blur(5px);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;user-select:none}
 #stick{width:54px;height:54px;border-radius:50%;background:#b9c9df99;border:2px solid #e5edf8aa;box-shadow:0 4px 18px #0008;transform:translate(0,0);pointer-events:none}
@@ -59,6 +59,7 @@ button:active{transform:scale(.97);background:#273650}
 </head>
 <body>
 <canvas id="game" aria-label="Dunia GHOUSTORY Desa Terlarang"></canvas>
+ <div id="house-transition"><span>MEMASUKI RUMAH...</span></div>
 <div id="multiplayer-lobby">
  <div id="multiplayer-card">
   <div class="brand">GHOUSTORY ARENA · MULTIPLAYER</div>
@@ -279,13 +280,16 @@ button:active{transform:scale(.97);background:#273650}
    const ring=new THREE.Mesh(new THREE.TorusGeometry(.48,.035,7,20),new THREE.MeshBasicMaterial({color:0xd7a56c,transparent:true,opacity:.75}));ring.rotation.x=-Math.PI/2;g.add(ring);
    const pin=new THREE.Mesh(new THREE.OctahedronGeometry(.17,0),interactionMat);pin.position.y=.48;g.add(pin);
    const light=new THREE.PointLight(0xd69b68,.38,3.5);light.position.y=.6;g.add(light);
-   worldInteractions.push({x,z,label,detail,action,group:g,ring,pin,light,used:false,repeatable:label==='Pintu rumah tua',phase:Math.random()*6.28});
+   const item={x,z,label,detail,action,group:g,ring,pin,light,used:false,repeatable:label==='Masuk rumah'||label==='Keluar rumah',phase:Math.random()*6.28};worldInteractions.push(item);return item;
   }
   const secretDoor=new THREE.Group();secretDoor.position.set(-7.52,.12,-13.82);scene.add(secretDoor);
   const doorLeaf=box(.88,1.9,.12,M.wood,0,.95,0);doorLeaf.position.set(.44,.95,0);secretDoor.add(doorLeaf);
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
-  let doorOpen=false;
-  interactionMarker(-7.45,-12.05,'Pintu rumah tua','Engselnya berderit.',()=>{doorOpen=!doorOpen;secretDoor.rotation.y=doorOpen?-1.18:0;return doorOpen?'Pintu terbuka. Ada bekas lumpur menuju ruang belakang.':'Pintu ditutup kembali.';});
+  let doorOpen=false,insideHouse=false,houseTransitioning=false;
+  const houseTransition=document.getElementById('house-transition');
+  function changeHouseState(enter){if(houseTransitioning||insideHouse===enter)return;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI RUMAH...':'KELUAR DARI RUMAH...';houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(-7,0,enter?-15.1:-11.9);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;hint.textContent=enter?'Rumah terasa dingin. Periksa surat dan benda-benda yang tertinggal.':'Kamu kembali ke halaman rumah tua.';worldInteractions.forEach(o=>{o.group.visible=insideHouse?o.label==='Keluar rumah':o.label!=='Keluar rumah';});missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done);houseTransition.querySelector('span').textContent=enter?'RUMAH TUA':'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
+  interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true);return 'Kamu memasuki rumah tua.';});
+  const houseExit=interactionMarker(-7,-14.45,'Keluar rumah','Kembali ke halaman desa.',()=>{changeHouseState(false);return 'Kamu keluar dari rumah.';});houseExit.group.visible=false;
   // Interior rumah pertama: ruang tamu kecil yang benar-benar dapat dimasuki.
   const interiorWood=new THREE.MeshStandardMaterial({color:0x493326,roughness:.92});
   const interiorCloth=new THREE.MeshStandardMaterial({color:0x45413b,roughness:1});
@@ -548,7 +552,7 @@ button:active{transform:scale(.97);background:#273650}
   soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO 100%':'AUDIO MATI';
  });
  interactBtn.addEventListener('click',()=>{
-  if(nearbyWorld){const target=nearbyWorld;const message=target.action();if(!target.repeatable){target.used=true;target.group.visible=false;}hint.textContent=target.label+': '+message;nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
+  if(nearbyWorld){const target=nearbyWorld;const message=target.action();if(!target.repeatable){target.used=true;target.group.visible=false;}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah')hint.textContent=target.label+': '+message;nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
   if(!nearbyMission)return;
   nearbyMission.done=true;
   const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
@@ -585,15 +589,14 @@ button:active{transform:scale(.97);background:#273650}
   if(!apparitionTriggered&&ghostDistance<8){apparitionTriggered=true;apparition.visible=true;apparitionTimer=4.2;hint.textContent='Sosok pucat berdiri di depan sekolah... lalu menoleh ke arahmu.';playDiscoverySound();}
   if(apparitionTimer>0){apparitionTimer-=dt;apparition.position.y=.08+Math.sin(t*.004)*.12;ghostMat.opacity=Math.min(.55,apparitionTimer*.2);if(apparitionTimer<=0)apparition.visible=false;}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
-  missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
-  worldInteractions.forEach(o=>{if(o.used)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
+  if(!insideHouse)missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
+  worldInteractions.forEach(o=>{if(o.used||!o.group.visible)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
   interactBtn.style.display=(nearbyMission||nearbyWorld)?'block':'none';
   if(nearbyWorld)interactBtn.textContent='INTERAKSI: '+nearbyWorld.label.toUpperCase();
   else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
-  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(-direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
-  // Area eksplorasi diperluas ke halaman rumah, pepohonan, dan sisi desa.
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);
+  if(moving&&!houseTransitioning){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(-direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
+  if(insideHouse){player.position.x=THREE.MathUtils.clamp(player.position.x,-9.45,-4.55);player.position.z=THREE.MathUtils.clamp(player.position.z,-21.55,-14.25);}
+  else {player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);}
   if(!onGround||player.position.y>0){verticalVelocity-=18*dt;player.position.y+=verticalVelocity*dt;if(player.position.y<=0){player.position.y=0;verticalVelocity=0;onGround=true;}}
 
   if(multiplayer&&t-lastBroadcast>140){
@@ -603,7 +606,7 @@ button:active{transform:scale(.97);background:#273650}
   remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;entry.phase+=dt*(entry.moving?10:0);entry.avatar.position.y=entry.moving?Math.abs(Math.sin(entry.phase))*.055:0;});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
-  const behind=9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);
+  const behind=insideHouse?5.8:9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);
   renderer.render(scene,camera);
  }
  requestAnimationFrame(frame);
