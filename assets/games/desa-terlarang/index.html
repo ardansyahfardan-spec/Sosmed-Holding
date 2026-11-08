@@ -698,7 +698,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   partBox(arm,.035,.12,.025,metal,side*.135,-.34,-.12);
  }
  // Senter ekspedisi 3D di tangan kanan: badan metal, grip karet, ring kepala, tombol dan lensa.
- const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=0;armR.add(flashlightProp);
+ const flashlightProp=new THREE.Group();flashlightProp.position.set(.575,1.06,-.25);flashlightProp.rotation.x=0;player.add(flashlightProp);
  const torchBodyMat=new THREE.MeshStandardMaterial({color:0x252c35,metalness:.78,roughness:.3});
  const torchDarkMat=new THREE.MeshStandardMaterial({color:0x10151c,metalness:.35,roughness:.72});
  const torchMetalMat=new THREE.MeshStandardMaterial({color:0x778492,metalness:.88,roughness:.24});
