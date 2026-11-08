@@ -30,14 +30,41 @@ jobs:
       - name: Validate game JavaScript syntax
         run: |
           python3 - <<'PY'
+          from html.parser import HTMLParser
           from pathlib import Path
-          import re
-          html = Path('assets/games/desa-terlarang/index.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>', html, re.I)
-          code = next((part for part in scripts if part.strip()), '')
-          Path('/tmp/desa-terlarang.js').write_text(code, encoding='utf-8')
+
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.inside = False
+                  self.external = False
+                  self.current = []
+                  self.blocks = []
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == 'script':
+                      self.inside = True
+                      self.external = any(k.lower() == 'src' for k, _ in attrs)
+                      self.current = []
+              def handle_data(self, data):
+                  if self.inside and not self.external:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == 'script' and self.inside:
+                      code = ''.join(self.current)
+                      if code.strip():
+                          self.blocks.append(code)
+                      self.inside = False
+                      self.external = False
+
+          parser = Scripts()
+          parser.feed(Path('assets/games/desa-terlarang/index.html').read_text(encoding='utf-8'))
+          if not parser.blocks:
+              raise SystemExit('No inline game scripts found')
+          for i, code in enumerate(parser.blocks):
+              Path(f'/tmp/desa-terlarang-{i}.js').write_text(code, encoding='utf-8')
+          print(f'Found {len(parser.blocks)} inline scripts')
           PY
-          node --check /tmp/desa-terlarang.js
+          for file in /tmp/desa-terlarang-*.js; do node --check "$file"; done
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
