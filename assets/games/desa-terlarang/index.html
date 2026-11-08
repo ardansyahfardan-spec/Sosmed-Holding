@@ -19,7 +19,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 .hint{font-size:11px;line-height:1.5;color:#d1d8e5;max-width:290px;text-shadow:0 2px 8px #000}
 .actions{display:flex;gap:8px;pointer-events:auto;flex-wrap:wrap}
 #audio-controls{position:fixed;top:max(68px,calc(env(safe-area-inset-top) + 58px));right:max(12px,env(safe-area-inset-right));z-index:5;display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #d7e2f044;border-radius:12px;background:#08101de8;backdrop-filter:blur(8px);pointer-events:auto;max-width:calc(100vw - 24px)}
-#audio-controls #sound-toggle{min-height:34px;padding:7px 12px;border-radius:9px;background:linear-gradient(110deg,#8c2634,#263f69);border:1px solid #e0b6be88;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+#audio-controls #sound-toggle,#audio-controls #guide-toggle{min-height:34px;padding:7px 10px;border-radius:9px;background:linear-gradient(110deg,#8c2634,#263f69);border:1px solid #e0b6be88;color:#fff;font-size:9px;font-weight:800;white-space:nowrap}#audio-controls #guide-toggle{background:#182235;border-color:#aab8d055}
 @media(orientation:landscape) and (max-height:420px){#audio-controls{top:max(58px,calc(env(safe-area-inset-top) + 48px));right:12px;padding:5px 7px}#audio-controls #sound-toggle{min-height:30px;padding:5px 9px}}
 #survival-hud{position:fixed;left:clamp(12px,2vw,26px);top:150px;z-index:2;width:190px;padding:9px 11px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:9px;pointer-events:none}#stamina-track{height:6px;margin-top:6px;border-radius:9px;background:#293447;overflow:hidden}#stamina-fill{height:100%;width:100%;background:linear-gradient(90deg,#7fae8d,#d5c47b);transition:width .12s}#inventory-text{margin-top:7px;color:#d5c4a6;line-height:1.5}#mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
 #interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}#house-transition{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:#03060bef;opacity:0;pointer-events:none;transition:opacity .42s ease}#house-transition.active{opacity:1}#house-transition span{font-size:clamp(13px,2.5vw,20px);font-weight:900;letter-spacing:.24em;color:#e8d9c4;text-shadow:0 0 24px #a94c4c88}
@@ -74,7 +74,7 @@ button:active{transform:scale(.97);background:#273650}
  </div>
 </div>
 <div id="room-presence" style="display:none">1 PEMAIN DI RUANG</div>
-<div id="audio-controls" aria-label="Pengaturan audio"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button></div>
+<div id="audio-controls" aria-label="Pengaturan audio"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button><button id="guide-toggle" type="button" aria-pressed="true">PANDUAN: ON</button></div>
 <div id="hud">
  <div class="top">
   <div><div class="brand">GHOUSTORY ARENA</div><div class="chapter">DESA TERLARANG · PROLOG</div></div>
@@ -349,7 +349,7 @@ button:active{transform:scale(.97);background:#273650}
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
   let doorOpen=false,insideHouse=false,houseTransitioning=false,activeBuilding={name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true};
   const houseTransition=document.getElementById('house-transition');
-  function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+(b.d||4.7*b.scale)/2;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&o.label==='Surat di ruang tamu')||(b.school&&o.label==='Papan pengumuman sekolah')):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
+  function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+(b.d||4.7*b.scale)/2;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';speakGuide(enter?'Kau sudah masuk. Jangan percaya pada suara yang memanggil dari dalam rumah.':'Jangan terlalu lama di luar. Desa ini selalu tahu siapa yang sedang berjalan.');houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&o.label==='Surat di ruang tamu')||(b.school&&o.label==='Papan pengumuman sekolah')):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
   interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true,{name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true});return 'Kamu memasuki rumah tua.';});
   interactionMarker(28,-102.4,'Masuk sekolah','Pintu sekolah tua terbuka sedikit.',()=>{changeHouseState(true,{name:'SEKOLAH TUA',x:28,z:-108,scale:1,d:9,school:true});return 'Kamu memasuki sekolah tua.';});
   interactionMarker(28,-108,'Papan pengumuman sekolah','Daftar murid lama masih menempel di dinding.',()=>'Satu nama dicoret berulang kali. Tinta merahnya masih tampak baru.');
@@ -577,9 +577,12 @@ button:active{transform:scale(.97);background:#273650}
   else{hint.textContent='Semua petunjuk utama terkumpul. Sekarang gunakan catatan dan benda yang ditemukan untuk membuka jalan menuju ritual terakhir.';state.textContent='MISI UTAMA SELESAI';}
  }
  updateMission();
+ // Audio horor sintetis ringan: angin, drone rendah, denting disonan, dan narator perangkat.
  // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
- const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state');
- let audioContext=null,masterGain=null,ambienceStarted=false,audioEnabled=true;
+ const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state'),guideToggle=document.getElementById('guide-toggle');
+ let audioContext=null,masterGain=null,ambienceStarted=false,audioEnabled=true,guideEnabled=true,lastGuideAt=0;
+ function speakGuide(line){if(!guideEnabled||!audioEnabled||!('speechSynthesis' in window))return;const now=Date.now();if(now-lastGuideAt<6500)return;lastGuideAt=now;try{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(line);utterance.lang='id-ID';utterance.rate=.78;utterance.pitch=.62;utterance.volume=.82;const voices=window.speechSynthesis.getVoices();const indo=voices.find(v=>/^id(-|_)/i.test(v.lang));if(indo)utterance.voice=indo;window.speechSynthesis.speak(utterance);}catch(e){console.warn('Suara pemandu tidak tersedia',e);}}
+ guideToggle.addEventListener('click',()=>{guideEnabled=!guideEnabled;guideToggle.textContent='PANDUAN: '+(guideEnabled?'ON':'OFF');guideToggle.setAttribute('aria-pressed',String(guideEnabled));if(!guideEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else if(guideEnabled)speakGuide('Aku akan menuntunmu. Tapi jangan selalu ikuti suaraku.');});
  function startAmbientAudio(){
   if(ambienceStarted||!audioEnabled)return;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
@@ -601,9 +604,9 @@ button:active{transform:scale(.97);background:#273650}
  function playDiscoverySound(){
   if(!audioContext||!masterGain||!audioEnabled)return;
   const now=audioContext.currentTime;
-  [523.25,659.25,783.99].forEach((hz,i)=>{
+  [174.61,185,261.63].forEach((hz,i)=>{
    const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=hz;
-   gain.gain.setValueAtTime(.0001,now+i*.11);gain.gain.exponentialRampToValueAtTime(.18,now+i*.11+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.11+.55);
+   gain.gain.setValueAtTime(.0001,now+i*.11);gain.gain.exponentialRampToValueAtTime(.12,now+i*.14+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.14+.8);
    osc.connect(gain);gain.connect(masterGain);osc.start(now+i*.11);osc.stop(now+i*.11+.6);
   });
  }
@@ -618,12 +621,13 @@ button:active{transform:scale(.97);background:#273650}
   audioEnabled=!audioEnabled;
   if(audioEnabled){startAmbientAudio();if(audioContext&&audioContext.state==='suspended')audioContext.resume();if(masterGain)masterGain.gain.setTargetAtTime(1,audioContext.currentTime,.08);}
   else if(masterGain&&audioContext)masterGain.gain.setTargetAtTime(0,audioContext.currentTime,.08);
-  soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO 100%':'AUDIO MATI';
+  soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO AKTIF':'AUDIO MATI';if(!audioEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else speakGuide('Suara malam mulai terdengar. Tetap waspada.');
  });
  interactBtn.addEventListener('click',()=>{
-  if(nearbyWorld){const target=nearbyWorld;const message=target.action();if(!target.repeatable&&!message.startsWith('Laci terkunci')){target.used=true;target.group.visible=false;}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah')hint.textContent=target.label+': '+message;nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
+  if(nearbyWorld){const target=nearbyWorld;const message=target.action();if(!target.repeatable&&!message.startsWith('Laci terkunci')){target.used=true;target.group.visible=false;}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah')hint.textContent=target.label+': '+message;if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah')speakGuide(message);nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
   if(!nearbyMission)return;
   nearbyMission.done=true;
+  speakGuide('Satu petunjuk ditemukan. Ingat baik-baik. Setiap jawaban akan membuka rahasia berikutnya.');
   const completedIndex=missionPoints.indexOf(nearbyMission);if(missionPoints[completedIndex+1])missionPoints[completedIndex+1].unlocked=true;
   const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
   hint.textContent=nearbyMission.name+': kamu menemukan petunjuk yang tertinggal. Ada sesuatu yang mengawasimu.';
@@ -664,8 +668,8 @@ button:active{transform:scale(.97);background:#273650}
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
   const ghostDistance=Math.hypot(player.position.x-28,player.position.z+113);
-  if(!apparitionTriggered&&ghostDistance<8){apparitionTriggered=true;apparition.visible=true;apparitionTimer=4.2;hint.textContent='Sosok pucat berdiri di depan sekolah... lalu menoleh ke arahmu.';playDiscoverySound();}
-  if(apparitionTimer>0){apparitionTimer-=dt;apparition.position.y=.08+Math.sin(t*.004)*.12;ghostMat.opacity=Math.min(.55,apparitionTimer*.2);if(apparitionTimer<=0)apparition.visible=false;}
+  if(!apparitionTriggered&&ghostDistance<8){apparitionTriggered=true;apparition.visible=true;apparition.position.set(28,0,-113);apparitionTimer=7;hint.textContent='Sosok pucat berdiri di depan sekolah... lalu menoleh ke arahmu.';speakGuide('Berhenti. Ada sesuatu di dekat sekolah. Jangan biarkan ia mendekat.');playDiscoverySound();}
+  if(apparitionTimer>0){apparitionTimer-=dt;apparition.position.y=.08+Math.sin(t*.004)*.12;const gx=player.position.x-apparition.position.x,gz=player.position.z-apparition.position.z,gd=Math.hypot(gx,gz);if(!insideHouse&&gd>1.9){const chaseSpeed=apparitionTimer>4.5?1.45:1.05;apparition.position.x+=gx/(gd||1)*chaseSpeed*dt;apparition.position.z+=gz/(gd||1)*chaseSpeed*dt;apparition.lookAt(player.position.x,1.4,player.position.z);}ghostMat.opacity=Math.min(.55,apparitionTimer*.16);if(apparitionTimer<=0){apparition.visible=false;apparition.position.set(28,0,-113);ghostMat.opacity=.48;hint.textContent='Sosok itu lenyap. Namun suara langkahnya masih terdengar.';speakGuide('Ia menghilang. Untuk sementara.');}}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
   worldInteractions.forEach(o=>{if(o.used||!o.group.visible)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
