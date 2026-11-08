@@ -569,11 +569,11 @@ button:active{transform:scale(.97);background:#273650}
  // Titik investigasi yang dapat dijangkau di sepanjang jalan utama.
  const missionPoints=[
   {x:0,z:-13,name:'Bab 1 · Jejak di gerbang desa',done:false,unlocked:true},
-  {x:11,z:-41,name:'Bab 2 · Suara dari sumur tua',done:false,unlocked:false},
-  {x:5,z:-60,name:'Bab 3 · Peti yang terkunci',done:false,unlocked:false},
-  {x:-13,z:-70,name:'Bab 4 · Gerbang bambu',done:false,unlocked:false},
-  {x:28,z:-102,name:'Bab 5 · Sekolah tanpa murid',done:false,unlocked:false},
-  {x:-31,z:-137,name:'Bab 6 · Makam keluarga',done:false,unlocked:false}
+  {x:14,z:-46,name:'Bab 2 · Suara dari sumur tua',done:false,unlocked:false},
+  {x:2,z:-65,name:'Bab 3 · Peti yang terkunci',done:false,unlocked:false},
+  {x:-13,z:-76,name:'Bab 4 · Gerbang bambu',done:false,unlocked:false},
+  {x:31,z:-109,name:'Bab 5 · Sekolah tanpa murid',done:false,unlocked:false},
+  {x:-35,z:-143,name:'Bab 6 · Makam keluarga',done:false,unlocked:false}
  ];
  const missionProgress=document.getElementById('mission-progress'),interactBtn=document.getElementById('interact');
  let nearbyMission=null,nearbyWorld=null;
@@ -591,6 +591,7 @@ button:active{transform:scale(.97);background:#273650}
   if(next){const chapter=Math.min(6,Math.floor(missionPoints.filter(p=>p.done).length)+1);document.querySelector('.chapter').textContent='DESA TERLARANG · BAB '+chapter;hint.textContent=next.name+' — cari penanda berikutnya.';state.textContent='INVESTIGASI '+chapter+'/6';}
   else{hint.textContent='Semua petunjuk utama terkumpul. Sekarang gunakan catatan dan benda yang ditemukan untuk membuka jalan menuju ritual terakhir.';state.textContent='MISI UTAMA SELESAI';}
  }
+ updateMission();
  // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
  const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state');
  let audioContext=null,masterGain=null,ambienceStarted=false,audioEnabled=true;
