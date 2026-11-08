@@ -525,6 +525,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   wrap:new THREE.MeshStandardMaterial({color:0xb8b4aa,map:ghostTexture('#b8b4aa','#6f6b62'),roughness:1}),
   pale:new THREE.MeshStandardMaterial({color:0xc4c0b4,map:ghostTexture('#c4c0b4','#77736a'),roughness:1})
  };
+ // Material hantu dibuat sedikit tembus cahaya; tanpa shader pascaproses atau tekstur eksternal.
+ [[ghostMaterials.shroud,.74],[ghostMaterials.skin,.68],[ghostMaterials.dark,.84],[ghostMaterials.cloth,.76],[ghostMaterials.wrap,.72],[ghostMaterials.pale,.72]].forEach(([material,opacity])=>{material.transparent=true;material.opacity=opacity;material.depthWrite=false;});
  const ghostRoster=[
   {id:'pocong',name:'Pocong',line:'Jangan lari ke jalan buntu. Ada pocong di belakangmu.',speed:2.35,duration:13},
   {id:'anak',name:'Anak kecil',line:'Suara anak kecil itu bukan meminta tolong. Ia sedang memancingmu.',speed:1.35,duration:9},
@@ -537,7 +539,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function makeStoryGhost(kind){
   const g=new THREE.Group(),big=kind==='genderuwo',child=kind==='anak',female=kind==='kuntilanak',elder=kind==='nenek'||kind==='kakek';
   const skin=big?ghostMaterials.dark:ghostMaterials.skin,cloth=big?ghostMaterials.dark:(elder?ghostMaterials.cloth:ghostMaterials.shroud);
-  const add=(geo,material,parent=g,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;parent.add(m);return m;};
+  const add=(geo,material,parent=g,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m;};
   const sphere=(parent,material,x,y,z,sx,sy,sz)=>{const m=add(new THREE.SphereGeometry(1,9,6),material,parent,x,y,z);m.scale.set(sx,sy,sz);return m;};
   const bodyY=child?.86:(big?1.35:1.18),headY=child?1.58:(big?2.48:2.08),scale=big?1.25:(child?.78:1);
   // Torso anatomis dengan dada, perut, pinggul, bahu dan leher terpisah.
