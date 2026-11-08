@@ -213,7 +213,7 @@
       const keys = Object.create(null);
       let joystickX = 0, joystickY = 0, dragging = false, lastX = 0, lastY = 0;
       let sprintHeld = false, jumpQueued = false, clueCount = 0;
-      let nearestClue = null, lastQualityCheck = performance.now();
+      let nearestClue = null, clueRefreshElapsed = 0;
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
       function updateClues() {
@@ -338,7 +338,11 @@
         );
         camera.position = B.Vector3.Lerp(camera.position, cameraPos, 1 - Math.pow(0.001, dt));
         camera.setTarget(cameraTarget);
-        updateClues();
+        clueRefreshElapsed += dt;
+        if (clueRefreshElapsed >= 0.12) {
+          clueRefreshElapsed = 0;
+          updateClues();
+        }
       }
 
       scene.onBeforeRenderObservable.add(update);
