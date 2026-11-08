@@ -378,7 +378,25 @@ button:active{transform:scale(.97);background:#273650}
   box(5.4,.18,.2,weatheredWood,-13,3.18,-72);
   let playerCondition=100,flashlightBattery=100,flashlightOn=false,isHidden=false,hideSpot=null,lastSeenPlayer=new THREE.Vector3(),ghostSearchTimer=0,lastSafePosition=new THREE.Vector3(0,0,0),ritualStep=0,ritualResetAt=0,scareCooldown=0,knockouts=0;
  const conditionFill=document.getElementById('condition-fill'),conditionValue=document.getElementById('condition-value'),batteryFill=document.getElementById('battery-fill'),batteryValue=document.getElementById('battery-value');
- const flashlight=new THREE.SpotLight(0xd8e7ff,0,34,Math.PI/5,.58,1);flashlight.position.set(0,-.04,-.22);camera.add(flashlight);const flashlightTarget=new THREE.Object3D();scene.add(flashlightTarget);flashlight.target=flashlightTarget;
+ const flashlight=new THREE.SpotLight(0xd8e7ff,0,42,.42,.52,1);flashlight.castShadow=false;scene.add(flashlight);const flashlightTarget=new THREE.Object3D();scene.add(flashlightTarget);flashlight.target=flashlightTarget;
+ // Senter ekspedisi 3D di tangan kanan: badan metal, grip karet, ring kepala, tombol dan lensa.
+ const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=Math.PI/2;armR.add(flashlightProp);
+ const torchBodyMat=new THREE.MeshStandardMaterial({color:0x252c35,metalness:.78,roughness:.3});
+ const torchDarkMat=new THREE.MeshStandardMaterial({color:0x10151c,metalness:.35,roughness:.72});
+ const torchMetalMat=new THREE.MeshStandardMaterial({color:0x778492,metalness:.88,roughness:.24});
+ const torchLensMat=new THREE.MeshStandardMaterial({color:0x9edbff,emissive:0x4c9bce,emissiveIntensity:.12,transparent:true,opacity:.92,roughness:.12});
+ function torchCylinder(radiusTop,radiusBottom,length,material,z){const part=new THREE.Mesh(new THREE.CylinderGeometry(radiusTop,radiusBottom,length,12),material);part.rotation.x=Math.PI/2;part.position.z=z;flashlightProp.add(part);return part;}
+ // Axis lokal senter mengarah ke depan (-Z).
+ torchCylinder(.075,.082,.48,torchBodyMat,-.05);
+ torchCylinder(.105,.09,.13,torchMetalMat,-.31);
+ torchCylinder(.115,.105,.045,torchDarkMat,-.39);
+ const torchLens=new THREE.Mesh(new THREE.CircleGeometry(.087,16),torchLensMat);torchLens.position.z=-.416;flashlightProp.add(torchLens);
+ const torchGrip=new THREE.Mesh(new THREE.CylinderGeometry(.068,.07,.19,10),torchDarkMat);torchGrip.rotation.x=Math.PI/2;torchGrip.position.set(0,.025,.06);flashlightProp.add(torchGrip);
+ const torchSwitch=new THREE.Mesh(new THREE.BoxGeometry(.07,.035,.085),red);torchSwitch.position.set(.075,.075,-.02);flashlightProp.add(torchSwitch);
+ const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
+ const torchBeam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.62,18,12,1,true),new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.055,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.rotation.x=-Math.PI/2;torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
+ const torchLensGlow=new THREE.PointLight(0x9edbff,0,2.8);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
+ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashlightOn?(mobileQuality?34:48):0;torchBeam.visible=flashlightOn;torchLensGlow.intensity=flashlightOn?1.15:0;torchLensMat.emissiveIntensity=flashlightOn?1.8:.12;flashlightBtn.classList.toggle('active',flashlightOn);flashlightBtn.textContent=flashlightOn?'SENTER: ON':'SENTER';}
  function updateSurvivalHud(){conditionFill.style.width=playerCondition+'%';conditionValue.textContent=Math.round(playerCondition)+'%';batteryFill.style.width=flashlightBattery+'%';batteryValue.textContent=Math.round(flashlightBattery)+'%';}
  function broadcastSurvival(){if(multiplayer)multiplayer.send({type:'broadcast',event:'survival',payload:{player_id:playerId,hidden:isHidden,condition:playerCondition,ritualStep}});}
  function setHidden(value,spot){if(value&&!spot)return;if(value&&(!insideHouse||!spot)){hint.textContent='Cari lemari atau kolong meja yang bisa digunakan.';return;}isHidden=!!value;hideSpot=spot||null;player.visible=!insideHouse&&!isHidden;hideBtn.textContent=isHidden?'KELUAR':'SEMBUNYI';hideBtn.classList.toggle('active',isHidden);if(isHidden){joyX=0;joyY=0;stick.style.transform='translate(0,0)';sprinting=false;sprintBtn.classList.remove('active');hint.textContent='Kamu bersembunyi. Jangan bergerak dan tunggu sampai keadaan aman.';speakGuide('Diam. Tahan napas. Jangan keluar sebelum suara langkah itu menjauh.');}else{player.visible=!insideHouse;hint.textContent='Kamu keluar dari tempat persembunyian.';}broadcastSurvival();}
@@ -892,7 +910,7 @@ button:active{transform:scale(.97);background:#273650}
  sprintBtn.addEventListener('click',()=>{if(!sprinting&&stamina<8){hint.textContent='Stamina belum cukup untuk berlari.';return;}sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
  crouchBtn.addEventListener('click',()=>{crouching=!crouching;crouchBtn.classList.toggle('active',crouching);crouchBtn.textContent=crouching?'BANGUN':'JONGKOK';player.scale.y=crouching?.72:1;});
  hideBtn.addEventListener('click',()=>{if(isHidden)setHidden(false);else hint.textContent='Dekati lemari atau kolong meja yang ditandai, lalu tekan INTERAKSI.';});
- flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}flashlightOn=!flashlightOn;flashlight.intensity=flashlightOn?18:0;flashlightBtn.classList.toggle('active',flashlightOn);flashlightBtn.textContent=flashlightOn?'SENTER: ON':'SENTER';});
+ flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}setFlashlightState(!flashlightOn);});
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
  joystick.addEventListener('pointermove',e=>{if(e.pointerId===joyPointer){e.preventDefault();setJoystick(e);}});
@@ -955,7 +973,7 @@ button:active{transform:scale(.97);background:#273650}
   else {player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);}
   if(!onGround||player.position.y>0){verticalVelocity-=18*dt;player.position.y+=verticalVelocity*dt;if(player.position.y<=0){player.position.y=0;verticalVelocity=0;onGround=true;}}
 
-  exitMarker.group.visible=ritualComplete&&!insideHouse;if(flashlightOn){flashlightBattery=Math.max(0,flashlightBattery-dt*.62);if(flashlightBattery<=0){flashlightOn=false;flashlight.intensity=0;flashlightBtn.classList.remove('active');flashlightBtn.textContent='SENTER';hint.textContent='Senter padam. Cari baterai cadangan!';}updateSurvivalHud();}
+  exitMarker.group.visible=ritualComplete&&!insideHouse;if(flashlightOn){flashlightBattery=Math.max(0,flashlightBattery-dt*.62);if(flashlightBattery<=0){setFlashlightState(false);hint.textContent='Senter padam. Cari baterai cadangan!';}updateSurvivalHud();}
   if(!isHidden&&player.position.distanceTo(lastSafePosition)>3&&playerCondition>0)lastSafePosition.copy(player.position);
   
   if(scareCooldown>0)scareCooldown-=dt;else if(!isHidden&&moving&&Math.random()<dt*.018){scareCooldown=12;hint.textContent='Ada suara langkah lain yang mengikuti langkahmu.';speakGuide('Berhenti. Dengarkan. Langkah itu bukan milikmu.');playDiscoverySound();if(multiplayer)multiplayer.send({type:'broadcast',event:'survival',payload:{player_id:playerId,scare:true}});}
@@ -964,7 +982,7 @@ button:active{transform:scale(.97);background:#273650}
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
   if(insideHouse){const forwardX=-Math.sin(cameraYaw),forwardZ=-Math.cos(cameraYaw);const eye=new THREE.Vector3(player.position.x,1.62+player.position.y,player.position.z);camera.position.lerp(eye,1-Math.exp(-14*dt));camera.lookAt(eye.x+forwardX,eye.y+Math.sin(cameraPitch),eye.z+forwardZ);}else{const behind=9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);}
-  if(flashlightOn){const aim=new THREE.Vector3();if(insideHouse){camera.getWorldDirection(aim);}else{aim.set(Math.sin(player.rotation.y),-.12,Math.cos(player.rotation.y)).normalize();}flashlightTarget.position.copy(camera.position).add(aim.multiplyScalar(24));flashlightTarget.position.y=Math.max(.35,flashlightTarget.position.y);camera.updateMatrixWorld();}
+  if(flashlightOn){const aim=new THREE.Vector3(Math.sin(player.rotation.y),-.14,Math.cos(player.rotation.y)).normalize();flashlight.getWorldPosition(flashlightTarget.position);flashlight.position.set(player.position.x+Math.sin(player.rotation.y)*.55,player.position.y+1.05,player.position.z+Math.cos(player.rotation.y)*-.55);flashlightTarget.position.set(flashlight.position.x+aim.x*34,Math.max(.25,flashlight.position.y+aim.y*34),flashlight.position.z+aim.z*34);torchBeam.rotation.x=-Math.PI/2+Math.atan2(-aim.y,Math.sqrt(aim.x*aim.x+aim.z*aim.z));camera.updateMatrixWorld();}
   if(scareShake>0){scareShake=Math.max(0,scareShake-dt);camera.position.x+=(Math.random()-.5)*scareShake*.12;camera.position.y+=(Math.random()-.5)*scareShake*.08;}
   renderer.render(scene,camera);
  }
