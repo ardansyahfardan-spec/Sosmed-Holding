@@ -376,8 +376,21 @@ button:active{transform:scale(.97);background:#273650}
    if(i%3===0){const mossPatch=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),moss);mossPatch.scale.set(1,.12,.7);mossPatch.position.set(x,.08,z);scene.add(mossPatch);}
   }
   for(let i=0;i<22;i++){const z=-i*4.3-4;for(const side of [-1,1]){const x=side*(4.45+(i%3)*.12);box(.15,.9,.15,M.wood,x,.45,z);if(i%2===0)box(.13,.12,2.2,M.timber,side*4.45,.67,z-.9);}}
-  for(let i=0;i<(mobileQuality?30:90);i++){const side=Math.random()<.5?-1:1,x=side*(4.2+Math.random()*8),z=4-Math.random()*85;const t=new THREE.Mesh(new THREE.ConeGeometry(.12+Math.random()*.13,.35+Math.random()*.35,5),new THREE.MeshStandardMaterial({color:[0x343c28,0x41422c,0x252f25][i%3],roughness:1}));t.position.set(x,.12,z);t.rotation.z=(Math.random()-.5)*.5;t.castShadow=true;scene.add(t);}
-  for(let i=0;i<(mobileQuality?16:44);i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(.12+Math.random()*.22,0),M.stone);stone.position.set((Math.random()-.5)*12,.04,2-Math.random()*85);stone.scale.y=.45;stone.rotation.set(Math.random(),Math.random(),Math.random());scene.add(stone);}
+  // Vegetasi dan kerikil statis dirender berkelompok di ponsel untuk mengurangi draw call.
+  if(mobileQuality){
+   const dummy=new THREE.Object3D(),plantColors=[0x343c28,0x41422c,0x252f25],plantGeometry=new THREE.ConeGeometry(1,1,5),plantData=[[],[],[]];
+   for(let i=0;i<30;i++){const side=Math.random()<.5?-1:1;plantData[i%3].push({x:side*(4.2+Math.random()*8),z:4-Math.random()*85,h:.35+Math.random()*.35,r:.12+Math.random()*.13,rot:(Math.random()-.5)*.5});}
+   plantData.forEach((items,index)=>{if(!items.length)return;const material=new THREE.MeshStandardMaterial({color:plantColors[index],roughness:1}),batch=new THREE.InstancedMesh(plantGeometry,material,items.length);items.forEach((p,j)=>{dummy.position.set(p.x,.12+p.h/2,p.z);dummy.rotation.set(0,0,p.rot);dummy.scale.set(p.r,p.h,p.r);dummy.updateMatrix();batch.setMatrixAt(j,dummy.matrix);});batch.instanceMatrix.needsUpdate=true;scene.add(batch);});
+   const stoneGeometry=new THREE.DodecahedronGeometry(1,0),stones=new THREE.InstancedMesh(stoneGeometry,M.stone,16);
+   for(let i=0;i<16;i++){const r=.12+Math.random()*.22;dummy.position.set((Math.random()-.5)*12,.04,2-Math.random()*85);dummy.rotation.set(Math.random(),Math.random(),Math.random());dummy.scale.set(r,r*.45,r);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);}
+   stones.instanceMatrix.needsUpdate=true;scene.add(stones);
+   const mossGeometry=new THREE.SphereGeometry(1,6,4),mossBatch=new THREE.InstancedMesh(mossGeometry,moss,12);
+   for(let i=0;i<12;i++){const side=i%2?-1:1,x=side*(5.1+Math.random()*4.5),z=-3-Math.random()*78;dummy.position.set(x,.08,z);dummy.rotation.set(0,Math.random()*Math.PI,0);dummy.scale.set(.28,.034,.196);dummy.updateMatrix();mossBatch.setMatrixAt(i,dummy.matrix);}
+   mossBatch.instanceMatrix.needsUpdate=true;scene.add(mossBatch);
+  }else{
+   for(let i=0;i<90;i++){const side=Math.random()<.5?-1:1,x=side*(4.2+Math.random()*8),z=4-Math.random()*85;const t=new THREE.Mesh(new THREE.ConeGeometry(.12+Math.random()*.13,.35+Math.random()*.35,5),new THREE.MeshStandardMaterial({color:[0x343c28,0x41422c,0x252f25][i%3],roughness:1}));t.position.set(x,.12,z);t.rotation.z=(Math.random()-.5)*.5;t.castShadow=true;scene.add(t);}
+   for(let i=0;i<44;i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(.12+Math.random()*.22,0),M.stone);stone.position.set((Math.random()-.5)*12,.04,2-Math.random()*85);stone.scale.y=.45;stone.rotation.set(Math.random(),Math.random(),Math.random());scene.add(stone);}
+  }
   const mist=[];
   for(let i=0;i<(mobileQuality?10:28);i++){const material=new THREE.MeshBasicMaterial({color:0xaab8c9,transparent:true,opacity:.045,depthWrite:false});const cloud=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),material);cloud.scale.set(4+Math.random()*5,.3+Math.random()*.35,1.8);cloud.position.set((Math.random()-.5)*24,.35+Math.random()*1.1,-Math.random()*85);scene.add(cloud);mist.push(cloud);}
  // Avatar GHOUSTORY: custom toy-brick minifigure.
