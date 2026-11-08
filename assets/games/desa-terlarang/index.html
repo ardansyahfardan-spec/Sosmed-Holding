@@ -382,8 +382,8 @@ button:active{transform:scale(.97);background:#273650}
   worldInteractions.forEach(o=>{if(o.label==='Surat di ruang tamu'||o.label==='Papan pengumuman sekolah'||o.label==='Foto keluarga'||o.label==='Buku absen lama'||o.label.startsWith('BERSEMBUNYI'))o.group.visible=false;});
   interactionMarker(-5.2,-18.8,'BERSEMBUNYI · LEMARI','Lemari tua cukup besar untuk menyembunyikanmu.',()=>{setHidden(true,'lemari');return 'Kamu masuk ke dalam lemari.';});
   interactionMarker(-8.6,-19.7,'BERSEMBUNYI · KOLONG MEJA','Kolong meja ruang tamu bisa menjadi tempat berlindung.',()=>{setHidden(true,'meja');return 'Kamu merunduk di bawah meja.';});
-  interactionMarker(23.2,-109.2,'BERSEMBUNYI · LEMARI','Lemari arsip sekolah dapat menutup tubuhmu.',()=>{setHidden(true,'lemari sekolah');return 'Kamu bersembunyi di lemari arsip.';});
-  interactionMarker(32.5,-109.2,'BERSEMBUNYI · KOLONG MEJA','Meja guru cukup besar untuk berlindung.',()=>{setHidden(true,'meja sekolah');return 'Kamu bersembunyi di bawah meja guru.';});
+  interactionMarker(23.2,-109.2,'BERSEMBUNYI · LEMARI SEKOLAH','Lemari arsip sekolah dapat menutup tubuhmu.',()=>{setHidden(true,'lemari sekolah');return 'Kamu bersembunyi di lemari arsip.';});
+  interactionMarker(32.5,-109.2,'BERSEMBUNYI · KOLONG MEJA SEKOLAH','Meja guru cukup besar untuk berlindung.',()=>{setHidden(true,'meja sekolah');return 'Kamu bersembunyi di bawah meja guru.';});
 
   // Papan lapuk, batu berlumut, dan ranting berserakan di tepi jalan.
   for(let i=0;i<34;i++){
