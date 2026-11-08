@@ -395,24 +395,7 @@ button:active{transform:scale(.97);background:#273650}
   let playerCondition=100,flashlightBattery=100,flashlightOn=false,isHidden=false,hideSpot=null,lastSeenPlayer=new THREE.Vector3(),ghostSearchTimer=0,lastSafePosition=new THREE.Vector3(0,0,0),ritualStep=0,ritualResetAt=0,scareCooldown=0,knockouts=0;
  const conditionFill=document.getElementById('condition-fill'),conditionValue=document.getElementById('condition-value'),batteryFill=document.getElementById('battery-fill'),batteryValue=document.getElementById('battery-value');
  const flashlight=new THREE.SpotLight(0xd8e7ff,0,42,.42,.52,1);flashlight.castShadow=false;scene.add(flashlight);const flashlightTarget=new THREE.Object3D();scene.add(flashlightTarget);flashlight.target=flashlightTarget;
- // Senter ekspedisi 3D di tangan kanan: badan metal, grip karet, ring kepala, tombol dan lensa.
- const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=0;armR.add(flashlightProp);
- const torchBodyMat=new THREE.MeshStandardMaterial({color:0x252c35,metalness:.78,roughness:.3});
- const torchDarkMat=new THREE.MeshStandardMaterial({color:0x10151c,metalness:.35,roughness:.72});
- const torchMetalMat=new THREE.MeshStandardMaterial({color:0x778492,metalness:.88,roughness:.24});
- const torchLensMat=new THREE.MeshStandardMaterial({color:0x9edbff,emissive:0x4c9bce,emissiveIntensity:.12,transparent:true,opacity:.92,roughness:.12});
- function torchCylinder(radiusTop,radiusBottom,length,material,z){const part=new THREE.Mesh(new THREE.CylinderGeometry(radiusTop,radiusBottom,length,12),material);part.rotation.x=Math.PI/2;part.position.z=z;flashlightProp.add(part);return part;}
- // Axis lokal senter mengarah ke depan (-Z).
- torchCylinder(.075,.082,.48,torchBodyMat,-.05);
- torchCylinder(.105,.09,.13,torchMetalMat,-.31);
- torchCylinder(.115,.105,.045,torchDarkMat,-.39);
- const torchLens=new THREE.Mesh(new THREE.CircleGeometry(.087,16),torchLensMat);torchLens.position.z=-.416;flashlightProp.add(torchLens);
- const torchGrip=new THREE.Mesh(new THREE.CylinderGeometry(.068,.07,.19,10),torchDarkMat);torchGrip.rotation.x=Math.PI/2;torchGrip.position.set(0,.025,.06);flashlightProp.add(torchGrip);
- const torchSwitch=new THREE.Mesh(new THREE.BoxGeometry(.07,.035,.085),red);torchSwitch.position.set(.075,.075,-.02);flashlightProp.add(torchSwitch);
- const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
- const torchBeam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.62,18,12,1,true),new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.055,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.rotation.x=-Math.PI/2;torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
- const torchLensGlow=new THREE.PointLight(0x9edbff,0,2.8);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
- function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashlightOn?(mobileQuality?34:48):0;torchBeam.visible=flashlightOn;torchLensGlow.intensity=flashlightOn?1.15:0;torchLensMat.emissiveIntensity=flashlightOn?1.8:.12;flashlightBtn.classList.toggle('active',flashlightOn);flashlightBtn.textContent=flashlightOn?'SENTER: ON':'SENTER';}
+function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashlightOn?(mobileQuality?34:48):0;torchBeam.visible=flashlightOn;torchLensGlow.intensity=flashlightOn?1.15:0;torchLensMat.emissiveIntensity=flashlightOn?1.8:.12;flashlightBtn.classList.toggle('active',flashlightOn);flashlightBtn.textContent=flashlightOn?'SENTER: ON':'SENTER';}
  function updateSurvivalHud(){conditionFill.style.width=playerCondition+'%';conditionValue.textContent=Math.round(playerCondition)+'%';batteryFill.style.width=flashlightBattery+'%';batteryValue.textContent=Math.round(flashlightBattery)+'%';}
  function broadcastSurvival(){if(multiplayer)multiplayer.send({type:'broadcast',event:'survival',payload:{player_id:playerId,hidden:isHidden,condition:playerCondition,ritualStep}});}
  function setHidden(value,spot){if(value&&!spot)return;if(value&&(!insideHouse||!spot)){hint.textContent='Cari lemari atau kolong meja yang bisa digunakan.';return;}isHidden=!!value;hideSpot=spot||null;player.visible=!insideHouse&&!isHidden;hideBtn.textContent=isHidden?'KELUAR':'SEMBUNYI';hideBtn.classList.toggle('active',isHidden);if(isHidden){joyX=0;joyY=0;stick.style.transform='translate(0,0)';sprinting=false;sprintBtn.classList.remove('active');hint.textContent='Kamu bersembunyi. Jangan bergerak dan tunggu sampai keadaan aman.';speakGuide('Diam. Tahan napas. Jangan keluar sebelum suara langkah itu menjauh.');}else{player.visible=!insideHouse;hint.textContent='Kamu keluar dari tempat persembunyian.';}broadcastSurvival();}
@@ -714,7 +697,24 @@ button:active{transform:scale(.97);background:#273650}
   hand.scale.set(1,1,1);
   partBox(arm,.035,.12,.025,metal,side*.135,-.34,-.12);
  }
- // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
+ // Senter ekspedisi 3D di tangan kanan: badan metal, grip karet, ring kepala, tombol dan lensa.
+ const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=0;armR.add(flashlightProp);
+ const torchBodyMat=new THREE.MeshStandardMaterial({color:0x252c35,metalness:.78,roughness:.3});
+ const torchDarkMat=new THREE.MeshStandardMaterial({color:0x10151c,metalness:.35,roughness:.72});
+ const torchMetalMat=new THREE.MeshStandardMaterial({color:0x778492,metalness:.88,roughness:.24});
+ const torchLensMat=new THREE.MeshStandardMaterial({color:0x9edbff,emissive:0x4c9bce,emissiveIntensity:.12,transparent:true,opacity:.92,roughness:.12});
+ function torchCylinder(radiusTop,radiusBottom,length,material,z){const part=new THREE.Mesh(new THREE.CylinderGeometry(radiusTop,radiusBottom,length,12),material);part.rotation.x=Math.PI/2;part.position.z=z;flashlightProp.add(part);return part;}
+ // Axis lokal senter mengarah ke depan (-Z).
+ torchCylinder(.075,.082,.48,torchBodyMat,-.05);
+ torchCylinder(.105,.09,.13,torchMetalMat,-.31);
+ torchCylinder(.115,.105,.045,torchDarkMat,-.39);
+ const torchLens=new THREE.Mesh(new THREE.CircleGeometry(.087,16),torchLensMat);torchLens.position.z=-.416;flashlightProp.add(torchLens);
+ const torchGrip=new THREE.Mesh(new THREE.CylinderGeometry(.068,.07,.19,10),torchDarkMat);torchGrip.rotation.x=Math.PI/2;torchGrip.position.set(0,.025,.06);flashlightProp.add(torchGrip);
+ const torchSwitch=new THREE.Mesh(new THREE.BoxGeometry(.07,.035,.085),red);torchSwitch.position.set(.075,.075,-.02);flashlightProp.add(torchSwitch);
+ const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
+ const torchBeam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.62,18,12,1,true),new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.055,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.rotation.x=-Math.PI/2;torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
+ const torchLensGlow=new THREE.PointLight(0x9edbff,0,2.8);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
+  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
  const roomStatus=document.getElementById('room-status');
  const createRoomBtn=document.getElementById('create-room');
