@@ -590,7 +590,7 @@ button:active{transform:scale(.97);background:#273650}
   interactBtn.style.display=(nearbyMission||nearbyWorld)?'block':'none';
   if(nearbyWorld)interactBtn.textContent='INTERAKSI: '+nearbyWorld.label.toUpperCase();
   else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
-  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
+  if(moving){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(-direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
   // Area eksplorasi diperluas ke halaman rumah, pepohonan, dan sisi desa.
   player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);
