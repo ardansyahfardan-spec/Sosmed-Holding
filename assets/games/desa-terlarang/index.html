@@ -608,7 +608,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  }
  // Model hantu dibuat saat pertama kali muncul, bukan sekaligus saat game dibuka.
  let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0,remoteGhostHitAt=0;
- function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId};storyGhostTimer=def.duration;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');speakGuide(def.line);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
+ function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId};storyGhostTimer=def.duration;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');speakGuide(def.line);playGhostEffect(index,x,z);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
  function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;if(multiplayer)multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:false}});}
  const environmentScares=[
   {id:'old-house',x:-7,z:-18,kind:'door',used:false}, {id:'school',x:28,z:-107,kind:'fall',used:false},
@@ -628,6 +628,34 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   prop.visible=ev.kind!=='door';scareProps.push({event:ev,object:prop,fall:0,target:0,baseRotation:prop.rotation.z});
  });
  let scareDoorAngle=0,scareDoorTarget=0,scareShake=0,lastScareAt=0,lastEnvironmentCheck=0;
+ let ghostNoiseBuffer=null;
+ function playGhostEffect(index,x,z){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime;
+  // Satu buffer noise lembut dipakai ulang agar efek hantu tidak menambah unduhan atau beban asset.
+  if(!ghostNoiseBuffer){
+   const length=Math.floor(audioContext.sampleRate*1.7);
+   ghostNoiseBuffer=audioContext.createBuffer(1,length,audioContext.sampleRate);
+   const data=ghostNoiseBuffer.getChannelData(0);let smooth=0;
+   for(let i=0;i<length;i++){const white=Math.random()*2-1;smooth=(smooth+.035*white)/1.035;data[i]=smooth*4.2;}
+  }
+  const pan=audioContext.createStereoPanner?audioContext.createStereoPanner():null;
+  if(pan){const offset=Number.isFinite(x)&&typeof player!=='undefined'?x-player.position.x:0;pan.pan.value=Math.max(-.72,Math.min(.72,offset/13));pan.connect(masterGain);}
+  const output=pan||masterGain;
+  const source=audioContext.createBufferSource(),filter=audioContext.createBiquadFilter(),breath=audioContext.createGain();
+  source.buffer=ghostNoiseBuffer;filter.type='bandpass';filter.Q.value=.72;
+  filter.frequency.setValueAtTime(index===5?420:820,now);
+  filter.frequency.exponentialRampToValueAtTime(index===5?115:210,now+1.42);
+  breath.gain.setValueAtTime(.0001,now);breath.gain.exponentialRampToValueAtTime(index===5?.2:.145,now+.16);
+  breath.gain.exponentialRampToValueAtTime(.0001,now+1.62);
+  source.connect(filter);filter.connect(breath);breath.connect(output);source.start(now);source.stop(now+1.68);
+  const tone=audioContext.createOscillator(),toneGain=audioContext.createGain();
+  tone.type='sine';tone.frequency.setValueAtTime(index===5?76:(index===0?104:88),now);
+  tone.frequency.exponentialRampToValueAtTime(index===5?38:49,now+1.35);
+  toneGain.gain.setValueAtTime(.0001,now);toneGain.gain.exponentialRampToValueAtTime(index===5?.055:.038,now+.2);
+  toneGain.gain.exponentialRampToValueAtTime(.0001,now+1.5);
+  tone.connect(toneGain);toneGain.connect(output);tone.start(now);tone.stop(now+1.52);
+ }
  function playEnvironmentalSound(kind){
   if(!audioContext||!masterGain||!audioEnabled)return;
   const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();
@@ -934,7 +962,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   try{
    if(!ambienceTrack){
     ambienceTrack=new Audio(new URL('./audio/horror-ambience.wav',document.baseURI).href);
-    ambienceTrack.loop=true;ambienceTrack.preload='none';ambienceTrack.volume=.32;
+    ambienceTrack.loop=true;ambienceTrack.preload='none';ambienceTrack.volume=1;
    }
    const playback=ambienceTrack.play();
    if(playback&&typeof playback.catch==='function')playback.catch(err=>console.warn('Ambience belum dapat diputar; akan dicoba lagi setelah interaksi berikutnya.',err));
