@@ -53,8 +53,8 @@ button:active{transform:scale(.97);background:#273650}
 #multiplayer-card button{width:100%;margin-top:10px;padding:13px;border-radius:11px;background:#263c59;border:1px solid #9db5d455}
 #multiplayer-card button.primary{background:linear-gradient(110deg,#8c2634,#263f69);border-color:#c88c9a66}
 #room-status{min-height:18px;margin-top:12px;color:#e4b7b7;font-size:11px}
-#room-code-display{display:none;margin-top:12px;padding:12px;border:1px dashed #a9b9d466;border-radius:10px;text-align:center;font-weight:900;letter-spacing:.3em;color:#f3d6d6}
-#room-presence{position:fixed;right:16px;top:62px;z-index:2;pointer-events:none;font-size:10px;color:#dbe4f5;background:#0a1024b8;border:1px solid #aab8d044;border-radius:999px;padding:7px 10px}
+#room-code-display{display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:24;margin:0;padding:11px 18px;border:1px solid #e3b4be99;border-radius:12px;background:#10182bea;box-shadow:0 8px 28px #0009;text-align:center;font-weight:900;font-size:14px;letter-spacing:.22em;color:#fff0d8;pointer-events:auto;white-space:nowrap}
+#room-presence{position:fixed;right:16px;top:62px;z-index:24;pointer-events:none;font-size:10px;color:#dbe4f5;background:#0a1024b8;border:1px solid #aab8d044;border-radius:999px;padding:7px 10px}
 
 #clue-sheet{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:18px;background:#03060bd9;backdrop-filter:blur(5px);pointer-events:auto}#clue-sheet.open{display:flex}#clue-paper{width:min(430px,100%);max-height:min(76vh,620px);overflow:auto;padding:23px 21px 18px;border:1px solid #b99a70aa;border-radius:5px;background:linear-gradient(145deg,#e8dec8,#cfc1a5);color:#28231e;box-shadow:0 22px 70px #000b;position:relative}#clue-paper:before{content:"";position:absolute;inset:8px;border:1px solid #7e6b5144;pointer-events:none}#clue-kicker{font-size:9px;letter-spacing:.22em;font-weight:900;color:#775b45}#clue-title{font-family:Georgia,serif;font-size:23px;line-height:1.2;margin:13px 0 12px;color:#29231d}#clue-body{font-family:Georgia,serif;font-size:15px;line-height:1.65;white-space:pre-line;color:#393128}#clue-actions{display:flex;gap:8px;margin-top:20px;position:relative}#clue-actions button{flex:1;border-radius:5px;background:#26364b;color:#fff;border:1px solid #52647a;padding:12px 9px;font-size:11px}#clue-actions button:last-child{background:#65323a;border-color:#89545a}@media(max-width:700px){#clue-paper{padding:20px 17px 15px}#clue-title{font-size:21px}#clue-body{font-size:14px}}
 
@@ -83,10 +83,10 @@ button:active{transform:scale(.97);background:#273650}
   <div style="margin-top:16px;font-size:10px;letter-spacing:.15em;color:#aab8d0">GABUNG DENGAN KODE</div>
   <input id="room-code-input" maxlength="6" placeholder="KODE RUANG" autocomplete="off" aria-label="Kode ruang">
   <button id="join-room" type="button">GABUNG RUANG</button>
-  <div id="room-code-display"></div>
   <div id="room-status">Siap. Tekan BUAT RUANG BARU untuk memulai.</div>
  </div>
 </div>
+<div id="room-code-display" aria-live="polite"></div>
 <div id="room-presence" style="display:none">1 PEMAIN DI RUANG</div>
 <div id="audio-controls" aria-label="Pengaturan audio"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button><button id="guide-toggle" type="button" aria-pressed="true">PANDUAN: ON</button></div>
 <div id="hud">
