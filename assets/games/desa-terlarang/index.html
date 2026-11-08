@@ -169,6 +169,14 @@ button:active{transform:scale(.97);background:#273650}
   scene.add(new THREE.HemisphereLight(0x9aafd0,0x17130f,1.25));
   const moonLight=new THREE.DirectionalLight(0xa9c1e8,2);moonLight.position.set(-18,28,12);moonLight.castShadow=!mobileQuality;moonLight.shadow.mapSize.set(mobileQuality?512:1024,mobileQuality?512:1024);moonLight.shadow.camera.left=-90;moonLight.shadow.camera.right=90;moonLight.shadow.camera.top=90;moonLight.shadow.camera.bottom=-90;scene.add(moonLight);
   const moon=new THREE.Mesh(new THREE.SphereGeometry(2.2,32,24),new THREE.MeshBasicMaterial({color:0xd9e4f5}));moon.position.set(-24,22,-55);scene.add(moon);
+  // Lapisan cahaya bulan dan satu draw-call bintang untuk memperkaya langit tanpa efek pascaproses berat.
+  const moonHalo=new THREE.Mesh(new THREE.SphereGeometry(3.15,20,16),new THREE.MeshBasicMaterial({color:0x9eb9df,transparent:true,opacity:.075,depthWrite:false}));
+  moonHalo.position.copy(moon.position);scene.add(moonHalo);
+  const starPositions=new Float32Array(180*3);
+  for(let i=0;i<180;i++){starPositions[i*3]=(Math.random()-.5)*210;starPositions[i*3+1]=13+Math.random()*55;starPositions[i*3+2]=-Math.random()*260+25;}
+  const starGeometry=new THREE.BufferGeometry();starGeometry.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
+  const starField=new THREE.Points(starGeometry,new THREE.PointsMaterial({color:0xc6d7ef,size:.13,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));
+  scene.add(starField);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,400),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-90);ground.receiveShadow=true;scene.add(ground);
   const path=new THREE.Mesh(new THREE.PlaneGeometry(9,245),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-112);path.receiveShadow=true;scene.add(path);
   const M={
@@ -188,7 +196,10 @@ button:active{transform:scale(.97);background:#273650}
     if(!boxMaterialCache.has(material))boxMaterialCache.set(material,new THREE.MeshStandardMaterial({color:material,roughness:.95}));
     material=boxMaterialCache.get(material);
    }
-   const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;scene.add(m);return m;
+   const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);
+   // Detail kecil (genteng, lis, paku, dan ornamen) tidak ikut menggambar/menerima shadow map.
+   const shadowRelevant=w*h*d>=1.15;m.castShadow=!mobileQuality&&shadowRelevant;m.receiveShadow=!mobileQuality&&shadowRelevant;
+   scene.add(m);return m;
   }
 
   // Gapura utama Desa Wanasetra: rangka kayu lapuk dengan pintu gerbang yang sudah terbuka.
@@ -296,7 +307,7 @@ button:active{transform:scale(.97);background:#273650}
    const frame=new THREE.Mesh(new THREE.BoxGeometry(.58,.08,.58),lampTrim);frame.position.set(hoodX,3.66,z);scene.add(frame);
    // Cahaya diperkuat agar benar-benar menerangi jalan dan tanah di sekitarnya.
    // Semua tiang dan lentera tetap dibuat, tetapi hanya separuh yang memakai PointLight nyata.
-   if(lampIndex%(mobileQuality?3:2)===0){const glow=new THREE.PointLight(0xffb66b,mobileQuality?3.8:5.2,mobileQuality?14:19,1.7);glow.position.set(hoodX,4.02,z);scene.add(glow);lampLights.push({light:glow,phase:Math.random()*6.28});}
+   if(lampIndex%(mobileQuality?3:2)===0){const baseIntensity=mobileQuality?3.8:5.2;const glow=new THREE.PointLight(0xffb66b,baseIntensity,mobileQuality?14:19,1.7);glow.position.set(hoodX,4.02,z);scene.add(glow);lampLights.push({light:glow,phase:Math.random()*6.28,baseIntensity});}
    const halo=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.34}));halo.position.set(hoodX,4.02,z);scene.add(halo);lampIndex++;
   }
   for(let i=0;i<6;i++){const z=-8-i*14;streetLamp(i%2===0?-5.1:5.1,z);}
@@ -342,7 +353,7 @@ button:active{transform:scale(.97);background:#273650}
   const moss=new THREE.MeshStandardMaterial({color:0x303c2b,roughness:1});
   function cylinderProp(rt,rb,h,material,x,y,z,segments=12){
    const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),material);
-   o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o;
+   o.position.set(x,y,z);o.castShadow=!mobileQuality&&h>=1.1;o.receiveShadow=!mobileQuality&&h>=1.1;scene.add(o);return o;
   }
   function barrel(x,z){
    cylinderProp(.43,.48,.95,weatheredWood,x,.49,z,14);
@@ -1008,7 +1019,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    lastAmbientUpdate=t;
    mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
    swayingTrees.forEach(treeState=>{if(!treeState.canopy.parent.visible)return;treeState.canopy.rotation.z=Math.sin(time*2.4+treeState.phase)*.025;treeState.canopy.rotation.x=Math.cos(time*1.8+treeState.phase)*.018;});
-   lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
+   lampLights.forEach(l=>{l.light.intensity=l.baseIntensity*(.96+Math.sin(time*5+l.phase)*.025);});
    missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
    worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
   }
