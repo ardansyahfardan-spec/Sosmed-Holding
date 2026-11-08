@@ -21,7 +21,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;col
 #audio-controls{position:fixed;top:max(68px,calc(env(safe-area-inset-top) + 58px));right:max(12px,env(safe-area-inset-right));z-index:5;display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #d7e2f044;border-radius:12px;background:#08101de8;backdrop-filter:blur(8px);pointer-events:auto;max-width:calc(100vw - 24px)}
 #audio-controls #sound-toggle{min-height:34px;padding:7px 12px;border-radius:9px;background:linear-gradient(110deg,#8c2634,#263f69);border:1px solid #e0b6be88;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
 @media(orientation:landscape) and (max-height:420px){#audio-controls{top:max(58px,calc(env(safe-area-inset-top) + 48px));right:12px;padding:5px 7px}#audio-controls #sound-toggle{min-height:30px;padding:5px 9px}}
-#mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
+#survival-hud{position:fixed;left:clamp(12px,2vw,26px);top:150px;z-index:2;width:190px;padding:9px 11px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:9px;pointer-events:none}#stamina-track{height:6px;margin-top:6px;border-radius:9px;background:#293447;overflow:hidden}#stamina-fill{height:100%;width:100%;background:linear-gradient(90deg,#7fae8d,#d5c47b);transition:width .12s}#inventory-text{margin-top:7px;color:#d5c4a6;line-height:1.5}#mission{position:fixed;top:82px;left:clamp(12px,2vw,26px);z-index:2;max-width:230px;padding:9px 12px;border:1px solid #b8c9df44;border-radius:12px;background:#08101dcc;color:#e5edf8;font-size:10px;line-height:1.5;pointer-events:none}
 #interact{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:4;min-width:150px;background:linear-gradient(110deg,#8c2634,#263f69);border-color:#e0b6be88}#house-transition{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:#03060bef;opacity:0;pointer-events:none;transition:opacity .42s ease}#house-transition.active{opacity:1}#house-transition span{font-size:clamp(13px,2.5vw,20px);font-weight:900;letter-spacing:.24em;color:#e8d9c4;text-shadow:0 0 24px #a94c4c88}
 #sound-state{font-size:9px;color:#e9d6b4;letter-spacing:.08em}
 #joystick{position:fixed;left:22px;bottom:22px;width:124px;height:124px;border:1px solid #d6e2f044;border-radius:50%;background:#101a2b88;backdrop-filter:blur(5px);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;user-select:none}
@@ -85,7 +85,7 @@ button:active{transform:scale(.97);background:#273650}
 
  </div>
 </div>
-<div id="mission">MISI: SELIDIKI 3 TITIK MISTERI<br><span id="mission-progress">0 / 3 TITIK DITEMUKAN</span></div><button id="interact" type="button">PERIKSA LOKASI</button>
+<div id="mission">BAB 1 · JEJAK DESA<br><span id="mission-progress">0 / 6 PETUNJUK</span></div><div id="survival-hud"><div>STAMINA <span id="stamina-value">100%</span></div><div id="stamina-track"><div id="stamina-fill"></div></div><div id="inventory-text">TAS: kosong</div></div><button id="interact" type="button">PERIKSA LOKASI</button>
 <div id="joystick" aria-label="Joystick gerak"><div id="stick"></div></div><div id="move-label">JOYSTICK · GERAK BEBAS</div>
 <div id="action-controls" aria-label="Kontrol karakter">
  <button class="game-control" id="crouch-btn" type="button">JONGKOK</button>
@@ -332,6 +332,9 @@ button:active{transform:scale(.97);background:#273650}
   const bamboo=new THREE.MeshStandardMaterial({color:0x4b5835,roughness:1});
   for(const x of [-15.5,-10.5]){const p=cylinderProp(.13,.17,3.3,bamboo,x,1.65,-72,8);p.rotation.z=x<0?-.04:.04;}
   box(5.4,.18,.2,weatheredWood,-13,3.18,-72);
+  const inventoryItems=new Set();
+  const inventoryText=document.getElementById('inventory-text');
+  function addInventoryItem(name){inventoryItems.add(name);inventoryText.textContent='TAS: '+Array.from(inventoryItems).join(', ');}
   const worldInteractions=[];
   const interactionMat=new THREE.MeshStandardMaterial({color:0x8b302f,emissive:0x4b1015,emissiveIntensity:.45,roughness:.8});
   function interactionMarker(x,z,label,detail,action){
@@ -346,7 +349,7 @@ button:active{transform:scale(.97);background:#273650}
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
   let doorOpen=false,insideHouse=false,houseTransitioning=false;
   const houseTransition=document.getElementById('house-transition');
-  function changeHouseState(enter){if(houseTransitioning||insideHouse===enter)return;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI RUMAH...':'KELUAR DARI RUMAH...';houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(-7,0,enter?-15.1:-11.9);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Rumah terasa dingin. Periksa surat dan benda-benda yang tertinggal.':'Kamu kembali ke halaman desa.';worldInteractions.forEach(o=>{o.group.visible=insideHouse?o.label==='Keluar rumah':(!o.used&&o.label!=='Keluar rumah');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM RUMAH':'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done);houseTransition.querySelector('span').textContent=enter?'RUMAH TUA':'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
+  function changeHouseState(enter){if(houseTransitioning||insideHouse===enter)return;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI RUMAH...':'KELUAR DARI RUMAH...';houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(-7,0,enter?-15.1:-11.9);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Rumah terasa dingin. Periksa surat dan benda-benda yang tertinggal.':'Kamu kembali ke halaman desa.';worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o.label==='Keluar rumah'||o.label==='Surat di ruang tamu'):(!o.used&&o.label!=='Keluar rumah'&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM RUMAH':'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done);houseTransition.querySelector('span').textContent=enter?'RUMAH TUA':'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
   interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true);return 'Kamu memasuki rumah tua.';});
   const houseExit=interactionMarker(-7,-14.45,'Keluar rumah','Kembali ke halaman desa.',()=>{changeHouseState(false);return 'Kamu keluar dari rumah.';});houseExit.group.visible=false;
   // Interior rumah pertama: ruang tamu kecil yang benar-benar dapat dimasuki.
@@ -360,13 +363,14 @@ button:active{transform:scale(.97);background:#273650}
   for(let shelf=0;shelf<2;shelf++)box(.86,.07,.2,interiorWood,-9.05,1.05+shelf*.4,-19.0);
   const interiorLamp=new THREE.PointLight(0xffc27a,1.25,10);interiorLamp.position.set(-7,2.55,-18.3);scene.add(interiorLamp);
   const interiorGlow=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0xffd49a}));interiorGlow.position.copy(interiorLamp.position);scene.add(interiorGlow);
-  interactionMarker(-7,-18.5,'Surat di ruang tamu','Kertas tua terlipat di atas meja.',()=>'Surat itu berbunyi: Jika lampu rumah menyala sendiri, jangan pernah membuka pintu belakang.');
+  interactionMarker(-7,-18.5,'Surat di ruang tamu','Kertas tua terlipat di atas meja.',()=>{addInventoryItem('Surat tua');return 'Surat itu berbunyi: Jika lampu rumah menyala sendiri, jangan pernah membuka pintu belakang. Di balik sumur tersimpan kunci.';});
   interactionMarker(11.1,-41.1,'Sumur tua','Tiga ketukan terdengar dari dasar sumur.',()=>'Kamu menemukan kain lusuh dengan simbol yang sama seperti tanda di gerbang desa.');
   interactionMarker(5.1,-60.2,'Peti lapuk','Peti terkunci dengan ukiran angka.',()=>'Di bawah peti terselip catatan: Jangan ikuti suara dari arah hutan.');
   interactionMarker(-13,-70.2,'Jalur hutan tersembunyi','Jejak kaki kecil melewati gerbang bambu.',()=>'Jejak itu berhenti mendadak. Sebuah lonceng kecil masih terasa hangat.');
   interactionMarker(28,-102.4,'Sekolah tua','Papan nama sekolah berayun meski tak ada angin.',()=>'Di ruang guru ada daftar murid dengan satu nama yang dicoret berulang kali.');
   interactionMarker(-31,-137,'Makam keluarga','Tanah di salah satu makam masih basah.',()=>'Nisan itu menyebut tanggal yang sama dengan malam hilangnya seluruh warga desa.');
-  interactionMarker(0,-148,'Jembatan sungai','Dari bawah jembatan terdengar suara seseorang memanggil.',()=>'Di sela papan jembatan terselip kunci berkarat menuju bangunan sekolah.');
+  interactionMarker(0,-148,'Jembatan sungai','Dari bawah jembatan terdengar suara seseorang memanggil.',()=>{addInventoryItem('Kunci berkarat');return 'Kamu mengambil kunci berkarat. Ukiran di kepalanya cocok dengan pintu ruang guru.';});
+  interactionMarker(28,-105,'Catatan ruang guru','Laci meja guru terkunci dan berdebu.',()=>{if(!inventoryItems.has('Kunci berkarat'))return 'Laci terkunci. Kamu membutuhkan kunci berkarat dari jembatan.';addInventoryItem('Catatan ritual');return 'Catatan ritual ditemukan: lonceng, kain, lalu nama yang dicoret. Urutannya penting.';});
 
   // Papan lapuk, batu berlumut, dan ranting berserakan di tepi jalan.
   for(let i=0;i<34;i++){
@@ -564,9 +568,12 @@ button:active{transform:scale(.97);background:#273650}
  addEventListener('beforeunload',()=>{if(multiplayer)realtimeClient.removeChannel(multiplayer);});
  // Titik investigasi yang dapat dijangkau di sepanjang jalan utama.
  const missionPoints=[
-  {x:0,z:-13,name:'Jejak di gerbang desa',done:false},
-  {x:0,z:-36,name:'Suara dari sumur tua',done:false},
-  {x:0,z:-59,name:'Bayangan di ujung jalan',done:false}
+  {x:0,z:-13,name:'Bab 1 · Jejak di gerbang desa',done:false,unlocked:true},
+  {x:11,z:-41,name:'Bab 2 · Suara dari sumur tua',done:false,unlocked:false},
+  {x:5,z:-60,name:'Bab 3 · Peti yang terkunci',done:false,unlocked:false},
+  {x:-13,z:-70,name:'Bab 4 · Gerbang bambu',done:false,unlocked:false},
+  {x:28,z:-102,name:'Bab 5 · Sekolah tanpa murid',done:false,unlocked:false},
+  {x:-31,z:-137,name:'Bab 6 · Makam keluarga',done:false,unlocked:false}
  ];
  const missionProgress=document.getElementById('mission-progress'),interactBtn=document.getElementById('interact');
  let nearbyMission=null,nearbyWorld=null;
@@ -578,8 +585,11 @@ button:active{transform:scale(.97);background:#273650}
   return {group:g,ring,beam,light,point:p,phase:i*2};
  });
  function updateMission(){
-  missionProgress.textContent=missionPoints.filter(p=>p.done).length+' / 3 TITIK DITEMUKAN';
-  if(missionPoints.every(p=>p.done)){hint.textContent='Semua petunjuk terkumpul. Desa ini menyimpan sesuatu yang jauh lebih gelap...';state.textContent='MISI SELESAI';}
+  missionProgress.textContent=missionPoints.filter(p=>p.done).length+' / 6 PETUNJUK';
+  missionMarkers.forEach(m=>{m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked;});
+  const next=missionPoints.find(p=>!p.done);
+  if(next){const chapter=Math.min(6,Math.floor(missionPoints.filter(p=>p.done).length)+1);document.querySelector('.chapter').textContent='DESA TERLARANG · BAB '+chapter;hint.textContent=next.name+' — cari penanda berikutnya.';state.textContent='INVESTIGASI '+chapter+'/6';}
+  else{hint.textContent='Semua petunjuk utama terkumpul. Sekarang gunakan catatan dan benda yang ditemukan untuk membuka jalan menuju ritual terakhir.';state.textContent='MISI UTAMA SELESAI';}
  }
  // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
  const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state');
@@ -628,6 +638,7 @@ button:active{transform:scale(.97);background:#273650}
   if(nearbyWorld){const target=nearbyWorld;const message=target.action();if(!target.repeatable){target.used=true;target.group.visible=false;}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah')hint.textContent=target.label+': '+message;nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
   if(!nearbyMission)return;
   nearbyMission.done=true;
+  const completedIndex=missionPoints.indexOf(nearbyMission);if(missionPoints[completedIndex+1])missionPoints[completedIndex+1].unlocked=true;
   const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
   hint.textContent=nearbyMission.name+': kamu menemukan petunjuk yang tertinggal. Ada sesuatu yang mengawasimu.';
   nearbyMission=null;interactBtn.style.display='none';updateMission();playDiscoverySound();
@@ -635,10 +646,11 @@ button:active{transform:scale(.97);background:#273650}
 
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
  const jumpBtn=document.getElementById('jump-btn'),sprintBtn=document.getElementById('sprint-btn'),crouchBtn=document.getElementById('crouch-btn');
- let verticalVelocity=0,onGround=true,sprinting=false,crouching=false;
+ let verticalVelocity=0,onGround=true,sprinting=false,crouching=false,stamina=100;
+ const staminaFill=document.getElementById('stamina-fill'),staminaValue=document.getElementById('stamina-value');
  function jump(){if(onGround){verticalVelocity=7.2;onGround=false;}}
  jumpBtn.addEventListener('pointerdown',e=>{e.preventDefault();jump();});
- sprintBtn.addEventListener('click',()=>{sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
+ sprintBtn.addEventListener('click',()=>{if(!sprinting&&stamina<8){hint.textContent='Stamina belum cukup untuk berlari.';return;}sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
  crouchBtn.addEventListener('click',()=>{crouching=!crouching;crouchBtn.classList.toggle('active',crouching);crouchBtn.textContent=crouching?'BANGUN':'JONGKOK';player.scale.y=crouching?.72:1;});
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
@@ -669,11 +681,13 @@ button:active{transform:scale(.97);background:#273650}
   if(!apparitionTriggered&&ghostDistance<8){apparitionTriggered=true;apparition.visible=true;apparitionTimer=4.2;hint.textContent='Sosok pucat berdiri di depan sekolah... lalu menoleh ke arahmu.';playDiscoverySound();}
   if(apparitionTimer>0){apparitionTimer-=dt;apparition.position.y=.08+Math.sin(t*.004)*.12;ghostMat.opacity=Math.min(.55,apparitionTimer*.2);if(apparitionTimer<=0)apparition.visible=false;}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
-  if(!insideHouse)missionPoints.forEach(p=>{if(p.done)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
+  if(!insideHouse)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
   worldInteractions.forEach(o=>{if(o.used||!o.group.visible)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
   interactBtn.style.display=(nearbyMission||nearbyWorld)?'block':'none';
   if(nearbyWorld)interactBtn.textContent=(nearbyWorld.label==='Masuk rumah'||nearbyWorld.label==='Keluar rumah')?nearbyWorld.label.toUpperCase():'INTERAKSI: '+nearbyWorld.label.toUpperCase();
   else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
+  if(sprinting&&moving&&!crouching){stamina=Math.max(0,stamina-dt*19);if(stamina<=0){sprinting=false;sprintBtn.classList.remove('active');sprintBtn.textContent='LARI';}}else stamina=Math.min(100,stamina+dt*(crouching?8:13));
+  staminaFill.style.width=stamina+'%';staminaValue.textContent=Math.round(stamina)+'%';
   if(moving&&!houseTransitioning){const speed=crouching?2.1:(sprinting?9.2:5.2);const forward=new THREE.Vector3(-Math.sin(cameraYaw),0,-Math.cos(cameraYaw));const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));const direction=forward.multiplyScalar(-iz).add(right.multiplyScalar(ix)).normalize();player.position.addScaledVector(direction,speed*dt);player.rotation.y=Math.atan2(-direction.x,-direction.z);walkingTime+=dt*(sprinting?15:10);}
   if(insideHouse){player.position.x=THREE.MathUtils.clamp(player.position.x,-9.45,-4.55);player.position.z=THREE.MathUtils.clamp(player.position.z,-21.55,-14.25);}
   else {player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);player.position.z=THREE.MathUtils.clamp(player.position.z,-235,10);}
