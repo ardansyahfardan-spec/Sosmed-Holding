@@ -1000,6 +1000,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function frame(t){
 
  requestAnimationFrame(frame);
+  // Hemat CPU/GPU saat game berada di tab latar belakang; reset waktu agar simulasi tidak meloncat saat kembali.
+  if(document.hidden){last=t;lastMobileRender=t;return;}
   if(mobileQuality&&t-lastMobileRender<33)return;
   if(mobileQuality)lastMobileRender=t;
   if(t-lastHudUpdate>200){lastHudUpdate=t;updateSurvivalHud();}
