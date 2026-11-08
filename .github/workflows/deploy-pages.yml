@@ -27,6 +27,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate game JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('assets/games/desa-terlarang/index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>', html, re.I)
+          code = next((part for part in scripts if part.strip()), '')
+          Path('/tmp/desa-terlarang.js').write_text(code, encoding='utf-8')
+          PY
+          node --check /tmp/desa-terlarang.js
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
