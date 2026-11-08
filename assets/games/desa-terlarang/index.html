@@ -958,13 +958,14 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  // Audio ambience Mixkit dimuat secara lazy setelah interaksi pemain; efek penemuan tetap dibuat ringan via Web Audio.
  // Volume ambience 32% agar narasi dan efek interaksi tetap terdengar.
  const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state'),guideToggle=document.getElementById('guide-toggle');
- let audioContext=null,masterGain=null,ambienceTrack=null,ambienceStarted=false,audioEnabled=true,guideEnabled=true,lastGuideAt=0;
+ let audioContext=null,masterGain=null,ambienceGain=null,ambienceBuffer=null,ambienceSource=null,ambienceLoading=null,ambienceStarted=false,audioEnabled=true,guideEnabled=true,lastGuideAt=0;
  // Musik/ambience berjalan di elemen audio tersendiri; narator memakai antrean SpeechSynthesis dan tidak pernah menghentikan BGM.
  function makeNarration(line,volume=.86){
   const utterance=new SpeechSynthesisUtterance(String(line||''));utterance.lang='id-ID';utterance.rate=.78;utterance.pitch=.62;utterance.volume=volume;
   const voices=window.speechSynthesis.getVoices();const indo=voices.find(v=>/^id(-|_)/i.test(v.lang));if(indo)utterance.voice=indo;
-  // Jika browser/OS menangguhkan media saat TTS mulai, pulihkan ambience selama audio masih ON.
-  utterance.onstart=()=>{if(audioEnabled&&ambienceTrack&&ambienceTrack.paused){const resume=ambienceTrack.play();if(resume&&resume.catch)resume.catch(err=>console.warn('BGM belum dapat dilanjutkan otomatis.',err));}};
+  // Narasi hanya menurunkan level BGM sementara; tidak menghentikan atau mengganti sumber musik.
+  utterance.onstart=()=>{if(audioEnabled&&audioContext&&audioContext.state==='suspended')audioContext.resume().catch(()=>{});if(audioEnabled&&ambienceGain&&audioContext)ambienceGain.gain.setTargetAtTime(.34,audioContext.currentTime,.18);};
+  utterance.onend=utterance.onerror=()=>{if(audioEnabled&&ambienceGain&&audioContext)ambienceGain.gain.setTargetAtTime(.72,audioContext.currentTime,.35);};
   return utterance;
  }
  function speakSheet(line){
@@ -980,19 +981,22 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  clueListen.addEventListener('click',()=>speakSheet(currentSheetText));
  function speakGuide(line){if(!guideEnabled||!audioEnabled||!('speechSynthesis' in window)||!line)return;const now=Date.now();if(now-lastGuideAt<1800||window.speechSynthesis.speaking||window.speechSynthesis.pending)return;lastGuideAt=now;try{window.speechSynthesis.speak(makeNarration(line,.82));}catch(e){console.warn('Suara pemandu tidak tersedia',e);}}
  guideToggle.addEventListener('click',()=>{guideEnabled=!guideEnabled;guideToggle.textContent='PANDUAN: '+(guideEnabled?'ON':'OFF');guideToggle.setAttribute('aria-pressed',String(guideEnabled));if(!guideEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else if(guideEnabled)speakGuide('Aku akan menuntunmu. Tapi jangan selalu ikuti suaraku.');});
- function startAmbientAudio(){
+ async function startAmbientAudio(){
   if(!audioEnabled)return;
   try{
-   if(!ambienceTrack){
-    ambienceTrack=new Audio(new URL('./audio/horror-ambience.wav',document.baseURI).href);
-    ambienceTrack.loop=true;ambienceTrack.preload='none';ambienceTrack.volume=1;ambienceTrack.playsInline=true;ambienceTrack.setAttribute('playsinline','');ambienceTrack.setAttribute('webkit-playsinline','');
-   }
-   const playback=ambienceTrack.play();
-   if(playback&&typeof playback.catch==='function')playback.catch(err=>console.warn('Ambience belum dapat diputar; akan dicoba lagi setelah interaksi berikutnya.',err));
    const AC=window.AudioContext||window.webkitAudioContext;
    if(!audioContext&&AC){audioContext=new AC();masterGain=audioContext.createGain();masterGain.gain.value=1;masterGain.connect(audioContext.destination);}
-   if(audioContext&&audioContext.state==='suspended')audioContext.resume();
-   ambienceStarted=true;
+   if(!audioContext)return;
+   if(audioContext.state==='suspended')await audioContext.resume();
+   if(!ambienceGain){ambienceGain=audioContext.createGain();ambienceGain.gain.value=.72;ambienceGain.connect(audioContext.destination);}
+   if(!ambienceBuffer&&!ambienceLoading){
+    ambienceLoading=fetch(new URL('./audio/horror-ambience.wav',document.baseURI)).then(r=>{if(!r.ok)throw new Error('BGM HTTP '+r.status);return r.arrayBuffer();}).then(data=>audioContext.decodeAudioData(data)).then(buffer=>{ambienceBuffer=buffer;ambienceLoading=null;if(audioEnabled)startAmbientAudio();}).catch(err=>{ambienceLoading=null;console.warn('BGM Web Audio gagal dimuat.',err);});
+    return;
+   }
+   if(ambienceBuffer&&!ambienceSource){
+    ambienceSource=audioContext.createBufferSource();ambienceSource.buffer=ambienceBuffer;ambienceSource.loop=true;ambienceSource.connect(ambienceGain);ambienceSource.onended=()=>{ambienceSource=null;};
+    ambienceSource.start(0);ambienceStarted=true;
+   }
   }catch(err){console.warn('Audio ambience tidak tersedia',err);}
  }
  function playDiscoverySound(){
@@ -1021,8 +1025,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  }
  soundToggle.addEventListener('click',()=>{
   audioEnabled=!audioEnabled;
-  if(audioEnabled){startAmbientAudio();if(audioContext&&audioContext.state==='suspended')audioContext.resume();if(masterGain)masterGain.gain.setTargetAtTime(1,audioContext.currentTime,.08);}
-  else{if(ambienceTrack)ambienceTrack.pause();if(masterGain&&audioContext)masterGain.gain.setTargetAtTime(0,audioContext.currentTime,.08);}
+  if(audioEnabled){startAmbientAudio();if(audioContext&&audioContext.state==='suspended')audioContext.resume();if(masterGain&&audioContext)masterGain.gain.setTargetAtTime(1,audioContext.currentTime,.08);if(ambienceGain&&audioContext)ambienceGain.gain.setTargetAtTime(.72,audioContext.currentTime,.12);}
+  else{if(ambienceSource){try{ambienceSource.stop();}catch(e){}ambienceSource=null;}if(ambienceGain&&audioContext)ambienceGain.gain.setTargetAtTime(0,audioContext.currentTime,.08);if(masterGain&&audioContext)masterGain.gain.setTargetAtTime(0,audioContext.currentTime,.08);}
   soundToggle.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');soundState.textContent=audioEnabled?'AUDIO AKTIF':'AUDIO MATI';if(!audioEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else speakGuide('Suara malam mulai terdengar. Tetap waspada.');
  });
  interactBtn.addEventListener('click',()=>{
