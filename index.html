@@ -5232,7 +5232,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 '<button onclick="editCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-yellow-700 bg-yellow-950/40 px-3 py-2.5 text-xs font-bold text-yellow-300"><i class="fa-solid fa-pen-to-square mr-1"></i> Edit Jadwal</button>'+
                 '<button onclick="deleteCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-red-800 bg-red-950 px-3 py-2.5 text-xs font-bold text-red-200"><i class="fa-solid fa-trash mr-1"></i> Hapus Jadwal</button>'+
                 '<button onclick="finishCrewShooting(\''+s.id+'\')" '+(s.status==='completed'?'disabled':'')+' class="rounded-lg bg-green-900 px-3 py-2.5 text-xs disabled:opacity-50">Selesai Shooting</button>'+
-              '</div></article>';</div></article>';
+              '</div></article>';
           }).join('');
         }
         async function shareCrewScheduleJpg(id){
