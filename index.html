@@ -2542,21 +2542,21 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                                 <span><i class="fa-solid fa-coins mr-1"></i> Monetisasi (Kurs Otomatis)</span>
                                 <span class="text-[10px] text-gray-400">Kurs: Rp <span id="kurs-display">15.500</span>/$</span>
                             </h4>
-                            <div style="width:230px;max-width:100%;" class="space-y-2 text-xs">
-                                <div style="display:grid;grid-template-columns:22px minmax(0,92px) minmax(0,108px);width:fit-content;max-width:100%;gap:4px;align-items:center;">
+                            <div class="w-full space-y-2 text-xs">
+                                <div class="grid grid-cols-[22px_minmax(0,1fr)_minmax(0,1.15fr)] gap-1 items-center">
                                     <i class="fa-brands fa-youtube text-red-500 text-lg text-center"></i>
-                                    <input type="number" id="mon-yt-usd" placeholder="YouTube ($)" oninput="hitungRupiah('yt')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-1.5 py-1 rounded text-[10px] text-green-400">
-                                    <input type="text" id="mon-yt-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-1.5 py-1 rounded text-[10px] text-gray-400">
+                                    <input type="number" id="mon-yt-usd" placeholder="YouTube ($)" oninput="hitungRupiah('yt')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 py-1 rounded text-[10px] text-green-400">
+                                    <input type="text" id="mon-yt-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-2 py-1 rounded text-[10px] text-gray-400">
                                 </div>
-                                <div style="display:grid;grid-template-columns:22px minmax(0,92px) minmax(0,108px);width:fit-content;max-width:100%;gap:4px;align-items:center;">
+                                <div class="grid grid-cols-[22px_minmax(0,1fr)_minmax(0,1.15fr)] gap-1 items-center">
                                     <i class="fa-brands fa-tiktok text-white text-lg text-center"></i>
-                                    <input type="number" id="mon-tt-usd" placeholder="TikTok ($)" oninput="hitungRupiah('tt')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-1.5 py-1 rounded text-[10px] text-green-400">
-                                    <input type="text" id="mon-tt-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-1.5 py-1 rounded text-[10px] text-gray-400">
+                                    <input type="number" id="mon-tt-usd" placeholder="TikTok ($)" oninput="hitungRupiah('tt')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 py-1 rounded text-[10px] text-green-400">
+                                    <input type="text" id="mon-tt-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-2 py-1 rounded text-[10px] text-gray-400">
                                 </div>
-                                <div style="display:grid;grid-template-columns:22px minmax(0,92px) minmax(0,108px);width:fit-content;max-width:100%;gap:4px;align-items:center;">
+                                <div class="grid grid-cols-[22px_minmax(0,1fr)_minmax(0,1.15fr)] gap-1 items-center">
                                     <i class="fa-brands fa-facebook text-blue-500 text-lg text-center"></i>
-                                    <input type="number" id="mon-fb-usd" placeholder="FB Reels ($)" oninput="hitungRupiah('fb')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-1.5 py-1 rounded text-[10px] text-green-400">
-                                    <input type="text" id="mon-fb-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-1.5 py-1 rounded text-[10px] text-gray-400">
+                                    <input type="number" id="mon-fb-usd" placeholder="FB Reels ($)" oninput="hitungRupiah('fb')" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 py-1 rounded text-[10px] text-green-400">
+                                    <input type="text" id="mon-fb-idr" placeholder="Otomatis (Rp)" readonly class="min-w-0 w-full h-8 bg-black/50 border border-gray-800 px-2 py-1 rounded text-[10px] text-gray-400">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
@@ -2570,16 +2570,16 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         <div class="bg-darkBg border border-gray-700 p-4 rounded-lg space-y-3">
                             <h4 class="text-sm font-bold text-yellow-500 border-b border-gray-800 pb-2">Catat Iuran & Pengeluaran Sesi</h4>
                             <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-                                <div class="flex items-center gap-2 min-w-0"><label for="cicil-artdan" class="shrink-0 w-12 text-gray-400">Artdan</label><input type="number" id="cicil-artdan" value="0" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-green-400"></div>
-                                <div class="flex items-center gap-2 min-w-0"><label for="cicil-yhola" class="shrink-0 w-12 text-gray-400">Yhola</label><input type="number" id="cicil-yhola" value="0" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-green-400"></div>
-                                <div class="flex items-center gap-2 min-w-0"><label for="cicil-tio" class="shrink-0 w-12 text-gray-400">Tio</label><input type="number" id="cicil-tio" value="0" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-yellow-500"></div>
-                                <div class="flex items-center gap-2 min-w-0"><label for="cicil-bila" class="shrink-0 w-12 text-gray-400">Bila</label><input type="number" id="cicil-bila" value="0" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-red-400"></div>
+                                <div class="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-1 min-w-0"><label for="cicil-artdan" class="text-gray-400">Artdan</label><input type="number" id="cicil-artdan" value="0" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-green-400"></div>
+                                <div class="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-1 min-w-0"><label for="cicil-yhola" class="text-gray-400">Yhola</label><input type="number" id="cicil-yhola" value="0" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-green-400"></div>
+                                <div class="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-1 min-w-0"><label for="cicil-tio" class="text-gray-400">Tio</label><input type="number" id="cicil-tio" value="0" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-yellow-500"></div>
+                                <div class="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-1 min-w-0"><label for="cicil-bila" class="text-gray-400">Bila</label><input type="number" id="cicil-bila" value="0" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-red-400"></div>
                             </div>
                             <div class="space-y-1">
                                 <label class="block text-xs text-gray-400">Pengeluaran Sesi</label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="kas-ket-out" placeholder="Keterangan (Bensin/Kopi)" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-xs text-white">
-                                    <input type="number" id="kas-val-out" placeholder="Nominal Keluar (Rp)" class="min-w-0 w-full bg-black border border-gray-700 p-1.5 rounded text-xs text-red-400">
+                                <div class="grid grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] gap-2">
+                                    <input type="text" id="kas-ket-out" placeholder="Keterangan (Bensin/Kopi)" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-xs text-white">
+                                    <input type="number" id="kas-val-out" placeholder="Nominal Keluar (Rp)" class="min-w-0 w-full h-8 bg-black border border-gray-700 px-2 rounded text-xs text-red-400">
                                 </div>
                             </div>
                             <button onclick="simpanSesiKas()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded text-xs">Simpan Transaksi</button>
