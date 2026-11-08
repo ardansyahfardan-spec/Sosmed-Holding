@@ -963,6 +963,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function makeNarration(line,volume=.86){
   const utterance=new SpeechSynthesisUtterance(String(line||''));utterance.lang='id-ID';utterance.rate=.78;utterance.pitch=.62;utterance.volume=volume;
   const voices=window.speechSynthesis.getVoices();const indo=voices.find(v=>/^id(-|_)/i.test(v.lang));if(indo)utterance.voice=indo;
+  // Jika browser/OS menangguhkan media saat TTS mulai, pulihkan ambience selama audio masih ON.
+  utterance.onstart=()=>{if(audioEnabled&&ambienceTrack&&ambienceTrack.paused){const resume=ambienceTrack.play();if(resume&&resume.catch)resume.catch(err=>console.warn('BGM belum dapat dilanjutkan otomatis.',err));}};
   return utterance;
  }
  function speakSheet(line){
