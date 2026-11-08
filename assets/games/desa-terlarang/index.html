@@ -388,13 +388,36 @@ button:active{transform:scale(.97);background:#273650}
  // Proporsi figur mainan koleksi: kepala silinder, torso cetak, tangan C,
  // pinggul dan kaki terpisah. Material plastik glossy dengan detail ekspedisi.
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
- // Penampakan pertama di dekat sekolah: muncul singkat lalu lenyap.
- const apparition=new THREE.Group();apparition.position.set(28,0,-113);apparition.visible=false;scene.add(apparition);
- const ghostMat=new THREE.MeshBasicMaterial({color:0xc5d4df,transparent:true,opacity:.48,depthWrite:false});
- const ghostBody=new THREE.Mesh(new THREE.CapsuleGeometry(.48,1.15,4,8),ghostMat);ghostBody.position.y=1.35;apparition.add(ghostBody);
- const ghostHead=new THREE.Mesh(new THREE.SphereGeometry(.43,14,12),ghostMat);ghostHead.position.y=2.35;apparition.add(ghostHead);
- const ghostGlow=new THREE.PointLight(0x9dbbd0,1.8,8);ghostGlow.position.y=1.8;apparition.add(ghostGlow);
- let apparitionTriggered=false,apparitionTimer=0,footstepClock=0;
+ // Roster hantu lokal: model low-poly ringan, seluruh kemunculan dipicu progres cerita.
+ const ghostMaterials={shroud:new THREE.MeshStandardMaterial({color:0xd8d6cf,roughness:1,transparent:true,opacity:.88}),skin:new THREE.MeshStandardMaterial({color:0xb9b4a8,roughness:1}),hair:new THREE.MeshStandardMaterial({color:0x111116,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x17191b,roughness:1}),cloth:new THREE.MeshStandardMaterial({color:0x5b5148,roughness:1}),eye:new THREE.MeshBasicMaterial({color:0xb52d31})};
+ const ghostRoster=[
+  {id:'pocong',name:'Pocong',line:'Jangan lari ke jalan buntu. Ada pocong di belakangmu.',speed:2.35,duration:13},
+  {id:'anak',name:'Anak kecil',line:'Suara anak kecil itu bukan meminta tolong. Ia sedang memancingmu.',speed:1.35,duration:9},
+  {id:'nenek',name:'Nenek tua',line:'Nenek itu tahu nama keluargamu. Jangan ikuti langkahnya.',speed:1.05,duration:10},
+  {id:'kuntilanak',name:'Kuntilanak',line:'Tangisan itu berasal dari pepohonan. Jangan mendekat.',speed:1.8,duration:12},
+  {id:'kakek',name:'Kakek tua',line:'Penjaga makam telah melihatmu. Rahasia keluarga hampir terbuka.',speed:1.25,duration:10},
+  {id:'genderuwo',name:'Genderuwo',line:'Penjaga hutan telah bangun. Cari jalan keluar dari kawasan ini.',speed:2.05,duration:15}
+ ];
+ function makeStoryGhost(kind){
+  const g=new THREE.Group(),bodyMat=kind==='genderuwo'?ghostMaterials.dark:(kind==='nenek'||kind==='kakek'?ghostMaterials.cloth:ghostMaterials.shroud);
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(kind==='genderuwo'?.72:.38,kind==='genderuwo'?1.55:.9,3,7),bodyMat);body.position.y=kind==='anak'?.9:1.25;g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(kind==='genderuwo'?.48:.34,10,8),kind==='genderuwo'?ghostMaterials.dark:ghostMaterials.skin);head.position.y=kind==='genderuwo'?2.55:(kind==='anak'?1.72:2.08);g.add(head);
+  if(kind==='pocong'){const knot=new THREE.Mesh(new THREE.SphereGeometry(.13,7,6),ghostMaterials.shroud);knot.position.set(0,2.43,-.02);g.add(knot);[-.25,.25].forEach(x=>{const tie=new THREE.Mesh(new THREE.TorusGeometry(.39,.045,5,12),ghostMaterials.shroud);tie.position.set(x,1.48,0);tie.rotation.y=Math.PI/2;g.add(tie);});}
+  else if(kind==='kuntilanak'){const skirt=new THREE.Mesh(new THREE.ConeGeometry(.62,1.5,8),ghostMaterials.shroud);skirt.position.y=.78;g.add(skirt);const hair=new THREE.Mesh(new THREE.SphereGeometry(.39,9,7),ghostMaterials.hair);hair.scale.set(1,1.45,.8);hair.position.set(0,1.98,.08);g.add(hair);[-.24,.24].forEach(x=>{const strand=new THREE.Mesh(new THREE.CylinderGeometry(.07,.11,1.1,5),ghostMaterials.hair);strand.position.set(x,1.35,.12);g.add(strand);});}
+  else if(kind==='genderuwo'){for(let i=0;i<2;i++){const eye=new THREE.Mesh(new THREE.SphereGeometry(.075,6,5),ghostMaterials.eye);eye.position.set(i?.19:-.19,2.58,-.39);g.add(eye);}for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(.13,.42,5),ghostMaterials.dark);spike.position.set((i-2)*.2,3.05,.02);g.add(spike);}}
+  else if(kind==='anak'){const cap=new THREE.Mesh(new THREE.SphereGeometry(.37,8,6),ghostMaterials.hair);cap.scale.y=.55;cap.position.y=1.98;g.add(cap);}
+  else{const bun=new THREE.Mesh(new THREE.SphereGeometry(.16,7,6),ghostMaterials.hair);bun.position.set(0,2.37,.15);g.add(bun);if(kind==='kakek'){const beard=new THREE.Mesh(new THREE.ConeGeometry(.2,.42,6),ghostMaterials.skin);beard.position.set(0,1.72,-.03);g.add(beard);}}
+  g.visible=false;scene.add(g);return g;
+ }
+ ghostRoster.forEach(def=>{def.model=makeStoryGhost(def.id);});
+ let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0;
+ function spawnStoryGhost(index,x,z,remote=false){
+  const def=ghostRoster[index];if(!def||activeStoryGhost)return;def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost=def;storyGhostTimer=def.duration;lastStoryGhostIndex=index;
+  hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');speakGuide(def.line);playDiscoverySound();
+  if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});
+ }
+ function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;}
+
  const mat=(color,roughness=.34,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
  const plastic=(color)=>mat(color,.24,0);
  const yellow=plastic(0xf2bd35),yellowShadow=plastic(0xd99520);
@@ -531,6 +554,7 @@ button:active{transform:scale(.97);background:#273650}
     if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;entry.moving=!!payload.moving;}
    });
    channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)addRemotePlayer(payload.player_id,payload);});
+   channel.on('broadcast',{event:'story_ghost'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)spawnStoryGhost(Number(payload.index),Number(payload.x)||0,Number(payload.z)||0,true);});
    channel.subscribe(async status=>{
     if(status==='SUBSCRIBED'){
      multiplayer=channel;
@@ -641,6 +665,8 @@ button:active{transform:scale(.97);background:#273650}
   const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
   hint.textContent=nearbyMission.name+': kamu menemukan petunjuk yang tertinggal. Ada sesuatu yang mengawasimu.';
   nearbyMission=null;interactBtn.style.display='none';updateMission();playDiscoverySound();
+  if(completedIndex<ghostRoster.length){const angle=Math.atan2(player.position.x-missionPoints[completedIndex].x,player.position.z-missionPoints[completedIndex].z);spawnStoryGhost(completedIndex,player.position.x+Math.sin(angle+Math.PI)*9,player.position.z+Math.cos(angle+Math.PI)*9);}
+  if(completedIndex===5){hint.textContent='Tanah makam bergetar. Bayangan besar bergerak di balik pepohonan.';speakGuide('Kau telah membangunkan penjaga Wanasetra. Jangan menoleh.');}
  });
 
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
@@ -676,9 +702,7 @@ button:active{transform:scale(.97);background:#273650}
   let ix=joyX,iz=joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
-  const ghostDistance=Math.hypot(player.position.x-28,player.position.z+113);
-  if(!apparitionTriggered&&ghostDistance<8){apparitionTriggered=true;apparition.visible=true;apparition.position.set(28,0,-113);apparitionTimer=7;hint.textContent='Sosok pucat berdiri di depan sekolah... lalu menoleh ke arahmu.';speakGuide('Berhenti. Ada sesuatu di dekat sekolah. Jangan biarkan ia mendekat.');playDiscoverySound();}
-  if(apparitionTimer>0){apparitionTimer-=dt;apparition.position.y=.08+Math.sin(t*.004)*.12;const gx=player.position.x-apparition.position.x,gz=player.position.z-apparition.position.z,gd=Math.hypot(gx,gz);if(!insideHouse&&gd>1.9){const chaseSpeed=apparitionTimer>4.5?1.45:1.05;apparition.position.x+=gx/(gd||1)*chaseSpeed*dt;apparition.position.z+=gz/(gd||1)*chaseSpeed*dt;apparition.lookAt(player.position.x,1.4,player.position.z);}ghostMat.opacity=Math.min(.55,apparitionTimer*.16);if(apparitionTimer<=0){apparition.visible=false;apparition.position.set(28,0,-113);ghostMat.opacity=.48;hint.textContent='Sosok itu lenyap. Namun suara langkahnya masih terdengar.';speakGuide('Ia menghilang. Untuk sementara.');}}
+  if(activeStoryGhost){storyGhostTimer-=dt;const g=activeStoryGhost.model;g.position.y=.06+Math.sin(t*.0035)*.07;const dx=player.position.x-g.position.x,dz=player.position.z-g.position.z,dist=Math.hypot(dx,dz);if(!insideHouse&&dist>1.65&&storyGhostTimer>0){const pace=activeStoryGhost.speed*(dist<5?.72:1);g.position.x+=dx/(dist||1)*pace*dt;g.position.z+=dz/(dist||1)*pace*dt;g.lookAt(player.position.x,1.25,player.position.z);}if(dist<1.65){hint.textContent=activeStoryGhost.name+' menyentuhmu! Sosok itu lenyap ditelan kabut.';finishStoryGhost();speakGuide('Ia menyentuhmu. Tapi mengapa kau masih hidup?');}else if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' menghilang ke dalam kabut. Untuk sementara.';finishStoryGhost();speakGuide('Ia menghilang. Jangan kira kau sudah aman.');}}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
   worldInteractions.forEach(o=>{if(o.used||!o.group.visible)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
