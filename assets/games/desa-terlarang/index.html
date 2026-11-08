@@ -120,6 +120,23 @@ button:active{transform:scale(.97);background:#273650}
  const canvas=document.getElementById('game');
  const state=document.getElementById('world-state');
  const hint=document.getElementById('hint');
+ // Pasang handler lobby sedini mungkin agar tetap responsif bila inisialisasi dunia mengalami error.
+ const earlyCreate=document.getElementById('create-room');
+ const earlyJoin=document.getElementById('join-room');
+ const earlyCode=document.getElementById('room-code-input');
+ const earlyStatus=document.getElementById('room-status');
+ window.addEventListener('error',event=>{
+  if(earlyStatus)earlyStatus.textContent='Game mengalami kesalahan saat dimuat: '+(event.message||'kesalahan JavaScript');
+ });
+ earlyCreate?.addEventListener('click',()=>{
+  try{startAmbientAudio();}catch(_){}
+  try{enterRoom(makeRoomCode());}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
+ });
+ earlyJoin?.addEventListener('click',()=>{
+  try{startAmbientAudio();}catch(_){}
+  try{enterRoom(earlyCode?.value||'');}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
+ });
+ earlyCode?.addEventListener('input',()=>{earlyCode.value=earlyCode.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
  if(!window.THREE){state.textContent='GAGAL MEMUAT ENGINE';hint.textContent='Engine grafis belum tersedia. Periksa koneksi lalu muat ulang.';return;}
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x080d18);scene.fog=new THREE.FogExp2(0x111827,.012);
@@ -784,9 +801,6 @@ button:active{transform:scale(.97);background:#273650}
   }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;}
  }
  function makeRoomCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
- createRoomBtn.addEventListener('click',()=>{startAmbientAudio();enterRoom(makeRoomCode());});
- joinRoomBtn.addEventListener('click',()=>{startAmbientAudio();enterRoom(roomInput.value);});
- roomInput.addEventListener('input',()=>{roomInput.value=roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
  addEventListener('beforeunload',()=>{saveGameProgress();if(multiplayer){multiplayer.send({type:'broadcast',event:'leave',payload:{player_id:playerId}});realtimeClient.removeChannel(multiplayer);}});
  // Titik investigasi yang dapat dijangkau di sepanjang jalan utama.
  const missionPoints=[
