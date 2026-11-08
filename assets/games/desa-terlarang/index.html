@@ -124,9 +124,20 @@ button:active{transform:scale(.97);background:#273650}
    leaves:new THREE.MeshStandardMaterial({color:0x18251e,roughness:1})
   };
   function box(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof material==='number'?new THREE.MeshStandardMaterial({color:material,roughness:.95}):material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
-  function hut(x,z,scale=1,variant=0){
+  function hut(x,z,scale=1,variant=0,interactive=false){
    const w=5.2*scale,h=3.25*scale,d=4.7*scale;
-   box(w,h,d,variant?new THREE.MeshStandardMaterial({color:0x49463f,roughness:1}):M.wall,x,h/2,z);
+   const wallMat=variant?new THREE.MeshStandardMaterial({color:0x49463f,roughness:1}):M.wall;
+   if(interactive){
+    const thick=.2*scale,front=z+d/2,doorCenter=-.52*scale,opening=1.5*scale,doorHeight=2.08*scale;
+    box(w,h,thick,wallMat,x,h/2,z-d/2);
+    box(thick,h,d,wallMat,x-w/2+thick/2,h/2,z);
+    box(thick,h,d,wallMat,x+w/2-thick/2,h/2,z);
+    const leftWidth=(w-opening)/2+doorCenter,rightWidth=(w-opening)/2-doorCenter;
+    box(leftWidth,h,thick,wallMat,x+doorCenter-opening/2-leftWidth/2, h/2,front);
+    box(rightWidth,h,thick,wallMat,x+doorCenter+opening/2+rightWidth/2,h/2,front);
+    box(opening,Math.max(.15,h-doorHeight),thick,wallMat,x+doorCenter,(h+doorHeight)/2,front);
+    box(w-.5*scale,.12*scale,d-.5*scale,M.wood,x,.19*scale,z);
+   }else box(w,h,d,wallMat,x,h/2,z);
    for(const side of [-1,1]){box(.16*scale,h+.08*scale,.18*scale,M.wood,x+side*(w/2-.12*scale),h/2,z-d/2);box(.13*scale,h+.08*scale,.18*scale,M.wood,x+side*(w/2-.12*scale),h/2,z+d/2);}
    box(w+.12*scale,.16*scale,.2*scale,M.wood,x,h-.12*scale,z-d/2);box(w+.12*scale,.16*scale,.2*scale,M.wood,x,.18*scale,z-d/2);
    const ra=box(w*.76*scale,.16*scale,d*1.12*scale,M.roof,x-w*.22*scale,h+.88*scale,z);ra.rotation.z=.48;
@@ -179,7 +190,7 @@ button:active{transform:scale(.97);background:#273650}
   // Sabuk hutan luar dan pepohonan di wilayah utara desa.
   for(let i=0;i<36;i++){const z=-18-i*5.8;tree(-25-(i%4)*2.8,z,1.05+(i%3)*.24);tree(25+(i%5)*2.6,z-2,1+(i%3)*.22);}
   for(let i=0;i<32;i++){const a=i*Math.PI*2/32,r=42+(i%4)*3;tree(Math.cos(a)*r,-125+Math.sin(a)*r,1+(i%3)*.2);}
-  hut(-7,-17,1.35,0);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
+  hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
 
   // Detail lingkungan desa terbengkalai: teras lapuk, pagar rusak, tong,
   // peti, sumur tua, gerobak dan puing agar dunia terasa lebih hidup.
@@ -275,6 +286,18 @@ button:active{transform:scale(.97);background:#273650}
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
   let doorOpen=false;
   interactionMarker(-7.45,-12.05,'Pintu rumah tua','Engselnya berderit.',()=>{doorOpen=!doorOpen;secretDoor.rotation.y=doorOpen?-1.18:0;return doorOpen?'Pintu terbuka. Ada bekas lumpur menuju ruang belakang.':'Pintu ditutup kembali.';});
+  // Interior rumah pertama: ruang tamu kecil yang benar-benar dapat dimasuki.
+  const interiorWood=new THREE.MeshStandardMaterial({color:0x493326,roughness:.92});
+  const interiorCloth=new THREE.MeshStandardMaterial({color:0x45413b,roughness:1});
+  box(1.8,.48,.72,interiorWood,-7.35,.55,-18.1);
+  for(const dx of [-.72,.72])for(const dz of [-.25,.25])box(.12,.5,.12,interiorWood,-7.35+dx,.28,-18.1+dz);
+  box(1.55,.22,.72,interiorCloth,-7.35,1.05,-20.05);
+  box(1.35,.22,.62,interiorWood,-7.35,1.25,-20.05);
+  box(.8,.8,.12,interiorWood,-9.05,1.25,-19.1);
+  for(let shelf=0;shelf<2;shelf++)box(.86,.07,.2,interiorWood,-9.05,1.05+shelf*.4,-19.0);
+  const interiorLamp=new THREE.PointLight(0xffc27a,1.25,10);interiorLamp.position.set(-7,2.55,-18.3);scene.add(interiorLamp);
+  const interiorGlow=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0xffd49a}));interiorGlow.position.copy(interiorLamp.position);scene.add(interiorGlow);
+  interactionMarker(-7,-18.5,'Surat di ruang tamu','Kertas tua terlipat di atas meja.',()=>'Surat itu berbunyi: Jika lampu rumah menyala sendiri, jangan pernah membuka pintu belakang.');
   interactionMarker(11.1,-41.1,'Sumur tua','Tiga ketukan terdengar dari dasar sumur.',()=>'Kamu menemukan kain lusuh dengan simbol yang sama seperti tanda di gerbang desa.');
   interactionMarker(5.1,-60.2,'Peti lapuk','Peti terkunci dengan ukiran angka.',()=>'Di bawah peti terselip catatan: Jangan ikuti suara dari arah hutan.');
   interactionMarker(-13,-70.2,'Jalur hutan tersembunyi','Jejak kaki kecil melewati gerbang bambu.',()=>'Jejak itu berhenti mendadak. Sebuah lonceng kecil masih terasa hangat.');
