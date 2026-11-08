@@ -603,7 +603,7 @@ button:active{transform:scale(.97);background:#273650}
   remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;entry.phase+=dt*(entry.moving?10:0);entry.avatar.position.y=entry.moving?Math.abs(Math.sin(entry.phase))*.055:0;});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
-  const behind=9,orbitYaw=player.rotation.y+cameraYaw,horizontal= Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);
+  const behind=9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);
   renderer.render(scene,camera);
  }
  requestAnimationFrame(frame);
