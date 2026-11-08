@@ -54,7 +54,7 @@ button:active{transform:scale(.97);background:#273650}
 #multiplayer-card button.primary{background:linear-gradient(110deg,#8c2634,#263f69);border-color:#c88c9a66}
 #room-status{min-height:18px;margin-top:12px;color:#e4b7b7;font-size:11px}
 #room-code-display{display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:24;margin:0;padding:11px 18px;border:1px solid #e3b4be99;border-radius:12px;background:#10182bea;box-shadow:0 8px 28px #0009;text-align:center;font-weight:900;font-size:14px;letter-spacing:.22em;color:#fff0d8;pointer-events:auto;white-space:nowrap}
-#room-presence{position:fixed;right:16px;top:62px;z-index:24;pointer-events:none;font-size:10px;color:#dbe4f5;background:#0a1024b8;border:1px solid #aab8d044;border-radius:999px;padding:7px 10px}
+#save-room-btn{display:none;position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:24;width:auto;margin:0;padding:9px 14px;border:1px solid #d7b58a99;border-radius:10px;background:#15243aee;color:#fff0d8;font-size:10px;font-weight:900;letter-spacing:.1em;pointer-events:auto;white-space:nowrap}#save-room-btn.saved{background:#244b3b;border-color:#91c7a8}\n#room-presence{position:fixed;right:16px;top:62px;z-index:24;pointer-events:none;font-size:10px;color:#dbe4f5;background:#0a1024b8;border:1px solid #aab8d044;border-radius:999px;padding:7px 10px}
 
 #clue-sheet{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:18px;background:#03060bd9;backdrop-filter:blur(5px);pointer-events:auto}#clue-sheet.open{display:flex}#clue-paper{width:min(430px,100%);max-height:min(76vh,620px);overflow:auto;padding:23px 21px 18px;border:1px solid #b99a70aa;border-radius:5px;background:linear-gradient(145deg,#e8dec8,#cfc1a5);color:#28231e;box-shadow:0 22px 70px #000b;position:relative}#clue-paper:before{content:"";position:absolute;inset:8px;border:1px solid #7e6b5144;pointer-events:none}#clue-kicker{font-size:9px;letter-spacing:.22em;font-weight:900;color:#775b45}#clue-title{font-family:Georgia,serif;font-size:23px;line-height:1.2;margin:13px 0 12px;color:#29231d}#clue-body{font-family:Georgia,serif;font-size:15px;line-height:1.65;white-space:pre-line;color:#393128}#clue-actions{display:flex;gap:8px;margin-top:20px;position:relative}#clue-actions button{flex:1;border-radius:5px;background:#26364b;color:#fff;border:1px solid #52647a;padding:12px 9px;font-size:11px}#clue-actions button:last-child{background:#65323a;border-color:#89545a}@media(max-width:700px){#clue-paper{padding:20px 17px 15px}#clue-title{font-size:21px}#clue-body{font-size:14px}}
 
@@ -88,7 +88,7 @@ button:active{transform:scale(.97);background:#273650}
   <div id="room-status">Siap. Tekan BUAT RUANG BARU untuk memulai.</div>
  </div>
 </div>
-<div id="room-code-display" aria-live="polite"></div>
+<div id="room-code-display" aria-live="polite"></div>\n<button id="save-room-btn" type="button">SIMPAN RUANG</button>
 <div id="room-presence" style="display:none">1 PEMAIN DI RUANG</div>
 <div id="audio-controls" aria-label="Pengaturan audio"><span id="sound-state">AUDIO 100%</span><button id="sound-toggle" type="button">AUDIO: ON</button><button id="guide-toggle" type="button" aria-pressed="true">PANDUAN: ON</button></div>
 <div id="hud">
@@ -741,7 +741,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const createRoomBtn=document.getElementById('create-room');
  const joinRoomBtn=document.getElementById('join-room');
  const roomInput=document.getElementById('room-code-input');
- const roomCodeDisplay=document.getElementById('room-code-display');
+ const roomCodeDisplay=document.getElementById('room-code-display');\n const saveRoomBtn=document.getElementById('save-room-btn');
  const roomPresence=document.getElementById('room-presence');
  const lobbyRoomCode=document.getElementById('lobby-room-code');
  const startGameBtn=document.getElementById('start-game');
@@ -778,8 +778,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(data){entry.target.set(Number(data.x)||0,0,Number(data.z)||0);entry.rotation=Number(data.rotation)||0;entry.moving=!!data.moving;}
   updateRoomCount();return entry;
  }
- function startAdventure(){if(roomStarted)return;roomStarted=true;if(multiplayer)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
- startGameBtn.addEventListener('click',startAdventure);
+ function startAdventure(){if(roomStarted)return;roomStarted=true;try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
+ startGameBtn.addEventListener('click',startAdventure);\n saveRoomBtn.addEventListener('click',()=>{try{saveGameProgress();const snapshot=sessionStorage.getItem(saveKey);if(!snapshot)throw new Error('Progres belum siap disimpan');localStorage.setItem('ghoustory-room-save-'+activeRoom,snapshot);saveRoomBtn.textContent='RUANG TERSIMPAN ✓';saveRoomBtn.classList.add('saved');hint.textContent='Ruang berhasil disimpan. Gunakan kode '+activeRoom+' untuk melanjutkan.';}catch(e){saveRoomBtn.textContent='GAGAL MENYIMPAN';hint.textContent='Gagal menyimpan ruang. Periksa penyimpanan browser.';console.warn(e);}});
  async function enterRoom(code,host=false){
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
   if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
@@ -881,7 +881,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(index===5){hint.textContent='Tanah makam bergetar. Bayangan besar bergerak di balik pepohonan.';speakGuide('Kau telah membangunkan penjaga Wanasetra. Jangan menoleh.');}
   return true;
  }
- restoreGameProgress();player.position.set(0,0,2.2);player.rotation.y=0;lastSafePosition.copy(player.position);updateMission();
+ player.position.set(0,0,2.2);player.rotation.y=0;lastSafePosition.copy(player.position);updateMission();
  const exitMarker=interactionMarker(0,-174,'Jalan keluar desa','Jalan di balik jembatan mulai terbuka setelah ritual selesai.',()=>{if(!ritualComplete)return 'Jalan masih tertutup kabut. Selesaikan ritual terlebih dahulu.';document.getElementById('ending-overlay').style.display='flex';document.getElementById('ending-title').textContent='KAMU BERHASIL KELUAR';document.getElementById('ending-copy').textContent='Ritual Wanasetra selesai. Kamu berhasil meninggalkan desa, tetapi suara lonceng masih terdengar dari balik kabut.';if(multiplayer)multiplayer.send({type:'broadcast',event:'game_ending',payload:{player_id:playerId,ending:'escape'}});return 'Kamu menemukan jalan keluar Desa Terlarang.';});exitMarker.group.visible=ritualComplete;document.getElementById('ending-close').addEventListener('click',()=>{document.getElementById('ending-overlay').style.display='none';});
  // Audio horor sintetis ringan: angin, drone rendah, denting disonan, dan narator perangkat.
  // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
