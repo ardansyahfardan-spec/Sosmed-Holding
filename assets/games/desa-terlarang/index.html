@@ -155,7 +155,7 @@ button:active{transform:scale(.97);background:#273650}
    box(.92*scale,1.95*scale,.12*scale,M.wood,x,h*.31,z+d/2+.075*scale);box(.72*scale,1.72*scale,.035*scale,M.timber,x,h*.31,z+d/2+.15*scale);
    for(let k=0;k<4;k++)box(.025*scale,1.6*scale,.018*scale,M.wood,x+(-.27+k*.18)*scale,h*.31,z+d/2+.174*scale);
    box(.07*scale,.07*scale,.04*scale,M.tile,x+.25*scale,h*.31,z+d/2+.2*scale);
-   for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);const glow=new THREE.PointLight(0xd18a4c,.8,9);glow.position.set(x+wx*scale,wy,z+d/2+1.2);scene.add(glow);}
+   for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);/* Kaca jendela tetap emissive; PointLight tambahan di tiap jendela dihilangkan untuk menghemat GPU. */}
    box(w+.35*scale,.22*scale,d+.3*scale,M.stone,x,.12*scale,z);
   }
   const swayingTrees=[],forestGroups=[];
@@ -172,7 +172,7 @@ button:active{transform:scale(.97);background:#273650}
   const lampMetal=new THREE.MeshStandardMaterial({color:0x252a30,metalness:.72,roughness:.42});
   const lampTrim=new THREE.MeshStandardMaterial({color:0x594936,metalness:.58,roughness:.48});
   const lampGlass=new THREE.MeshStandardMaterial({color:0xffc477,emissive:0xff9a3d,emissiveIntensity:4.5,transparent:true,opacity:.98,roughness:.22});
-  const lampLights=[];
+  const lampLights=[];let lampIndex=0;
   function streetLamp(x,z){
    const base=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,.22,12),lampMetal);base.position.set(x,.11,z);base.castShadow=true;scene.add(base);
    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.075,.12,4.25,12),lampMetal);pole.position.set(x,2.28,z);pole.castShadow=true;scene.add(pole);
@@ -183,9 +183,9 @@ button:active{transform:scale(.97);background:#273650}
    const lantern=new THREE.Mesh(new THREE.BoxGeometry(.48,.68,.48),lampGlass);lantern.position.set(hoodX,4.02,z);scene.add(lantern);
    const frame=new THREE.Mesh(new THREE.BoxGeometry(.58,.08,.58),lampTrim);frame.position.set(hoodX,3.66,z);scene.add(frame);
    // Cahaya diperkuat agar benar-benar menerangi jalan dan tanah di sekitarnya.
-   const glow=new THREE.PointLight(0xffb66b,8.5,27,1.45);glow.position.set(hoodX,4.02,z);scene.add(glow);lampLights.push({light:glow,phase:Math.random()*6.28});
-   const fill=new THREE.PointLight(0xffc987,3.2,16,1.7);fill.position.set(hoodX,2.15,z);scene.add(fill);
-   const halo=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.34}));halo.position.copy(glow.position);scene.add(halo);
+   // Semua tiang dan lentera tetap dibuat, tetapi hanya separuh yang memakai PointLight nyata.
+   if(lampIndex%2===0){const glow=new THREE.PointLight(0xffb66b,5.2,19,1.7);glow.position.set(hoodX,4.02,z);scene.add(glow);lampLights.push({light:glow,phase:Math.random()*6.28});}
+   const halo=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:0xffbd79,transparent:true,opacity:.34}));halo.position.set(hoodX,4.02,z);scene.add(halo);lampIndex++;
   }
   for(let i=0;i<6;i++){const z=-8-i*14;streetLamp(i%2===0?-5.1:5.1,z);}
   for(let i=0;i<15;i++){const z=-i*7-9;tree(-9-(i%3)*1.7,z,.9+(i%2)*.2);tree(9+(i%4)*1.2,z-3,.85+(i%3)*.16);}
