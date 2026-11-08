@@ -467,9 +467,9 @@ button:active{transform:scale(.97);background:#273650}
  }
  function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;}
  const environmentScares=[
-  {id:'old-house',x:-7,z:-18,kind:'door'}, {id:'school',x:28,z:-107,kind:'fall'},
-  {id:'well',x:12,z:-44,kind:'drop'}, {id:'bamboo',x:-13,z:-77,kind:'sway'},
-  {id:'cemetery',x:-31,z:-137,kind:'tilt'}, {id:'bridge',x:0,z:-148,kind:'sound'}
+  {id:'old-house',x:-7,z:-18,kind:'door',used:false}, {id:'school',x:28,z:-107,kind:'fall',used:false},
+  {id:'well',x:12,z:-44,kind:'drop',used:false}, {id:'bamboo',x:-13,z:-77,kind:'sway',used:false},
+  {id:'cemetery',x:-31,z:-137,kind:'tilt',used:false}, {id:'bridge',x:0,z:-148,kind:'sound',used:false}
  ];
  const scareProps=[];
  environmentScares.forEach(ev=>{
@@ -483,9 +483,7 @@ button:active{transform:scale(.97);background:#273650}
   else{const stone=new THREE.Mesh(new THREE.BoxGeometry(.65,.3,.55),M.stone);stone.position.y=.15;prop.add(stone);}
   prop.visible=ev.kind!=='door';scareProps.push({event:ev,object:prop,fall:0,target:0,baseRotation:prop.rotation.z});
  });
- const scareDoor=new THREE.Group();scareDoor.position.set(29.8,.08,-102.7);scene.add(scareDoor);
- const scareDoorLeaf=new THREE.Mesh(new THREE.BoxGeometry(.9,1.95,.12),M.wood);scareDoorLeaf.position.set(.45,.98,0);scareDoor.add(scareDoorLeaf);
- let scareDoorAngle=0,scareDoorTarget=0,scareShake=0,lastScareAt=0;
+ let scareDoorAngle=0,scareDoorTarget=0,scareShake=0,lastScareAt=0,lastEnvironmentCheck=0;
  function playEnvironmentalSound(kind){
   if(!audioContext||!masterGain||!audioEnabled)return;
   const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();
@@ -494,7 +492,7 @@ button:active{transform:scale(.97);background:#273650}
   osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.52);
  }
  function triggerEnvironmentalScare(id,remote=false){
-  const ev=environmentScares.find(item=>item.id===id);if(!ev)return;const now=Date.now();if(now-lastScareAt<2200)return;lastScareAt=now;
+  const ev=environmentScares.find(item=>item.id===id);if(!ev||ev.used)return;const now=Date.now();if(now-lastScareAt<2200)return;lastScareAt=now;ev.used=true;
   const prop=scareProps.find(item=>item.event===ev);
   if(ev.kind==='door'){scareDoorTarget=-1.28;setTimeout(()=>{scareDoorTarget=0;},1250);}
   if(prop){prop.object.visible=true;prop.fall=0;prop.target=ev.kind==='sway'?.32:(ev.kind==='tilt'?.48:1.25);}
@@ -803,9 +801,10 @@ button:active{transform:scale(.97);background:#273650}
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
   ghostAnimationParts.forEach((ghost,i)=>{if(!ghost.visible)return;const phase=t*.0024+i*1.7,parts=ghost.userData;parts.head.rotation.z=Math.sin(phase*.7)*.07;parts.head.rotation.x=Math.sin(phase)*.035;parts.torso.rotation.z=Math.sin(phase*.55)*.035;parts.arms.forEach((arm,j)=>{arm.rotation.z=(j===0?-1:1)*(.12+Math.sin(phase+j)*.16);arm.rotation.x=Math.sin(phase*.8+j)*.08;});});
-  scareDoorAngle=THREE.MathUtils.damp(scareDoorAngle,scareDoorTarget,7,dt);scareDoor.rotation.y=scareDoorAngle;
+  scareDoorAngle=THREE.MathUtils.damp(scareDoorAngle,scareDoorTarget,7,dt);secretDoor.rotation.y=doorOpen?-1.18:scareDoorAngle;
   scareProps.forEach(item=>{if(item.fall<item.target){item.fall=Math.min(item.target,item.fall+dt*2.8);item.object.rotation.z=item.baseRotation+item.fall;}else if(item.target>0){item.target=Math.max(0,item.target-dt*.055);if(item.target===0)item.object.visible=false;}});
   if(scareShake>0){scareShake=Math.max(0,scareShake-dt);camera.position.x+=(Math.random()-.5)*scareShake*.12;camera.position.y+=(Math.random()-.5)*scareShake*.08;}
+  if(t-lastEnvironmentCheck>650){lastEnvironmentCheck=t;for(const ev of environmentScares){if(ev.used)continue;const dx=player.position.x-ev.x,dz=player.position.z-ev.z;if(dx*dx+dz*dz<4.8*4.8){triggerEnvironmentalScare(ev.id,false);break;}}}
   if(activeStoryGhost){storyGhostTimer-=dt;const g=activeStoryGhost.model;g.position.y=.06+Math.sin(t*.0035)*.07;const dx=(isHidden?lastSeenPlayer.x:player.position.x)-g.position.x,dz=(isHidden?lastSeenPlayer.z:player.position.z)-g.position.z,dist=Math.hypot(dx,dz);if(!isHidden){lastSeenPlayer.copy(player.position);ghostSearchTimer=3;}else ghostSearchTimer=Math.max(0,ghostSearchTimer-dt);if(dist>1.65&&storyGhostTimer>0&&(!isHidden||ghostSearchTimer>0)){const pace=activeStoryGhost.speed*(dist<5?.72:1);g.position.x+=dx/(dist||1)*pace*dt;g.position.z+=dz/(dist||1)*pace*dt;g.lookAt(lastSeenPlayer.x,1.25,lastSeenPlayer.z);}if(!isHidden&&dist<1.65){hint.textContent=activeStoryGhost.name+' menangkapmu! Kondisimu berkurang.';takeDamage(30,'Serangan '+activeStoryGhost.name+'.');finishStoryGhost();speakGuide('Ia menangkapmu. Cari tempat berlindung sebelum ia kembali.');}else if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' kehilangan jejakmu dan menghilang ke dalam kabut.';finishStoryGhost();speakGuide('Ia kehilangan jejakmu. Tapi jangan lengah.');}}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse&&!isHidden)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
