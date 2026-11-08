@@ -222,13 +222,13 @@ button:active{transform:scale(.97);background:#273650}
   for(let i=0;i<(mobileQuality?24:36);i++){const z=-18-i*5.8;tree(-25-(i%4)*2.8,z,1.05+(i%3)*.24);tree(25+(i%5)*2.6,z-2,1+(i%3)*.22);}
   for(let i=0;i<(mobileQuality?20:32);i++){const a=i*Math.PI*2/(mobileQuality?20:32),r=42+(i%4)*3;tree(Math.cos(a)*r,-125+Math.sin(a)*r,1+(i%3)*.2);}
   buildMobileTreeBatches();
-  hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1,true);hut(-8,-48,1.42,0,true);hut(9,-61,1.34,1,true);
+  hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
 
   // Deretan rumah tambahan mengisi sisi jalan dan membuat desa terasa berpenghuni dahulu.
-  hut(-16,-25,.98,1,true);hut(16,-43,1.08,0,true);hut(-18,-66,1.12,1,true);
-  hut(18,-78,1.02,0,true);hut(-15,-94,1.05,0,true);hut(16,-108,1.14,1,true);
-  hut(-20,-126,.96,1,true);hut(20,-143,1.08,0,true);hut(-14,-160,1.12,1,true);
-  hut(15,-178,1.02,0,true);
+  hut(-16,-25,.98,1);hut(16,-43,1.08,0);hut(-18,-66,1.12,1);
+  hut(18,-78,1.02,0);hut(-15,-94,1.05,0);hut(16,-108,1.14,1);
+  hut(-20,-126,.96,1);hut(20,-143,1.08,0);hut(-14,-160,1.12,1);
+  hut(15,-178,1.02,0);
 
   // Pegunungan berlapis di cakrawala: siluet rendah poligon agar ringan di perangkat mobile.
   const mountainMaterials=[
@@ -351,24 +351,6 @@ button:active{transform:scale(.97);background:#273650}
   const houseTransition=document.getElementById('house-transition');
   function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+(b.d||4.7*b.scale)/2;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&o.label==='Surat di ruang tamu')||(b.school&&o.label==='Papan pengumuman sekolah')):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
   interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true,{name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true});return 'Kamu memasuki rumah tua.';});
-  const villageBuildings=[{x:7,z:-31,s:1.28,n:'RUMAH DESA'},{x:-8,z:-48,s:1.42,n:'RUMAH KOSONG'},{x:9,z:-61,s:1.34,n:'RUMAH TUA'},{x:-16,z:-25,s:.98,n:'RUMAH DESA'},{x:16,z:-43,s:1.08,n:'RUMAH DESA'},{x:-18,z:-66,s:1.12,n:'RUMAH KOSONG'},{x:18,z:-78,s:1.02,n:'RUMAH DESA'},{x:-15,z:-94,s:1.05,n:'RUMAH KOSONG'},{x:16,z:-108,s:1.14,n:'RUMAH TUA'},{x:-20,z:-126,s:.96,n:'RUMAH DESA'},{x:20,z:-143,s:1.08,n:'RUMAH KOSONG'},{x:-14,z:-160,s:1.12,n:'RUMAH DESA'},{x:15,z:-178,s:1.02,n:'RUMAH KOSONG'}];
-  villageBuildings.forEach((b,i)=>interactionMarker(b.x,b.z+4.7*b.s/2+1.1,'Masuk '+b.n.toLowerCase(),'Pintu bangunan dapat dimasuki.',()=>{changeHouseState(true,{name:b.n,x:b.x,z:b.z,scale:b.s,oldHouse:false});return 'Kamu memasuki '+b.n.toLowerCase()+'.';}));
-  const houseExit=interactionMarker(-7,-14.45,'Keluar rumah','Kembali ke halaman desa.',()=>{changeHouseState(false);return 'Kamu keluar dari bangunan.';});houseExit.group.visible=false;
-  // Interior rumah pertama: ruang tamu kecil yang benar-benar dapat dimasuki.
-  const interiorWood=new THREE.MeshStandardMaterial({color:0x493326,roughness:.92});
-  const interiorCloth=new THREE.MeshStandardMaterial({color:0x45413b,roughness:1});
-  box(1.8,.48,.72,interiorWood,-7.35,.55,-18.1);
-  for(const dx of [-.72,.72])for(const dz of [-.25,.25])box(.12,.5,.12,interiorWood,-7.35+dx,.28,-18.1+dz);
-  box(1.55,.22,.72,interiorCloth,-7.35,1.05,-20.05);
-  box(1.35,.22,.62,interiorWood,-7.35,1.25,-20.05);
-  box(.8,.8,.12,interiorWood,-9.05,1.25,-19.1);
-  for(let shelf=0;shelf<2;shelf++)box(.86,.07,.2,interiorWood,-9.05,1.05+shelf*.4,-19.0);
-  const interiorLamp=new THREE.PointLight(0xffc27a,1.25,10);interiorLamp.position.set(-7,2.55,-18.3);scene.add(interiorLamp);
-  const interiorGlow=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0xffd49a}));interiorGlow.position.copy(interiorLamp.position);scene.add(interiorGlow);
-  interactionMarker(-7,-18.5,'Surat di ruang tamu','Kertas tua terlipat di atas meja.',()=>{addInventoryItem('Surat tua');return 'Surat itu berbunyi: Jika lampu rumah menyala sendiri, jangan pernah membuka pintu belakang. Di balik sumur tersimpan kunci.';});
-  interactionMarker(11.1,-41.1,'Sumur tua','Tiga ketukan terdengar dari dasar sumur.',()=>'Kamu menemukan kain lusuh dengan simbol yang sama seperti tanda di gerbang desa.');
-  interactionMarker(5.1,-60.2,'Peti lapuk','Peti terkunci dengan ukiran angka.',()=>'Di bawah peti terselip catatan: Jangan ikuti suara dari arah hutan.');
-  interactionMarker(-13,-70.2,'Jalur hutan tersembunyi','Jejak kaki kecil melewati gerbang bambu.',()=>'Jejak itu berhenti mendadak. Sebuah lonceng kecil masih terasa hangat.');
   interactionMarker(28,-102.4,'Masuk sekolah','Pintu sekolah tua terbuka sedikit.',()=>{changeHouseState(true,{name:'SEKOLAH TUA',x:28,z:-108,scale:1,d:9,school:true});return 'Kamu memasuki sekolah tua.';});
   interactionMarker(28,-108,'Papan pengumuman sekolah','Daftar murid lama masih menempel di dinding.',()=>'Satu nama dicoret berulang kali. Tinta merahnya masih tampak baru.');
   interactionMarker(-31,-137,'Makam keluarga','Tanah di salah satu makam masih basah.',()=>'Nisan itu menyebut tanggal yang sama dengan malam hilangnya seluruh warga desa.');
