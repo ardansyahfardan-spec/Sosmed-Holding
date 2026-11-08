@@ -128,11 +128,19 @@ button:active{transform:scale(.97);background:#273650}
  window.addEventListener('error',event=>{
   if(earlyStatus)earlyStatus.textContent='Game mengalami kesalahan saat dimuat: '+(event.message||'kesalahan JavaScript');
  });
- earlyCreate?.addEventListener('click',()=>{
-  if(earlyStatus)earlyStatus.textContent='Menyiapkan ruang baru...';
+ let lastCreateLaunch=0;
+ function launchCreateRoom(event){
+  const now=Date.now();
+  if(now-lastCreateLaunch<900)return;
+  lastCreateLaunch=now;
+  if(earlyStatus)earlyStatus.textContent='Tombol terdeteksi. Menyiapkan ruang baru...';
   try{startAmbientAudio();}catch(_){}
   try{Promise.resolve(enterRoom(makeRoomCode())).catch(error=>{if(earlyStatus)earlyStatus.textContent='Gagal membuat ruang: '+(error.message||'kesalahan koneksi');});}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
- });
+ }
+ // iOS Safari: pointer/touch fallback; click remains for keyboard and desktop.
+ earlyCreate?.addEventListener('pointerdown',launchCreateRoom,{passive:true});
+ earlyCreate?.addEventListener('touchstart',launchCreateRoom,{passive:true});
+ earlyCreate?.addEventListener('click',launchCreateRoom);
  earlyJoin?.addEventListener('click',()=>{
   try{startAmbientAudio();}catch(_){}
   try{enterRoom(earlyCode?.value||'');}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
