@@ -218,11 +218,13 @@
 
       function updateClues() {
         nearestClue = null;
-        let best = 3.2;
+        let bestSquared = 3.2 * 3.2;
         for (const clue of clues) {
           if (clue.found) continue;
-          const distance = B.Vector3.Distance(player.position, new B.Vector3(clue.x, 0, clue.z));
-          if (distance < best) { best = distance; nearestClue = clue; }
+          const dx = player.position.x - clue.x;
+          const dz = player.position.z - clue.z;
+          const distanceSquared = dx * dx + dz * dz;
+          if (distanceSquared < bestSquared) { bestSquared = distanceSquared; nearestClue = clue; }
         }
         const interact = document.getElementById('dt-interact');
         const hint = document.getElementById('dt-hint');
@@ -293,14 +295,17 @@
       const stopDrag = () => { dragging = false; };
       canvas.addEventListener('pointerup', stopDrag);
       canvas.addEventListener('pointercancel', stopDrag);
-      window.addEventListener('keydown', e => {
+      const onKeyDown = e => {
         keys[e.code] = true;
         if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
         if (e.code === 'KeyE' && !e.repeat) interact();
         if (e.code === 'Space' && !e.repeat) setJump();
-      }, { passive: false });
-      window.addEventListener('keyup', e => { keys[e.code] = false; });
-      window.addEventListener('blur', () => { sprintHeld = false; Object.keys(keys).forEach(k => keys[k] = false); });
+      };
+      const onKeyUp = e => { keys[e.code] = false; };
+      const onBlur = () => { sprintHeld = false; Object.keys(keys).forEach(k => keys[k] = false); };
+      window.addEventListener('keydown', onKeyDown, { passive: false });
+      window.addEventListener('keyup', onKeyUp);
+      window.addEventListener('blur', onBlur);
 
       function update() {
         const dt = Math.min(engine.getDeltaTime() / 1000, 0.04);
@@ -356,6 +361,9 @@
           disposed = true;
           clearInterval(qualityTimer);
           window.removeEventListener('resize', resize);
+          window.removeEventListener('keydown', onKeyDown);
+          window.removeEventListener('keyup', onKeyUp);
+          window.removeEventListener('blur', onBlur);
           engine.stopRenderLoop();
           scene.dispose();
           engine.dispose();
