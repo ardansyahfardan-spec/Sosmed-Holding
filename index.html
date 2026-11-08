@@ -3283,7 +3283,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').style.opacity = '0';
                 refreshAllLists();
-                showPage('chat'); updateBottomNavigation('chat');
+                showPage('chat'); window.updateBottomNavigation?.('chat');
                 refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
                 setTimeout(() => handleGhoustoryPushDeepLink(), 1200);
                 setTimeout(() => window.handleArenaGameDeepLink?.(), 1500);
@@ -3600,7 +3600,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
             target.classList.add('page-active');
             window.ghoustoryNavCurrentPage = pageId;
-            updateBottomNavigation(pageId==='lore'?'lore':pageId==='crewhub'?'home':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
+            window.updateBottomNavigation?.(pageId==='lore'?'lore':pageId==='crewhub'?'home':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(activeUser)loadGhoustoryNotifications();
             if(pageId==='arena')refreshArena();
@@ -5145,7 +5145,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 
         function navigateBottom(page){showPage(page);}
         function goHeaderBack(){const current=document.querySelector('.page-section.page-active')?.id?.replace('page-','')||'home';if(current==='chat'&&document.getElementById('page-chat')?.classList.contains('chat-room-open')){window.showChatInbox();return;}showPage('home');}
-        function updateBottomNavigation(page){document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.bottomNav===page));}
+        window.updateBottomNavigation = function(page){document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.toggle('active',b.dataset.bottomNav===page));};
         function openQuickScript(){showPage('grimoire');switchTab('grimoire','editor');setTimeout(()=>document.getElementById('script-title')?.focus(),100);}
         let ghoustoryNotifications=[];
         function toggleNotificationsPanel(){const p=document.getElementById('notification-popover');if(!p)return;p.classList.toggle('hidden');if(!p.classList.contains('hidden'))loadGhoustoryNotifications();}
