@@ -411,7 +411,7 @@ button:active{transform:scale(.97);background:#273650}
  // pinggul dan kaki terpisah. Material plastik glossy dengan detail ekspedisi.
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
  // Roster hantu lokal: model low-poly ringan, seluruh kemunculan dipicu progres cerita.
- const ghostMaterials={shroud:new THREE.MeshStandardMaterial({color:0xd8d6cf,roughness:1,transparent:true,opacity:.88}),skin:new THREE.MeshStandardMaterial({color:0xb9b4a8,roughness:1}),hair:new THREE.MeshStandardMaterial({color:0x111116,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x17191b,roughness:1}),cloth:new THREE.MeshStandardMaterial({color:0x5b5148,roughness:1}),eye:new THREE.MeshBasicMaterial({color:0xb52d31})};
+ const ghostMaterials={shroud:new THREE.MeshStandardMaterial({color:0xd8d6cf,roughness:1,transparent:true,opacity:.88}),skin:new THREE.MeshStandardMaterial({color:0xb9b4a8,roughness:1}),hair:new THREE.MeshStandardMaterial({color:0x111116,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x17191b,roughness:1}),cloth:new THREE.MeshStandardMaterial({color:0x5b5148,roughness:1}),eye:new THREE.MeshBasicMaterial({color:0xd35b58}),socket:new THREE.MeshStandardMaterial({color:0x09090b,roughness:1}),mouth:new THREE.MeshBasicMaterial({color:0x090607}),wrap:new THREE.MeshStandardMaterial({color:0xb8b4aa,roughness:1})};
  const ghostRoster=[
   {id:'pocong',name:'Pocong',line:'Jangan lari ke jalan buntu. Ada pocong di belakangmu.',speed:2.35,duration:13},
   {id:'anak',name:'Anak kecil',line:'Suara anak kecil itu bukan meminta tolong. Ia sedang memancingmu.',speed:1.35,duration:9},
@@ -420,16 +420,43 @@ button:active{transform:scale(.97);background:#273650}
   {id:'kakek',name:'Kakek tua',line:'Penjaga makam telah melihatmu. Rahasia keluarga hampir terbuka.',speed:1.25,duration:10},
   {id:'genderuwo',name:'Genderuwo',line:'Penjaga hutan telah bangun. Cari jalan keluar dari kawasan ini.',speed:2.05,duration:15}
  ];
+ const ghostAnimationParts=[];
  function makeStoryGhost(kind){
-  const g=new THREE.Group(),bodyMat=kind==='genderuwo'?ghostMaterials.dark:(kind==='nenek'||kind==='kakek'?ghostMaterials.cloth:ghostMaterials.shroud);
-  const body=new THREE.Mesh(new THREE.CapsuleGeometry(kind==='genderuwo'?.72:.38,kind==='genderuwo'?1.55:.9,3,7),bodyMat);body.position.y=kind==='anak'?.9:1.25;g.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(kind==='genderuwo'?.48:.34,10,8),kind==='genderuwo'?ghostMaterials.dark:ghostMaterials.skin);head.position.y=kind==='genderuwo'?2.55:(kind==='anak'?1.72:2.08);g.add(head);
-  if(kind==='pocong'){const knot=new THREE.Mesh(new THREE.SphereGeometry(.13,7,6),ghostMaterials.shroud);knot.position.set(0,2.43,-.02);g.add(knot);[-.25,.25].forEach(x=>{const tie=new THREE.Mesh(new THREE.TorusGeometry(.39,.045,5,12),ghostMaterials.shroud);tie.position.set(x,1.48,0);tie.rotation.y=Math.PI/2;g.add(tie);});}
-  else if(kind==='kuntilanak'){const skirt=new THREE.Mesh(new THREE.ConeGeometry(.62,1.5,8),ghostMaterials.shroud);skirt.position.y=.78;g.add(skirt);const hair=new THREE.Mesh(new THREE.SphereGeometry(.39,9,7),ghostMaterials.hair);hair.scale.set(1,1.45,.8);hair.position.set(0,1.98,.08);g.add(hair);[-.24,.24].forEach(x=>{const strand=new THREE.Mesh(new THREE.CylinderGeometry(.07,.11,1.1,5),ghostMaterials.hair);strand.position.set(x,1.35,.12);g.add(strand);});}
-  else if(kind==='genderuwo'){for(let i=0;i<2;i++){const eye=new THREE.Mesh(new THREE.SphereGeometry(.075,6,5),ghostMaterials.eye);eye.position.set(i?.19:-.19,2.58,-.39);g.add(eye);}for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(.13,.42,5),ghostMaterials.dark);spike.position.set((i-2)*.2,3.05,.02);g.add(spike);}}
-  else if(kind==='anak'){const cap=new THREE.Mesh(new THREE.SphereGeometry(.37,8,6),ghostMaterials.hair);cap.scale.y=.55;cap.position.y=1.98;g.add(cap);}
-  else{const bun=new THREE.Mesh(new THREE.SphereGeometry(.16,7,6),ghostMaterials.hair);bun.position.set(0,2.37,.15);g.add(bun);if(kind==='kakek'){const beard=new THREE.Mesh(new THREE.ConeGeometry(.2,.42,6),ghostMaterials.skin);beard.position.set(0,1.72,-.03);g.add(beard);}}
-  g.visible=false;scene.add(g);return g;
+  const g=new THREE.Group(),big=kind==='genderuwo',child=kind==='anak',female=kind==='kuntilanak';
+  const cloth=big?ghostMaterials.dark:(kind==='nenek'||kind==='kakek'?ghostMaterials.cloth:ghostMaterials.shroud);
+  const add=(geo,material,x,y,z,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;g.add(m);return m;};
+  const bodyY=child?.83:(big?1.38:1.2),headY=child?1.56:(big?2.55:2.05);
+  const torso=add(new THREE.CapsuleGeometry(big?.62:.34,big?1.25:(child?.62:.95),4,8),cloth,0,bodyY,0);torso.scale.set(big?1.12:1,1,big?1.05:1);
+  const head=add(new THREE.SphereGeometry(big?.43:(child?.29:.32),12,10),big?ghostMaterials.dark:ghostMaterials.skin,0,headY,-.015);head.scale.set(big?1.08:1,1.12,.92);
+  const arms=[];
+  for(const side of [-1,1]){
+   const arm=new THREE.Group();arm.position.set(side*(big?.55:.36),bodyY+.3,0);g.add(arm);
+   const upper=new THREE.Mesh(new THREE.CapsuleGeometry(big?.16:.105,big?.7:.52,3,6),cloth);upper.position.set(0,-.31,0);arm.add(upper);
+   const hand=new THREE.Mesh(new THREE.SphereGeometry(big?.18:.105,8,7),big?ghostMaterials.dark:ghostMaterials.skin);hand.position.set(0,-.72,-.025);arm.add(hand);
+   if(big){for(let f=0;f<3;f++){const claw=new THREE.Mesh(new THREE.ConeGeometry(.035,.22,5),ghostMaterials.dark);claw.position.set((f-1)*.09,-.84,-.07);claw.rotation.x=Math.PI;arm.add(claw);}}
+   arms.push(arm);
+  }
+  [-1,1].forEach(side=>{const socket=new THREE.Mesh(new THREE.SphereGeometry(big?.13:.09,8,6),ghostMaterials.socket);socket.position.set(side*(big?.18:.115),headY+.025,-.285);g.add(socket);const eye=new THREE.Mesh(new THREE.SphereGeometry(big?.052:.035,7,6),ghostMaterials.eye);eye.position.set(side*(big?.18:.115),headY+.025,-.365);g.add(eye);});
+  const mouth=add(new THREE.SphereGeometry(big?.12:.07,8,6),ghostMaterials.mouth,0,headY-.16,-.292);mouth.scale.set(1,.55,.35);
+  if(kind==='pocong'){
+   const band=add(new THREE.TorusGeometry(.35,.055,6,14),ghostMaterials.wrap,0,1.35,0,Math.PI/2);
+   const knot=add(new THREE.SphereGeometry(.14,7,6),ghostMaterials.wrap,0,2.36,.02);
+   [-1,1].forEach(side=>add(new THREE.CylinderGeometry(.035,.055,.52,5),ghostMaterials.wrap,side*.16,2.18,.02,0,0,side*.5));
+   add(new THREE.ConeGeometry(.19,.68,6),ghostMaterials.shroud,0,.35,.02,Math.PI);
+  }else if(female){
+   add(new THREE.ConeGeometry(.67,1.55,9),ghostMaterials.shroud,0,.65,0);
+   const hair=add(new THREE.SphereGeometry(.38,10,8),ghostMaterials.hair,0,headY+.18,.08);hair.scale.set(1.05,1.35,.9);
+   [-1,1].forEach(side=>add(new THREE.CylinderGeometry(.055,.095,1.65,6),ghostMaterials.hair,side*.28,1.15,.13,0,0,side*.08));
+  }else if(big){
+   for(let i=0;i<9;i++){const tuft=add(new THREE.ConeGeometry(.12,.36,5),ghostMaterials.dark,Math.sin(i*2.1)*.5,2.7+Math.cos(i*1.7)*.48,.03);tuft.rotation.z=Math.sin(i)*.8;}
+   const shoulderL=add(new THREE.SphereGeometry(.36,8,7),ghostMaterials.dark,-.48,1.9,0);shoulderL.scale.set(1.3,.8,1);
+   const shoulderR=add(new THREE.SphereGeometry(.36,8,7),ghostMaterials.dark,.48,1.9,0);shoulderR.scale.set(1.3,.8,1);
+  }else{
+   const hair=add(new THREE.SphereGeometry(.35,9,7),ghostMaterials.hair,0,headY+.18,.04);hair.scale.set(1.08,.65,1);
+   if(child){hair.scale.y=.45;const fringe=add(new THREE.SphereGeometry(.23,8,6),ghostMaterials.hair,0,headY+.12,-.24);fringe.scale.set(1,.42,.55);}
+   if(kind==='kakek'){const beard=add(new THREE.ConeGeometry(.22,.48,7),ghostMaterials.skin,0,headY-.34,-.02);beard.rotation.x=Math.PI;}
+  }
+  g.userData={arms,head,torso,kind};ghostAnimationParts.push(g);g.visible=false;scene.add(g);return g;
  }
  ghostRoster.forEach(def=>{def.model=makeStoryGhost(def.id);});
  let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0;
@@ -439,6 +466,43 @@ button:active{transform:scale(.97);background:#273650}
   if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});
  }
  function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;}
+ const environmentScares=[
+  {id:'old-house',x:-7,z:-18,kind:'door'}, {id:'school',x:28,z:-107,kind:'fall'},
+  {id:'well',x:12,z:-44,kind:'drop'}, {id:'bamboo',x:-13,z:-77,kind:'sway'},
+  {id:'cemetery',x:-31,z:-137,kind:'tilt'}, {id:'bridge',x:0,z:-148,kind:'sound'}
+ ];
+ const scareProps=[];
+ environmentScares.forEach(ev=>{
+  const prop=new THREE.Group();prop.position.set(ev.x,.08,ev.z);scene.add(prop);
+  if(ev.kind==='fall'||ev.kind==='drop'){
+   const plank=new THREE.Mesh(new THREE.BoxGeometry(ev.kind==='fall'?1.05:.18,.12,ev.kind==='fall'?.22:.18),M.wood);plank.position.y=ev.kind==='fall'?.72:1.25;prop.add(plank);
+   if(ev.kind==='fall'){[-.42,.42].forEach(x=>{const leg=new THREE.Mesh(new THREE.BoxGeometry(.1,.68,.1),M.wood);leg.position.set(x,.34,0);prop.add(leg);});}
+   else{const bucket=new THREE.Mesh(new THREE.CylinderGeometry(.22,.17,.32,8),M.tile);bucket.position.y=.25;prop.add(bucket);}
+  }else if(ev.kind==='tilt'){const stone=new THREE.Mesh(new THREE.BoxGeometry(.62,1.05,.18),M.stone);stone.position.y=.58;prop.add(stone);}
+  else if(ev.kind==='sway'){for(let b=0;b<3;b++){const stalk=new THREE.Mesh(new THREE.CylinderGeometry(.035,.055,3.1,5),M.leaves);stalk.position.set((b-1)*.3,1.55,0);prop.add(stalk);}}
+  else{const stone=new THREE.Mesh(new THREE.BoxGeometry(.65,.3,.55),M.stone);stone.position.y=.15;prop.add(stone);}
+  prop.visible=ev.kind!=='door';scareProps.push({event:ev,object:prop,fall:0,target:0,baseRotation:prop.rotation.z});
+ });
+ const scareDoor=new THREE.Group();scareDoor.position.set(29.8,.08,-102.7);scene.add(scareDoor);
+ const scareDoorLeaf=new THREE.Mesh(new THREE.BoxGeometry(.9,1.95,.12),M.wood);scareDoorLeaf.position.set(.45,.98,0);scareDoor.add(scareDoorLeaf);
+ let scareDoorAngle=0,scareDoorTarget=0,scareShake=0,lastScareAt=0;
+ function playEnvironmentalSound(kind){
+  if(!audioContext||!masterGain||!audioEnabled)return;
+  const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();
+  osc.type=kind==='metal'?'triangle':'sawtooth';osc.frequency.setValueAtTime(kind==='metal'?310:kind==='thud'?82:145,now);osc.frequency.exponentialRampToValueAtTime(kind==='metal'?74:38,now+.42);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(kind==='metal'?.075:.11,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.5);
+  osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.52);
+ }
+ function triggerEnvironmentalScare(id,remote=false){
+  const ev=environmentScares.find(item=>item.id===id);if(!ev)return;const now=Date.now();if(now-lastScareAt<2200)return;lastScareAt=now;
+  const prop=scareProps.find(item=>item.event===ev);
+  if(ev.kind==='door'){scareDoorTarget=-1.28;setTimeout(()=>{scareDoorTarget=0;},1250);}
+  if(prop){prop.object.visible=true;prop.fall=0;prop.target=ev.kind==='sway'?.32:(ev.kind==='tilt'?.48:1.25);}
+  scareShake=.22;playEnvironmentalSound(ev.kind==='drop'?'metal':'thud');
+  const lines={'old-house':'Pintu di belakangmu baru saja bergerak sendiri.','school':'Ada sesuatu yang menjatuhkan meja di ruang kelas.','well':'Tali sumur tertarik dari bawah. Menjauhlah.','bamboo':'Bambu itu bergerak, padahal angin berhenti.','cemetery':'Nisan itu bergeser dari tanahnya.','bridge':'Langkah kaki terdengar dari bawah jembatan.'};
+  hint.textContent=lines[id]||'Sesuatu bergerak di sekitarmu.';speakGuide(lines[id]||'Jangan bergerak. Ada sesuatu di dekatmu.');
+  if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'environment_scare',payload:{player_id:playerId,id,x:ev.x,z:ev.z}});
+ }
 
  const mat=(color,roughness=.34,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
  const plastic=(color)=>mat(color,.24,0);
@@ -577,6 +641,7 @@ button:active{transform:scale(.97);background:#273650}
    });
    channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)addRemotePlayer(payload.player_id,payload);});
    channel.on('broadcast',{event:'story_ghost'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)spawnStoryGhost(Number(payload.index),Number(payload.x)||0,Number(payload.z)||0,true);});
+   channel.on('broadcast',{event:'environment_scare'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId){const dx=player.position.x-(Number(payload.x)||0),dz=player.position.z-(Number(payload.z)||0);if(dx*dx+dz*dz<26*26)triggerEnvironmentalScare(payload.id,true);}});
    channel.on('broadcast',{event:'survival'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry&&typeof payload.hidden==='boolean')entry.avatar.visible=!payload.hidden;});
    channel.on('broadcast',{event:'ritual'},({payload})=>{if(payload?.player_id!==playerId&&Number.isFinite(payload?.step))ritualStep=Math.max(ritualStep,payload.step);});
    channel.subscribe(async status=>{
@@ -737,6 +802,10 @@ button:active{transform:scale(.97);background:#273650}
   let ix=isHidden?0:joyX,iz=isHidden?0:joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
+  ghostAnimationParts.forEach((ghost,i)=>{if(!ghost.visible)return;const phase=t*.0024+i*1.7,parts=ghost.userData;parts.head.rotation.z=Math.sin(phase*.7)*.07;parts.head.rotation.x=Math.sin(phase)*.035;parts.torso.rotation.z=Math.sin(phase*.55)*.035;parts.arms.forEach((arm,j)=>{arm.rotation.z=(j===0?-1:1)*(.12+Math.sin(phase+j)*.16);arm.rotation.x=Math.sin(phase*.8+j)*.08;});});
+  scareDoorAngle=THREE.MathUtils.damp(scareDoorAngle,scareDoorTarget,7,dt);scareDoor.rotation.y=scareDoorAngle;
+  scareProps.forEach(item=>{if(item.fall<item.target){item.fall=Math.min(item.target,item.fall+dt*2.8);item.object.rotation.z=item.baseRotation+item.fall;}else if(item.target>0){item.target=Math.max(0,item.target-dt*.055);if(item.target===0)item.object.visible=false;}});
+  if(scareShake>0){scareShake=Math.max(0,scareShake-dt);camera.position.x+=(Math.random()-.5)*scareShake*.12;camera.position.y+=(Math.random()-.5)*scareShake*.08;}
   if(activeStoryGhost){storyGhostTimer-=dt;const g=activeStoryGhost.model;g.position.y=.06+Math.sin(t*.0035)*.07;const dx=(isHidden?lastSeenPlayer.x:player.position.x)-g.position.x,dz=(isHidden?lastSeenPlayer.z:player.position.z)-g.position.z,dist=Math.hypot(dx,dz);if(!isHidden){lastSeenPlayer.copy(player.position);ghostSearchTimer=3;}else ghostSearchTimer=Math.max(0,ghostSearchTimer-dt);if(dist>1.65&&storyGhostTimer>0&&(!isHidden||ghostSearchTimer>0)){const pace=activeStoryGhost.speed*(dist<5?.72:1);g.position.x+=dx/(dist||1)*pace*dt;g.position.z+=dz/(dist||1)*pace*dt;g.lookAt(lastSeenPlayer.x,1.25,lastSeenPlayer.z);}if(!isHidden&&dist<1.65){hint.textContent=activeStoryGhost.name+' menangkapmu! Kondisimu berkurang.';takeDamage(30,'Serangan '+activeStoryGhost.name+'.');finishStoryGhost();speakGuide('Ia menangkapmu. Cari tempat berlindung sebelum ia kembali.');}else if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' kehilangan jejakmu dan menghilang ke dalam kabut.';finishStoryGhost();speakGuide('Ia kehilangan jejakmu. Tapi jangan lengah.');}}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse&&!isHidden)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
