@@ -380,7 +380,7 @@ button:active{transform:scale(.97);background:#273650}
  const conditionFill=document.getElementById('condition-fill'),conditionValue=document.getElementById('condition-value'),batteryFill=document.getElementById('battery-fill'),batteryValue=document.getElementById('battery-value');
  const flashlight=new THREE.SpotLight(0xd8e7ff,0,42,.42,.52,1);flashlight.castShadow=false;scene.add(flashlight);const flashlightTarget=new THREE.Object3D();scene.add(flashlightTarget);flashlight.target=flashlightTarget;
  // Senter ekspedisi 3D di tangan kanan: badan metal, grip karet, ring kepala, tombol dan lensa.
- const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=Math.PI/2;armR.add(flashlightProp);
+ const flashlightProp=new THREE.Group();flashlightProp.position.set(.035,-.82,-.25);flashlightProp.rotation.x=0;armR.add(flashlightProp);
  const torchBodyMat=new THREE.MeshStandardMaterial({color:0x252c35,metalness:.78,roughness:.3});
  const torchDarkMat=new THREE.MeshStandardMaterial({color:0x10151c,metalness:.35,roughness:.72});
  const torchMetalMat=new THREE.MeshStandardMaterial({color:0x778492,metalness:.88,roughness:.24});
@@ -982,7 +982,7 @@ button:active{transform:scale(.97);background:#273650}
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
   if(insideHouse){const forwardX=-Math.sin(cameraYaw),forwardZ=-Math.cos(cameraYaw);const eye=new THREE.Vector3(player.position.x,1.62+player.position.y,player.position.z);camera.position.lerp(eye,1-Math.exp(-14*dt));camera.lookAt(eye.x+forwardX,eye.y+Math.sin(cameraPitch),eye.z+forwardZ);}else{const behind=9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);}
-  if(flashlightOn){const aim=new THREE.Vector3(Math.sin(player.rotation.y),-.14,Math.cos(player.rotation.y)).normalize();flashlight.getWorldPosition(flashlightTarget.position);flashlight.position.set(player.position.x+Math.sin(player.rotation.y)*.55,player.position.y+1.05,player.position.z+Math.cos(player.rotation.y)*-.55);flashlightTarget.position.set(flashlight.position.x+aim.x*34,Math.max(.25,flashlight.position.y+aim.y*34),flashlight.position.z+aim.z*34);torchBeam.rotation.x=-Math.PI/2+Math.atan2(-aim.y,Math.sqrt(aim.x*aim.x+aim.z*aim.z));camera.updateMatrixWorld();}
+  if(flashlightOn){const aim=new THREE.Vector3(-Math.sin(player.rotation.y),-.14,-Math.cos(player.rotation.y)).normalize();flashlight.position.set(player.position.x+Math.cos(player.rotation.y)*.55-Math.sin(player.rotation.y)*.25,player.position.y+1.05,player.position.z-Math.sin(player.rotation.y)*.55-Math.cos(player.rotation.y)*.25);flashlightTarget.position.set(flashlight.position.x+aim.x*34,Math.max(.25,flashlight.position.y+aim.y*34),flashlight.position.z+aim.z*34);torchBeam.rotation.x=-Math.PI/2+Math.atan2(-aim.y,Math.sqrt(aim.x*aim.x+aim.z*aim.z));camera.updateMatrixWorld();}
   if(scareShake>0){scareShake=Math.max(0,scareShake-dt);camera.position.x+=(Math.random()-.5)*scareShake*.12;camera.position.y+=(Math.random()-.5)*scareShake*.08;}
   renderer.render(scene,camera);
  }
