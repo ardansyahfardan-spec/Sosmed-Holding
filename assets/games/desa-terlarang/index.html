@@ -773,7 +773,7 @@ button:active{transform:scale(.97);background:#273650}
      multiplayer=channel;
      if(!presenceTrackPromise)presenceTrackPromise=channel.track({player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,online_at:new Date().toISOString()});
      const presenceStatus=await presenceTrackPromise;
-     if(presenceStatus!=='ok')throw new Error('Gagal mendaftarkan pemain ke ruang ('+presenceStatus+'). Tunggu sebentar lalu coba lagi.');
+     if(presenceStatus!=='ok'){roomStatus.textContent='Gagal mendaftarkan pemain ke ruang ('+presenceStatus+'). Tunggu sebentar lalu coba lagi.';multiplayer=null;lobby.style.display='block';createRoomBtn.disabled=false;joinRoomBtn.disabled=false;return;}
      syncPresence();
      await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y}});
      roomStatus.textContent='Terhubung. Bagikan kode ini kepada temanmu.';
