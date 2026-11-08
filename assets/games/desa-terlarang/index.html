@@ -956,7 +956,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sprintBtn.addEventListener('click',()=>{if(!sprinting&&stamina<8){hint.textContent='Stamina belum cukup untuk berlari.';return;}sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
  crouchBtn.addEventListener('click',()=>{crouching=!crouching;crouchBtn.classList.toggle('active',crouching);crouchBtn.textContent=crouching?'BANGUN':'JONGKOK';player.scale.y=crouching?.72:1;});
  hideBtn.addEventListener('click',()=>{if(isHidden)setHidden(false);else hint.textContent='Dekati lemari atau kolong meja yang ditandai, lalu tekan INTERAKSI.';});
- flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}setFlashlightState(!flashlightOn);});\n setFlashlightState(true);
+ flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}setFlashlightState(!flashlightOn);});
+ setFlashlightState(true);
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
  joystick.addEventListener('pointermove',e=>{if(e.pointerId===joyPointer){e.preventDefault();setJoystick(e);}});
