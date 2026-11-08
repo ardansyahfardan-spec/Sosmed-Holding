@@ -411,7 +411,24 @@ button:active{transform:scale(.97);background:#273650}
  // pinggul dan kaki terpisah. Material plastik glossy dengan detail ekspedisi.
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
  // Roster hantu lokal: model low-poly ringan, seluruh kemunculan dipicu progres cerita.
- const ghostMaterials={shroud:new THREE.MeshStandardMaterial({color:0xd8d6cf,roughness:1,transparent:true,opacity:.88}),skin:new THREE.MeshStandardMaterial({color:0xb9b4a8,roughness:1}),hair:new THREE.MeshStandardMaterial({color:0x111116,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x17191b,roughness:1}),cloth:new THREE.MeshStandardMaterial({color:0x5b5148,roughness:1}),eye:new THREE.MeshBasicMaterial({color:0xd35b58}),socket:new THREE.MeshStandardMaterial({color:0x09090b,roughness:1}),mouth:new THREE.MeshBasicMaterial({color:0x090607}),wrap:new THREE.MeshStandardMaterial({color:0xb8b4aa,roughness:1})};
+ function ghostTexture(base,stain){
+  const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;const ctx=canvas.getContext('2d');
+  ctx.fillStyle=base;ctx.fillRect(0,0,128,128);
+  for(let i=0;i<520;i++){const x=(i*47)%128,y=(i*83)%128,r=1+(i%4);ctx.globalAlpha=.025+(i%5)*.012;ctx.fillStyle=i%2?stain:'#ffffff';ctx.fillRect(x,y,r,r*.7);}
+  ctx.globalAlpha=1;const tex=new THREE.CanvasTexture(canvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2,2);return tex;
+ }
+ const ghostMaterials={
+  shroud:new THREE.MeshStandardMaterial({color:0xd7d2c5,map:ghostTexture('#c8c4b9','#625f58'),roughness:1}),
+  skin:new THREE.MeshStandardMaterial({color:0xaaa39a,map:ghostTexture('#aaa39a','#504943'),roughness:.96}),
+  hair:new THREE.MeshStandardMaterial({color:0x090a0d,roughness:1}),
+  dark:new THREE.MeshStandardMaterial({color:0x171514,map:ghostTexture('#171514','#49413a'),roughness:1}),
+  cloth:new THREE.MeshStandardMaterial({color:0x514940,map:ghostTexture('#514940','#171717'),roughness:1}),
+  eye:new THREE.MeshStandardMaterial({color:0x241b1a,roughness:.5}),
+  socket:new THREE.MeshStandardMaterial({color:0x090808,roughness:1}),
+  mouth:new THREE.MeshStandardMaterial({color:0x160d0d,roughness:1}),
+  wrap:new THREE.MeshStandardMaterial({color:0xb8b4aa,map:ghostTexture('#b8b4aa','#6f6b62'),roughness:1}),
+  pale:new THREE.MeshStandardMaterial({color:0xc4c0b4,map:ghostTexture('#c4c0b4','#77736a'),roughness:1})
+ };
  const ghostRoster=[
   {id:'pocong',name:'Pocong',line:'Jangan lari ke jalan buntu. Ada pocong di belakangmu.',speed:2.35,duration:13},
   {id:'anak',name:'Anak kecil',line:'Suara anak kecil itu bukan meminta tolong. Ia sedang memancingmu.',speed:1.35,duration:9},
@@ -422,41 +439,79 @@ button:active{transform:scale(.97);background:#273650}
  ];
  const ghostAnimationParts=[];
  function makeStoryGhost(kind){
-  const g=new THREE.Group(),big=kind==='genderuwo',child=kind==='anak',female=kind==='kuntilanak';
-  const cloth=big?ghostMaterials.dark:(kind==='nenek'||kind==='kakek'?ghostMaterials.cloth:ghostMaterials.shroud);
-  const add=(geo,material,x,y,z,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;g.add(m);return m;};
-  const bodyY=child?.83:(big?1.38:1.2),headY=child?1.56:(big?2.55:2.05);
-  const torso=add(new THREE.CapsuleGeometry(big?.62:.34,big?1.25:(child?.62:.95),4,8),cloth,0,bodyY,0);torso.scale.set(big?1.12:1,1,big?1.05:1);
-  const head=add(new THREE.SphereGeometry(big?.43:(child?.29:.32),12,10),big?ghostMaterials.dark:ghostMaterials.skin,0,headY,-.015);head.scale.set(big?1.08:1,1.12,.92);
-  const arms=[];
+  const g=new THREE.Group(),big=kind==='genderuwo',child=kind==='anak',female=kind==='kuntilanak',elder=kind==='nenek'||kind==='kakek';
+  const skin=big?ghostMaterials.dark:ghostMaterials.skin,cloth=big?ghostMaterials.dark:(elder?ghostMaterials.cloth:ghostMaterials.shroud);
+  const add=(geo,material,parent=g,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;parent.add(m);return m;};
+  const sphere=(parent,material,x,y,z,sx,sy,sz)=>{const m=add(new THREE.SphereGeometry(1,14,10),material,parent,x,y,z);m.scale.set(sx,sy,sz);return m;};
+  const bodyY=child?.86:(big?1.35:1.18),headY=child?1.58:(big?2.48:2.08),scale=big?1.25:(child?.78:1);
+  // Torso anatomis dengan dada, perut, pinggul, bahu dan leher terpisah.
+  const torso=add(new THREE.CapsuleGeometry(big?.52:.31,big?1.05:(child?.62:.9),6,12),cloth,g,0,bodyY,0);torso.scale.set(big?1.22:1.08,1,big?1.05:.83);
+  sphere(g,cloth,0,bodyY+.38,0,big?.68:.39,big?.42:.32,big?.38:.27);
+  sphere(g,cloth,0,bodyY-.43,0,big?.48:.3,.34,.26);
+  add(new THREE.CylinderGeometry(big?.15:.085,big?.13:.09,.24,10),skin,g,0,headY-.3,0);
+  // Kepala dengan rahang, pipi, dahi dan hidung yang terbaca dari jarak dekat.
+  sphere(g,skin,0,headY,0,big?.38:(child?.265:.29),big?.48:(child?.34:.39),.31);
+  sphere(g,skin,0,headY-.19,-.035,big?.3:.235,.22,.27);
   for(const side of [-1,1]){
-   const arm=new THREE.Group();arm.position.set(side*(big?.55:.36),bodyY+.3,0);g.add(arm);
-   const upper=new THREE.Mesh(new THREE.CapsuleGeometry(big?.16:.105,big?.7:.52,3,6),cloth);upper.position.set(0,-.31,0);arm.add(upper);
-   const hand=new THREE.Mesh(new THREE.SphereGeometry(big?.18:.105,8,7),big?ghostMaterials.dark:ghostMaterials.skin);hand.position.set(0,-.72,-.025);arm.add(hand);
-   if(big){for(let f=0;f<3;f++){const claw=new THREE.Mesh(new THREE.ConeGeometry(.035,.22,5),ghostMaterials.dark);claw.position.set((f-1)*.09,-.84,-.07);claw.rotation.x=Math.PI;arm.add(claw);}}
+   sphere(g,skin,side*.19,headY-.08,-.205,.12,.13,.09);
+   sphere(g,ghostMaterials.socket,side*.115,headY+.035,-.282,.085,.105,.035);
+   sphere(g,ghostMaterials.eye,side*.115,headY+.035,-.316,.034,.038,.018);
+   sphere(g,skin,side*.055,headY-.12,-.285,.035,.045,.035);
+  }
+  const nose=add(new THREE.ConeGeometry(.075,.19,7),skin,g,0,headY-.07,-.31,Math.PI);
+  sphere(g,ghostMaterials.mouth,0,headY-.205,-.282,.075,.025,.018);
+  // Kelopak, alis dan garis wajah.
+  for(const side of [-1,1]){
+   const brow=add(new THREE.CapsuleGeometry(.025,.12,3,6),ghostMaterials.hair,g,side*.115,headY+.13,-.285,0,0,side*-.12);
+   if(elder){const wrinkle=add(new THREE.TorusGeometry(.22,.008,4,14),ghostMaterials.cloth,g,0,headY-.015,-.286,0,0,0);wrinkle.scale.y=.35;}
+  }
+  const arms=[],legs=[];
+  for(const side of [-1,1]){
+   const shoulder=sphere(g,cloth,side*(big?.58:.37),bodyY+.32,0,big?.3:.19,.24,.22);
+   const arm=new THREE.Group();arm.position.set(side*(big?.65:.42),bodyY+.29,0);g.add(arm);
+   const upper=add(new THREE.CapsuleGeometry(big?.17:.105,big?.48:.43,5,8),cloth,arm,0,-.31,0,0,0,side*-.06);
+   const elbow=sphere(arm,cloth,0,-.62,0,big?.17:.105,.13,.12);
+   const fore=add(new THREE.CapsuleGeometry(big?.135:.085,big?.43:.4,5,8),cloth,arm,0,-.83,-.01,0,0,side*-.08);
+   const hand=sphere(arm,skin,0,-1.14,-.035,big?.14:.085,.18,.075);
+   for(let f=0;f<4;f++){const finger=add(new THREE.CapsuleGeometry(big?.035:.018,big?.13:.09,3,5),skin,arm,(f-1.5)*(big?.075:.045),-1.29,-.06,0,0,(f-1.5)*.1);}
    arms.push(arm);
+   if(!child&&!female&&kind!=='pocong'){
+    const leg=new THREE.Group();leg.position.set(side*.17,.48,0);g.add(leg);
+    add(new THREE.CapsuleGeometry(big?.22:.13,.58,5,8),cloth,leg,0,-.32,0);
+    sphere(leg,cloth,0,-.69,0,.14,.14,.15);
+    add(new THREE.CapsuleGeometry(big?.16:.1,.5,5,8),cloth,leg,0,-.94,0);
+    sphere(leg,skin,0,-1.2,-.09,.12,.08,.22);legs.push(leg);
+   }
   }
-  [-1,1].forEach(side=>{const socket=new THREE.Mesh(new THREE.SphereGeometry(big?.13:.09,8,6),ghostMaterials.socket);socket.position.set(side*(big?.18:.115),headY+.025,-.285);g.add(socket);const eye=new THREE.Mesh(new THREE.SphereGeometry(big?.052:.035,7,6),ghostMaterials.eye);eye.position.set(side*(big?.18:.115),headY+.025,-.365);g.add(eye);});
-  const mouth=add(new THREE.SphereGeometry(big?.12:.07,8,6),ghostMaterials.mouth,0,headY-.16,-.292);mouth.scale.set(1,.55,.35);
+  // Pakaian berlapis, lipatan dan ujung kain tidak rata.
   if(kind==='pocong'){
-   const band=add(new THREE.TorusGeometry(.35,.055,6,14),ghostMaterials.wrap,0,1.35,0,Math.PI/2);
-   const knot=add(new THREE.SphereGeometry(.14,7,6),ghostMaterials.wrap,0,2.36,.02);
-   [-1,1].forEach(side=>add(new THREE.CylinderGeometry(.035,.055,.52,5),ghostMaterials.wrap,side*.16,2.18,.02,0,0,side*.5));
-   add(new THREE.ConeGeometry(.19,.68,6),ghostMaterials.shroud,0,.35,.02,Math.PI);
+   const shroud=add(new THREE.CapsuleGeometry(.39,1.48,7,12),ghostMaterials.shroud,g,0,1.2,0);shroud.scale.set(1,.95,.88);
+   for(let y of [.55,1.02,1.55,2.03]){const band=add(new THREE.TorusGeometry(y>1.8?.29:.34,.045,6,24),ghostMaterials.wrap,g,0,y,0,Math.PI/2);band.scale.set(1,.82,1);}
+   const knot=sphere(g,ghostMaterials.wrap,0,2.43,-.015,.16,.13,.13);
+   for(let side of [-1,1]){const tie=add(new THREE.CapsuleGeometry(.045,.34,4,6),ghostMaterials.wrap,g,side*.13,2.22,.02,0,0,side*.35);}
+   add(new THREE.ConeGeometry(.24,.72,9),ghostMaterials.shroud,g,0,.28,.02,Math.PI);
   }else if(female){
-   add(new THREE.ConeGeometry(.67,1.55,9),ghostMaterials.shroud,0,.65,0);
-   const hair=add(new THREE.SphereGeometry(.38,10,8),ghostMaterials.hair,0,headY+.18,.08);hair.scale.set(1.05,1.35,.9);
-   [-1,1].forEach(side=>add(new THREE.CylinderGeometry(.055,.095,1.65,6),ghostMaterials.hair,side*.28,1.15,.13,0,0,side*.08));
+   const dress=add(new THREE.ConeGeometry(.57,1.55,16,4),ghostMaterials.shroud,g,0,.72,0);dress.scale.z=.62;
+   const collar=add(new THREE.TorusGeometry(.2,.045,6,18),ghostMaterials.pale,g,0,1.72,0,Math.PI/2);
+   // Rambut panjang berupa banyak helai melengkung, bukan dua tabung besar.
+   sphere(g,ghostMaterials.hair,0,headY+.2,.04,.34,.34,.3);
+   for(let i=0;i<17;i++){const x=(i%5-2)*.105,z=.08+Math.floor(i/5)*.045;const strand=add(new THREE.CapsuleGeometry(.025+(i%3)*.006,.7+(i%4)*.22,4,6),ghostMaterials.hair,g,x,1.15+(i%3)*.1,z,0,0,(i%2?-.1:.1));}
+   for(let side of [-1,1])add(new THREE.CapsuleGeometry(.04,.72,4,6),ghostMaterials.hair,g,side*.27,headY-.36,.11,0,0,side*.08);
   }else if(big){
-   for(let i=0;i<9;i++){const tuft=add(new THREE.ConeGeometry(.12,.36,5),ghostMaterials.dark,Math.sin(i*2.1)*.5,2.7+Math.cos(i*1.7)*.48,.03);tuft.rotation.z=Math.sin(i)*.8;}
-   const shoulderL=add(new THREE.SphereGeometry(.36,8,7),ghostMaterials.dark,-.48,1.9,0);shoulderL.scale.set(1.3,.8,1);
-   const shoulderR=add(new THREE.SphereGeometry(.36,8,7),ghostMaterials.dark,.48,1.9,0);shoulderR.scale.set(1.3,.8,1);
+   // Genderuwo: dada lebar, leher pendek, bahu menggantung, lapisan bulu kasar.
+   for(let i=0;i<34;i++){const angle=i*2.399,r=.22+(i%5)*.085,y=.65+(i%9)*.22;const tuft=add(new THREE.ConeGeometry(.045+(i%3)*.018,.2+(i%4)*.055,5),ghostMaterials.dark,g,Math.cos(angle)*r,y,Math.sin(angle)*r);tuft.rotation.set(Math.cos(angle)*.7,0,Math.sin(angle)*.7);}
+   sphere(g,ghostMaterials.dark,0,1.82,0,.72,.48,.42);
+   sphere(g,ghostMaterials.dark,0,2.42,.01,.49,.5,.39);
+   for(let side of [-1,1]){sphere(g,ghostMaterials.dark,side*.18,headY+.03,-.28,.14,.16,.08);add(new THREE.ConeGeometry(.08,.18,6),ghostMaterials.dark,g,side*.18,headY-.22,-.31,Math.PI);}
   }else{
-   const hair=add(new THREE.SphereGeometry(.35,9,7),ghostMaterials.hair,0,headY+.18,.04);hair.scale.set(1.08,.65,1);
-   if(child){hair.scale.y=.45;const fringe=add(new THREE.SphereGeometry(.23,8,6),ghostMaterials.hair,0,headY+.12,-.24);fringe.scale.set(1,.42,.55);}
-   if(kind==='kakek'){const beard=add(new THREE.ConeGeometry(.22,.48,7),ghostMaterials.skin,0,headY-.34,-.02);beard.rotation.x=Math.PI;}
+   // Rambut tua/anak, dengan garis rambut tidak simetris.
+   sphere(g,ghostMaterials.hair,0,headY+.2,.035,.31,.22,.3);
+   for(let i=0;i<7;i++){const strand=add(new THREE.CapsuleGeometry(.025,.24+(i%3)*.06,3,5),ghostMaterials.hair,g,(i-3)*.07,headY+.12,.16,0,0,(i-3)*.08);}
+   if(child){sphere(g,ghostMaterials.hair,0,headY+.12,-.22,.22,.1,.09);}
+   if(kind==='kakek'){add(new THREE.ConeGeometry(.17,.42,8),ghostMaterials.cloth,g,0,headY-.34,-.05,Math.PI);}
+   if(kind==='nenek'){for(let side of [-1,1])add(new THREE.CapsuleGeometry(.035,.28,4,6),ghostMaterials.hair,g,side*.28,headY-.12,.04,0,0,side*.2);}
   }
-  g.userData={arms,head,torso,kind};ghostAnimationParts.push(g);g.visible=false;scene.add(g);return g;
+  g.userData={arms,legs,head,torso,kind};ghostAnimationParts.push(g);g.visible=false;scene.add(g);return g;
  }
  ghostRoster.forEach(def=>{def.model=makeStoryGhost(def.id);});
  let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0;
@@ -800,7 +855,7 @@ button:active{transform:scale(.97);background:#273650}
   let ix=isHidden?0:joyX,iz=isHidden?0:joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
-  ghostAnimationParts.forEach((ghost,i)=>{if(!ghost.visible)return;const phase=t*.0024+i*1.7,parts=ghost.userData;parts.head.rotation.z=Math.sin(phase*.7)*.07;parts.head.rotation.x=Math.sin(phase)*.035;parts.torso.rotation.z=Math.sin(phase*.55)*.035;parts.arms.forEach((arm,j)=>{arm.rotation.z=(j===0?-1:1)*(.12+Math.sin(phase+j)*.16);arm.rotation.x=Math.sin(phase*.8+j)*.08;});});
+  ghostAnimationParts.forEach((ghost,i)=>{if(!ghost.visible)return;const phase=t*.0017+i*1.7,parts=ghost.userData;parts.head.rotation.z=Math.sin(phase*.7)*.045;parts.head.rotation.x=Math.sin(phase)*.025;parts.torso.rotation.z=Math.sin(phase*.55)*.025;parts.arms.forEach((arm,j)=>{arm.rotation.z=(j===0?-1:1)*(.08+Math.sin(phase+j)*.09);arm.rotation.x=Math.sin(phase*.8+j)*.045;});parts.legs.forEach((leg,j)=>{leg.rotation.x=Math.sin(phase+j)*.035;});});
   scareDoorAngle=THREE.MathUtils.damp(scareDoorAngle,scareDoorTarget,7,dt);secretDoor.rotation.y=doorOpen?-1.18:scareDoorAngle;
   scareProps.forEach(item=>{if(item.fall<item.target){item.fall=Math.min(item.target,item.fall+dt*2.8);item.object.rotation.z=item.baseRotation+item.fall;}else if(item.target>0){item.target=Math.max(0,item.target-dt*.055);if(item.target===0)item.object.visible=false;}});
 
