@@ -580,7 +580,7 @@ button:active{transform:scale(.97);background:#273650}
   const dt=Math.min((t-last)/1000||0,.05);last=t;const time=t*.0001;
    if(t-lastCull>450){lastCull=t;for(const g of forestGroups){const dx=g.position.x-player.position.x,dz=g.position.z-player.position.z;g.visible=dx*dx+dz*dz<112*112;}}
   mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
-  swayingTrees.forEach(t=>{if(!t.canopy.parent.parent.visible)return;t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
+  swayingTrees.forEach(t=>{if(!t.canopy.parent.visible)return;t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
   lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
   missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
   worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
