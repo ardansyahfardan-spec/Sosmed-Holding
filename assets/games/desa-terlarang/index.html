@@ -163,7 +163,7 @@ button:active{transform:scale(.97);background:#273650}
     const t=box(.78*scale,.055*scale,.36*scale,M.tile,x+tileX,tileY,z+(row-1)*1.15*scale);
     t.rotation.z=tileX<=0?.48:-.48;
    }
-   box(.92*scale,1.95*scale,.12*scale,M.wood,x,h*.31,z+d/2+.075*scale);box(.72*scale,1.72*scale,.035*scale,M.timber,x,h*.31,z+d/2+.15*scale);
+   if(!interactive){box(.92*scale,1.95*scale,.12*scale,M.wood,x,h*.31,z+d/2+.075*scale);box(.72*scale,1.72*scale,.035*scale,M.timber,x,h*.31,z+d/2+.15*scale);}
    for(let k=0;k<4;k++)box(.025*scale,1.6*scale,.018*scale,M.wood,x+(-.27+k*.18)*scale,h*.31,z+d/2+.174*scale);
    box(.07*scale,.07*scale,.04*scale,M.tile,x+.25*scale,h*.31,z+d/2+.2*scale);
    for(const wx of [-1.55,1.55]){const wz=z+d/2+.09*scale,wy=h*.63;box(1.02*scale,1.02*scale,.09*scale,M.wood,x+wx*scale,wy,wz);box(.78*scale,.78*scale,.035*scale,M.glass,x+wx*scale,wy,wz+.065*scale);box(.09*scale,.88*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(.86*scale,.08*scale,.045*scale,M.wood,x+wx*scale,wy,wz+.09*scale);box(1.15*scale,.1*scale,.22*scale,M.wood,x+wx*scale,wy-.58*scale,wz);/* Kaca jendela tetap emissive; PointLight tambahan di tiap jendela dihilangkan untuk menghemat GPU. */}
@@ -222,13 +222,13 @@ button:active{transform:scale(.97);background:#273650}
   for(let i=0;i<(mobileQuality?24:36);i++){const z=-18-i*5.8;tree(-25-(i%4)*2.8,z,1.05+(i%3)*.24);tree(25+(i%5)*2.6,z-2,1+(i%3)*.22);}
   for(let i=0;i<(mobileQuality?20:32);i++){const a=i*Math.PI*2/(mobileQuality?20:32),r=42+(i%4)*3;tree(Math.cos(a)*r,-125+Math.sin(a)*r,1+(i%3)*.2);}
   buildMobileTreeBatches();
-  hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
+  hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1,true);hut(-8,-48,1.42,0,true);hut(9,-61,1.34,1,true);
 
   // Deretan rumah tambahan mengisi sisi jalan dan membuat desa terasa berpenghuni dahulu.
-  hut(-16,-25,.98,1);hut(16,-43,1.08,0);hut(-18,-66,1.12,1);
-  hut(18,-78,1.02,0);hut(-15,-94,1.05,0);hut(16,-108,1.14,1);
-  hut(-20,-126,.96,1);hut(20,-143,1.08,0);hut(-14,-160,1.12,1);
-  hut(15,-178,1.02,0);
+  hut(-16,-25,.98,1,true);hut(16,-43,1.08,0,true);hut(-18,-66,1.12,1,true);
+  hut(18,-78,1.02,0,true);hut(-15,-94,1.05,0,true);hut(16,-108,1.14,1,true);
+  hut(-20,-126,.96,1,true);hut(20,-143,1.08,0,true);hut(-14,-160,1.12,1,true);
+  hut(15,-178,1.02,0,true);
 
   // Pegunungan berlapis di cakrawala: siluet rendah poligon agar ringan di perangkat mobile.
   const mountainMaterials=[
@@ -347,11 +347,13 @@ button:active{transform:scale(.97);background:#273650}
   const secretDoor=new THREE.Group();secretDoor.position.set(-7.52,.12,-13.82);scene.add(secretDoor);
   const doorLeaf=box(.88,1.9,.12,M.wood,0,.95,0);doorLeaf.position.set(.44,.95,0);secretDoor.add(doorLeaf);
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
-  let doorOpen=false,insideHouse=false,houseTransitioning=false;
+  let doorOpen=false,insideHouse=false,houseTransitioning=false,activeBuilding={name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true};
   const houseTransition=document.getElementById('house-transition');
-  function changeHouseState(enter){if(houseTransitioning||insideHouse===enter)return;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI RUMAH...':'KELUAR DARI RUMAH...';houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(-7,0,enter?-15.1:-11.9);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Rumah terasa dingin. Periksa surat dan benda-benda yang tertinggal.':'Kamu kembali ke halaman desa.';worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o.label==='Keluar rumah'||o.label==='Surat di ruang tamu'):(!o.used&&o.label!=='Keluar rumah'&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM RUMAH':'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);houseTransition.querySelector('span').textContent=enter?'RUMAH TUA':'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
-  interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true);return 'Kamu memasuki rumah tua.';});
-  const houseExit=interactionMarker(-7,-14.45,'Keluar rumah','Kembali ke halaman desa.',()=>{changeHouseState(false);return 'Kamu keluar dari rumah.';});houseExit.group.visible=false;
+  function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+4.7*b.scale/2;houseTransitioning=true;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;joyX=0;joyY=0;stick.style.transform='translate(0,0)';cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&o.label==='Surat di ruang tamu')):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu');});document.getElementById('mission').style.display=insideHouse?'none':'block';state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
+  interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true,{name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true});return 'Kamu memasuki rumah tua.';});
+  const villageBuildings=[{x:7,z:-31,s:1.28,n:'RUMAH DESA'},{x:-8,z:-48,s:1.42,n:'RUMAH KOSONG'},{x:9,z:-61,s:1.34,n:'RUMAH TUA'},{x:-16,z:-25,s:.98,n:'RUMAH DESA'},{x:16,z:-43,s:1.08,n:'RUMAH DESA'},{x:-18,z:-66,s:1.12,n:'RUMAH KOSONG'},{x:18,z:-78,s:1.02,n:'RUMAH DESA'},{x:-15,z:-94,s:1.05,n:'RUMAH KOSONG'},{x:16,z:-108,s:1.14,n:'RUMAH TUA'},{x:-20,z:-126,s:.96,n:'RUMAH DESA'},{x:20,z:-143,s:1.08,n:'RUMAH KOSONG'},{x:-14,z:-160,s:1.12,n:'RUMAH DESA'},{x:15,z:-178,s:1.02,n:'RUMAH KOSONG'}];
+  villageBuildings.forEach((b,i)=>interactionMarker(b.x,b.z+4.7*b.s/2+1.1,'Masuk '+b.n.toLowerCase(),'Pintu bangunan dapat dimasuki.',()=>{changeHouseState(true,{name:b.n,x:b.x,z:b.z,scale:b.s,oldHouse:false});return 'Kamu memasuki '+b.n.toLowerCase()+'.';}));
+  const houseExit=interactionMarker(-7,-14.45,'Keluar rumah','Kembali ke halaman desa.',()=>{changeHouseState(false);return 'Kamu keluar dari bangunan.';});houseExit.group.visible=false;
   // Interior rumah pertama: ruang tamu kecil yang benar-benar dapat dimasuki.
   const interiorWood=new THREE.MeshStandardMaterial({color:0x493326,roughness:.92});
   const interiorCloth=new THREE.MeshStandardMaterial({color:0x45413b,roughness:1});
