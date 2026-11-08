@@ -3587,7 +3587,15 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
             const inside=pageId!=='home';if(logoEl)logoEl.classList.toggle('hidden',inside);if(backEl){backEl.classList.toggle('hidden',!inside);backEl.classList.toggle('order-first',inside);}
             if(pageId==='chat'){const chatTitle=document.querySelector('#chat-sidebar h2');if(chatTitle)chatTitle.textContent='MEETING CREW';}
-            if (pageId === 'chat') { window.showChatInbox(); loadChatMessages(); loadRitualMembers(); loadDirectConversations(); }
+            if (pageId === 'chat') {
+                window.showChatInbox?.();
+                const startChat = () => {
+                    window.loadChatMessages?.();
+                    window.loadRitualMembers?.();
+                };
+                if (window.ghoustoryChatReady) startChat();
+                else window.addEventListener('ghoustory-chat-ready', startChat, { once: true });
+            }
             if (pageId !== 'tim') markasTimUnlocked = false;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('page-active'));
             target.classList.add('page-active');
@@ -5625,6 +5633,13 @@ async function loadChatMessages(){
           await startRitualPresence();
           await loadDirectConversations();
         }
+        // Ekspos loader chat agar dapat dipanggil aman dari skrip navigasi utama.
+        // Event siap menangani kasus halaman Chat dibuka sebelum skrip ini selesai dimuat.
+        window.loadChatMessages = loadChatMessages;
+        window.loadRitualMembers = loadRitualMembers;
+        window.loadDirectConversations = loadDirectConversations;
+        window.ghoustoryChatReady = true;
+        window.dispatchEvent(new Event('ghoustory-chat-ready'));
         function openSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         window.showChatInbox = function(){document.getElementById("main-app")?.classList.remove("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
