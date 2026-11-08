@@ -113,7 +113,10 @@ button:active{transform:scale(.97);background:#273650}
  <button class="game-control jump" id="jump-btn" type="button">LOMPAT</button>
 </div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');function queueRoom(){window.__ghoustoryCreateRequested=true;if(s)s.textContent='Memuat engine 3D, menyiapkan ruang...';}b?.addEventListener('pointerdown',queueRoom,{passive:true});b?.addEventListener('touchstart',queueRoom,{passive:true});b?.addEventListener('click',queueRoom);})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';">
 <script>
 (()=>{
  'use strict';
@@ -133,6 +136,7 @@ button:active{transform:scale(.97);background:#273650}
   const now=Date.now();
   if(now-lastCreateLaunch<900)return;
   lastCreateLaunch=now;
+  window.__ghoustoryCreateRequested=false;
   if(earlyStatus)earlyStatus.textContent='Tombol terdeteksi. Menyiapkan ruang baru...';
   try{startAmbientAudio();}catch(_){}
   try{Promise.resolve(enterRoom(makeRoomCode())).catch(error=>{if(earlyStatus)earlyStatus.textContent='Gagal membuat ruang: '+(error.message||'kesalahan koneksi');});}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
