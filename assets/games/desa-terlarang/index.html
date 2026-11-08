@@ -125,10 +125,21 @@ button:active{transform:scale(.97);background:#273650}
    stone:new THREE.MeshStandardMaterial({color:0x55534b,roughness:1}),bark:new THREE.MeshStandardMaterial({color:0x30251d,roughness:1}),
    leaves:new THREE.MeshStandardMaterial({color:0x18251e,roughness:1})
   };
-  function box(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof material==='number'?new THREE.MeshStandardMaterial({color:material,roughness:.95}):material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+  // Cache geometri dan material kotak agar ratusan bagian rumah berbagi resource GPU.
+  const boxGeometryCache=new Map(),boxMaterialCache=new Map(),variantWallMaterial=new THREE.MeshStandardMaterial({color:0x49463f,roughness:1});
+  function box(w,h,d,material,x,y,z){
+   const geometryKey=[w,h,d].map(v=>Number(v).toFixed(3)).join('|');
+   let geometry=boxGeometryCache.get(geometryKey);
+   if(!geometry){geometry=new THREE.BoxGeometry(w,h,d);boxGeometryCache.set(geometryKey,geometry);}
+   if(typeof material==='number'){
+    if(!boxMaterialCache.has(material))boxMaterialCache.set(material,new THREE.MeshStandardMaterial({color:material,roughness:.95}));
+    material=boxMaterialCache.get(material);
+   }
+   const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.castShadow=!mobileQuality;m.receiveShadow=!mobileQuality;scene.add(m);return m;
+  }
   function hut(x,z,scale=1,variant=0,interactive=false){
    const w=5.2*scale,h=3.25*scale,d=4.7*scale;
-   const wallMat=variant?new THREE.MeshStandardMaterial({color:0x49463f,roughness:1}):M.wall;
+   const wallMat=variant?variantWallMaterial:M.wall;
    if(interactive){
     const thick=.2*scale,front=z+d/2,doorCenter=-.08*scale,opening=1.1*scale,doorHeight=2.05;
     box(w,h,thick,wallMat,x,h/2,z-d/2);
@@ -603,18 +614,21 @@ button:active{transform:scale(.97);background:#273650}
  joystick.addEventListener('pointerup',releaseJoy);joystick.addEventListener('pointercancel',releaseJoy);joystick.addEventListener('lostpointercapture',()=>{joyPointer=null;joyX=0;joyY=0;stick.style.transform='translate(0,0)';});
  const keys=Object.create(null);addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
  state.textContent='AVATAR SIAP';let last=0,lastCull=0;
- let lastMobileRender=0;
+ let lastMobileRender=0,lastAmbientUpdate=0;
  function frame(t){
   requestAnimationFrame(frame);
   if(mobileQuality&&t-lastMobileRender<33)return;
   if(mobileQuality)lastMobileRender=t;
   const dt=Math.min((t-last)/1000||0,.05);last=t;const time=t*.0001;
    if(t-lastCull>450){lastCull=t;for(const g of forestGroups){const dx=g.position.x-player.position.x,dz=g.position.z-player.position.z;g.visible=dx*dx+dz*dz<112*112;}}
-  mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
-  swayingTrees.forEach(t=>{if(!t.canopy.parent.visible)return;t.canopy.rotation.z=Math.sin(time*2.4+t.phase)*.025;t.canopy.rotation.x=Math.cos(time*1.8+t.phase)*.018;});
-  lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
-  missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
-  worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
+  if(!mobileQuality||t-lastAmbientUpdate>100){
+   lastAmbientUpdate=t;
+   mist.forEach((m,i)=>{m.position.x+=Math.sin(time*1.8+i)*.008;m.position.z+=Math.sin(time+i*.7)*.002;if(m.position.x>13)m.position.x=-13;if(m.position.x< -13)m.position.x=13;});
+   swayingTrees.forEach(treeState=>{if(!treeState.canopy.parent.visible)return;treeState.canopy.rotation.z=Math.sin(time*2.4+treeState.phase)*.025;treeState.canopy.rotation.x=Math.cos(time*1.8+treeState.phase)*.018;});
+   lampLights.forEach(l=>{l.light.intensity=8.5*(.96+Math.sin(time*5+l.phase)*.025);});
+   missionMarkers.forEach(m=>{if(!m.point.done){m.ring.rotation.z=time*1.1+m.phase;m.beam.material.opacity=.12+Math.sin(time*3+m.phase)*.045;m.light.intensity=.55+Math.sin(time*3+m.phase)*.2;}});
+   worldInteractions.forEach(o=>{if(!o.used){o.ring.rotation.z=time*.85+o.phase;o.pin.rotation.y=time*1.6;o.light.intensity=.3+Math.sin(time*2+o.phase)*.12;}});
+  }
   let ix=joyX,iz=joyY;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(keys.w||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;
   const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag;}const moving=mag>.12;
   if(moving){footstepClock+=dt*(sprinting?2.5:1.75);if(footstepClock>=1){footstepClock=0;playFootstep();}}else footstepClock=0;
