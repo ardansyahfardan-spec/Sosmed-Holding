@@ -731,7 +731,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const torchGrip=new THREE.Mesh(new THREE.CylinderGeometry(.068,.07,.19,10),torchDarkMat);torchGrip.rotation.x=Math.PI/2;torchGrip.position.set(0,.025,.06);flashlightProp.add(torchGrip);
  const torchSwitch=new THREE.Mesh(new THREE.BoxGeometry(.07,.035,.085),red);torchSwitch.position.set(.075,.075,-.02);flashlightProp.add(torchSwitch);
  const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
- const torchBeam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.62,18,12,1,true),new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.055,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.rotation.x=-Math.PI/2;torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
+ const torchBeamGeometry=new THREE.CylinderGeometry(.035,.62,18,12,1,true);torchBeamGeometry.rotateX(-Math.PI/2);const torchBeam=new THREE.Mesh(torchBeamGeometry,new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.035,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
  const torchLensGlow=new THREE.PointLight(0x9edbff,0,5.5);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
   // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
