@@ -720,7 +720,7 @@ button:active{transform:scale(.97);background:#273650}
    script.onerror=()=>reject(new Error('Gagal memuat layanan multiplayer.'));
    document.head.appendChild(script);
   });
-  await realtimeLoading;
+  try{await realtimeLoading;}catch(error){realtimeLoading=null;throw error;}
   realtimeClient=window.supabase.createClient('https://xnbqckfbrrmdjiemfwqf.supabase.co','sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL',{auth:{persistSession:false,autoRefreshToken:false}});
   return realtimeClient;
  }
