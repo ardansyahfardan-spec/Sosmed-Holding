@@ -179,8 +179,18 @@ button:active{transform:scale(.97);background:#273650}
   const starGeometry=new THREE.BufferGeometry();starGeometry.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
   const starField=new THREE.Points(starGeometry,new THREE.PointsMaterial({color:0xc6d7ef,size:.13,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));
   scene.add(starField);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,400),new THREE.MeshStandardMaterial({color:0x252b22,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-90);ground.receiveShadow=true;scene.add(ground);
-  const path=new THREE.Mesh(new THREE.PlaneGeometry(9,245),new THREE.MeshStandardMaterial({color:0x39352f,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-112);path.receiveShadow=true;scene.add(path);
+  // Tekstur tanah prosedural 256px: detail organik berulang dengan biaya unduhan nol dan memori rendah.
+  function makeGroundTexture(base,accent,seed=1){
+   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle=base;ctx.fillRect(0,0,256,256);
+   let n=seed>>>0;const rand=()=>{n=(n*1664525+1013904223)>>>0;return n/4294967296;};
+   for(let i=0;i<1900;i++){const x=rand()*256,y=rand()*256,r=.35+rand()*2.1;ctx.globalAlpha=.06+rand()*.15;ctx.fillStyle=rand()>.48?accent:'#b2a58a';ctx.beginPath();ctx.ellipse(x,y,r,r*(.35+rand()),rand()*Math.PI,0,Math.PI*2);ctx.fill();}
+   for(let i=0;i<95;i++){const x=rand()*256,y=rand()*256;ctx.globalAlpha=.12;ctx.strokeStyle=accent;ctx.lineWidth=.6+rand();ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+(rand()-.5)*12,y+2+rand()*7);ctx.stroke();}
+   ctx.globalAlpha=1;const texture=new THREE.CanvasTexture(canvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return texture;
+  }
+  const soilTexture=makeGroundTexture('#292b22','#596044',31);soilTexture.repeat.set(34,38);
+  const pathTexture=makeGroundTexture('#38332d','#74634c',77);pathTexture.repeat.set(1.3,38);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(360,400),new THREE.MeshStandardMaterial({color:0xaaa99a,map:soilTexture,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.1,-90);ground.receiveShadow=true;scene.add(ground);
+  const path=new THREE.Mesh(new THREE.PlaneGeometry(9,245),new THREE.MeshStandardMaterial({color:0xb5a997,map:pathTexture,roughness:1}));path.rotation.x=-Math.PI/2;path.position.set(0,.008,-112);path.receiveShadow=true;scene.add(path);
   const M={
    wall:new THREE.MeshStandardMaterial({color:0x51483d,roughness:.96}),wood:new THREE.MeshStandardMaterial({color:0x30251e,roughness:.9}),
    timber:new THREE.MeshStandardMaterial({color:0x6a4930,roughness:.9}),roof:new THREE.MeshStandardMaterial({color:0x29272a,roughness:.96}),
@@ -698,8 +708,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  }
  // Hip block and separated classic toy legs.
  const hips=partBox(player,.73,.34,.38,pants,0,1.08,0);
- const legL=new THREE.Group();legL.position.set(-.205,.99,0);player.add(legL);
- const legR=new THREE.Group();legR.position.set(.205,.99,0);player.add(legR);
+ const legL=new THREE.Group();legL.name='avatar-leg-left';legL.position.set(-.205,.99,0);player.add(legL);
+ const legR=new THREE.Group();legR.name='avatar-leg-right';legR.position.set(.205,.99,0);player.add(legR);
  for(const leg of [legL,legR]){
   partBox(leg,.36,.64,.39,pants,0,-.31,0);
   partBox(leg,.36,.13,.405,pantsLight,0,-.12,-.008);
@@ -751,8 +761,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  partBox(player,.16,.12,.025,metal,0,1.85,.464);
  partBox(player,.1,.2,.025,red,0,1.55,.422);
  // Arms use classic cylindrical upper arms and forearms, pivoting at shoulders.
- const armL=new THREE.Group();armL.position.set(-.54,1.88,0);player.add(armL);
- const armR=new THREE.Group();armR.position.set(.54,1.88,0);player.add(armR);
+ const armL=new THREE.Group();armL.name='avatar-arm-left';armL.position.set(-.54,1.88,0);player.add(armL);
+ const armR=new THREE.Group();armR.name='avatar-arm-right';armR.position.set(.54,1.88,0);player.add(armR);
  for(const [arm,side] of [[armL,-1],[armR,1]]){
   sphere(arm,jacketLight,0,-.07,0,.19,.19,.2);
   cylinder(arm,.145,.16,.43,jacket,0,-.34,0,20);
@@ -833,7 +843,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   let entry=remotePlayers.get(id);
   if(!entry){
    const avatar=player.clone(true);avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
-   entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0,moving:!!data.moving,phase:Math.random()*6.28};
+   entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0,moving:!!data.moving,phase:Math.random()*6.28,parts:{armL:avatar.getObjectByName('avatar-arm-left'),armR:avatar.getObjectByName('avatar-arm-right'),legL:avatar.getObjectByName('avatar-leg-left'),legR:avatar.getObjectByName('avatar-leg-right')}};
    remotePlayers.set(id,entry);
   }
   if(data){entry.target.set(Number(data.x)||0,0,Number(data.z)||0);entry.rotation=Number(data.rotation)||0;entry.moving=!!data.moving;}
@@ -856,7 +866,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    channel.on('broadcast',{event:'move'},({payload})=>{
     if(!payload?.player_id||payload.player_id===playerId)return;
     const entry=addRemotePlayer(payload.player_id,payload);
-    if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;entry.moving=!!payload.moving;}
+    if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;entry.moving=!!payload.moving;entry.avatar.visible=!payload.hidden;}
    });
    channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId){const isNew=!remotePlayers.has(payload.player_id);addRemotePlayer(payload.player_id,payload);if(isNew&&multiplayer)multiplayer.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});if(payload.started&&!roomStarted)startAdventure();broadcastMissionState();if(activeStoryGhost&&activeStoryGhost.owner===playerId){multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index:lastStoryGhostIndex,x:activeStoryGhost.model.position.x,z:activeStoryGhost.model.position.z}});const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}}});
    channel.on('broadcast',{event:'leave'},({payload})=>{const id=payload?.player_id;if(!id)return;const entry=remotePlayers.get(id);if(entry){scene.remove(entry.avatar);remotePlayers.delete(id);updateRoomCount();}});
@@ -949,7 +959,16 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  // Volume ambience 32% agar narasi dan efek interaksi tetap terdengar.
  const soundToggle=document.getElementById('sound-toggle'),soundState=document.getElementById('sound-state'),guideToggle=document.getElementById('guide-toggle');
  let audioContext=null,masterGain=null,ambienceTrack=null,ambienceStarted=false,audioEnabled=true,guideEnabled=true,lastGuideAt=0;
- function speakSheet(line){if(!guideEnabled||!audioEnabled||!('speechSynthesis'in window))return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(line);u.lang='id-ID';u.rate=.78;u.pitch=.62;u.volume=.9;const v=window.speechSynthesis.getVoices().find(x=>/^id(-|_)/i.test(x.lang));if(v)u.voice=v;window.speechSynthesis.speak(u);}catch(e){console.warn('Narator lembar tidak tersedia',e);}}
+ // Musik/ambience berjalan di elemen audio tersendiri; narator memakai antrean SpeechSynthesis dan tidak pernah menghentikan BGM.
+ function makeNarration(line,volume=.86){
+  const utterance=new SpeechSynthesisUtterance(String(line||''));utterance.lang='id-ID';utterance.rate=.78;utterance.pitch=.62;utterance.volume=volume;
+  const voices=window.speechSynthesis.getVoices();const indo=voices.find(v=>/^id(-|_)/i.test(v.lang));if(indo)utterance.voice=indo;
+  return utterance;
+ }
+ function speakSheet(line){
+  if(!guideEnabled||!audioEnabled||!('speechSynthesis'in window)||!line)return;
+  try{window.speechSynthesis.speak(makeNarration(line,.9));}catch(e){console.warn('Narator lembar tidak tersedia',e);}
+ }
  const clueSheet=document.getElementById('clue-sheet'),clueTitle=document.getElementById('clue-title'),clueBody=document.getElementById('clue-body'),clueListen=document.getElementById('clue-listen');let currentSheetText='';
  function openClueSheet(title,body,read=true){currentSheetText=title+'. '+body;clueTitle.textContent=title;clueBody.textContent=body;clueSheet.classList.add('open');if(read)speakSheet(currentSheetText);}
  const ritualSequence=document.createElement('div');ritualSequence.id='ritual-sequence';ritualSequence.style.cssText='display:none;gap:7px;margin-top:12px;position:relative';clueBody.after(ritualSequence);
@@ -957,14 +976,14 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function openRitualPuzzle(){ritualSequence.innerHTML='';ritualSequence.style.display='grid';ritualSequence.style.gridTemplateColumns='1fr';['LONCENG','KAIN','NAMA KELUARGA'].forEach((label,index)=>{const b=document.createElement('button');b.type='button';b.textContent=index<ritualStep?'✓ '+label:'LETAKKAN '+label;b.disabled=index<ritualStep;b.addEventListener('click',()=>{if(index!==ritualStep){ritualStep=0;hint.textContent='Urutannya salah. Semua susunan direset. Baca kembali catatan ritual.';speakGuide('Salah urutan. Susun kembali dari lonceng.');saveGameProgress();if(multiplayer)multiplayer.send({type:'broadcast',event:'ritual',payload:{player_id:playerId,step:ritualStep,reset:true,resetAt:(ritualResetAt=Date.now())}});openRitualPuzzle();return;}ritualStep++;b.disabled=true;b.textContent='✓ '+label;if(ritualStep===3){addInventoryItem('Ritual selesai');ritualComplete=true;hint.textContent='Ritual berhasil. Kabut mulai terbelah. Cari penanda jalan keluar di selatan desa.';state.textContent='JALAN KELUAR TERBUKA';if(typeof exitMarker!=='undefined')exitMarker.group.visible=true;updateMission();saveGameProgress();speakGuide('Ritual telah selesai. Cepat, jalan keluar tidak akan terbuka lama.');}else{saveGameProgress();}if(multiplayer)multiplayer.send({type:'broadcast',event:'ritual',payload:{player_id:playerId,step:ritualStep,resetAt:ritualResetAt}});});ritualSequence.appendChild(b);});clueTitle.textContent='RITUAL WANASETRA';clueBody.textContent='Catatan ruang guru menyebut urutan: lonceng, kain, lalu nama yang dicoret. Letakkan ketiganya dengan benar.';currentSheetText=clueTitle.textContent+'. '+clueBody.textContent;clueSheet.classList.add('open');speakSheet(currentSheetText);}
  document.getElementById('clue-close').addEventListener('click',()=>{clueSheet.classList.remove('open');ritualSequence.style.display='none';if('speechSynthesis'in window)window.speechSynthesis.cancel();});
  clueListen.addEventListener('click',()=>speakSheet(currentSheetText));
- function speakGuide(line){if(!guideEnabled||!audioEnabled||!('speechSynthesis' in window))return;const now=Date.now();if(now-lastGuideAt<6500)return;lastGuideAt=now;try{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(line);utterance.lang='id-ID';utterance.rate=.78;utterance.pitch=.62;utterance.volume=.82;const voices=window.speechSynthesis.getVoices();const indo=voices.find(v=>/^id(-|_)/i.test(v.lang));if(indo)utterance.voice=indo;window.speechSynthesis.speak(utterance);}catch(e){console.warn('Suara pemandu tidak tersedia',e);}}
+ function speakGuide(line){if(!guideEnabled||!audioEnabled||!('speechSynthesis' in window)||!line)return;const now=Date.now();if(now-lastGuideAt<1800||window.speechSynthesis.speaking||window.speechSynthesis.pending)return;lastGuideAt=now;try{window.speechSynthesis.speak(makeNarration(line,.82));}catch(e){console.warn('Suara pemandu tidak tersedia',e);}}
  guideToggle.addEventListener('click',()=>{guideEnabled=!guideEnabled;guideToggle.textContent='PANDUAN: '+(guideEnabled?'ON':'OFF');guideToggle.setAttribute('aria-pressed',String(guideEnabled));if(!guideEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else if(guideEnabled)speakGuide('Aku akan menuntunmu. Tapi jangan selalu ikuti suaraku.');});
  function startAmbientAudio(){
   if(!audioEnabled)return;
   try{
    if(!ambienceTrack){
     ambienceTrack=new Audio(new URL('./audio/horror-ambience.wav',document.baseURI).href);
-    ambienceTrack.loop=true;ambienceTrack.preload='none';ambienceTrack.volume=1;
+    ambienceTrack.loop=true;ambienceTrack.preload='none';ambienceTrack.volume=1;ambienceTrack.playsInline=true;ambienceTrack.setAttribute('playsinline','');ambienceTrack.setAttribute('webkit-playsinline','');
    }
    const playback=ambienceTrack.play();
    if(playback&&typeof playback.catch==='function')playback.catch(err=>console.warn('Ambience belum dapat diputar; akan dicoba lagi setelah interaksi berikutnya.',err));
@@ -1098,7 +1117,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   
   if(scareCooldown>0)scareCooldown-=dt;else if(!isHidden&&moving&&Math.random()<dt*.018){scareCooldown=12;hint.textContent='Ada suara langkah lain yang mengikuti langkahmu.';speakGuide('Berhenti. Dengarkan. Langkah itu bukan milikmu.');playDiscoverySound();if(multiplayer)multiplayer.send({type:'broadcast',event:'survival',payload:{player_id:playerId,scare:true}});}
   if(multiplayer&&t-lastBroadcast>250){lastBroadcast=t;multiplayer.send({type:'broadcast',event:'move',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,moving,hidden:isHidden}});}if(multiplayer&&activeStoryGhost&&activeStoryGhost.owner===playerId&&t-(activeStoryGhost.lastSync||0)>120){activeStoryGhost.lastSync=t;const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}if(t-lastProgressSave>5000){lastProgressSave=t;saveGameProgress();}
-  remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;entry.phase+=dt*(entry.moving?10:0);entry.avatar.position.y=entry.moving?Math.abs(Math.sin(entry.phase))*.055:0;});
+  remotePlayers.forEach(entry=>{entry.avatar.position.lerp(entry.target,1-Math.exp(-10*dt));entry.avatar.rotation.y=entry.rotation;entry.phase+=dt*(entry.moving?10:0);entry.avatar.position.y=entry.moving?Math.abs(Math.sin(entry.phase))*.055:0;const swing=entry.moving?Math.sin(entry.phase)*.58:0;if(entry.parts){if(entry.parts.armL)entry.parts.armL.rotation.x=swing;if(entry.parts.armR)entry.parts.armR.rotation.x=-swing;if(entry.parts.legL)entry.parts.legL.rotation.x=-swing;if(entry.parts.legR)entry.parts.legR.rotation.x=swing;}});
   const swing=moving?Math.sin(walkingTime)*.58:0;armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
   if(!onGround){armL.rotation.x=-.9;armR.rotation.x=-.9;}
   if(insideHouse){const forwardX=-Math.sin(cameraYaw),forwardZ=-Math.cos(cameraYaw);const eye=new THREE.Vector3(player.position.x,1.62+player.position.y,player.position.z);camera.position.lerp(eye,1-Math.exp(-14*dt));camera.lookAt(eye.x+forwardX,eye.y+Math.sin(cameraPitch),eye.z+forwardZ);}else{const behind=9,orbitYaw=cameraYaw,horizontal=Math.cos(cameraPitch)*behind;const desired=new THREE.Vector3(player.position.x+Math.sin(orbitYaw)*horizontal,1.25+Math.sin(cameraPitch)*behind,player.position.z+Math.cos(orbitYaw)*horizontal);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(player.position.x,1.25,player.position.z);}
