@@ -836,12 +836,12 @@ button:active{transform:scale(.97);background:#273650}
  joystick.addEventListener('pointerup',releaseJoy);joystick.addEventListener('pointercancel',releaseJoy);joystick.addEventListener('lostpointercapture',()=>{joyPointer=null;joyX=0;joyY=0;stick.style.transform='translate(0,0)';});
  const keys=Object.create(null);addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
  state.textContent='AVATAR SIAP';let last=0,lastCull=0;
- let lastMobileRender=0,lastAmbientUpdate=0;
+ let lastMobileRender=0,lastAmbientUpdate=0,lastHudUpdate=0;
  function frame(t){
-  updateSurvivalHud();
  requestAnimationFrame(frame);
   if(mobileQuality&&t-lastMobileRender<33)return;
   if(mobileQuality)lastMobileRender=t;
+  if(t-lastHudUpdate>200){lastHudUpdate=t;updateSurvivalHud();}
   const dt=Math.min((t-last)/1000||0,.05);last=t;const time=t*.0001;
    if(t-lastCull>450){lastCull=t;for(const g of forestGroups){const dx=g.position.x-player.position.x,dz=g.position.z-player.position.z;g.visible=dx*dx+dz*dz<112*112;}for(const item of mobileLodObjects){const dx=item.x-player.position.x,dz=item.z-player.position.z;item.object.visible=dx*dx+dz*dz<item.maxDistance*item.maxDistance;}}
   if(!mobileQuality||t-lastAmbientUpdate>100){
@@ -878,7 +878,7 @@ button:active{transform:scale(.97);background:#273650}
   if(!isHidden&&player.position.distanceTo(lastSafePosition)>3&&playerCondition>0)lastSafePosition.copy(player.position);
   
   if(scareCooldown>0)scareCooldown-=dt;else if(!isHidden&&moving&&Math.random()<dt*.018){scareCooldown=12;hint.textContent='Ada suara langkah lain yang mengikuti langkahmu.';speakGuide('Berhenti. Dengarkan. Langkah itu bukan milikmu.');playDiscoverySound();if(multiplayer)multiplayer.send({type:'broadcast',event:'survival',payload:{player_id:playerId,scare:true}});}
-  if(multiplayer&&t-lastBroadcast>140){
+  if(multiplayer&&t-lastBroadcast>250){
    lastBroadcast=t;
    multiplayer.send({type:'broadcast',event:'move',payload:{player_id:playerId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,moving,hidden:isHidden}});
   }
