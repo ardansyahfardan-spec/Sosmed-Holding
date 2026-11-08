@@ -5242,7 +5242,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             ctx.textAlign='left';ctx.fillStyle='#f8fafc';ctx.font='bold 46px Arial';ctx.fillText('INFORMASI',104,254);ctx.fillText('JADWAL SHOOTING',104,312);
             ctx.fillStyle='#fbbf24';ctx.font='bold 20px Arial';ctx.fillText('UNDANGAN / DETAIL KEGIATAN',104,365);
             const wrap=(value,maxWidth,font)=>{ctx.font=font;const words=String(value||'—').split(/\s+/);const lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;}if(line)lines.push(line);return lines;};
-            const field=(label,value,y,maxLines=3)=>{ctx.fillStyle='#94a3b8';ctx.font='bold 18px Arial';ctx.fillText(label.toUpperCase(),104,y);const lines=wrap(value||'Belum diisi',820,'bold 31px Arial').slice(0,maxLines);ctx.fillStyle='#f8fafc';ctx.font='bold 31px Arial';lines.forEach((line,n)=>ctx.fillText(line,104,y+48+n*42));return y+48+lines.length*42+28;};
+            const field=(label,value,y,maxLines=3)=>{ctx.fillStyle='#94a3b8';ctx.font='bold 16px Arial';ctx.fillText(label.toUpperCase(),104,y);const lines=wrap(value||'Belum diisi',820,'bold 27px Arial').slice(0,maxLines);ctx.fillStyle='#f8fafc';ctx.font='bold 27px Arial';lines.forEach((line,n)=>ctx.fillText(line,104,y+35+n*35));return y+35+lines.length*35+18;};
             let y=438;
             y=field('Premis Cerita',s.title,y,3);
             y=field('Nama Narasumber',s.narsum||'Belum ditentukan',y,2);
