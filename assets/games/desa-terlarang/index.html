@@ -186,6 +186,12 @@ button:active{transform:scale(.97);background:#273650}
   // Papan nama tua di tengah gapura.
   box(3.15,.82,.18,gateWood,0,3.82,-8.92);
   box(2.92,.08,.08,gateRot,0,4.25,-9.03);
+  // Papan nama Desa Wanasetra menghadap sisi kedatangan pemain.
+  const gateCanvas=document.createElement('canvas');gateCanvas.width=1024;gateCanvas.height=256;
+  const gateCtx=gateCanvas.getContext('2d');gateCtx.fillStyle='#211811';gateCtx.fillRect(0,0,1024,256);gateCtx.strokeStyle='#b99a68';gateCtx.lineWidth=12;gateCtx.strokeRect(14,14,996,228);
+  gateCtx.fillStyle='#e8d6ad';gateCtx.font='bold 112px Georgia';gateCtx.textAlign='center';gateCtx.textBaseline='middle';gateCtx.shadowColor='#d9b77b';gateCtx.shadowBlur=12;gateCtx.fillText('DESA WANASETRA',512,132);
+  const gateSignTexture=new THREE.CanvasTexture(gateCanvas);gateSignTexture.colorSpace=THREE.SRGBColorSpace;
+  const gateSign=new THREE.Mesh(new THREE.PlaneGeometry(2.82,.68),new THREE.MeshBasicMaterial({map:gateSignTexture}));gateSign.position.set(0,3.82,-8.79);villageGate.add(gateSign);
   // Dua daun gerbang reyot terbuka ke sisi jalan, menyisakan jalur tengah.
   for(const side of [-1,1]){
    const leaf=new THREE.Group();leaf.position.set(side*4.02,0,.18);leaf.rotation.y=side*-.92;villageGate.add(leaf);
@@ -713,7 +719,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const torchSwitch=new THREE.Mesh(new THREE.BoxGeometry(.07,.035,.085),red);torchSwitch.position.set(.075,.075,-.02);flashlightProp.add(torchSwitch);
  const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
  const torchBeam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.62,18,12,1,true),new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.055,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.rotation.x=-Math.PI/2;torchBeam.position.z=-9.35;torchBeam.visible=false;flashlightProp.add(torchBeam);
- const torchLensGlow=new THREE.PointLight(0x9edbff,0,2.8);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
+ const torchLensGlow=new THREE.PointLight(0x9edbff,0,5.5);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
   // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
  const roomStatus=document.getElementById('room-status');
@@ -850,7 +856,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(index===5){hint.textContent='Tanah makam bergetar. Bayangan besar bergerak di balik pepohonan.';speakGuide('Kau telah membangunkan penjaga Wanasetra. Jangan menoleh.');}
   return true;
  }
- restoreGameProgress();updateMission();
+ restoreGameProgress();player.position.set(0,0,2.2);player.rotation.y=0;lastSafePosition.copy(player.position);updateMission();
  const exitMarker=interactionMarker(0,-174,'Jalan keluar desa','Jalan di balik jembatan mulai terbuka setelah ritual selesai.',()=>{if(!ritualComplete)return 'Jalan masih tertutup kabut. Selesaikan ritual terlebih dahulu.';document.getElementById('ending-overlay').style.display='flex';document.getElementById('ending-title').textContent='KAMU BERHASIL KELUAR';document.getElementById('ending-copy').textContent='Ritual Wanasetra selesai. Kamu berhasil meninggalkan desa, tetapi suara lonceng masih terdengar dari balik kabut.';if(multiplayer)multiplayer.send({type:'broadcast',event:'game_ending',payload:{player_id:playerId,ending:'escape'}});return 'Kamu menemukan jalan keluar Desa Terlarang.';});exitMarker.group.visible=ritualComplete;document.getElementById('ending-close').addEventListener('click',()=>{document.getElementById('ending-overlay').style.display='none';});
  // Audio horor sintetis ringan: angin, drone rendah, denting disonan, dan narator perangkat.
  // Audio atmosfer sintetis; master gain 1.0 berarti volume 100%.
@@ -937,7 +943,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sprintBtn.addEventListener('click',()=>{if(!sprinting&&stamina<8){hint.textContent='Stamina belum cukup untuk berlari.';return;}sprinting=!sprinting;sprintBtn.classList.toggle('active',sprinting);sprintBtn.textContent=sprinting?'LARI: ON':'LARI';});
  crouchBtn.addEventListener('click',()=>{crouching=!crouching;crouchBtn.classList.toggle('active',crouching);crouchBtn.textContent=crouching?'BANGUN':'JONGKOK';player.scale.y=crouching?.72:1;});
  hideBtn.addEventListener('click',()=>{if(isHidden)setHidden(false);else hint.textContent='Dekati lemari atau kolong meja yang ditandai, lalu tekan INTERAKSI.';});
- flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}setFlashlightState(!flashlightOn);});
+ flashlightBtn.addEventListener('click',()=>{if(flashlightBattery<=0){hint.textContent='Baterai senter habis. Cari baterai cadangan.';return;}setFlashlightState(!flashlightOn);});\n setFlashlightState(true);
  function setJoystick(e){const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=r.width*.34,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max;}joyX=dx/max;joyY=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)';}
  joystick.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;joystick.setPointerCapture(joyPointer);setJoystick(e);});
  joystick.addEventListener('pointermove',e=>{if(e.pointerId===joyPointer){e.preventDefault();setJoystick(e);}});
