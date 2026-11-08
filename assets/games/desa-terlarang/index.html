@@ -919,8 +919,6 @@ button:active{transform:scale(.97);background:#273650}
  const keys=Object.create(null);addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
  state.textContent='AVATAR SIAP';let last=0,lastCull=0;
  let lastMobileRender=0,lastAmbientUpdate=0,lastHudUpdate=0;
- function frame(t){
-
  const missionInfoBtn=document.getElementById('mission-info-btn');
  const survivalInfoBtn=document.getElementById('survival-info-btn');
  const missionPanel=document.getElementById('mission');
@@ -935,6 +933,8 @@ button:active{transform:scale(.97);background:#273650}
  }
  missionInfoBtn.addEventListener('click',()=>toggleInfoPanel('mission'));
  survivalInfoBtn.addEventListener('click',()=>toggleInfoPanel('survival'));
+
+ function frame(t){
 
  requestAnimationFrame(frame);
   if(mobileQuality&&t-lastMobileRender<33)return;
