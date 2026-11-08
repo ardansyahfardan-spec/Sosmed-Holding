@@ -194,6 +194,34 @@ button:active{transform:scale(.97);background:#273650}
   for(let i=0;i<32;i++){const a=i*Math.PI*2/32,r=42+(i%4)*3;tree(Math.cos(a)*r,-125+Math.sin(a)*r,1+(i%3)*.2);}
   hut(-7,-17,1.35,0,true);hut(7,-31,1.28,1);hut(-8,-48,1.42,0);hut(9,-61,1.34,1);
 
+  // Deretan rumah tambahan mengisi sisi jalan dan membuat desa terasa berpenghuni dahulu.
+  hut(-16,-25,.98,1);hut(16,-43,1.08,0);hut(-18,-66,1.12,1);
+  hut(18,-78,1.02,0);hut(-15,-94,1.05,0);hut(16,-108,1.14,1);
+  hut(-20,-126,.96,1);hut(20,-143,1.08,0);hut(-14,-160,1.12,1);
+  hut(15,-178,1.02,0);
+
+  // Pegunungan berlapis di cakrawala: siluet rendah poligon agar ringan di perangkat mobile.
+  const mountainMaterials=[
+   new THREE.MeshStandardMaterial({color:0x202a2b,roughness:1}),
+   new THREE.MeshStandardMaterial({color:0x293332,roughness:1}),
+   new THREE.MeshStandardMaterial({color:0x343b36,roughness:1})
+  ];
+  function mountain(x,z,radius,height,variant=0){
+   const peak=new THREE.Mesh(new THREE.ConeGeometry(radius,height,7,2),mountainMaterials[variant%mountainMaterials.length]);
+   peak.position.set(x,height*.48,z);peak.rotation.y=variant*.37;peak.castShadow=false;peak.receiveShadow=true;scene.add(peak);
+   // Punggung bukit kedua memberi garis pegunungan yang tidak seragam.
+   if(radius>22){
+    const shoulder=new THREE.Mesh(new THREE.ConeGeometry(radius*.66,height*.72,7,2),mountainMaterials[(variant+1)%mountainMaterials.length]);
+    shoulder.position.set(x+(variant%2?radius*.48:-radius*.42),height*.34,z+radius*.24);
+    shoulder.rotation.y=variant*.61;scene.add(shoulder);
+   }
+  }
+  [
+   [-105,-28,31,49,0],[-119,-76,38,61,1],[-108,-132,34,54,2],[-121,-190,42,66,0],
+   [105,-18,34,52,1],[119,-65,39,63,2],[108,-119,32,50,0],[124,-177,43,68,1],
+   [-62,-226,48,73,2],[0,-246,55,82,0],[68,-225,46,70,1]
+  ].forEach(p=>mountain(...p));
+
   // Detail lingkungan desa terbengkalai: teras lapuk, pagar rusak, tong,
   // peti, sumur tua, gerobak dan puing agar dunia terasa lebih hidup.
   const weatheredWood=new THREE.MeshStandardMaterial({color:0x49372a,roughness:1});
