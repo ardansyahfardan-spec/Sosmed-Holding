@@ -5215,6 +5215,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
               '<div class="mt-2 rounded-lg bg-gray-950 p-2"><b class="text-[10px] text-gray-400">STATUS KEHADIRAN CREW</b>'+people+'</div>'+
               '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">'+
                 (!my?'<button onclick="openCrewAttendance(\''+s.id+'\')" class="rounded-lg bg-yellow-700 px-3 py-2.5 text-xs font-semibold">Konfirmasi Kehadiran</button>':'')+
+                '<button onclick="shareCrewScheduleJpg(\''+s.id+'\')" class="rounded-lg bg-red-900 border border-red-700 px-3 py-2.5 text-xs font-bold text-white"><i class="fa-solid fa-image mr-1"></i> Bagikan Jadwal JPG</button>'+
                 '<button onclick="proposeCrewChange(\''+s.id+'\')" class="rounded-lg bg-blue-900 px-3 py-2.5 text-xs">Usulkan Perubahan</button>'+
                 '<button onclick="crewVote(\''+s.id+'\')" class="rounded-lg border border-gray-700 px-3 py-2.5 text-xs">Voting / Hasil</button>'+
                 '<button onclick="editCrewSchedule(\''+s.id+'\')" class="rounded-lg border border-yellow-700 bg-yellow-950/40 px-3 py-2.5 text-xs font-bold text-yellow-300"><i class="fa-solid fa-pen-to-square mr-1"></i> Edit Jadwal</button>'+
@@ -5222,6 +5223,47 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 '<button onclick="finishCrewShooting(\''+s.id+'\')" '+(s.status==='completed'?'disabled':'')+' class="rounded-lg bg-green-900 px-3 py-2.5 text-xs disabled:opacity-50">Selesai Shooting</button>'+
               '</div></article>';
           }).join('');
+        }
+        async function shareCrewScheduleJpg(id){
+          const s=crewSchedules.find(x=>String(x.id)===String(id));
+          if(!s)return alert('Jadwal shooting tidak ditemukan.');
+          try{
+            const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+            canvas.width=1080;canvas.height=1350;
+            const W=canvas.width,H=canvas.height;
+            const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#080d1c');bg.addColorStop(.55,'#111827');bg.addColorStop(1,'#210d19');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+            ctx.fillStyle='rgba(220,38,38,.12)';ctx.beginPath();ctx.arc(1020,80,300,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='rgba(37,99,235,.12)';ctx.beginPath();ctx.arc(30,1270,340,0,Math.PI*2);ctx.fill();
+            const rounded=(x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();ctx.fill();};
+            rounded(64,62,952,1226,34,'rgba(3,7,18,.78)');
+            ctx.fillStyle='#f87171';ctx.font='bold 27px Arial';ctx.textAlign='left';ctx.fillText('GHOUSTORY',104,132);
+            ctx.fillStyle='#94a3b8';ctx.font='bold 18px Arial';ctx.textAlign='right';ctx.fillText('CREW PRODUCTION',976,132);
+            ctx.strokeStyle='rgba(248,113,113,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(104,166);ctx.lineTo(976,166);ctx.stroke();
+            ctx.textAlign='left';ctx.fillStyle='#f8fafc';ctx.font='bold 46px Arial';ctx.fillText('INFORMASI',104,254);ctx.fillText('JADWAL SHOOTING',104,312);
+            ctx.fillStyle='#fbbf24';ctx.font='bold 20px Arial';ctx.fillText('UNDANGAN / DETAIL KEGIATAN',104,365);
+            const wrap=(value,maxWidth,font)=>{ctx.font=font;const words=String(value||'—').split(/\s+/);const lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;}if(line)lines.push(line);return lines;};
+            const field=(label,value,y,maxLines=3)=>{ctx.fillStyle='#94a3b8';ctx.font='bold 18px Arial';ctx.fillText(label.toUpperCase(),104,y);const lines=wrap(value||'Belum diisi',820,'bold 31px Arial').slice(0,maxLines);ctx.fillStyle='#f8fafc';ctx.font='bold 31px Arial';lines.forEach((line,n)=>ctx.fillText(line,104,y+48+n*42));return y+48+lines.length*42+28;};
+            let y=438;
+            y=field('Premis Cerita',s.title,y,3);
+            y=field('Nama Narasumber',s.narsum||'Belum ditentukan',y,2);
+            y=field('Segmen',s.segment||'—',y,2);
+            y=field('Tanggal',s.event_date?new Date(s.event_date+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Belum ditentukan',y,2);
+            y=field('Waktu',s.event_time||'Belum ditentukan',y,1);
+            y=field('Lokasi',s.location||'Belum ditentukan',y,2);
+            rounded(104,1168,872,70,18,'rgba(127,29,29,.45)');
+            ctx.fillStyle='#fecaca';ctx.font='bold 19px Arial';ctx.textAlign='center';ctx.fillText('Sampai bertemu di lokasi shooting.',540,1212);
+            ctx.fillStyle='#64748b';ctx.font='16px Arial';ctx.fillText('Informasi kegiatan • GHOUSTORY',540,1258);
+            const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.94));
+            if(!blob)throw new Error('Gagal membuat gambar JPG.');
+            const safe=(s.title||'jadwal-shooting').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48)||'jadwal-shooting';
+            const file=new File([blob],'ghoustory-'+safe+'.jpg',{type:'image/jpeg'});
+            if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+              await navigator.share({files:[file],title:'Jadwal Shooting GHOUSTORY',text:'Informasi jadwal shooting GHOUSTORY.'});
+            }else{
+              const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+              alert('Gambar JPG berhasil dibuat dan diunduh. Silakan kirim ke narasumber melalui WhatsApp atau aplikasi pesan.');
+            }
+          }catch(error){if(error?.name==='AbortError')return;console.error('Gagal membagikan jadwal JPG:',error);alert('JPG belum berhasil dibuat: '+(error.message||'Terjadi kesalahan.'));}
         }
         function selectCrewCalendarDate(date){resetCrewScheduleForm();document.getElementById('j-tgl').value=date;document.getElementById('crew-schedule-form')?.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('j-nama')?.focus({preventScroll:true});}
         function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';document.getElementById('j-candidate-edit-id').value='';document.getElementById('j-candidate-promote-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal / Kandidat Narasumber';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');}
