@@ -128,7 +128,7 @@ button:active{transform:scale(.97);background:#273650}
    const w=5.2*scale,h=3.25*scale,d=4.7*scale;
    const wallMat=variant?new THREE.MeshStandardMaterial({color:0x49463f,roughness:1}):M.wall;
    if(interactive){
-    const thick=.2*scale,front=z+d/2,doorCenter=-.52*scale,opening=1.5*scale,doorHeight=2.08*scale;
+    const thick=.2*scale,front=z+d/2,doorCenter=-.08*scale,opening=1.1*scale,doorHeight=2.05;
     box(w,h,thick,wallMat,x,h/2,z-d/2);
     box(thick,h,d,wallMat,x-w/2+thick/2,h/2,z);
     box(thick,h,d,wallMat,x+w/2-thick/2,h/2,z);
