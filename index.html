@@ -2475,11 +2475,13 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                           <button type="button" onclick="openCrewScheduleForm()" class="rounded-lg border border-yellow-700 bg-yellow-900/40 px-3 py-3 text-xs font-bold text-yellow-300"><i class="fa-solid fa-calendar-plus mr-1"></i> Buat Jadwal Crew Hub</button>
                           <button type="button" onclick="openCrewScheduleForm()" class="rounded-lg border border-gray-600 bg-gray-800 px-3 py-3 text-xs font-bold text-gray-200"><i class="fa-solid fa-pen-to-square mr-1"></i> Edit Jadwal Crew Hub</button>
                         </div>
-                        <div id="crew-schedule-form" class="hidden bg-black p-4 rounded-xl border border-yellow-800/70 space-y-2 text-xs">
-                          <h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><input type="hidden" id="j-edit-id"><input type="hidden" id="j-candidate-edit-id"><input type="hidden" id="j-candidate-promote-id">
+                        <div id="crew-schedule-form" class="hidden fixed inset-0 z-[250] flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-5" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Form Jadwal Crew Hub" onclick="if(event.target===this)closeCrewScheduleForm()">
+                          <div class="w-full max-w-2xl max-h-[92dvh] overflow-y-auto bg-black p-4 rounded-xl border border-yellow-800/70 shadow-2xl space-y-2 text-xs">
+                          <div class="flex items-center justify-between gap-3 mb-2"><h4 id="crew-schedule-form-title" class="font-bold text-yellow-500 uppercase">Buat Jadwal Crew Hub</h4><button type="button" onclick="closeCrewScheduleForm()" class="w-9 h-9 shrink-0 rounded-lg border border-gray-700 bg-gray-900 text-gray-300 hover:text-white" aria-label="Tutup panel"><i class="fa-solid fa-xmark text-lg"></i></button></div><input type="hidden" id="j-edit-id"><input type="hidden" id="j-candidate-edit-id"><input type="hidden" id="j-candidate-promote-id">
                           <div class="crew-schedule-fields"><label class="block min-w-0 text-[10px] text-gray-300">Premis Cerita<input id="j-nama" placeholder="Premis cerita" aria-label="Premis Cerita" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-white"></label><label class="block min-w-0 text-[10px] text-gray-300">Narasumber<input id="j-narsum" placeholder="Nama narasumber" aria-label="Nama Narasumber" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-white"></label><label class="block min-w-0 text-[10px] text-gray-300">Segmen<select id="j-segmen" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-orange-400"></select></label><label class="block min-w-0 text-[10px] text-gray-300">Lokasi<input id="j-lokasi" placeholder="Lokasi" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-white"></label><label class="block min-w-0 text-[10px] text-gray-300">Tanggal<input id="j-tgl" type="date" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-white"></label><label class="block min-w-0 text-[10px] text-gray-300">Jam<input id="j-jam" type="time" required aria-label="Jam shooting" class="mt-1 w-full min-w-0 bg-darkCard border border-gray-700 p-2 rounded text-white"></label></div>
                           <p class="text-[10px] text-gray-400 rounded-lg bg-gray-900 border border-gray-800 p-2">Semua Crew yang sudah bergabung dapat melihat jadwal, mengonfirmasi kehadiran, dan ikut voting perubahan.</p>
                           <div class="grid grid-cols-2 gap-2"><button onclick="saveCrewSchedule()" class="w-full bg-yellow-700 py-2.5 rounded font-bold">Simpan ke Almanak</button><button onclick="saveCrewCandidate()" class="w-full bg-indigo-900 border border-indigo-700 py-2.5 rounded font-bold text-indigo-100">Simpan Kandidat</button></div><button id="crew-schedule-cancel" onclick="resetCrewScheduleForm()" class="hidden w-full bg-gray-800 py-2.5 rounded font-bold">Batal Edit</button>
+                          </div>
                         </div><div class="mt-4 rounded-xl border border-gray-800 bg-darkBg p-3">
                           <div class="flex justify-between items-center mb-3">
                             <button onclick="changeCrewMonth(-1)" class="text-gray-400 hover:text-white px-2" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
@@ -5301,8 +5303,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           }catch(error){if(error?.name==='AbortError')return;console.error('Gagal membagikan jadwal JPG:',error);alert('JPG belum berhasil dibuat: '+(error.message||'Terjadi kesalahan.'));}
         }
         function selectCrewCalendarDate(date){resetCrewScheduleForm();document.getElementById('j-tgl').value=date;document.getElementById('crew-schedule-form')?.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('j-nama')?.focus({preventScroll:true});}
-        function openCrewScheduleForm(){resetCrewScheduleForm();const form=document.getElementById('crew-schedule-form');form?.classList.remove('hidden');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';form?.scrollIntoView({behavior:'smooth',block:'start'});}
-        function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';document.getElementById('j-candidate-edit-id').value='';document.getElementById('j-candidate-promote-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');document.getElementById('crew-schedule-form')?.classList.add('hidden');}
+        function openCrewScheduleForm(){resetCrewScheduleForm();const form=document.getElementById('crew-schedule-form');form?.classList.remove('hidden');form?.setAttribute('aria-hidden','false');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';}
+        function closeCrewScheduleForm(){resetCrewScheduleForm();}
+        function resetCrewScheduleForm(){document.getElementById('j-edit-id').value='';document.getElementById('j-candidate-edit-id').value='';document.getElementById('j-candidate-promote-id').value='';['j-nama','j-narsum','j-lokasi','j-tgl','j-jam'].forEach(k=>document.getElementById(k).value='');const title=document.getElementById('crew-schedule-form-title');if(title)title.textContent='Buat Jadwal Crew Hub';document.getElementById('crew-schedule-cancel')?.classList.add('hidden');const form=document.getElementById('crew-schedule-form');form?.classList.add('hidden');form?.setAttribute('aria-hidden','true');}
         async function saveCrewCandidate(){
           if(!activeUser||!sharedSyncReady)return alert('Database belum siap. Tunggu sinkronisasi selesai.');
           const editId=document.getElementById('j-candidate-edit-id').value,id=editId||String(Date.now()),topic=document.getElementById('j-nama').value.trim(),speakerName=document.getElementById('j-narsum').value.trim();
@@ -5315,13 +5318,13 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
         function editCrewCandidate(id){
           const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
-          document.getElementById('crew-schedule-form')?.classList.remove('hidden');
+          document.getElementById('crew-schedule-form')?.classList.remove('hidden');document.getElementById('crew-schedule-form')?.setAttribute('aria-hidden','false');
           resetCrewScheduleForm();document.getElementById('j-candidate-edit-id').value=c.id;document.getElementById('j-candidate-promote-id').value=c.id;
           document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
           document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
           const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Edit Kandidat Narasumber';
           document.getElementById('crew-schedule-cancel')?.classList.remove('hidden');
-          document.getElementById('crew-schedule-form').scrollIntoView({behavior:'smooth',block:'start'});
+          
         }
         function scheduleCrewCandidate(id){
           const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
