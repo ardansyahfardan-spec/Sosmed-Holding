@@ -1120,6 +1120,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  mesh(gearNecklace,new THREE.TorusGeometry(.17,.018,6,24,Math.PI),gearMetal,0,1.83,-.23,Math.PI,0,0);
  const gearWatch=new THREE.Group();brickGear.add(gearWatch);
  partBox(gearWatch,.18,.09,.09,gearMetal,-.57,1.15,-.02);
+ gearBag.visible=false;gearSling.visible=false;gearGlasses.visible=false;gearHat.visible=false;gearNecklace.visible=false;gearWatch.visible=false;
  const gearFringe=new THREE.Group();head.add(gearFringe);
  sphere(gearFringe,hair,0,.24,-.29,.22,.09,.07);
  const gearBun=new THREE.Group();head.add(gearBun);
@@ -1134,8 +1135,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   gearHat.visible=gearHat.visible&&!wearHijab;
   gearMat.color.set(c['top-color']||'#263e5c');
   gearMetal.color.set(c['accessory-color']||'#d7c49a');
-  const hijabMesh=hijab.children.filter(o=>o.isMesh);
-  hijabMesh.forEach(o=>{o.scale.y=c['hijab-style']==='syari'?1.14:c['hijab-style']==='instant'?.94:1;});
+  hijab.scale.y=c['hijab-style']==='syari'?1.14:c['hijab-style']==='instant'?.94:1.04;
  }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
