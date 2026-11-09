@@ -980,7 +980,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      clearTimeout(connectTimer);
      multiplayer=channel;
      try{
-      const helloStatus=await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});
+      const helloStatus=await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,character:selectedCharacterId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});
       if(helloStatus!=='ok')console.warn('[Desa Terlarang] Broadcast awal belum terkirim:',helloStatus);
      }catch(sendError){console.warn('[Desa Terlarang] Broadcast awal gagal:',sendError);}
      if(attempt!==roomAttempt||activeRoom!==code)return;
