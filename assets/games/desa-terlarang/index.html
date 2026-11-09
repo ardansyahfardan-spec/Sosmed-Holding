@@ -114,6 +114,7 @@ button:active{transform:scale(.97);background:#273650}
 #character-preview-canvas:active{cursor:grabbing}
 .preview-caption{padding:10px 13px 13px;color:#aab8ca;font-size:10px;line-height:1.5;text-align:center;border-top:1px solid #71829b33}
 #custom-character-panel{margin:0;max-height:min(64vh,680px);overflow:auto;scrollbar-color:#65738a #111827}
+.custom-grid select{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .custom-grid label{padding:9px;border:1px solid #71829b33;border-radius:12px;background:#0d1522}
 .cc-visual-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:2px}
@@ -1087,13 +1088,41 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const characterSelectScreen=document.getElementById('character-select-screen');
  const characterSelectName=document.getElementById('character-select-name');
  const characterSelectConfirm=document.getElementById('character-select-confirm');
+
+ const characterPreviewCanvas=document.getElementById('character-preview-canvas');
+ let characterPreviewRenderer=null,characterPreviewScene=null,characterPreviewCamera=null,characterPreviewAvatar=null,previewPointer=null,previewLastX=0;
+ if(characterPreviewCanvas&&window.THREE){
+  try{
+   characterPreviewScene=new THREE.Scene();characterPreviewScene.background=new THREE.Color(0x111a2a);
+   characterPreviewCamera=new THREE.PerspectiveCamera(34,1,.1,40);characterPreviewCamera.position.set(3.25,2.15,6.2);characterPreviewCamera.lookAt(0,1.38,0);
+   characterPreviewRenderer=new THREE.WebGLRenderer({canvas:characterPreviewCanvas,alpha:false,antialias:!mobileQuality,powerPreference:'low-power'});
+   characterPreviewRenderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));characterPreviewRenderer.setSize(Math.max(1,characterPreviewCanvas.clientWidth),Math.max(1,characterPreviewCanvas.clientHeight),false);
+   characterPreviewRenderer.outputColorSpace=THREE.SRGBColorSpace;characterPreviewRenderer.toneMapping=THREE.ACESFilmicToneMapping;characterPreviewRenderer.toneMappingExposure=1.15;
+   characterPreviewScene.add(new THREE.HemisphereLight(0xc5d7f1,0x21151b,2));
+   const previewKey=new THREE.DirectionalLight(0xffdfc5,2.5);previewKey.position.set(-3,6,4);characterPreviewScene.add(previewKey);
+   const previewRim=new THREE.DirectionalLight(0x789bd8,1.8);previewRim.position.set(3,3,-4);characterPreviewScene.add(previewRim);
+   const previewFloor=new THREE.Mesh(new THREE.CylinderGeometry(.88,.98,.12,48),new THREE.MeshStandardMaterial({color:0x26374c,metalness:.3,roughness:.5}));previewFloor.position.y=-.12;characterPreviewScene.add(previewFloor);
+   characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);
+   characterPreviewCanvas.addEventListener('pointerdown',e=>{previewPointer=e.pointerId;previewLastX=e.clientX;characterPreviewCanvas.setPointerCapture(e.pointerId);});
+   characterPreviewCanvas.addEventListener('pointermove',e=>{if(previewPointer!==e.pointerId)return;const dx=e.clientX-previewLastX;previewLastX=e.clientX;characterPreviewAvatar.rotation.y+=dx*.012;});
+   const stopPreviewDrag=e=>{if(previewPointer===e.pointerId)previewPointer=null;};
+   characterPreviewCanvas.addEventListener('pointerup',stopPreviewDrag);characterPreviewCanvas.addEventListener('pointercancel',stopPreviewDrag);
+  }catch(previewError){const note=document.querySelector('.preview-caption');if(note)note.textContent='Pratinjau 3D tidak tersedia pada perangkat ini. Pilihan karakter tetap dapat disimpan.';}
+ }
+ function resizeCharacterPreview(){if(!characterPreviewRenderer||!characterPreviewCanvas)return;const w=Math.max(1,characterPreviewCanvas.clientWidth),h=Math.max(1,characterPreviewCanvas.clientHeight);characterPreviewRenderer.setSize(w,h,false);characterPreviewCamera.aspect=w/h;characterPreviewCamera.updateProjectionMatrix();}
+ window.addEventListener('resize',resizeCharacterPreview,{passive:true});
+
  const ccIds=['gender','hair','hair-style','hijab','hijab-style','hair-color','skin','top','bottom','outfit','top-color','bottom-color','shoes','shoes-color','hijab-color','bag','accessory','accessory-color'];
  const ccEl=id=>document.getElementById('cc-'+id);
  function readCustomCharacter(){const value={};ccIds.forEach(id=>{const el=ccEl(id);if(el)value[id]=el.value;});return value;}
  function loadCustomCharacter(value){if(!value)return;ccIds.forEach(id=>{const el=ccEl(id);if(el&&value[id]!=null)el.value=value[id];});}
  function selectedBaseLook(c){if(c.gender==='female')return c.hijab==='yes'?'female-hijab':'female-long';return c.hair==='long'||c.hair==='medium'?'male-long':'male-short';}
- function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);updateHumanCharacter(c);if(characterPreviewAvatar){characterPreviewScene.remove(characterPreviewAvatar);characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);}}
+ function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);updateHumanCharacter(c);if(characterPreviewAvatar&&characterPreviewScene){characterPreviewScene.remove(characterPreviewAvatar);characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);}}
+
+ const visualKind=id=>id.includes('hair')?'hair':id.includes('hijab')?'hijab':id==='bottom'?'bottom':id==='shoes'?'shoes':id==='bag'?'bag':id==='accessory'?'accessory':id==='top'?'top':id==='outfit'?'outfit':'top';
+ ccIds.forEach(id=>{const select=ccEl(id);if(!select||select.tagName!=='SELECT')return;const wrap=document.createElement('div');wrap.className='cc-visual-options';wrap.setAttribute('aria-label','Pilihan visual '+id);Array.from(select.options).forEach(option=>{const tile=document.createElement('button');tile.type='button';tile.className='cc-visual-option';tile.dataset.value=option.value;tile.setAttribute('aria-pressed',String(select.value===option.value));const art=document.createElement('span');art.className='cc-option-art';art.dataset.kind=visualKind(id);const title=document.createElement('span');title.textContent=option.textContent;tile.append(art,title);tile.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));});wrap.append(tile);});select.insertAdjacentElement('afterend',wrap);select.addEventListener('change',()=>wrap.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.value===select.value))));});
  ccIds.forEach(id=>{const el=ccEl(id);if(el)el.addEventListener('change',previewCustomCharacter);});
+
  try{const savedCustom=JSON.parse(localStorage.getItem('ghoustory-desa-custom-character')||'null');if(savedCustom)loadCustomCharacter(savedCustom);}catch(_){}
  function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';previewCustomCharacter();}startGameBtn.style.display='none';}
  characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);updateHumanCharacter(customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
@@ -1582,6 +1611,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(flashlightOn){camera.updateMatrixWorld();const aim=new THREE.Vector3();camera.getWorldDirection(aim).normalize();torchLens.getWorldPosition(flashlight.position);flashlightTarget.position.copy(flashlight.position).addScaledVector(aim,36);flashlightTarget.position.y=Math.max(.2,flashlightTarget.position.y);const propWorldQ=new THREE.Quaternion();flashlightProp.getWorldQuaternion(propWorldQ);const localAim=aim.clone().applyQuaternion(propWorldQ.invert());torchBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,-1),localAim);}
   if(scareShake>0){scareShake=Math.max(0,scareShake-dt);camera.position.x+=(Math.random()-.5)*scareShake*.12;camera.position.y+=(Math.random()-.5)*scareShake*.08;}
   renderer.render(scene,camera);
+  if(characterPreviewRenderer&&characterSelectScreen&&characterSelectScreen.style.display==='flex'){if(characterPreviewAvatar&&!previewPointer)characterPreviewAvatar.rotation.y+=dt*.34;characterPreviewRenderer.render(characterPreviewScene,characterPreviewCamera);}
  }
  requestAnimationFrame(frame);
  // Selesaikan satu permintaan klik yang masuk sebelum engine 3D selesai diinisialisasi.
