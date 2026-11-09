@@ -810,7 +810,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const yellow=plastic(0xf2bd35),yellowShadow=plastic(0xd99520);
  const jacket=plastic(0x263e5c),jacketLight=plastic(0x45617d),jacketDark=plastic(0x17283d);
  const red=plastic(0xa52d3a),pants=plastic(0x202d40),pantsLight=plastic(0x35465b);
- const boot=plastic(0x141b25),sole=plastic(0x070b12),hair=plastic(0x17191f),hairLight=plastic(0x34343b);
+ const boot=plastic(0x141b25),sole=plastic(0x070b12),hair=plastic(0x17191f),hairLight=plastic(0x34343b);boot.name='avatar-shoes';
  const metal=mat(0xb8c5d4,.3,.48),print=mat(0xe8edf3,.45),ink=mat(0x20212a,.5);
  yellow.name='avatar-skin';hair.name='avatar-hair';jacket.name='avatar-jacket';jacketLight.name='avatar-jacket-light';jacketDark.name='avatar-jacket-dark';pants.name='avatar-pants';pantsLight.name='avatar-pants-light';red.name='avatar-accent';
  const characterLooks={
@@ -827,10 +827,13 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   look.skin=skinOptions[c.skin]??look.skin;
   look.hair=colorHex(c['hair-color'])??look.hair;
   look.jacket=colorHex(c['top-color'])??look.jacket;
-  look.jacketLight=look.jacketLight;look.jacketDark=look.jacketDark;
+  const tint=(hex,amount)=>new THREE.Color(hex).lerp(new THREE.Color(amount>0?'#ffffff':'#000000'),Math.abs(amount)).getHex();
+  look.jacketLight=tint(look.jacket,.22);look.jacketDark=tint(look.jacket,-.28);
   look.pants=colorHex(c['bottom-color'])??look.pants;
+  look.pantsLight=tint(look.pants,.22);
+  look.shoes=colorHex(c['shoes-color'])??0x141b25;
   look.hijab=colorHex(c['hijab-color'])??look.hijab;
-  const keys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent','avatar-hijab':'hijab'};
+  const keys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent','avatar-hijab':'hijab','avatar-shoes':'shoes'};
   target.traverse(object=>{
    if(object.userData.characterStyle){object.visible=object.userData.characterStyle===id||(object.userData.characterStyle==='female-makeup'&&(id==='female-hijab'||id==='female-long'));if(object.userData.characterStyle!=='female-hijab'&&object.userData.characterStyle!=='female-makeup')return;}
    if(!object.isMesh||!object.material)return;
@@ -1095,6 +1098,45 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  humanAvatar.visible=false;
  for(const child of [...player.children])if(child!==humanAvatar)child.visible=true;
  flashlightProp.position.set(.575,1.06,-.25);
+
+ // Aksesori blocky tambahan dibuat dengan bahasa bentuk LEGO yang sama.
+ const brickGear=new THREE.Group();brickGear.name='lego-custom-gear';player.add(brickGear);
+ const gearMat=new THREE.MeshStandardMaterial({color:0x263e5c,roughness:.55});gearMat.name='avatar-bag';
+ const gearMetal=new THREE.MeshStandardMaterial({color:0xd7c49a,metalness:.35,roughness:.42});gearMetal.name='avatar-accessory';
+ const gearDark=new THREE.MeshStandardMaterial({color:0x17202d,roughness:.62});
+ const gearBag=new THREE.Group();brickGear.add(gearBag);
+ partBox(gearBag,.43,.48,.2,gearMat,0,1.55,.29);
+ partBox(gearBag,.29,.18,.025,gearDark,0,1.43,.405);
+ partBox(gearBag,.06,.38,.055,gearDark,-.18,1.55,.18);partBox(gearBag,.06,.38,.055,gearDark,.18,1.55,.18);
+ const gearSling=new THREE.Group();brickGear.add(gearSling);
+ partBox(gearSling,.27,.3,.13,gearMat,.31,1.42,-.03);
+ partBox(gearSling,.055,.68,.045,gearDark,-.12,1.58,-.02,0,0,-.35);
+ const gearGlasses=new THREE.Group();brickGear.add(gearGlasses);
+ for(const side of [-1,1]){mesh(gearGlasses,new THREE.BoxGeometry(.19,.12,.035),gearMetal,side*.13,2.54,-.355);mesh(gearGlasses,new THREE.BoxGeometry(.055,.035,.04),gearMetal,side*.13,2.54,-.38);}
+ partBox(gearGlasses,.11,.035,.035,gearMetal,0,2.54,-.36);
+ const gearHat=new THREE.Group();brickGear.add(gearHat);
+ cylinder(gearHat,.31,.31,.12,gearMetal,0,2.91,0,24);cylinder(gearHat,.23,.25,.2,gearDark,0,3.05,0,24);
+ const gearNecklace=new THREE.Group();brickGear.add(gearNecklace);
+ mesh(gearNecklace,new THREE.TorusGeometry(.17,.018,6,24,Math.PI),gearMetal,0,1.83,-.23,Math.PI,0,0);
+ const gearWatch=new THREE.Group();brickGear.add(gearWatch);
+ partBox(gearWatch,.18,.09,.09,gearMetal,-.57,1.15,-.02);
+ const gearFringe=new THREE.Group();head.add(gearFringe);
+ sphere(gearFringe,hair,0,.24,-.29,.22,.09,.07);
+ const gearBun=new THREE.Group();head.add(gearBun);
+ sphere(gearBun,hair,0,-.03,.31,.13,.13,.13);
+ function updateBrickCharacter(c={}){
+  const female=c.gender==='female',wearHijab=female&&c.hijab==='yes';
+  gearBag.visible=c.bag==='Ransel';gearSling.visible=c.bag==='Tas selempang'||c.bag==='Tas kecil';
+  gearGlasses.visible=c.accessory==='Kacamata';gearHat.visible=c.accessory==='Topi';
+  gearNecklace.visible=c.accessory==='Kalung';gearWatch.visible=c.accessory==='Jam tangan'||c.accessory==='Gelang';
+  gearFringe.visible=!wearHijab&&(c['hair-style']==='fringe'||c['hair-style']==='layer');
+  gearBun.visible=!wearHijab&&c['hair-style']==='tied';
+  gearHat.visible=gearHat.visible&&!wearHijab;
+  gearMat.color.set(c['top-color']||'#263e5c');
+  gearMetal.color.set(c['accessory-color']||'#d7c49a');
+  const hijabMesh=hijab.children.filter(o=>o.isMesh);
+  hijabMesh.forEach(o=>{o.scale.y=c['hijab-style']==='syari'?1.14:c['hijab-style']==='instant'?.94:1;});
+ }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
  const roomStatus=document.getElementById('room-status');
@@ -1139,7 +1181,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function readCustomCharacter(){const value={};ccIds.forEach(id=>{const el=ccEl(id);if(el)value[id]=el.value;});return value;}
  function loadCustomCharacter(value){if(!value)return;ccIds.forEach(id=>{const el=ccEl(id);if(el&&value[id]!=null)el.value=value[id];});}
  function selectedBaseLook(c){if(c.gender==='female')return c.hijab==='yes'?'female-hijab':'female-long';return c.hair==='long'||c.hair==='medium'?'male-long':'male-short';}
- function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);updateHumanCharacter(c);if(characterPreviewAvatar&&characterPreviewScene){characterPreviewScene.remove(characterPreviewAvatar);characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);}}
+ function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);updateHumanCharacter(c);updateBrickCharacter(c);if(characterPreviewAvatar&&characterPreviewScene){characterPreviewScene.remove(characterPreviewAvatar);characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);}}
 
  const visualKind=id=>id.includes('hair')?'hair':id.includes('hijab')?'hijab':id==='bottom'?'bottom':id==='shoes'?'shoes':id==='bag'?'bag':id==='accessory'?'accessory':id==='top'?'top':id==='outfit'?'outfit':'top';
  ccIds.forEach(id=>{const select=ccEl(id);if(!select||select.tagName!=='SELECT')return;const wrap=document.createElement('div');wrap.className='cc-visual-options';wrap.setAttribute('aria-label','Pilihan visual '+id);Array.from(select.options).forEach(option=>{const tile=document.createElement('button');tile.type='button';tile.className='cc-visual-option';tile.dataset.value=option.value;tile.setAttribute('aria-pressed',String(select.value===option.value));const art=document.createElement('span');art.className='cc-option-art';art.dataset.kind=visualKind(id);const title=document.createElement('span');title.textContent=option.textContent;tile.append(art,title);tile.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));});wrap.append(tile);});select.insertAdjacentElement('afterend',wrap);select.addEventListener('change',()=>wrap.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.value===select.value))));});
@@ -1147,7 +1189,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
 
  try{const savedCustom=JSON.parse(localStorage.getItem('ghoustory-desa-custom-character')||'null');if(savedCustom)loadCustomCharacter(savedCustom);}catch(_){}
  function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';previewCustomCharacter();resizeCharacterPreview();}startGameBtn.style.display='none';}
- characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);updateHumanCharacter(customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
+ characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);updateHumanCharacter(customCharacter);updateBrickCharacter(customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
  const savedRoomsList=document.getElementById('saved-rooms-list');
  const savedRoomPrefix='ghoustory-room-save-';
  const savedRoomMetaKey='ghoustory-saved-room-meta-v1';
