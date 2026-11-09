@@ -62,10 +62,15 @@ button:active{transform:scale(.97);background:#273650}
 #clue-sheet{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:18px;background:#03060bd9;backdrop-filter:blur(5px);pointer-events:auto}#clue-sheet.open{display:flex}#clue-paper{width:min(430px,100%);max-height:min(76vh,620px);overflow:auto;padding:23px 21px 18px;border:1px solid #b99a70aa;border-radius:5px;background:linear-gradient(145deg,#e8dec8,#cfc1a5);color:#28231e;box-shadow:0 22px 70px #000b;position:relative}#clue-paper:before{content:"";position:absolute;inset:8px;border:1px solid #7e6b5144;pointer-events:none}#clue-kicker{font-size:9px;letter-spacing:.22em;font-weight:900;color:#775b45}#clue-title{font-family:Georgia,serif;font-size:23px;line-height:1.2;margin:13px 0 12px;color:#29231d}#clue-body{font-family:Georgia,serif;font-size:15px;line-height:1.65;white-space:pre-line;color:#393128}#clue-actions{display:flex;gap:8px;margin-top:20px;position:relative}#clue-actions button{flex:1;border-radius:5px;background:#26364b;color:#fff;border:1px solid #52647a;padding:12px 9px;font-size:11px}#clue-actions button:last-child{background:#65323a;border-color:#89545a}@media(max-width:700px){#clue-paper{padding:20px 17px 15px}#clue-title{font-size:21px}#clue-body{font-size:14px}}
 
 /* Compact info dock: panels open only when requested. */
-#info-dock{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(112px,calc(env(safe-area-inset-top) + 102px));z-index:6;display:flex;flex-direction:column;gap:9px;pointer-events:auto}
-.info-icon{width:44px;height:44px;padding:0;border-radius:14px;background:#08101de8;border:1px solid #b8c9df77;color:#f5e8d8;font-size:20px;display:grid;place-items:center;box-shadow:0 5px 18px #0008;backdrop-filter:blur(8px)}
+#info-dock{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(112px,calc(env(safe-area-inset-top) + 102px));z-index:26;display:flex;flex-direction:column;gap:9px;pointer-events:auto}
+.info-icon{min-width:72px;height:44px;padding:0 10px;border-radius:14px;background:#08101df2;border:1px solid #b8c9df99;color:#f5e8d8;font-size:13px;font-weight:900;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 5px 18px #0008;backdrop-filter:blur(8px);touch-action:manipulation}
 .info-icon[aria-expanded="true"]{background:linear-gradient(145deg,#8c2634ee,#263f69ee);border-color:#e0b6beaa}
-#mission,#survival-hud{display:none;left:auto;right:max(12px,env(safe-area-inset-right));top:164px;width:min(270px,calc(100vw - 78px));max-height:42vh;overflow:auto;pointer-events:auto;z-index:5;box-shadow:0 10px 28px #0009}
+#mission,#survival-hud{display:none;left:auto;right:max(12px,env(safe-area-inset-right));top:164px;width:min(340px,calc(100vw - 92px));max-height:52vh;overflow:auto;pointer-events:auto;z-index:25;box-shadow:0 10px 28px #0009;font-size:12px;line-height:1.65;padding:14px 15px}
+#mission strong{font-size:12px;letter-spacing:.06em;color:#f3d8b2}
+#mission-progress{display:inline-block;margin-top:3px;font-size:11px;color:#a9c8e8;font-weight:900}
+#mission-objective{font-size:15px;line-height:1.35;margin-top:9px;color:#ffe1a8;font-weight:900}
+#mission-detail{font-size:12px;line-height:1.55;margin-top:6px;color:#d3deed}
+#mission-items{font-size:11px;line-height:1.5;margin-top:9px;color:#b8d8e9}
 #mission.open,#survival-hud.open{display:block}#mission.inside-house{display:none}
 #survival-hud{top:164px}
 @media(orientation:landscape) and (max-height:420px){#info-dock{top:84px;gap:6px}.info-icon{width:38px;height:38px}#room-presence{top:96px}#mission,#survival-hud{top:142px;max-height:55vh}}
@@ -223,7 +228,7 @@ button:active{transform:scale(.97);background:#273650}
  </div>
 </div>
 <div id="mission"><strong id="mission-chapter">BAB 1 · JEJAK DESA</strong><br><span id="mission-progress">0 / 6 TUJUAN</span><div id="mission-objective">Periksa gerbang desa</div><div id="mission-detail">Dekati penanda biru di jalan masuk.</div><div id="mission-items">Barang penting: kunci · dokumen · benda ritual</div></div><div id="ending-overlay" style="display:none;position:fixed;inset:0;z-index:12;background:#03060bf2;align-items:center;justify-content:center;text-align:center;padding:28px"><div style="max-width:440px"><div style="font-size:10px;letter-spacing:.3em;color:#c7a6a0">GHOUSTORY · DESA TERLARANG</div><h1 id="ending-title" style="font-size:clamp(26px,6vw,42px);color:#f1dfc9">KAMU BERHASIL KELUAR</h1><p id="ending-copy" style="font-size:13px;line-height:1.7;color:#c8d0dd">Kabut mulai menghilang, tetapi suara dari desa masih mengikutimu.</p><button id="ending-close" type="button">KEMBALI KE DESA</button></div></div><div id="survival-hud"><div>STAMINA <span id="stamina-value">100%</span></div><div id="stamina-track"><div id="stamina-fill"></div></div><div id="inventory-text">TAS: kosong</div><div id="survival-extra">KONDISI <span id="condition-value">100%</span><div id="condition-track"><div id="condition-fill"></div></div>SENTER <span id="battery-value">100%</span><div id="battery-track"><div id="battery-fill"></div></div></div></div><div id="info-dock" aria-label="Panel informasi">
- <button class="info-icon" id="mission-info-btn" type="button" aria-label="Info misi" aria-expanded="false" title="Misi">🧭</button>
+ <button class="info-icon" id="mission-info-btn" type="button" aria-label="Buka daftar misi" aria-expanded="false" title="Buka misi">🧭 MISI</button>
  <button class="info-icon" id="survival-info-btn" type="button" aria-label="Status pemain" aria-expanded="false" title="Status dan tas">🎒</button>
 </div>
 <button id="interact" type="button">PERIKSA LOKASI</button>
@@ -643,9 +648,9 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const player=new THREE.Group();player.position.set(0,0,4);scene.add(player);
  // Roster hantu lokal: model low-poly ringan, seluruh kemunculan dipicu progres cerita.
  function ghostTexture(base,stain){
-  const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;const ctx=canvas.getContext('2d');
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');
   ctx.fillStyle=base;ctx.fillRect(0,0,128,128);
-  for(let i=0;i<520;i++){const x=(i*47)%128,y=(i*83)%128,r=1+(i%4);ctx.globalAlpha=.025+(i%5)*.012;ctx.fillStyle=i%2?stain:'#ffffff';ctx.fillRect(x,y,r,r*.7);}
+  for(let i=0;i<1450;i++){const x=(i*97)%256,y=(i*173)%256,r=1+(i%5);ctx.globalAlpha=.025+(i%5)*.012;ctx.fillStyle=i%2?stain:'#ffffff';ctx.fillRect(x,y,r,r*.7);}
   ctx.globalAlpha=1;const tex=new THREE.CanvasTexture(canvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2,2);return tex;
  }
  const ghostMaterials={
@@ -661,7 +666,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   pale:new THREE.MeshStandardMaterial({color:0xc4c0b4,map:ghostTexture('#c4c0b4','#77736a'),roughness:1})
  };
  // Material hantu dibuat sedikit tembus cahaya; tanpa shader pascaproses atau tekstur eksternal.
- [[ghostMaterials.shroud,.74],[ghostMaterials.skin,.68],[ghostMaterials.dark,.84],[ghostMaterials.cloth,.76],[ghostMaterials.wrap,.72],[ghostMaterials.pale,.72]].forEach(([material,opacity])=>{material.transparent=true;material.opacity=opacity;material.depthWrite=false;});
+ [[ghostMaterials.shroud,.88],[ghostMaterials.skin,.92],[ghostMaterials.dark,.94],[ghostMaterials.cloth,.9],[ghostMaterials.wrap,.88],[ghostMaterials.pale,.9]].forEach(([material,opacity])=>{material.transparent=true;material.opacity=opacity;material.depthWrite=false;});
  const ghostRoster=[
   {id:'pocong',name:'Pocong',line:'Jangan lari ke jalan buntu. Ada pocong di belakangmu.',speed:2.35,duration:13},
   {id:'anak',name:'Anak kecil',line:'Suara anak kecil itu bukan meminta tolong. Ia sedang memancingmu.',speed:1.35,duration:9},
@@ -675,10 +680,10 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   const g=new THREE.Group(),big=kind==='genderuwo',child=kind==='anak',female=kind==='kuntilanak',elder=kind==='nenek'||kind==='kakek';
   const skin=big?ghostMaterials.dark:ghostMaterials.skin,cloth=big?ghostMaterials.dark:(elder?ghostMaterials.cloth:ghostMaterials.shroud);
   const add=(geo,material,parent=g,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m;};
-  const sphere=(parent,material,x,y,z,sx,sy,sz)=>{const m=add(new THREE.SphereGeometry(1,9,6),material,parent,x,y,z);m.scale.set(sx,sy,sz);return m;};
+  const sphere=(parent,material,x,y,z,sx,sy,sz)=>{const m=add(new THREE.SphereGeometry(1,24,16),material,parent,x,y,z);m.scale.set(sx,sy,sz);return m;};
   const bodyY=child?.86:(big?1.35:1.18),headY=child?1.58:(big?2.48:2.08),scale=big?1.25:(child?.78:1);
   // Torso anatomis dengan dada, perut, pinggul, bahu dan leher terpisah.
-  const torso=add(new THREE.CapsuleGeometry(big?.52:.31,big?1.05:(child?.62:.9),6,12),cloth,g,0,bodyY,0);torso.scale.set(big?1.22:1.08,1,big?1.05:.83);
+  const torso=add(new THREE.CapsuleGeometry(big?.52:.31,big?1.05:(child?.62:.9),10,20),cloth,g,0,bodyY,0);torso.scale.set(big?1.22:1.08,1,big?1.05:.83);
   sphere(g,cloth,0,bodyY+.38,0,big?.68:.39,big?.42:.32,big?.38:.27);
   sphere(g,cloth,0,bodyY-.43,0,big?.48:.3,.34,.26);
   add(new THREE.CylinderGeometry(big?.15:.085,big?.13:.09,.24,10),skin,g,0,headY-.3,0);
@@ -688,7 +693,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   for(const side of [-1,1]){
    sphere(ghostHead,skin,side*.19,-.08,-.205,.12,.13,.09);
    sphere(ghostHead,ghostMaterials.socket,side*.115,.035,-.282,.085,.105,.035);
-   sphere(ghostHead,ghostMaterials.eye,side*.115,.035,-.316,.034,.038,.018);
+   sphere(ghostHead,ghostMaterials.eye,side*.115,.035,-.316,.039,.043,.021);
+   sphere(ghostHead,ghostMaterials.pale,side*.126,.052,-.337,.012,.013,.008);
    sphere(ghostHead,skin,side*.055,-.12,-.285,.035,.045,.035);
   }
   const nose=add(new THREE.ConeGeometry(.075,.19,7),skin,ghostHead,0,-.07,-.31,Math.PI);
@@ -739,7 +745,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    for(let i=0;i<4;i++){add(new THREE.CapsuleGeometry(.023,.22+(i%2)*.06,3,4),ghostMaterials.hair,g,(i-1.5)*.11,headY+.12,.16,0,0,(i-1.5)*.1);}
    if(child){sphere(g,ghostMaterials.hair,0,headY+.12,-.22,.22,.1,.09);}
    if(kind==='kakek'){add(new THREE.ConeGeometry(.17,.42,8),ghostMaterials.cloth,g,0,headY-.34,-.05,Math.PI);}
-   if(kind==='nenek'){for(let side of [-1,1])add(new THREE.CapsuleGeometry(.035,.28,4,6),ghostMaterials.hair,g,side*.28,headY-.12,.04,0,0,side*.2);}
+   if(kind==='nenek'){for(let side of [-1,1])add(new THREE.CapsuleGeometry(.035,.28,6,10),ghostMaterials.hair,g,side*.28,headY-.12,.04,0,0,side*.2);for(let side of [-1,1])sphere(ghostHead,ghostMaterials.cloth,side*.2,-.02,-.22,.045,.018,.012);}
   }
   g.userData={arms,legs,head:ghostHead,torso,kind};ghostAnimationParts.push(g);g.visible=false;scene.add(g);return g;
  }
@@ -1302,7 +1308,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(data){entry.target.set(Number(data.x)||0,0,Number(data.z)||0);entry.rotation=Number(data.rotation)||0;entry.moving=!!data.moving;entry.lastSeen=Date.now();}
   updateRoomCount();return entry;
  }
- function startAdventure(fromBroadcast=false){if(roomStarted)return;if(!characterSelectionConfirmed){showCharacterSelection(fromBroadcast);return;}roomStarted=true;if(characterSelectScreen)characterSelectScreen.style.display='none';try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer&&!fromBroadcast)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
+ function startAdventure(fromBroadcast=false){if(roomStarted)return;if(!characterSelectionConfirmed){showCharacterSelection(fromBroadcast);return;}roomStarted=true;if(characterSelectScreen)characterSelectScreen.style.display='none';try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer&&!fromBroadcast)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();const missionPanelAtStart=document.getElementById('mission');missionPanelAtStart?.classList.add('open');document.getElementById('mission-info-btn')?.setAttribute('aria-expanded','true');setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','1. Ikuti penanda cahaya di gerbang desa. 2. Berdiri dekat penanda. 3. Tekan tombol PERIKSA LOKASI. 4. Baca petunjuk dan pilih jawaban yang benar. Tekan tombol MISI kapan saja untuk melihat tujuan berikutnya.',true);},500);}
  startGameBtn.addEventListener('click',startAdventure);
  saveRoomBtn.addEventListener('click',()=>{try{saveGameProgress();const snapshot=sessionStorage.getItem(saveKey);if(!snapshot)throw new Error('Progres belum siap disimpan');localStorage.setItem('ghoustory-room-save-'+activeRoom,snapshot);const meta=readSavedRoomMeta();meta[activeRoom]=Date.now();localStorage.setItem(savedRoomMetaKey,JSON.stringify(meta));refreshSavedRooms();saveRoomBtn.textContent='RUANG TERSIMPAN ✓';saveRoomBtn.classList.add('saved');hint.textContent='Ruang berhasil disimpan. Gunakan daftar RUANG TERSIMPAN untuk melanjutkan.';}catch(e){saveRoomBtn.textContent='GAGAL MENYIMPAN';hint.textContent='Gagal menyimpan ruang. Periksa penyimpanan browser.';console.warn(e);}});
  function startSoloFallback(code,reason){
@@ -1714,7 +1720,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   }
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse&&!isHidden)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
-  worldInteractions.forEach(o=>{if(o.used||!o.group.visible||isHidden)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
+  worldInteractions.forEach(o=>{if(o.used||!o.group.visible||isHidden)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);const matchesCurrentMission=nearbyMission&&nearbyMission.target===o.label;if(d<2.5&&(d<nearest||matchesCurrentMission)){nearest=d;nearbyMission=null;nearbyWorld=o;}});
   interactBtn.style.display=(nearbyMission||nearbyWorld)?'block':'none';
   if(nearbyWorld)interactBtn.textContent=(nearbyWorld.label==='Masuk rumah'||nearbyWorld.label==='Keluar rumah')?nearbyWorld.label.toUpperCase():'INTERAKSI: '+nearbyWorld.label.toUpperCase();
   else {interactBtn.textContent='PERIKSA LOKASI';if(nearbyMission)hint.textContent=nearbyMission.name+' — tekan PERIKSA LOKASI untuk menyelidiki.';}
