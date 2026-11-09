@@ -2750,64 +2750,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             </section>
 
 
-            <!-- GHOUSTORY CHARACTER CREATOR -->
-            <section id="page-character" class="page-section max-w-6xl mx-auto">
-              <div class="mb-5">
-                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY · DESA TERLARANG</p>
-                <h2 class="text-2xl font-bold text-[#e9dfcf]">Character Creator</h2>
-                <p class="text-sm text-gray-400 mt-1">Rancang penampilan karakter pemain sebelum memasuki Desa Terlarang.</p>
-              </div>
-              <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-4">
-                <div class="rounded-2xl border border-red-900/40 bg-gradient-to-b from-[#17131a] to-[#080a10] p-3 sm:p-5">
-                  <div class="flex items-center justify-between gap-2 mb-3">
-                    <div><p class="text-[10px] tracking-widest text-red-200 font-bold">LIVE PREVIEW</p><p class="text-xs text-gray-500 mt-1">Tampilan karakter</p></div>
-                    <span class="rounded-full border border-blue-900/70 bg-blue-950/40 px-3 py-1 text-[10px] text-blue-200">DESA TERLARANG</span>
-                  </div>
-                  <div class="character-preview-stage">
-                    <div class="character-preview-glow"></div>
-                    <div id="character-preview" class="relative z-10 w-full flex justify-center" aria-live="polite"></div>
-                  </div>
-                  <div class="mt-3 flex items-center justify-between gap-2">
-                    <div class="min-w-0"><p id="character-preview-name" class="font-bold text-white truncate">Karakter Saya</p><p class="text-[10px] text-gray-500">Preview rancangan karakter</p></div>
-                    <button type="button" onclick="randomizeCharacter()" class="shrink-0 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-200"><i class="fa-solid fa-shuffle mr-1"></i>Acak</button>
-                  </div>
-                  <div class="mt-4 rounded-xl border border-amber-900/30 bg-amber-950/15 p-3">
-                    <p class="text-[10px] text-amber-200 font-bold"><i class="fa-solid fa-circle-info mr-1"></i>CATATAN INTEGRASI</p>
-                    <p class="text-[10px] leading-relaxed text-gray-400 mt-1">Preview 3D ini adalah rancangan visual website. Hubungkan akun Roblox agar game dapat mengambil penampilan yang kamu simpan.</p>
-                  </div>
-                  <div class="mt-3 rounded-xl border border-blue-900/40 bg-blue-950/20 p-3">
-                    <div class="flex items-center gap-2"><i class="fa-brands fa-roblox text-blue-200"></i><p class="text-xs font-bold text-blue-100">Hubungkan ke Roblox</p></div>
-                    <p id="character-roblox-status" class="text-[10px] text-gray-400 mt-2">Memeriksa koneksi akun Roblox...</p>
-                    <button type="button" id="character-roblox-connect" onclick="generateRobloxLinkCode()" class="mt-3 w-full rounded-lg border border-blue-700/60 bg-blue-900/50 px-3 py-2.5 text-xs font-bold text-blue-100">Buat kode penghubung</button>
-                    <div id="character-roblox-code-wrap" class="hidden mt-3 rounded-lg bg-black/40 p-3 text-center">
-                      <p class="text-[9px] tracking-widest text-gray-400">KODE SEKALI PAKAI · BERLAKU 10 MENIT</p>
-                      <p id="character-roblox-code" class="my-2 text-2xl font-black tracking-[.22em] text-white">----------</p>
-                      <button type="button" onclick="copyRobloxLinkCode()" class="rounded-lg bg-blue-800 px-4 py-2 text-xs font-bold text-white"><i class="fa-regular fa-copy mr-1"></i>Salin kode</button>
-                    </div>
-                    <p class="text-[9px] text-gray-500 mt-2">Kode ini nanti dimasukkan di dalam game Desa Terlarang untuk memasangkan akun Roblox dengan akun website.</p>
-                  </div>
-                </div>
-                <div class="rounded-2xl border border-gray-800 bg-[#101116] p-3 sm:p-5">
-                  <div class="flex items-center justify-between gap-2 mb-4"><div><h3 class="font-bold text-white">Atur penampilan</h3><p class="text-[10px] text-gray-500 mt-1">Pilih bagian karakter satu per satu.</p></div><i class="fa-solid fa-sliders text-red-300 text-xl"></i></div>
-                  <label class="block text-xs text-gray-400 mb-1" for="character-name">Nama karakter</label>
-                  <input id="character-name" maxlength="24" value="Karakter Saya" oninput="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-black/40 px-3 py-3 text-sm text-white mb-4" placeholder="Nama karakter">
-                  <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-hair">Model rambut</label><select id="character-hair" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="classic">Pendek klasik</option><option value="fringe">Belah samping</option><option value="long">Panjang</option><option value="curly">Keriting</option><option value="spiky">Berdiri / spiky</option><option value="bald">Botak</option></select></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-face">Ekspresi wajah</label><select id="character-face" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="calm">Normal</option><option value="smile">Senyum</option><option value="serious">Serius</option><option value="scared">Ketakutan</option></select></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-skin">Warna kulit</label><select id="character-skin" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="#f0c7a4">Terang</option><option value="#d9a17d">Sawo matang terang</option><option value="#b87955" selected>Sawo matang</option><option value="#8c553b">Cokelat</option><option value="#603c31">Gelap</option></select></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-accessory">Aksesori</label><select id="character-accessory" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="none">Tanpa aksesori</option><option value="glasses">Kacamata</option><option value="cap">Topi</option><option value="headphones">Headset</option></select></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-hair-color">Warna rambut</label><input id="character-hair-color" type="color" value="#171717" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-shirt">Warna atasan</label><input id="character-shirt" type="color" value="#7f1d1d" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
-                    <div><label class="block text-xs text-gray-400 mb-1" for="character-pants">Warna celana</label><input id="character-pants" type="color" value="#202638" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
-                  </div>
-                  <div class="flex flex-col sm:flex-row gap-2 mt-5">
-                    <button type="button" id="character-save-button" onclick="saveCharacterProfile()" class="flex-1 rounded-xl bg-gradient-to-r from-red-800 to-blue-900 px-4 py-3 text-sm font-bold text-white"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Karakter</button>
-                    <button type="button" onclick="resetCharacterCreator()" class="rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-gray-300">Reset</button>
-                  </div>
-                  <p id="character-save-status" class="text-[11px] text-gray-500 mt-3" role="status">Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.</p>
-                </div>
-              </div>
-            </section>
+            
 
             <section id="page-anda" class="page-section max-w-3xl mx-auto">
       <div class="glass-panel rounded-2xl border border-blue-900/60 p-5">
@@ -3659,7 +3602,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],character:['Character Creator','Kustomisasi karakter Desa Terlarang'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
