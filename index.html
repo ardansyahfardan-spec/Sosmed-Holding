@@ -6505,27 +6505,6 @@ const arenaModes={
   {q:'Di rumah kosong ditemukan jejak lumpur yang berhenti tepat di depan dinding. Apa petunjuk pertama yang perlu diperiksa?',a:['Dinding dan kemungkinan pintu tersembunyi','Warna cat rumah','Jumlah genteng'],c:0},
   {q:'Rekaman suara terdengar pada pukul 02.13, tetapi listrik rumah padam sejak tengah malam. Apa yang perlu diverifikasi?',a:['Merek jam dinding','Sumber daya dan perangkat perekam','Warna kabel telepon'],c:1},
   {q:'Dua saksi memberi waktu kejadian berbeda. Langkah investigasi terbaik adalah...',a:['Memilih cerita paling seram','Mengabaikan keduanya','Mencocokkan kronologi dengan bukti independen'],c:2}]},
- teka_teki:{title:'Teka-Teki Arwah',intro:'Pecahkan tiga teka-teki. Jawaban tepat mendapat 10 Poin Jiwa.',questions:[
-  {q:'Aku selalu mengikuti saat terang, tetapi menghilang saat gelap. Siapakah aku?',a:['Bayangan','Gema','Kabut'],c:0},
-  {q:'Semakin banyak diambil, semakin besar aku. Apakah aku?',a:['Api','Lubang','Jejak'],c:1},
-  {q:'Aku punya banyak kunci, tetapi tak bisa membuka satu pintu pun. Apakah aku?',a:['Peti','Gembok','Piano'],c:2}]},
- survival:{title:'Bertahan Sampai Pagi',intro:'Situasi darurat. Pilih tindakan paling aman untuk bertahan.',questions:[
-  {q:'Kamu mendengar langkah kaki di lantai atas rumah kosong. Apa tindakan paling aman?',a:['Naik sendirian untuk memeriksa','Keluar ke tempat aman dan hubungi bantuan','Mematikan semua lampu lalu bersembunyi'],c:1},
-  {q:'Pintu keluar macet dan kamu mencium bau asap. Apa yang harus dilakukan?',a:['Menjauh dari asap, cari jalur keluar alternatif, minta bantuan','Tetap di kamar tanpa memberi kabar','Mencari sumber asap tanpa perlindungan'],c:0},
-  {q:'Temanmu terpisah di bangunan gelap. Pilihan terbaik?',a:['Berpencar lebih jauh','Mengikuti suara tanpa komunikasi','Tetap di titik aman dan hubungi teman/layanan darurat'],c:2}]},
- relik:{title:'Perburuan Relik',intro:'Kenali benda budaya dan artefak dari petunjuknya.',questions:[
-  {q:'Keris dalam tradisi Jawa dikenal sebagai...',a:['Senjata tikam tradisional dengan bilah khas','Alat musik tiup','Perisai dari rotan'],c:0},
-  {q:'Naskah kuno yang ditulis pada daun lontar biasa disebut...',a:['Prasasti batu','Lontar','Gerabah'],c:1},
-  {q:'Artefak berupa arca umumnya merupakan...',a:['Perhiasan kain','Alat pertanian','Karya pahatan berbentuk figur'],c:2}]},
- siapa_aku:{title:'Siapa Aku?',intro:'Tebak sosok atau istilah dari petunjuknya.',questions:[
-  {q:'Aku adalah tokoh cerita rakyat Jawa Timur yang dikaitkan dengan Tambak Oso, Waru. Siapa aku?',a:['Jaka Tarub','Sarip Tambak Oso','Roro Jonggrang'],c:1},
-  {q:'Aku adalah makhluk dalam cerita rakyat yang sering digambarkan sebagai penjaga tempat tertentu. Istilah umumku?',a:['Penunggu','Pujangga','Pelaut'],c:0},
-  {q:'Aku adalah tradisi membersihkan makam menjelang Ramadan atau hari tertentu di sejumlah daerah Jawa.',a:['Sedekah laut','Nyadran','Kasada'],c:1}]},
- pencerita:{title:'Sang Pencerita',intro:'Racik cerita horor pendek dari kata-kata acak untuk tantangan kreatif pribadi.',prompt:'Buat cerita 80–500 karakter yang memuat tiga kata ini: LONCENG · SUMUR · JAM 03.00'},
- tantangan:{title:'Tantangan Rahasia',intro:'Misi harian: satu teka-teki rahasia untuk seluruh Crew.',questions:[
-  {q:'Aku bisa dipatahkan tanpa disentuh. Aku bisa diberikan, tetapi juga diingkari. Apakah aku?',a:['Janji','Cermin','Kaca'],c:0},
-  {q:'Aku menyimpan suara masa lalu, tetapi tidak punya mulut. Apakah aku?',a:['Lentera','Rekaman','Peta'],c:1},
-  {q:'Aku menunjukkan arah, tetapi tidak pernah berjalan. Apakah aku?',a:['Kompas','Sepatu','Payung'],c:0}]}
 };
 let arenaCurrent=null,arenaIndex=0,arenaScore=0,arenaAnswers=[];
 const $=id=>document.getElementById(id);
@@ -6652,7 +6631,7 @@ window.arenaBankSurvive=function(i){const d=arenaBankPack.payload,x=d.events[are
 window.arenaBankRoute=function(i){const d=arenaBankPack.payload,v=d.routes[i];Object.entries(v.effect||{}).forEach(([k,n])=>arenaBankStats[k]=(arenaBankStats[k]||0)+n);arenaAnswers.push({route:v.name,reward:v.reward,risk:v.risk});arenaScore+=v.risk==='high'?25:15;arenaBankStep++;if(arenaBankStep<2){renderArenaBankGame();return;}finishArenaGame();};
 window.arenaBankSubmitStory=async function(){const story=($('arena-bank-story')?.value||'').trim();if(story.length<(arenaBankPack.payload.minimum_chars||80)){alert('Cerita masih terlalu pendek.');return;}arenaScore=20;await saveArenaResult('pencerita',arenaScore);const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('PARTISIPASI TERCATAT','Sang Pencerita')+'<p class="text-sm text-gray-200">Skor partisipasimu tercatat di klasemen. +20 Poin Jiwa. Cerita tidak disimpan.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
 window.arenaBankSubmitMission=async function(){const proof=($('arena-bank-proof')?.value||'').trim();if(proof.length<20){alert('Bukti misi minimal 20 karakter.');return;}arenaScore=30;await saveArenaResult('tantangan',arenaScore);const p=$('arena-play-panel');p.innerHTML=arenaBackHeader('MISI SELESAI','Tantangan Rahasia')+'<p class="text-sm text-gray-200">Partisipasi tercatat di klasemen. +30 Poin Jiwa. Bukti misi tidak disimpan.</p><button class="arena-primary mt-4" onclick="playArenaAgain()">Main Lagi</button>';};
-const arenaImageModes=["berkas","teka_teki","survival","relik","siapa_aku","pencerita","tantangan"];
+const arenaImageModes=["berkas"];
 function arenaImageUrl(mode,ext="webp"){return SUPABASE_URL+"/storage/v1/object/public/arena-game-images/games/"+mode+"."+ext;}
 window.loadArenaImages=function(){
  document.querySelectorAll("#arena-game-grid .arena-game-card").forEach(card=>{
