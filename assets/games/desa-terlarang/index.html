@@ -121,15 +121,18 @@ button:active{transform:scale(.97);background:#273650}
    <div class="custom-section-title">IDENTITAS</div>
    <div class="custom-grid">
     <label>Gender<select id="cc-gender"><option value="male">Cowok</option><option value="female">Cewek</option></select></label>
-    <label>Model rambut<select id="cc-hair"><option value="short">Pendek</option><option value="medium">Sedang</option><option value="long">Panjang</option></select></label>
+    <label>Panjang rambut<select id="cc-hair"><option value="short">Pendek</option><option value="medium">Sedang</option><option value="long">Panjang</option></select></label>
+    <label>Model rambut<select id="cc-hair-style"><option value="natural">Natural</option><option value="fringe">Berponi</option><option value="layer">Layer</option><option value="wavy">Bergelombang</option><option value="curly">Keriting</option><option value="tied">Diikat</option></select></label>
     <label>Hijab<select id="cc-hijab"><option value="no">Tidak berhijab</option><option value="yes">Berhijab</option></select></label>
+    <label>Model hijab<select id="cc-hijab-style"><option value="simple">Hijab simpel</option><option value="modern">Hijab modern</option><option value="syari">Hijab syar'i</option><option value="instant">Bergo / instan</option></select></label>
     <label>Warna rambut<input id="cc-hair-color" type="color" value="#211713"></label>
     <label>Warna kulit<select id="cc-skin"><option value="#f2d0b2">Cerah</option><option value="#e4b48e" selected>Sawo matang terang</option><option value="#c98f68">Sawo matang</option><option value="#8d5b42">Gelap</option></select></label>
    </div>
    <div class="custom-section-title">PAKAIAN</div>
    <div class="custom-grid">
-    <label>Atasan<select id="cc-top"><option>Kaos lengan pendek</option><option>Kaos lengan panjang</option><option>Kemeja</option><option>Hoodie</option><option>Jaket</option><option>Dress</option></select></label>
-    <label>Bawahan<select id="cc-bottom"><option>Celana panjang</option><option>Celana pendek</option><option>Rok pendek</option><option>Rok panjang</option></select></label>
+    <label>Atasan<select id="cc-top"><option value="tee-short">Kaos lengan pendek</option><option value="tee-long">Kaos lengan panjang</option><option value="shirt">Kemeja</option><option value="hoodie">Hoodie</option><option value="jacket">Jaket</option><option value="blouse">Blus</option></select></label>
+    <label>Bawahan<select id="cc-bottom"><option value="pants-long">Celana panjang</option><option value="pants-short">Celana pendek</option><option value="skirt-short">Rok pendek</option><option value="skirt-long">Rok panjang</option></select></label>
+    <label>Outfit khusus<select id="cc-outfit"><option value="separates">Atasan + bawahan</option><option value="dress">Dress</option><option value="gown">Dress panjang</option><option value="overall">Overall</option><option value="uniform">Seragam ekspedisi</option></select></label>
     <label>Warna atasan<input id="cc-top-color" type="color" value="#263e5c"></label>
     <label>Warna bawahan<input id="cc-bottom-color" type="color" value="#202d40"></label>
     <label>Alas kaki<select id="cc-shoes"><option>Sepatu</option><option>Sandal</option><option>Heels</option></select></label>
@@ -142,7 +145,7 @@ button:active{transform:scale(.97);background:#273650}
     <label>Aksesori<select id="cc-accessory"><option>Tidak ada</option><option>Kacamata</option><option>Topi</option><option>Kalung</option><option>Jam tangan</option><option>Gelang</option></select></label>
     <label>Warna aksesori<input id="cc-accessory-color" type="color" value="#d7c49a"></label>
    </div>
-   <p id="cc-preview-note">Pengaturan karakter tersimpan di perangkat ini. Tampilan 3D akan mengikuti pilihan yang sudah didukung model karakter.</p>
+   <p id="cc-preview-note">Pengaturan karakter tersimpan di perangkat ini. Model 3D akan menampilkan detail sesuai komponen karakter yang telah diterapkan; variasi outfit dan aksesori tambahan akan terus dikembangkan.</p>
   </section>
   <label for="character-select-name" style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#bdc8d8">NAMA PEMAIN</label>
   <input id="character-select-name" maxlength="18" value="Pemain" autocomplete="nickname" placeholder="Masukkan nama pemain">
@@ -934,7 +937,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const characterSelectScreen=document.getElementById('character-select-screen');
  const characterSelectName=document.getElementById('character-select-name');
  const characterSelectConfirm=document.getElementById('character-select-confirm');
- const ccIds=['gender','hair','hijab','hair-color','skin','top','bottom','top-color','bottom-color','shoes','shoes-color','hijab-color','bag','accessory','accessory-color'];
+ const ccIds=['gender','hair','hair-style','hijab','hijab-style','hair-color','skin','top','bottom','outfit','top-color','bottom-color','shoes','shoes-color','hijab-color','bag','accessory','accessory-color'];
  const ccEl=id=>document.getElementById('cc-'+id);
  function readCustomCharacter(){const value={};ccIds.forEach(id=>{const el=ccEl(id);if(el)value[id]=el.value;});return value;}
  function loadCustomCharacter(value){if(!value)return;ccIds.forEach(id=>{const el=ccEl(id);if(el&&value[id]!=null)el.value=value[id];});}
