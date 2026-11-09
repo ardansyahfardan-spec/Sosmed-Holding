@@ -616,7 +616,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  }
  // Model hantu dibuat saat pertama kali muncul, bukan sekaligus saat game dibuka.
  let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0,ghostFootstepClock=0,remoteGhostHitAt=0;
- function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId,anchorX:x,anchorZ:z,aiMode:'patrol',lastKnown:{x,z}};storyGhostTimer=def.duration;ghostFootstepClock=.7;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');playWhisperScare();speakGuide(def.line);playGhostEffect(index,x,z);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
+ function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId};storyGhostTimer=def.duration;ghostFootstepClock=.7;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');playWhisperScare();speakGuide(def.line);playGhostEffect(index,x,z);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
  function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;if(multiplayer)multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:false}});}
  const environmentScares=[
   {id:'old-house',x:-7,z:-18,kind:'door',used:false}, {id:'school',x:28,z:-107,kind:'fall',used:false},
@@ -1247,40 +1247,10 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    if(activeStoryGhost&&activeStoryGhost.owner===playerId){
    storyGhostTimer-=dt;ghostFootstepClock-=dt;
    if(ghostFootstepClock<=0&&storyGhostTimer>0){playGhostFootstep();ghostFootstepClock=1.35+Math.random()*.55;}
-   if(storyGhostTimer>0){
-    const ghostPosition=activeStoryGhost.model.position;
-    const dx=player.position.x-ghostPosition.x,dz=player.position.z-ghostPosition.z,distance=Math.hypot(dx,dz);
-    const detectRange=crouching?7.5:15.5;
-    const investigateRange=24;
-    // AI hantu: patroli di sekitar titik kemunculan, investigasi, deteksi, lalu mengejar.
-    if(!activeStoryGhost.anchorX&&activeStoryGhost.anchorX!==0)activeStoryGhost.anchorX=ghostPosition.x;
-    if(!activeStoryGhost.anchorZ&&activeStoryGhost.anchorZ!==0)activeStoryGhost.anchorZ=ghostPosition.z;
-    if(!activeStoryGhost.lastKnown)activeStoryGhost.lastKnown={x:player.position.x,z:player.position.z};
-    if(!isHidden&&distance<detectRange){
-     activeStoryGhost.aiMode='chase';
-     activeStoryGhost.lastKnown={x:player.position.x,z:player.position.z};
-    }else if(!isHidden&&distance<investigateRange&&activeStoryGhost.aiMode!=='chase'){
-     activeStoryGhost.aiMode='investigate';
-     activeStoryGhost.lastKnown={x:player.position.x,z:player.position.z};
-    }else if(activeStoryGhost.aiMode==='chase'&&distance>detectRange*1.7){
-     activeStoryGhost.aiMode='investigate';
-    }
-    let targetX=activeStoryGhost.anchorX,targetZ=activeStoryGhost.anchorZ,moveSpeed=activeStoryGhost.speed*.42;
-    if(activeStoryGhost.aiMode==='chase'){
-     targetX=player.position.x;targetZ=player.position.z;moveSpeed=activeStoryGhost.speed*(crouching?.72:1.18);
-    }else if(activeStoryGhost.aiMode==='investigate'){
-     targetX=activeStoryGhost.lastKnown.x;targetZ=activeStoryGhost.lastKnown.z;moveSpeed=activeStoryGhost.speed*.78;
-     if(Math.hypot(targetX-ghostPosition.x,targetZ-ghostPosition.z)<1.4)activeStoryGhost.aiMode='patrol';
-    }else{
-     const patrolTime=t*.00035+(activeStoryGhost.id.length||3);
-     targetX=activeStoryGhost.anchorX+Math.cos(patrolTime)*3.8;
-     targetZ=activeStoryGhost.anchorZ+Math.sin(patrolTime)*3.8;
-    }
-    const tx=targetX-ghostPosition.x,tz=targetZ-ghostPosition.z,td=Math.hypot(tx,tz);
-    if(td>.55){const step=Math.min(td-.45,moveSpeed*dt);ghostPosition.x+=tx/td*step;ghostPosition.z+=tz/td*step;activeStoryGhost.model.rotation.y=Math.atan2(-tx,-tz);}
-    if(!isHidden&&distance<(crouching?1.45:2.35)&&Date.now()-remoteGhostHitAt>1850){
-     remoteGhostHitAt=Date.now();takeDamage(activeStoryGhost.id==='genderuwo'?14:8,activeStoryGhost.name+' berhasil mendekat! Lari atau cari tempat bersembunyi.');
-    }
+   if(!isHidden&&storyGhostTimer>0){
+    const ghostPosition=activeStoryGhost.model.position,dx=player.position.x-ghostPosition.x,dz=player.position.z-ghostPosition.z,distance=Math.hypot(dx,dz);
+    if(distance>1.55){const chaseSpeed=activeStoryGhost.speed*(crouching?.38:1);const chase=Math.min(distance-1.55,chaseSpeed*dt);ghostPosition.x+=dx/distance*chase;ghostPosition.z+=dz/distance*chase;activeStoryGhost.model.rotation.y=Math.atan2(-dx,-dz);}
+    if(distance<(crouching?1.45:2.35)&&Date.now()-remoteGhostHitAt>1850){remoteGhostHitAt=Date.now();takeDamage(activeStoryGhost.id==='genderuwo'?14:8,activeStoryGhost.name+' berhasil mendekat! Lari atau cari tempat bersembunyi.');}
    }
    if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' menghilang ke dalam kabut.';finishStoryGhost();speakGuide('Sosok itu menghilang. Tapi jangan lengah.');}
   }
