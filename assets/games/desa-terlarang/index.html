@@ -93,6 +93,7 @@ button:active{transform:scale(.97);background:#273650}
 #character-select-name{width:100%;margin-top:7px;padding:12px 13px;border:1px solid #64748b77;border-radius:10px;background:#070d18;color:#fff;font-size:16px;outline:none}
 #character-select-confirm{width:100%;margin-top:14px;padding:14px;border:1px solid #e2b7a477;border-radius:12px;background:linear-gradient(110deg,#8c2634,#263f69);color:#fff;font-size:12px;font-weight:950;letter-spacing:.13em}
 #character-select-note{margin-top:10px;color:#98a7bd;font-size:10px;line-height:1.5;text-align:center}
+.look-male-long .figure-hair,.look-female-long .figure-hair{height:20px;border-radius:13px 13px 7px 7px}.look-male-long .figure-hair:before,.look-female-long .figure-hair:before{content:"";position:absolute;top:8px;left:-3px;width:7px;height:31px;border-radius:0 0 7px 7px;background:var(--hair)}.look-male-long .figure-hair:after,.look-female-long .figure-hair:after{content:"";position:absolute;top:8px;right:-3px;width:7px;height:31px;border-radius:0 0 7px 7px;background:var(--hair)}.look-hijab .figure-hair{top:0;left:14px;width:35px;height:39px;border-radius:17px 17px 12px 12px;background:var(--coat);border:2px solid #d2c6b3}.look-hijab .figure-hair:after{content:"";position:absolute;left:-4px;top:20px;width:39px;height:25px;border-radius:8px 8px 15px 15px;background:var(--coat);border:1px solid #d2c6b3}
 @media(max-width:560px){#character-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.character-choice{padding:10px 6px}}
 </style>
 </head>
@@ -108,11 +109,11 @@ button:active{transform:scale(.97);background:#273650}
   <h2 id="character-select-title">PILIH KARAKTER</h2>
   <p class="intro">Tentukan penampilan tokoh yang akan kamu bawa memasuki Desa Wanasetra. Pilihan ini berlaku di dalam permainan, bukan menu pengaturan dashboard.</p>
   <div id="character-choice-grid">
-   <button class="character-choice" type="button" data-character-choice="explorer" aria-pressed="true"><span class="character-figure" style="--coat:#263e5c;--pants:#202d40;--skin:#f2bd35;--hair:#17191f"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENJELAJAH</span><span class="look-desc">Jaket ekspedisi biru</span></button>
-   <button class="character-choice" type="button" data-character-choice="investigator" aria-pressed="false"><span class="character-figure" style="--coat:#604044;--pants:#292b3b;--skin:#d99b70;--hair:#211713"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENELITI</span><span class="look-desc">Jaket lapangan merah</span></button>
-   <button class="character-choice" type="button" data-character-choice="village" aria-pressed="false"><span class="character-figure" style="--coat:#596044;--pants:#34372c;--skin:#e7b58a;--hair:#30231c"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">WARGA DESA</span><span class="look-desc">Pakaian hijau kusam</span></button>
-   <button class="character-choice" type="button" data-character-choice="nightwatch" aria-pressed="false"><span class="character-figure" style="--coat:#343b4b;--pants:#151c29;--skin:#e8bd91;--hair:#090b10"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENJAGA MALAM</span><span class="look-desc">Seragam gelap</span></button>
-  </div>
+   <button class="character-choice" type="button" data-character-choice="male-short" aria-pressed="true"><span class="character-figure look-male-short" style="--coat:#263e5c;--pants:#202d40;--skin:#dca879;--hair:#17191f"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">COWOK RAMBUT PENDEK</span><span class="look-desc">Model pria · rambut pendek</span></button>
+   <button class="character-choice" type="button" data-character-choice="male-long" aria-pressed="false"><span class="character-figure look-male-long" style="--coat:#604044;--pants:#292b3b;--skin:#d99b70;--hair:#211713"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">COWOK RAMBUT PANJANG</span><span class="look-desc">Model pria · rambut panjang</span></button>
+   <button class="character-choice" type="button" data-character-choice="female-hijab" aria-pressed="false"><span class="character-figure look-hijab" style="--coat:#596044;--pants:#34372c;--skin:#e7b58a;--hair:#30231c"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">CEWEK BERHIJAB</span><span class="look-desc">Model wanita · hijab</span></button>
+   <button class="character-choice" type="button" data-character-choice="female-long" aria-pressed="false"><span class="character-figure look-female-long" style="--coat:#343b4b;--pants:#151c29;--skin:#e8bd91;--hair:#090b10"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">CEWEK RAMBUT PANJANG</span><span class="look-desc">Model wanita · rambut panjang</span></button>
+</div>
   <label for="character-select-name" style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#bdc8d8">NAMA PEMAIN</label>
   <input id="character-select-name" maxlength="18" value="Pemain" autocomplete="nickname" placeholder="Masukkan nama pemain">
   <button id="character-select-confirm" type="button">KONFIRMASI KARAKTER</button>
@@ -733,15 +734,20 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const metal=mat(0xb8c5d4,.3,.48),print=mat(0xe8edf3,.45),ink=mat(0x20212a,.5);
  yellow.name='avatar-skin';hair.name='avatar-hair';jacket.name='avatar-jacket';jacketLight.name='avatar-jacket-light';jacketDark.name='avatar-jacket-dark';pants.name='avatar-pants';pantsLight.name='avatar-pants-light';red.name='avatar-accent';
  const characterLooks={
-  explorer:{skin:0xf2bd35,hair:0x17191f,jacket:0x263e5c,jacketLight:0x45617d,jacketDark:0x17283d,pants:0x202d40,pantsLight:0x35465b,accent:0xa52d3a},
-  investigator:{skin:0xd99b70,hair:0x211713,jacket:0x604044,jacketLight:0x95615b,jacketDark:0x3a252b,pants:0x292b3b,pantsLight:0x45485b,accent:0xd3ad83},
-  village:{skin:0xe7b58a,hair:0x30231c,jacket:0x596044,jacketLight:0x7a805d,jacketDark:0x3a412f,pants:0x34372c,pantsLight:0x555b43,accent:0xb38b5d},
-  nightwatch:{skin:0xe8bd91,hair:0x090b10,jacket:0x343b4b,jacketLight:0x586273,jacketDark:0x202633,pants:0x151c29,pantsLight:0x30394a,accent:0x9b343c}
+  'male-short':{skin:0xdca879,hair:0x17191f,jacket:0x263e5c,jacketLight:0x45617d,jacketDark:0x17283d,pants:0x202d40,pantsLight:0x35465b,accent:0xa52d3a,hijab:0x263b58},
+  'male-long':{skin:0xd99b70,hair:0x211713,jacket:0x604044,jacketLight:0x95615b,jacketDark:0x3a252b,pants:0x292b3b,pantsLight:0x45485b,accent:0xd3ad83,hijab:0x263b58},
+  'female-hijab':{skin:0xe7b58a,hair:0x30231c,jacket:0x596044,jacketLight:0x7a805d,jacketDark:0x3a412f,pants:0x34372c,pantsLight:0x555b43,accent:0xb38b5d,hijab:0x263b58},
+  'female-long':{skin:0xe8bd91,hair:0x090b10,jacket:0x343b4b,jacketLight:0x586273,jacketDark:0x202633,pants:0x151c29,pantsLight:0x30394a,accent:0x9b343c,hijab:0x263b58}
  };
  function applyCharacterLook(target,id){
-  const look=characterLooks[id]||characterLooks.explorer;
-  const materialKeys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent'};
-  target.traverse(object=>{if(!object.isMesh||!object.material)return;const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>{const key=materialKeys[material.name];if(key&&look[key]!=null)material.color.setHex(look[key]);});});
+  const look=characterLooks[id]||characterLooks['male-short'];
+  const keys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent','avatar-hijab':'hijab'};
+  target.traverse(object=>{
+   if(object.userData.characterStyle){object.visible=object.userData.characterStyle===id;return;}
+   if(!object.isMesh||!object.material)return;
+   const materials=Array.isArray(object.material)?object.material:[object.material];
+   materials.forEach(material=>{const key=keys[material.name];if(key&&look[key]!=null)material.color.setHex(look[key]);});
+  });
  }
 
  function mesh(parent,geometry,material,x,y,z,rx=0,ry=0,rz=0){
@@ -801,11 +807,15 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sphere(head,print,.112,.072,-.346,.012,.014,.008);
  partBox(head,.105,.018,.014,ink,0,-.095,-.34);
  partBox(head,.09,.018,.014,yellowShadow,0,-.13,-.344);
- // Molded dark swept hair cap, sitting over the cylindrical head.
- sphere(head,hair,0,.32,.025,.355,.16,.35);
- sphere(head,hairLight,-.16,.31,-.13,.18,.11,.2);
- sphere(head,hair,.15,.29,-.18,.2,.12,.17);
- sphere(head,hairLight,0,.235,-.285,.2,.095,.09);
+ // Four distinct 3D hairstyle models.
+ const shortHair=new THREE.Group();shortHair.userData.characterStyle='male-short';head.add(shortHair);
+ sphere(shortHair,hair,0,.32,.025,.355,.16,.35);sphere(shortHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(shortHair,hair,.15,.29,-.18,.2,.12,.17);sphere(shortHair,hairLight,0,.235,-.285,.2,.095,.09);
+ const longHair=new THREE.Group();longHair.userData.characterStyle='male-long';head.add(longHair);
+ sphere(longHair,hair,0,.32,.025,.36,.17,.35);sphere(longHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(longHair,hair,.15,.29,-.18,.2,.12,.17);sphere(longHair,hair,0,-.02,.20,.31,.39,.22);sphere(longHair,hairLight,-.29,-.03,-.015,.10,.39,.12);sphere(longHair,hair,.29,-.03,-.015,.10,.39,.12);
+ const femaleHair=new THREE.Group();femaleHair.userData.characterStyle='female-long';head.add(femaleHair);
+ sphere(femaleHair,hair,0,.32,.025,.36,.17,.35);sphere(femaleHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(femaleHair,hair,.15,.29,-.18,.2,.12,.17);sphere(femaleHair,hair,0,-.015,.20,.33,.43,.24);sphere(femaleHair,hairLight,-.30,-.06,-.02,.11,.42,.13);sphere(femaleHair,hair,.30,-.06,-.02,.11,.42,.13);
+ const hijabMat=plastic(0x263b58);hijabMat.name='avatar-hijab';const hijab=new THREE.Group();hijab.userData.characterStyle='female-hijab';head.add(hijab);
+ sphere(hijab,hijabMat,0,.22,.015,.385,.43,.38);sphere(hijab,hijabMat,0,-.19,-.015,.39,.31,.39);mesh(hijab,new THREE.CylinderGeometry(.34,.46,.42,32,1,true),hijabMat,0,-.32,.03).rotation.z=Math.PI;
  // Backpack: compact molded accessory.
  partBox(player,.48,.56,.2,jacketDark,0,1.57,.31);
  partBox(player,.36,.12,.07,jacket,0,1.85,.42);
@@ -879,7 +889,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const remotePlayers=new Map();
  let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
  let realtimeClient=null,realtimeLoading=null,roomJoinInFlight=false,roomAttempt=0;
- let selectedCharacterId='explorer';try{selectedCharacterId=localStorage.getItem('ghoustory-desa-character')||'explorer';}catch(_){}
+ let selectedCharacterId='male-short';try{selectedCharacterId=localStorage.getItem('ghoustory-desa-character')||'male-short';if(!characterLooks[selectedCharacterId])selectedCharacterId='male-short';}catch(_){}
  let characterSelectionConfirmed=false,pendingStartFromBroadcast=false;
  async function ensureRealtimeClient(){
   if(realtimeClient)return realtimeClient;
