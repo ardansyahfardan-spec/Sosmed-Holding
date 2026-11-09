@@ -104,6 +104,36 @@ button:active{transform:scale(.97);background:#273650}
 .custom-grid input[type=color]{height:40px;padding:4px}
 #cc-preview-note{margin:4px 0 0;color:#95a5ba;font-size:10px;line-height:1.5}
 @media(max-width:560px){.custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#custom-character-panel{padding:11px}}
+
+#character-select-card{width:min(1120px,100%)}
+#character-creator-layout{display:grid;grid-template-columns:minmax(260px,.86fr) minmax(0,1.4fr);gap:18px;align-items:start;margin-top:16px}
+#character-preview-wrap{position:sticky;top:0;min-width:0;overflow:hidden;border:1px solid #71829b55;border-radius:18px;background:radial-gradient(ellipse at 50% 28%,#34445b 0%,#121b2b 54%,#080d17 100%);box-shadow:inset 0 0 50px #080d1880}
+.preview-kicker{position:absolute;z-index:2;top:13px;left:14px;font-size:9px;font-weight:950;letter-spacing:.16em;color:#e9d7c9}
+.preview-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#75d6a3;box-shadow:0 0 12px #75d6a3;margin-right:7px}
+#character-preview-canvas{display:block;width:100%;height:390px;touch-action:pan-y;cursor:grab}
+#character-preview-canvas:active{cursor:grabbing}
+.preview-caption{padding:10px 13px 13px;color:#aab8ca;font-size:10px;line-height:1.5;text-align:center;border-top:1px solid #71829b33}
+#custom-character-panel{margin:0;max-height:min(64vh,680px);overflow:auto;scrollbar-color:#65738a #111827}
+.custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.custom-grid label{padding:9px;border:1px solid #71829b33;border-radius:12px;background:#0d1522}
+.cc-visual-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:2px}
+.cc-visual-option{display:flex;min-width:0;min-height:60px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;border:1px solid #64748b55;border-radius:9px;background:#121d2c;color:#cbd5e1;font-size:9px;line-height:1.2;text-align:center}
+.cc-visual-option[aria-pressed="true"]{border-color:#d9a49a;background:linear-gradient(145deg,#452b35,#17243a);color:#fff;box-shadow:0 0 0 1px #d9a49a55}
+.cc-option-art{position:relative;display:block;width:34px;height:28px;border-radius:8px;background:linear-gradient(145deg,#44546b,#1a2638);overflow:hidden}
+.cc-option-art:before,.cc-option-art:after{content:"";position:absolute;display:block}
+.cc-option-art:before{width:14px;height:14px;left:10px;top:3px;border-radius:50%;background:#e4b48e;box-shadow:0 10px 0 4px var(--art-color,#596b83)}
+.cc-option-art:after{width:24px;height:7px;left:5px;bottom:2px;border-radius:8px;background:var(--art-color,#596b83)}
+.cc-option-art[data-kind="hair"]:before{width:18px;height:12px;left:8px;top:2px;border-radius:12px 12px 4px 4px;background:#211713;box-shadow:0 8px 0 1px #e4b48e}
+.cc-option-art[data-kind="hijab"]:before{width:22px;height:22px;left:6px;top:1px;border-radius:13px 13px 9px 9px;background:var(--art-color,#263b58);box-shadow:inset 0 -5px 0 #e4b48e}
+.cc-option-art[data-kind="bottom"]:before{width:7px;height:20px;left:8px;top:5px;border-radius:3px;background:var(--art-color,#202d40);box-shadow:11px 0 0 var(--art-color,#202d40)}
+.cc-option-art[data-kind="shoes"]:before{width:13px;height:7px;left:3px;bottom:4px;border-radius:7px 3px 3px 3px;background:var(--art-color,#202d40);box-shadow:15px 0 0 var(--art-color,#202d40)}
+.cc-option-art[data-kind="bag"]:before{width:13px;height:15px;left:10px;top:8px;border:2px solid var(--art-color,#b7a58a);border-radius:4px;background:transparent}
+.cc-option-art[data-kind="accessory"]:before{width:17px;height:9px;left:8px;top:8px;border:2px solid var(--art-color,#d7c49a);border-radius:7px;background:transparent}
+.cc-option-art[data-kind="top"]:after{width:22px;height:18px;left:6px;top:6px;border-radius:6px 6px 4px 4px;background:var(--art-color,#263e5c)}
+.cc-option-art[data-kind="outfit"]:after{width:21px;height:21px;left:7px;top:4px;border-radius:6px 6px 9px 9px;background:var(--art-color,#263e5c);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}
+@media(max-width:760px){#character-creator-layout{grid-template-columns:1fr}#character-preview-wrap{position:relative}#character-preview-canvas{height:300px}#custom-character-panel{max-height:none;overflow:visible}#character-select-card{width:min(620px,100%)}}
+@media(max-width:560px){.custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-visual-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -117,7 +147,13 @@ button:active{transform:scale(.97);background:#273650}
   <div class="eyebrow">GHOUSTORY · DESA TERLARANG</div>
   <h2 id="character-select-title">PILIH KARAKTER</h2>
   <p class="intro">Tentukan penampilan tokoh yang akan kamu bawa memasuki Desa Wanasetra. Pilihan ini berlaku di dalam permainan, bukan menu pengaturan dashboard.</p>
-  <section id="custom-character-panel">
+  <div id="character-creator-layout">
+   <aside id="character-preview-wrap">
+    <div class="preview-kicker"><span class="preview-live-dot"></span> LIVE 3D PREVIEW</div>
+    <canvas id="character-preview-canvas" aria-label="Pratinjau karakter 3D yang dapat diputar"></canvas>
+    <div class="preview-caption">Putar tampilan dengan menggeser karakter. Perubahan pilihan langsung terlihat.</div>
+   </aside>
+   <section id="custom-character-panel">
    <div class="custom-section-title">IDENTITAS</div>
    <div class="custom-grid">
     <label>Gender<select id="cc-gender"><option value="male">Cowok</option><option value="female">Cewek</option></select></label>
@@ -147,6 +183,7 @@ button:active{transform:scale(.97);background:#273650}
    </div>
    <p id="cc-preview-note">Pengaturan karakter tersimpan di perangkat ini. Model 3D akan menampilkan detail sesuai komponen karakter yang telah diterapkan; variasi outfit dan aksesori tambahan akan terus dikembangkan.</p>
   </section>
+  </div>
   <label for="character-select-name" style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#bdc8d8">NAMA PEMAIN</label>
   <input id="character-select-name" maxlength="18" value="Pemain" autocomplete="nickname" placeholder="Masukkan nama pemain">
   <button id="character-select-confirm" type="button">KONFIRMASI KARAKTER</button>
