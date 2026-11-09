@@ -27,6 +27,21 @@ function decodeCaptionText(value: string): string {
   return value.replace(/<br\s*\/?\s*>/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/\s+/g, " ").trim();
 }
 function secondsLabel(value: number): string { const s=Math.max(0,Math.floor(value)); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
+async function downloadAudioForGroq(audioUrl: string): Promise<Uint8Array> {
+  const parsed = new URL(audioUrl);
+  const projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
+  if (parsed.origin !== projectUrl.origin || !parsed.pathname.includes("/storage/v1/object/sign/vo-recordings/")) {
+    throw new Error("Tautan audio sementara tidak valid.");
+  }
+  const response = await fetch(audioUrl, { signal: AbortSignal.timeout(45000) });
+  if (!response.ok) throw new Error("Gagal mengambil MP3 dari penyimpanan sementara (HTTP " + response.status + ").");
+  const declaredLength = Number(response.headers.get("content-length") || 0);
+  if (declaredLength > 25 * 1024 * 1024) throw new Error("Ukuran bagian audio melebihi batas unggahan Groq Free 25 MB.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!bytes.length) throw new Error("File MP3 kosong.");
+  if (bytes.length > 25 * 1024 * 1024) throw new Error("Ukuran bagian audio melebihi batas unggahan Groq Free 25 MB.");
+  return bytes;
+}
 async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string): Promise<{ uri: string; name: string }> {
   const parsed = new URL(audioUrl);
   const projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
@@ -389,6 +404,52 @@ KELUARAN HANYA JSON VALID TANPA MARKDOWN dengan struktur:
 {"title":"...","detectedLanguage":"...","fullTranscript":"transkrip asli lengkap","indonesianTranscript":"terjemahan Indonesia lengkap","summary":["..."],"moments":[{"start":"00:00:00","end":"00:00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
 Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk ditranskrip seluruhnya, nyatakan bagian yang tidak tercakup secara jujur pada fullTranscript dan jangan berpura-pura lengkap.`;
       requestParts[0] = { text: prompt };
+    } else if (task === "video-audio-chunk-transcription") {
+      const groqKey = Deno.env.get("GROQ_API_KEY");
+      if (!groqKey) return json({ error: "Kunci Groq belum dipasang. Tambahkan GROQ_API_KEY di Supabase Edge Function Secrets untuk mengaktifkan transkripsi cepat gratis." }, 503);
+      const audioUrl = String(body.audioUrl || "");
+      audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+      if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
+      if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
+      const audioBytes = await downloadAudioForGroq(audioUrl);
+      const form = new FormData();
+      form.append("file", new File([audioBytes], "ghoustory-audio-part.mp3", { type: "audio/mpeg" }));
+      form.append("model", "whisper-large-v3-turbo");
+      form.append("response_format", "verbose_json");
+      form.append("temperature", "0");
+      form.append("prompt", "Transkripsikan ucapan secara verbatim. Audio dapat berisi bahasa Indonesia, bahasa Jawa Timur atau dialek Sidoarjo, dan campuran keduanya. Pertahankan nama orang, nama tempat, dan istilah lokal. Jangan menerjemahkan atau meringkas.");
+      const groqResponse = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + groqKey },
+        body: form,
+        signal: AbortSignal.timeout(90000),
+      });
+      const groqText = await groqResponse.text();
+      let groqResult: Record<string, any> = {};
+      try { groqResult = JSON.parse(groqText); } catch (_) {}
+      if (!groqResponse.ok) {
+        const detail = String(groqResult?.error?.message || groqResult?.message || "Groq gagal mentranskripsikan audio.");
+        const retryAfter = groqResponse.headers.get("retry-after");
+        console.warn("[ghoustory-ai] groq_transcription_failed status=" + groqResponse.status + " detail=" + detail.slice(0, 300));
+        return json({ error: detail, provider: "Groq", providerStatus: groqResponse.status, retryAfter }, groqResponse.status === 429 ? 429 : 502);
+      }
+      const transcript = String(groqResult?.text || "").trim();
+      if (!transcript) return json({ error: "Groq tidak menemukan ucapan pada bagian audio ini.", provider: "Groq" }, 422);
+      return json({ text: JSON.stringify({ fullTranscript: transcript, detectedLanguage: String(groqResult?.language || "tidak diketahui") }), provider: "Groq" });
+    } else if (task === "video-audio-chunk-text-analysis") {
+      const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
+      const transcript = String(body.transcript || "").slice(0, 12000);
+      const detectedLanguage = String(body.detectedLanguage || "bahasa sumber").slice(0, 80);
+      const offsetSeconds = Math.max(0, Number(body.offsetSeconds) || 0);
+      const chunkNumber = Math.max(1, Number(body.chunkNumber) || 1);
+      const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
+      if (!transcript.trim()) return json({ error: "Transkrip untuk analisis teks kosong." }, 400);
+      prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis teks hasil transkripsi Groq untuk bagian ${chunkNumber} dari ${totalChunks}. Judul video: ${title}. Posisi bagian dimulai pada detik ke-${offsetSeconds}. Bahasa sumber terdeteksi: ${detectedLanguage}.
+Jangan mengubah atau mengarang transkrip asli. Salin transkrip asli persis ke fullTranscript. Terjemahkan seluruh isinya ke Bahasa Indonesia yang natural pada indonesianTranscript; jika sudah berbahasa Indonesia, rapikan seminimal mungkin tanpa mengubah makna. Buat maksimal 2 poin ringkasan. Pilih maksimal 1 momen Shorts yang benar-benar didukung teks, maksimal 60 detik. Timestamp relatif terhadap awal bagian (00:00). Jika tidak ada momen kuat, moments harus kosong. Jangan menciptakan kutipan.
+Kembalikan HANYA JSON valid:
+{"title":"...","detectedLanguage":"...","fullTranscript":"...","indonesianTranscript":"...","summary":["..."],"moments":[{"start":"00:00","end":"00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
+TRANSKRIP ASLI:
+${transcript}`;
     } else if (task === "video-audio-chunk-analysis") {
       const audioUrl = String(body.audioUrl || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -499,8 +560,8 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis" || task === "video-audio-chunk-translation";
-    const maxOutputTokens = task === "video-audio-chunk-translation" ? 9000 : structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis" || task === "video-audio-chunk-text-analysis" || task === "video-audio-chunk-translation";
+    const maxOutputTokens = task === "video-audio-chunk-text-analysis" ? 6500 : task === "video-audio-chunk-translation" ? 9000 : structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     const videoAnalysisSchema = {
       type: "OBJECT",
       properties: {
