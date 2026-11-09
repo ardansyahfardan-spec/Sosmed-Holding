@@ -71,12 +71,54 @@ button:active{transform:scale(.97);background:#273650}
 @media(orientation:landscape) and (max-height:420px){#info-dock{top:84px;gap:6px}.info-icon{width:38px;height:38px}#room-presence{top:96px}#mission,#survival-hud{top:142px;max-height:55vh}}
 
 </style>
+
+<style id="gh-in-game-character-select">
+#character-select-screen{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 20%,#26344feF,#050811f8 72%);backdrop-filter:blur(10px);overflow:auto}
+#character-select-card{width:min(760px,100%);max-height:calc(100dvh - 36px);overflow:auto;padding:clamp(18px,3vw,28px);border:1px solid #9e829066;border-radius:22px;background:linear-gradient(145deg,#151b29f7,#090d17f8);box-shadow:0 24px 90px #000b;color:#f4eee5}
+#character-select-card .eyebrow{font-size:9px;letter-spacing:.24em;font-weight:900;color:#d5a4a5}
+#character-select-card h2{margin:7px 0;font-size:clamp(23px,4vw,34px);font-weight:950;letter-spacing:.04em}
+#character-select-card .intro{font-size:12px;line-height:1.65;color:#b8c4d6}
+#character-choice-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0}
+.character-choice{min-width:0;padding:12px 8px 13px;border:1px solid #8793a344;border-radius:15px;background:#0d1421;color:#f5eee5;text-align:center;transition:border-color .15s,background .15s,transform .15s}
+.character-choice[aria-pressed="true"]{border-color:#d69b91;background:linear-gradient(160deg,#38232a,#111a29);box-shadow:0 0 0 2px #b65d5544;transform:translateY(-2px)}
+.character-choice .look-name{display:block;margin-top:9px;font-size:11px;font-weight:900}
+.character-choice .look-desc{display:block;margin-top:3px;font-size:9px;color:#aab6c8;line-height:1.4}
+.character-figure{position:relative;display:block;width:62px;height:88px;margin:0 auto}
+.character-figure .figure-head{position:absolute;top:5px;left:20px;width:23px;height:25px;border-radius:9px 9px 7px 7px;background:var(--skin,#e9b96e);border:2px solid #111827}
+.character-figure .figure-hair{position:absolute;z-index:1;top:2px;left:18px;width:27px;height:11px;border-radius:12px 12px 4px 4px;background:var(--hair,#17191f)}
+.character-figure .figure-body{position:absolute;top:31px;left:12px;width:39px;height:33px;border-radius:8px 8px 5px 5px;background:var(--coat,#263e5c);border:2px solid #111827}
+.character-figure .figure-body:after{content:"";position:absolute;left:17px;top:1px;width:3px;height:27px;background:#d2c6b3;opacity:.7}
+.character-figure .figure-leg{position:absolute;top:61px;left:16px;width:13px;height:24px;border-radius:2px 2px 5px 5px;background:var(--pants,#202d40);border:1px solid #111827}
+.character-figure .figure-leg.right{left:34px}
+#character-select-name{width:100%;margin-top:7px;padding:12px 13px;border:1px solid #64748b77;border-radius:10px;background:#070d18;color:#fff;font-size:16px;outline:none}
+#character-select-confirm{width:100%;margin-top:14px;padding:14px;border:1px solid #e2b7a477;border-radius:12px;background:linear-gradient(110deg,#8c2634,#263f69);color:#fff;font-size:12px;font-weight:950;letter-spacing:.13em}
+#character-select-note{margin-top:10px;color:#98a7bd;font-size:10px;line-height:1.5;text-align:center}
+@media(max-width:560px){#character-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.character-choice{padding:10px 6px}}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Dunia GHOUSTORY Desa Terlarang"></canvas>
  
 <div id="clue-sheet" role="dialog" aria-modal="true" aria-labelledby="clue-title"><div id="clue-paper"><div id="clue-kicker">ARSIP DESA · CATATAN INVESTIGASI</div><h2 id="clue-title">Catatan pertama</h2><div id="clue-body"></div><div id="clue-actions"><button id="clue-listen" type="button">▶ DENGARKAN</button><button id="clue-close" type="button">TUTUP LEMBAR</button></div></div></div>
 <div id="house-transition"><span>MEMASUKI RUMAH...</span></div>
+
+<div id="character-select-screen" role="dialog" aria-modal="true" aria-labelledby="character-select-title">
+ <div id="character-select-card">
+  <div class="eyebrow">GHOUSTORY · DESA TERLARANG</div>
+  <h2 id="character-select-title">PILIH KARAKTER</h2>
+  <p class="intro">Tentukan penampilan tokoh yang akan kamu bawa memasuki Desa Wanasetra. Pilihan ini berlaku di dalam permainan, bukan menu pengaturan dashboard.</p>
+  <div id="character-choice-grid">
+   <button class="character-choice" type="button" data-character-choice="explorer" aria-pressed="true"><span class="character-figure" style="--coat:#263e5c;--pants:#202d40;--skin:#f2bd35;--hair:#17191f"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENJELAJAH</span><span class="look-desc">Jaket ekspedisi biru</span></button>
+   <button class="character-choice" type="button" data-character-choice="investigator" aria-pressed="false"><span class="character-figure" style="--coat:#604044;--pants:#292b3b;--skin:#d99b70;--hair:#211713"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENELITI</span><span class="look-desc">Jaket lapangan merah</span></button>
+   <button class="character-choice" type="button" data-character-choice="village" aria-pressed="false"><span class="character-figure" style="--coat:#596044;--pants:#34372c;--skin:#e7b58a;--hair:#30231c"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">WARGA DESA</span><span class="look-desc">Pakaian hijau kusam</span></button>
+   <button class="character-choice" type="button" data-character-choice="nightwatch" aria-pressed="false"><span class="character-figure" style="--coat:#343b4b;--pants:#151c29;--skin:#e8bd91;--hair:#090b10"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">PENJAGA MALAM</span><span class="look-desc">Seragam gelap</span></button>
+  </div>
+  <label for="character-select-name" style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#bdc8d8">NAMA PEMAIN</label>
+  <input id="character-select-name" maxlength="18" value="Pemain" autocomplete="nickname" placeholder="Masukkan nama pemain">
+  <button id="character-select-confirm" type="button">KONFIRMASI KARAKTER</button>
+  <div id="character-select-note">Penampilan dapat dipilih di awal permainan. Peran dan tantangan akan ditentukan oleh alur cerita.</div>
+ </div>
+</div>
 <div id="multiplayer-lobby">
  <div id="multiplayer-card">
   <div class="brand">GHOUSTORY ARENA · MULTIPLAYER</div>
@@ -689,6 +731,19 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const red=plastic(0xa52d3a),pants=plastic(0x202d40),pantsLight=plastic(0x35465b);
  const boot=plastic(0x141b25),sole=plastic(0x070b12),hair=plastic(0x17191f),hairLight=plastic(0x34343b);
  const metal=mat(0xb8c5d4,.3,.48),print=mat(0xe8edf3,.45),ink=mat(0x20212a,.5);
+ yellow.name='avatar-skin';hair.name='avatar-hair';jacket.name='avatar-jacket';jacketLight.name='avatar-jacket-light';jacketDark.name='avatar-jacket-dark';pants.name='avatar-pants';pantsLight.name='avatar-pants-light';red.name='avatar-accent';
+ const characterLooks={
+  explorer:{skin:0xf2bd35,hair:0x17191f,jacket:0x263e5c,jacketLight:0x45617d,jacketDark:0x17283d,pants:0x202d40,pantsLight:0x35465b,accent:0xa52d3a},
+  investigator:{skin:0xd99b70,hair:0x211713,jacket:0x604044,jacketLight:0x95615b,jacketDark:0x3a252b,pants:0x292b3b,pantsLight:0x45485b,accent:0xd3ad83},
+  village:{skin:0xe7b58a,hair:0x30231c,jacket:0x596044,jacketLight:0x7a805d,jacketDark:0x3a412f,pants:0x34372c,pantsLight:0x555b43,accent:0xb38b5d},
+  nightwatch:{skin:0xe8bd91,hair:0x090b10,jacket:0x343b4b,jacketLight:0x586273,jacketDark:0x202633,pants:0x151c29,pantsLight:0x30394a,accent:0x9b343c}
+ };
+ function applyCharacterLook(target,id){
+  const look=characterLooks[id]||characterLooks.explorer;
+  const materialKeys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent'};
+  target.traverse(object=>{if(!object.isMesh||!object.material)return;const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>{const key=materialKeys[material.name];if(key&&look[key]!=null)material.color.setHex(look[key]);});});
+ }
+
  function mesh(parent,geometry,material,x,y,z,rx=0,ry=0,rz=0){
   const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;
  }
@@ -798,6 +853,12 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   const leaveRoomBtn=document.getElementById('leave-room-btn');
  const lobbyRoomCode=document.getElementById('lobby-room-code');
  const startGameBtn=document.getElementById('start-game');
+ const characterSelectScreen=document.getElementById('character-select-screen');
+ const characterSelectName=document.getElementById('character-select-name');
+ const characterSelectConfirm=document.getElementById('character-select-confirm');
+ function showCharacterSelection(){if(characterSelectScreen){characterSelectScreen.style.display='flex';document.querySelectorAll('[data-character-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.characterChoice===selectedCharacterId)));if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';}startGameBtn.style.display='none';}
+ document.querySelectorAll('[data-character-choice]').forEach(button=>button.addEventListener('click',()=>{selectedCharacterId=button.dataset.characterChoice||'explorer';document.querySelectorAll('[data-character-choice]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
+ characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';applyCharacterLook(player,selectedCharacterId);try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);}catch(_){}if(characterSelectScreen)characterSelectScreen.style.display='none';if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
  const savedRoomsList=document.getElementById('saved-rooms-list');
  const savedRoomPrefix='ghoustory-room-save-';
  const savedRoomMetaKey='ghoustory-saved-room-meta-v1';
@@ -818,6 +879,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const remotePlayers=new Map();
  let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
  let realtimeClient=null,realtimeLoading=null,roomJoinInFlight=false,roomAttempt=0;
+ let selectedCharacterId='explorer';try{selectedCharacterId=localStorage.getItem('ghoustory-desa-character')||'explorer';}catch(_){}
  async function ensureRealtimeClient(){
   if(realtimeClient)return realtimeClient;
   if(!realtimeLoading)realtimeLoading=new Promise((resolve,reject)=>{
@@ -839,14 +901,14 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(id===playerId)return null;
   let entry=remotePlayers.get(id);
   if(!entry){
-   const avatar=player.clone(true);avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
+   const avatar=player.clone(true);const clonedMaterials=new Map();avatar.traverse(object=>{if(!object.isMesh||!object.material)return;const cloneOne=material=>{if(!clonedMaterials.has(material))clonedMaterials.set(material,material.clone());return clonedMaterials.get(material);};object.material=Array.isArray(object.material)?object.material.map(cloneOne):cloneOne(object.material);});applyCharacterLook(avatar,data.character||'explorer');avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
    entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0,moving:!!data.moving,phase:Math.random()*6.28,lastSeen:Date.now(),parts:{armL:avatar.getObjectByName('avatar-arm-left'),armR:avatar.getObjectByName('avatar-arm-right'),legL:avatar.getObjectByName('avatar-leg-left'),legR:avatar.getObjectByName('avatar-leg-right')}};
    remotePlayers.set(id,entry);
   }
   if(data){entry.target.set(Number(data.x)||0,0,Number(data.z)||0);entry.rotation=Number(data.rotation)||0;entry.moving=!!data.moving;entry.lastSeen=Date.now();}
   updateRoomCount();return entry;
  }
- function startAdventure(){if(roomStarted)return;roomStarted=true;try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
+ function startAdventure(){if(roomStarted)return;roomStarted=true;if(characterSelectScreen)characterSelectScreen.style.display='none';try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
  startGameBtn.addEventListener('click',startAdventure);
  saveRoomBtn.addEventListener('click',()=>{try{saveGameProgress();const snapshot=sessionStorage.getItem(saveKey);if(!snapshot)throw new Error('Progres belum siap disimpan');localStorage.setItem('ghoustory-room-save-'+activeRoom,snapshot);const meta=readSavedRoomMeta();meta[activeRoom]=Date.now();localStorage.setItem(savedRoomMetaKey,JSON.stringify(meta));refreshSavedRooms();saveRoomBtn.textContent='RUANG TERSIMPAN ✓';saveRoomBtn.classList.add('saved');hint.textContent='Ruang berhasil disimpan. Gunakan daftar RUANG TERSIMPAN untuk melanjutkan.';}catch(e){saveRoomBtn.textContent='GAGAL MENYIMPAN';hint.textContent='Gagal menyimpan ruang. Periksa penyimpanan browser.';console.warn(e);}});
  function startSoloFallback(code,reason){
@@ -858,7 +920,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
   lobbyRoomCode.textContent='MODE SOLO · OFFLINE';lobbyRoomCode.style.display='block';
   roomStatus.textContent='Layanan multiplayer tidak tersedia. Petualangan dilanjutkan dalam mode solo.';
-  startAdventure();
+  showCharacterSelection();
   roomCodeDisplay.textContent='MODE SOLO · TANPA KONEKSI';roomPresence.textContent='MODE SOLO · 1 PEMAIN';
   hint.textContent='Kamu memasuki Desa Wanasetra sendirian. Progres akan tersimpan di perangkat ini.';
   console.warn('[Desa Terlarang] Mode solo aktif:',reason||'Realtime tidak tersedia');
@@ -881,7 +943,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
     const entry=addRemotePlayer(payload.player_id,payload);
     if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;entry.moving=!!payload.moving;entry.avatar.visible=!payload.hidden;}
    });
-   channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.host){hostSeen=true;if(hostHandshakeTimer){clearTimeout(hostHandshakeTimer);hostHandshakeTimer=null;}}if(payload?.player_id&&payload.player_id!==playerId){const isNew=!remotePlayers.has(payload.player_id);addRemotePlayer(payload.player_id,payload);if(isNew&&multiplayer)multiplayer.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});if(payload.started&&!roomStarted)startAdventure();broadcastMissionState();if(activeStoryGhost&&activeStoryGhost.owner===playerId){multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index:lastStoryGhostIndex,x:activeStoryGhost.model.position.x,z:activeStoryGhost.model.position.z}});const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}}});
+   channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.host){hostSeen=true;if(hostHandshakeTimer){clearTimeout(hostHandshakeTimer);hostHandshakeTimer=null;}}if(payload?.player_id&&payload.player_id!==playerId){const isNew=!remotePlayers.has(payload.player_id);addRemotePlayer(payload.player_id,payload);if(isNew&&multiplayer)multiplayer.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,character:selectedCharacterId,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});if(payload.started&&!roomStarted)startAdventure();broadcastMissionState();if(activeStoryGhost&&activeStoryGhost.owner===playerId){multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index:lastStoryGhostIndex,x:activeStoryGhost.model.position.x,z:activeStoryGhost.model.position.z}});const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}}});
    channel.on('broadcast',{event:'leave'},({payload})=>{const id=payload?.player_id;if(!id)return;const entry=remotePlayers.get(id);if(entry){scene.remove(entry.avatar);remotePlayers.delete(id);updateRoomCount();}});
    channel.on('broadcast',{event:'story_ghost'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)spawnStoryGhost(Number(payload.index),Number(payload.x)||0,Number(payload.z)||0,true,payload.player_id);});
    channel.on('broadcast',{event:'ghost_sync'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;if(payload.active===false){if(activeStoryGhost?.owner===payload.player_id)finishStoryGhost();return;}if(activeStoryGhost?.owner!==payload.player_id)return;if(activeStoryGhost?.model)activeStoryGhost.model.position.set(Number(payload.x)||0,Number(payload.y)||0,Number(payload.z)||0);});
@@ -924,9 +986,9 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      roomJoinInFlight=false;
      lobbyRoomCode.textContent='KODE RUANG  '+code;lobbyRoomCode.style.display='block';
      createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
-     if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Ruang siap. Bagikan kode ini kepada temanmu. Tekan MULAI PETUALANGAN jika semua sudah bergabung.';}
+     if(isRoomHost){startGameBtn.style.display='none';roomStatus.textContent='Ruang siap. Pilih karakter terlebih dahulu.';}
      else{startGameBtn.style.display='none';roomStatus.textContent='Berhasil bergabung. Menunggu host memulai petualangan...';}
-     roomCodeDisplay.textContent='KODE RUANG  '+code;roomCodeDisplay.style.display='none';roomPresence.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');lobby.style.display='flex';updateRoomCount();
+     roomCodeDisplay.textContent='KODE RUANG  '+code;roomCodeDisplay.style.display='none';roomPresence.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');lobby.style.display='flex';updateRoomCount();showCharacterSelection();
     }else if(status==='CHANNEL_ERROR'){
      // Supabase dapat mencoba menyambungkan ulang otomatis; jangan langsung membuang ruang.
      const detail=err?.message||err?.cause?.message;roomStatus.textContent=detail?'Koneksi multiplayer bermasalah: '+detail+'. Sedang mencoba menyambung ulang...':'Koneksi terganggu. Multiplayer sedang mencoba menyambung ulang...';
