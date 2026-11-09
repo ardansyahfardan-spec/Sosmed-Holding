@@ -890,7 +890,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    const connectTimer=setTimeout(()=>{
     if(!channelReady)failRoomConnection('Koneksi multiplayer melewati batas waktu 18 detik. Coba lagi atau ganti jaringan.');
    },18000);
-   channel.subscribe(async status=>{
+   channel.subscribe(async (status,err)=>{
+    if(err)console.error('[Desa Terlarang Realtime]',status,err);
     if(attempt!==roomAttempt||activeRoom!==code)return;
     if(status==='SUBSCRIBED'&&!channelReady){
      channelReady=true;
@@ -909,9 +910,9 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      roomCodeDisplay.textContent='KODE RUANG  '+code;roomCodeDisplay.style.display='none';roomPresence.style.display='none';lobby.style.display='flex';updateRoomCount();
     }else if(status==='CHANNEL_ERROR'){
      // Supabase dapat mencoba menyambungkan ulang otomatis; jangan langsung membuang ruang.
-     roomStatus.textContent='Koneksi terganggu. Multiplayer sedang mencoba menyambung ulang...';
+     const detail=err?.message||err?.cause?.message;roomStatus.textContent=detail?'Koneksi multiplayer bermasalah: '+detail+'. Sedang mencoba menyambung ulang...':'Koneksi terganggu. Multiplayer sedang mencoba menyambung ulang...';
     }else if(status==='TIMED_OUT'){
-     roomStatus.textContent='Respons server terlambat. Menunggu kesempatan koneksi ulang...';
+     const detail=err?.message||err?.cause?.message;roomStatus.textContent=detail?'Respons server terlambat: '+detail+'. Menunggu koneksi ulang...':'Respons server terlambat. Menunggu kesempatan koneksi ulang...';
     }else if(status==='CLOSED'&&!channelReady){
      failRoomConnection('Koneksi ruang ditutup sebelum berhasil. Periksa jaringan lalu coba lagi.');
     }
