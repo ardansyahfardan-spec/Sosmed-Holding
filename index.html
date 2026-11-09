@@ -4815,10 +4815,27 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     const part=parseVideoAnalysisJson(raw);
                     const originalTranscript=String(part.fullTranscript||'').trim();
                     if(!originalTranscript)throw new Error('Bagian '+(index+1)+' tidak menghasilkan transkrip asli.');
-                    if(statusEl)statusEl.textContent='Menerjemahkan transkrip bagian '+(index+1)+'/'+total+' ke Bahasa Indonesia...';
-                    const translationRaw=await callGhoulAI('video-audio-chunk-translation',{title,transcript:originalTranscript,detectedLanguage:String(part.detectedLanguage||'')});
-                    const translation=parseVideoAnalysisJson(translationRaw);
-                    const translatedTranscript=String(translation.indonesianTranscript||'').trim();
+                    const translationParts=[];
+                    const maxTranslationChars=3500;
+                    let translationCursor=0,translationPartIndex=0;
+                    while(translationCursor<originalTranscript.length){
+                        let translationEnd=Math.min(translationCursor+maxTranslationChars,originalTranscript.length);
+                        if(translationEnd<originalTranscript.length){
+                            const boundary=originalTranscript.lastIndexOf(' ',translationEnd);
+                            if(boundary>translationCursor+Math.floor(maxTranslationChars*0.6))translationEnd=boundary;
+                        }
+                        const transcriptPart=originalTranscript.slice(translationCursor,translationEnd);
+                        translationCursor=translationEnd;
+                        if(!transcriptPart.trim())continue;
+                        translationPartIndex++;
+                        if(statusEl)statusEl.textContent='Menerjemahkan bagian '+(index+1)+'/'+total+' · teks '+translationPartIndex+'...';
+                        const translationRaw=await callGhoulAI('video-audio-chunk-translation',{title,transcript:transcriptPart,detectedLanguage:String(part.detectedLanguage||'')});
+                        const translation=parseVideoAnalysisJson(translationRaw);
+                        const translatedPart=String(translation.indonesianTranscript||'');
+                        if(!translatedPart.trim())throw new Error('Terjemahan bagian '+(index+1)+', potongan teks '+translationPartIndex+' kosong.');
+                        translationParts.push(translatedPart);
+                    }
+                    const translatedTranscript=translationParts.join('').trim();
                     if(!translatedTranscript)throw new Error('Terjemahan bagian '+(index+1)+' kosong.');
                     results.push({offsetSeconds,detectedLanguage:String(part.detectedLanguage||''),fullTranscript:originalTranscript,indonesianTranscript:translatedTranscript,summary:Array.isArray(part.summary)?part.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(part.moments)?part.moments:[])});
                 }finally{
