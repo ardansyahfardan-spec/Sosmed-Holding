@@ -1125,6 +1125,17 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sphere(gearFringe,hair,0,.24,-.29,.22,.09,.07);
  const gearBun=new THREE.Group();head.add(gearBun);
  sphere(gearBun,hair,0,-.03,.31,.13,.13,.13);
+ const gearCurls=new THREE.Group();head.add(gearCurls);
+ for(let n=0;n<7;n++){const angle=n/7*Math.PI*2;sphere(gearCurls,hair,Math.cos(angle)*.22,.23,Math.sin(angle)*.2,.09,.1,.09);}
+ const gearBottomMat=new THREE.MeshStandardMaterial({color:0x202d40,roughness:.58});
+ const gearSkirt=new THREE.Group();player.add(gearSkirt);
+ partBox(gearSkirt,.48,.38,.07,gearBottomMat,0,.91,-.235);
+ partBox(gearSkirt,.48,.38,.07,gearBottomMat,0,.91,.235);
+ partBox(gearSkirt,.07,.38,.38,gearBottomMat,-.25,.91,0);
+ partBox(gearSkirt,.07,.38,.38,gearBottomMat,.25,.91,0);
+ const gearDressBib=new THREE.Group();player.add(gearDressBib);
+ partBox(gearDressBib,.46,.38,.045,gearMat,0,1.55,-.245);
+ gearSkirt.visible=false;gearDressBib.visible=false;gearCurls.visible=false;
  function updateBrickCharacter(c={}){
   const female=c.gender==='female',wearHijab=female&&c.hijab==='yes';
   gearBag.visible=c.bag==='Ransel';gearSling.visible=c.bag==='Tas selempang'||c.bag==='Tas kecil';
@@ -1132,8 +1143,18 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   gearNecklace.visible=c.accessory==='Kalung';gearWatch.visible=c.accessory==='Jam tangan'||c.accessory==='Gelang';
   gearFringe.visible=!wearHijab&&(c['hair-style']==='fringe'||c['hair-style']==='layer');
   gearBun.visible=!wearHijab&&c['hair-style']==='tied';
+  gearCurls.visible=!wearHijab&&c['hair-style']==='curly';
+  const hairScale=c.hair==='short'?.74:c.hair==='medium'?.88:1;
+  femaleHair.scale.y=hairScale;longHair.scale.y=hairScale;shortHair.scale.y=c['hair-style']==='wavy'?1.08:1;
   gearHat.visible=gearHat.visible&&!wearHijab;
+  const skirtOn=c.bottom==='skirt-short'||c.bottom==='skirt-long'||c.outfit==='dress'||c.outfit==='gown';
+  gearSkirt.visible=skirtOn;
+  gearSkirt.scale.y=c.bottom==='skirt-short'?.76:1;
+  gearSkirt.position.y=c.bottom==='skirt-short'?.1:0;
+  gearDressBib.visible=c.outfit==='dress'||c.outfit==='gown';
+  gearDressBib.scale.y=c.outfit==='gown'?1.12:1;
   gearMat.color.set(c['top-color']||'#263e5c');
+  gearBottomMat.color.set(c['bottom-color']||'#202d40');
   gearMetal.color.set(c['accessory-color']||'#d7c49a');
   hijab.scale.y=c['hijab-style']==='syari'?1.14:c['hijab-style']==='instant'?.94:1.04;
  }
