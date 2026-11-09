@@ -444,7 +444,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   const inventoryText=document.getElementById('inventory-text');
   const inventoryItems=new Set();
   function refreshInventory(){inventoryText.textContent='TAS: '+(inventoryItems.size?Array.from(inventoryItems).join(', '):'kosong');}
-  function addInventoryItem(name){inventoryItems.add(name);refreshInventory();if(typeof saveGameProgress==='function')saveGameProgress();if(multiplayer)broadcastMissionState();}
+  function addInventoryItem(name){inventoryItems.add(name);refreshInventory();playInventoryPickupSound(name);if(typeof saveGameProgress==='function')saveGameProgress();if(multiplayer)broadcastMissionState();}
   const worldInteractions=[];
   const interactionMat=new THREE.MeshStandardMaterial({color:0x8b302f,emissive:0x4b1015,emissiveIntensity:.45,roughness:.8});
   function interactionMarker(x,z,label,detail,action){
@@ -459,7 +459,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),lampTrim);doorHandle.position.set(.77,.94,.09);secretDoor.add(doorHandle);
   let doorOpen=false,insideHouse=false,houseTransitioning=false,activeBuilding={name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true,bounds:{minX:-9.45,maxX:-4.55,minZ:-21.55,maxZ:-14.25}};
   const houseTransition=document.getElementById('house-transition');
-  function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+(b.d||4.7*b.scale)/2;houseTransitioning=true;joyX=0;joyY=0;stick.style.transform='translate(0,0)';interactBtn.style.display='none';nearbyWorld=null;nearbyMission=null;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';speakGuide(enter?'Kau sudah masuk. Jangan percaya pada suara yang memanggil dari dalam rumah.':'Jangan terlalu lama di luar. Desa ini selalu tahu siapa yang sedang berjalan.');houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{const hideSpotForBuilding=o.label.startsWith('BERSEMBUNYI')&&((b.oldHouse&&!o.label.includes('SEKOLAH'))||(b.school&&o.label.includes('SEKOLAH')));o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&(o.label==='Surat di ruang tamu'||o.label==='Foto keluarga'))||(b.school&&(o.label==='Papan pengumuman sekolah'||o.label==='Catatan ruang guru'||o.label==='Buku absen lama'))||hideSpotForBuilding):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu'&&o.label!=='Foto keluarga'&&o.label!=='Buku absen lama'&&!o.label.startsWith('BERSEMBUNYI'));});document.getElementById('mission').classList.toggle('inside-house',insideHouse);if(insideHouse){document.getElementById('mission').classList.remove('open');document.getElementById('mission-info-btn').setAttribute('aria-expanded','false');}state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);updateMission();houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
+  function changeHouseState(enter,building){if(houseTransitioning||insideHouse===enter)return;playDoorCreak(enter);if(enter&&building)activeBuilding=building;const b=activeBuilding,front=b.z+(b.d||4.7*b.scale)/2;houseTransitioning=true;joyX=0;joyY=0;stick.style.transform='translate(0,0)';interactBtn.style.display='none';nearbyWorld=null;nearbyMission=null;houseTransition.querySelector('span').textContent=enter?'MEMASUKI '+b.name:'KELUAR DARI '+b.name;houseTransition.classList.add('active');setTimeout(()=>{insideHouse=enter;doorOpen=enter;if(b.oldHouse)secretDoor.rotation.y=doorOpen?-1.18:0;player.position.set(b.x,0,enter?front-1.25:front+1.35);player.rotation.y=enter?0:Math.PI;cameraPitch=enter?.34:.42;cameraYaw=0;player.visible=!enter;camera.fov=enter?100:58;camera.updateProjectionMatrix();hint.textContent=enter?'MODE ORANG PERTAMA — Jelajahi ruangan dan periksa benda di sekitarmu.':'Kamu kembali ke halaman bangunan.';speakGuide(enter?'Kau sudah masuk. Jangan percaya pada suara yang memanggil dari dalam rumah.':'Jangan terlalu lama di luar. Desa ini selalu tahu siapa yang sedang berjalan.');houseExit.x=b.x;houseExit.z=enter?front-.55:front+1.35;houseExit.group.position.set(houseExit.x,.12,houseExit.z);worldInteractions.forEach(o=>{const hideSpotForBuilding=o.label.startsWith('BERSEMBUNYI')&&((b.oldHouse&&!o.label.includes('SEKOLAH'))||(b.school&&o.label.includes('SEKOLAH')));o.group.visible=insideHouse?(o===houseExit||(b.oldHouse&&(o.label==='Surat di ruang tamu'||o.label==='Foto keluarga'))||(b.school&&(o.label==='Papan pengumuman sekolah'||o.label==='Catatan ruang guru'||o.label==='Buku absen lama'))||hideSpotForBuilding):(!o.used&&o!==houseExit&&o.label!=='Surat di ruang tamu'&&o.label!=='Foto keluarga'&&o.label!=='Buku absen lama'&&!o.label.startsWith('BERSEMBUNYI'));});document.getElementById('mission').classList.toggle('inside-house',insideHouse);if(insideHouse){document.getElementById('mission').classList.remove('open');document.getElementById('mission-info-btn').setAttribute('aria-expanded','false');}state.textContent=insideHouse?'DI DALAM '+b.name:'DESA TERLARANG';missionMarkers.forEach(m=>m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked);updateMission();houseTransition.querySelector('span').textContent=enter?b.name:'DESA TERLARANG';setTimeout(()=>{houseTransition.classList.remove('active');houseTransitioning=false;},280);},440);}
   const houseExit=interactionMarker(0,0,'Keluar rumah','Keluar dari bangunan.',()=>{changeHouseState(false);return 'Kamu keluar dari bangunan.';});houseExit.group.visible=false;
   interactionMarker(-7.45,-12.05,'Masuk rumah','Pintu rumah tua terbuka.',()=>{changeHouseState(true,{name:'RUMAH TUA',x:-7,z:-17,scale:1.35,oldHouse:true});return 'Kamu memasuki rumah tua.';});
   interactionMarker(28,-102.4,'Masuk sekolah','Pintu sekolah tua terbuka sedikit.',()=>{changeHouseState(true,{name:'SEKOLAH TUA',x:28,z:-108,scale:1,d:9,school:true,bounds:{minX:21.5,maxX:34.5,minZ:-111.5,maxZ:-104.5}});return 'Kamu memasuki sekolah tua.';});
@@ -613,8 +613,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   g.userData={arms,legs,head:ghostHead,torso,kind};ghostAnimationParts.push(g);g.visible=false;scene.add(g);return g;
  }
  // Model hantu dibuat saat pertama kali muncul, bukan sekaligus saat game dibuka.
- let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0,remoteGhostHitAt=0;
- function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId};storyGhostTimer=def.duration;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');speakGuide(def.line);playGhostEffect(index,x,z);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
+ let activeStoryGhost=null,storyGhostTimer=0,lastStoryGhostIndex=-1,footstepClock=0,ghostFootstepClock=0,remoteGhostHitAt=0;
+ function spawnStoryGhost(index,x,z,remote=false,ownerId=''){const def=ghostRoster[index];if(!def||activeStoryGhost)return;if(!def.model)def.model=makeStoryGhost(def.id);def.model.position.set(x,0,z);def.model.visible=true;def.model.scale.setScalar(1);activeStoryGhost={...def,owner:remote?(ownerId||'remote'):playerId};storyGhostTimer=def.duration;ghostFootstepClock=.7;lastStoryGhostIndex=index;hint.textContent=def.name+' muncul. '+(index===0?'LARI!':'Jangan lengah.');playWhisperScare();speakGuide(def.line);playGhostEffect(index,x,z);playDiscoverySound();if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index,x,z}});}
  function finishStoryGhost(){if(!activeStoryGhost)return;activeStoryGhost.model.visible=false;activeStoryGhost=null;storyGhostTimer=0;if(multiplayer)multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:false}});}
  const environmentScares=[
   {id:'old-house',x:-7,z:-18,kind:'door',used:false}, {id:'school',x:28,z:-107,kind:'fall',used:false},
@@ -676,7 +676,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(prop){prop.object.visible=true;prop.fall=0;prop.target=ev.kind==='sway'?.32:(ev.kind==='tilt'?.48:1.25);}
   scareShake=.22;playEnvironmentalSound(ev.kind==='drop'?'metal':'thud');
   const lines={'old-house':'Pintu di belakangmu baru saja bergerak sendiri.','school':'Ada sesuatu yang menjatuhkan meja di ruang kelas.','well':'Tali sumur tertarik dari bawah. Menjauhlah.','bamboo':'Bambu itu bergerak, padahal angin berhenti.','cemetery':'Nisan itu bergeser dari tanahnya.','bridge':'Langkah kaki terdengar dari bawah jembatan.'};
-  hint.textContent=lines[id]||'Sesuatu bergerak di sekitarmu.';speakGuide(lines[id]||'Jangan bergerak. Ada sesuatu di dekatmu.');
+  hint.textContent=lines[id]||'Sesuatu bergerak di sekitarmu.';if(id==='well')playWellDrips();if(id==='bamboo')playBambooChime();playWhisperScare();speakGuide(lines[id]||'Jangan bergerak. Ada sesuatu di dekatmu.');
   if(!remote&&multiplayer)multiplayer.send({type:'broadcast',event:'environment_scare',payload:{player_id:playerId,id,x:ev.x,z:ev.z}});
  }
 
@@ -1036,11 +1036,54 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   setTimeout(()=>{try{delay.disconnect();feedback.disconnect();damp.disconnect();wet.disconnect();}catch(e){}},5200);
  }
  function playFootstep(){
-  if(!audioContext||!masterGain||!audioEnabled)return;
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime,wood=insideHouse,osc=audioContext.createOscillator(),gain=audioContext.createGain(),body=audioContext.createBiquadFilter();
+  osc.type=wood?'sawtooth':'triangle';osc.frequency.setValueAtTime(wood?78:105+Math.random()*28,now);osc.frequency.exponentialRampToValueAtTime(wood?32:48,now+.1);
+  body.type='lowpass';body.frequency.value=wood?260:620;
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(wood?.15:.11,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+(wood?.2:.12));
+  osc.connect(body);body.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+(wood?.21:.13));
+  if(wood&&Math.random()<.22)playWoodCreak();
+ }
+ function playDoorCreak(enter){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain(),filter=audioContext.createBiquadFilter();
+  osc.type='sawtooth';osc.frequency.setValueAtTime(enter?185:145,now);osc.frequency.linearRampToValueAtTime(enter?92:72,now+1.05);osc.frequency.linearRampToValueAtTime(enter?128:98,now+1.45);
+  filter.type='lowpass';filter.frequency.value=520;gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.075,now+.18);gain.gain.linearRampToValueAtTime(.0001,now+1.5);
+  osc.connect(filter);filter.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+1.52);
+ }
+ function playWoodCreak(){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
   const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();
-  osc.type='triangle';osc.frequency.setValueAtTime(105+Math.random()*28,now);osc.frequency.exponentialRampToValueAtTime(48,now+.09);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.11,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+.12);
-  osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.13);
+  osc.type='triangle';osc.frequency.setValueAtTime(240+Math.random()*90,now);osc.frequency.exponentialRampToValueAtTime(65,now+.24);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.045,now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.27);
+  osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.28);
+ }
+ function playWellDrips(){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime;
+  [0,.38,.91].forEach((offset,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.setValueAtTime(920-i*145,now+offset);osc.frequency.exponentialRampToValueAtTime(420-i*65,now+offset+.16);gain.gain.setValueAtTime(.0001,now+offset);gain.gain.exponentialRampToValueAtTime(.055,now+offset+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+offset+.2);osc.connect(gain);gain.connect(masterGain);osc.start(now+offset);osc.stop(now+offset+.21);});
+ }
+ function playBambooChime(){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime;
+  [660,990,1320].forEach((freq,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,now+i*.13);gain.gain.linearRampToValueAtTime(.045,now+i*.13+.02);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.13+1.1);osc.connect(gain);gain.connect(masterGain);osc.start(now+i*.13);osc.stop(now+i*.13+1.12);});
+ }
+ function playInventoryPickupSound(name){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime,ritual=/ritual|lonceng|nama keluarga|kunci|catatan/i.test(name),notes=ritual?[523.25,659.25,783.99]:[440,587.33];
+  notes.forEach((freq,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type=ritual?'sine':'triangle';osc.frequency.setValueAtTime(freq,now+i*.085);gain.gain.setValueAtTime(.0001,now+i*.085);gain.gain.linearRampToValueAtTime(ritual?.065:.045,now+i*.085+.018);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.085+.48);osc.connect(gain);gain.connect(masterGain);osc.start(now+i*.085);osc.stop(now+i*.085+.5);});
+ }
+ function playGhostFootstep(){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain(),filter=audioContext.createBiquadFilter();
+  osc.type='sine';osc.frequency.setValueAtTime(54,now);osc.frequency.exponentialRampToValueAtTime(27,now+.19);filter.type='lowpass';filter.frequency.value=115;
+  gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.13,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.24);osc.connect(filter);filter.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.25);
+ }
+ function playWhisperScare(){
+  if(!audioContext||!masterGain||!audioEnabled||audioContext.state!=='running')return;
+  const now=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain(),filter=audioContext.createBiquadFilter();
+  osc.type='sawtooth';osc.frequency.setValueAtTime(330,now);osc.frequency.exponentialRampToValueAtTime(118,now+.72);filter.type='bandpass';filter.frequency.value=510;filter.Q.value=2.8;
+  gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.035,now+.16);gain.gain.exponentialRampToValueAtTime(.0001,now+.82);osc.connect(filter);filter.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.84);
  }
  soundToggle.addEventListener('click',()=>{
   audioEnabled=!audioEnabled;
@@ -1130,7 +1173,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   scareProps.forEach(item=>{if(item.fall<item.target){item.fall=Math.min(item.target,item.fall+dt*2.8);item.object.rotation.z=item.baseRotation+item.fall;}else if(item.target>0){item.target=Math.max(0,item.target-dt*.055);if(item.target===0)item.object.visible=false;}});
 
   if(t-lastEnvironmentCheck>650){lastEnvironmentCheck=t;for(const ev of environmentScares){if(ev.used)continue;const dx=player.position.x-ev.x,dz=player.position.z-ev.z;if(dx*dx+dz*dz<4.8*4.8){triggerEnvironmentalScare(ev.id,false);break;}}}
-   if(activeStoryGhost&&activeStoryGhost.owner===playerId){storyGhostTimer-=dt;if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' menghilang ke dalam kabut.';finishStoryGhost();speakGuide('Sosok itu menghilang. Tapi jangan lengah.');}}
+   if(activeStoryGhost&&activeStoryGhost.owner===playerId){storyGhostTimer-=dt;ghostFootstepClock-=dt;if(ghostFootstepClock<=0&&storyGhostTimer>0){playGhostFootstep();ghostFootstepClock=1.35+Math.random()*.55;}if(storyGhostTimer<=0){hint.textContent=activeStoryGhost.name+' menghilang ke dalam kabut.';finishStoryGhost();speakGuide('Sosok itu menghilang. Tapi jangan lengah.');}}
   nearbyMission=null;nearbyWorld=null;let nearest=Infinity;
   if(!insideHouse&&!isHidden)missionPoints.forEach(p=>{if(p.done||!p.unlocked)return;const d=Math.hypot(player.position.x-p.x,player.position.z-p.z);if(d<2.7&&d<nearest){nearest=d;nearbyMission=p;}});
   worldInteractions.forEach(o=>{if(o.used||!o.group.visible||isHidden)return;const d=Math.hypot(player.position.x-o.x,player.position.z-o.z);if(d<2.5&&d<nearest){nearest=d;nearbyMission=null;nearbyWorld=o;}});
