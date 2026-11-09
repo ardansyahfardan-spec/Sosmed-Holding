@@ -1998,6 +1998,12 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
  #arena-play-panel.arena-game-page{padding:8px!important;}
  #arena-play-panel .malam-audio-controls{top:max(5px,env(safe-area-inset-top))!important;right:max(6px,env(safe-area-inset-right))!important;}
 }
+
+        .character-preview-stage{position:relative;min-height:340px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px;border:1px solid rgba(148,163,184,.15);background:radial-gradient(ellipse at 50% 38%,rgba(127,29,29,.22),transparent 48%),linear-gradient(180deg,#111827 0%,#090b12 72%,#07080c 100%)}
+        .character-preview-stage:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent)}
+        .character-preview-glow{position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(185,28,28,.16);filter:blur(50px)}
+        #page-character select,#page-character input{color-scheme:dark}
+        @media(max-width:640px){.character-preview-stage{min-height:300px}}
 </style>
 <style>
 /* Trial chat: modal mengikuti area layar yang masih terlihat saat keyboard HP terbuka. */
@@ -2156,6 +2162,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             <section id="page-home" class="page-section page-active">
               <div class="gcr-home-shell">
                 <div class="gcr-home-grid" aria-label="Menu ruang kerja">
+                  <button type="button" onclick="showPage('character')" class="gcr-home-item">
+                    <span class="gcr-home-icon"><i class="fa-solid fa-user-astronaut" aria-hidden="true"></i></span>
+                    <span class="gcr-home-copy"><b>Character Creator</b></span>
+                    <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
+                  </button>
                   <button type="button" onclick="showPage('grimoire')" class="gcr-home-item">
                     <span class="gcr-home-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
                     <span class="gcr-home-copy"><b>Grimoire</b></span>
@@ -2736,6 +2747,55 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
               <div id="lore-entry-modal" class="hidden fixed inset-0 z-[220] items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-5" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Detail entri Lore" onclick="if(event.target===this)closeLoreEntry()">
                 <div class="w-full max-w-5xl max-h-[92dvh] overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1c23] p-0 shadow-2xl">
                   <div id="lore-entry-modal-content"></div>
+                </div>
+              </div>
+            </section>
+
+
+            <!-- GHOUSTORY CHARACTER CREATOR -->
+            <section id="page-character" class="page-section max-w-6xl mx-auto">
+              <div class="mb-5">
+                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY · DESA TERLARANG</p>
+                <h2 class="text-2xl font-bold text-[#e9dfcf]">Character Creator</h2>
+                <p class="text-sm text-gray-400 mt-1">Rancang penampilan karakter pemain sebelum memasuki Desa Terlarang.</p>
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-4">
+                <div class="rounded-2xl border border-red-900/40 bg-gradient-to-b from-[#17131a] to-[#080a10] p-3 sm:p-5">
+                  <div class="flex items-center justify-between gap-2 mb-3">
+                    <div><p class="text-[10px] tracking-widest text-red-200 font-bold">LIVE PREVIEW</p><p class="text-xs text-gray-500 mt-1">Tampilan karakter</p></div>
+                    <span class="rounded-full border border-blue-900/70 bg-blue-950/40 px-3 py-1 text-[10px] text-blue-200">DESA TERLARANG</span>
+                  </div>
+                  <div class="character-preview-stage">
+                    <div class="character-preview-glow"></div>
+                    <div id="character-preview" class="relative z-10 w-full flex justify-center" aria-live="polite"></div>
+                  </div>
+                  <div class="mt-3 flex items-center justify-between gap-2">
+                    <div class="min-w-0"><p id="character-preview-name" class="font-bold text-white truncate">Karakter Saya</p><p class="text-[10px] text-gray-500">Preview rancangan karakter</p></div>
+                    <button type="button" onclick="randomizeCharacter()" class="shrink-0 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-200"><i class="fa-solid fa-shuffle mr-1"></i>Acak</button>
+                  </div>
+                  <div class="mt-4 rounded-xl border border-amber-900/30 bg-amber-950/15 p-3">
+                    <p class="text-[10px] text-amber-200 font-bold"><i class="fa-solid fa-circle-info mr-1"></i>CATATAN INTEGRASI</p>
+                    <p class="text-[10px] leading-relaxed text-gray-400 mt-1">Versi ini menyimpan rancangan ke akun Ghoustory. Penerapan otomatis ke avatar Roblox memerlukan penghubung khusus di dalam game, yang akan dibuat pada tahap integrasi berikutnya.</p>
+                  </div>
+                </div>
+                <div class="rounded-2xl border border-gray-800 bg-[#101116] p-3 sm:p-5">
+                  <div class="flex items-center justify-between gap-2 mb-4"><div><h3 class="font-bold text-white">Atur penampilan</h3><p class="text-[10px] text-gray-500 mt-1">Pilih bagian karakter satu per satu.</p></div><i class="fa-solid fa-sliders text-red-300 text-xl"></i></div>
+                  <label class="block text-xs text-gray-400 mb-1" for="character-name">Nama karakter</label>
+                  <input id="character-name" maxlength="24" value="Karakter Saya" oninput="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-black/40 px-3 py-3 text-sm text-white mb-4" placeholder="Nama karakter">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-hair">Model rambut</label><select id="character-hair" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="classic">Pendek klasik</option><option value="fringe">Belah samping</option><option value="long">Panjang</option><option value="curly">Keriting</option><option value="spiky">Berdiri / spiky</option><option value="bald">Botak</option></select></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-face">Ekspresi wajah</label><select id="character-face" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="calm">Normal</option><option value="smile">Senyum</option><option value="serious">Serius</option><option value="scared">Ketakutan</option></select></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-skin">Warna kulit</label><select id="character-skin" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="#f0c7a4">Terang</option><option value="#d9a17d">Sawo matang terang</option><option value="#b87955" selected>Sawo matang</option><option value="#8c553b">Cokelat</option><option value="#603c31">Gelap</option></select></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-accessory">Aksesori</label><select id="character-accessory" onchange="updateCharacterPreview()" class="w-full rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm"><option value="none">Tanpa aksesori</option><option value="glasses">Kacamata</option><option value="cap">Topi</option><option value="headphones">Headset</option></select></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-hair-color">Warna rambut</label><input id="character-hair-color" type="color" value="#171717" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-shirt">Warna atasan</label><input id="character-shirt" type="color" value="#7f1d1d" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1" for="character-pants">Warna celana</label><input id="character-pants" type="color" value="#202638" oninput="updateCharacterPreview()" class="w-full h-11 rounded-xl border border-gray-700 bg-gray-900 p-1"></div>
+                  </div>
+                  <div class="flex flex-col sm:flex-row gap-2 mt-5">
+                    <button type="button" id="character-save-button" onclick="saveCharacterProfile()" class="flex-1 rounded-xl bg-gradient-to-r from-red-800 to-blue-900 px-4 py-3 text-sm font-bold text-white"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Karakter</button>
+                    <button type="button" onclick="resetCharacterCreator()" class="rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-gray-300">Reset</button>
+                  </div>
+                  <p id="character-save-status" class="text-[11px] text-gray-500 mt-3" role="status">Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.</p>
                 </div>
               </div>
             </section>
@@ -3590,7 +3650,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],character:['Character Creator','Kustomisasi karakter Desa Terlarang'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
@@ -3612,10 +3672,73 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             window.updateBottomNavigation?.(pageId==='lore'?'lore':pageId==='crewhub'?'home':pageId==='tim'?'home':pageId==='chat'?'chat':pageId==='anda'?'anda':'home');
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(activeUser)window.loadGhoustoryNotifications?.();
+            if(pageId==='character')loadCharacterProfile();
             if(pageId==='arena')refreshArena();
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
+
+        // GHOUSTORY CHARACTER CREATOR — cloud save scoped to the signed-in account.
+        const characterDefaults = {hair:'classic',hairColor:'#171717',skin:'#b87955',face:'calm',shirt:'#7f1d1d',pants:'#202638',accessory:'none'};
+        function getCharacterAppearance(){
+          const value=id=>document.getElementById(id)?.value;
+          return {hair:value('character-hair')||characterDefaults.hair,hairColor:value('character-hair-color')||characterDefaults.hairColor,skin:value('character-skin')||characterDefaults.skin,face:value('character-face')||characterDefaults.face,shirt:value('character-shirt')||characterDefaults.shirt,pants:value('character-pants')||characterDefaults.pants,accessory:value('character-accessory')||characterDefaults.accessory};
+        }
+        function setCharacterAppearance(a={}){
+          const v={...characterDefaults,...a};
+          const pairs={'character-hair':'hair','character-hair-color':'hairColor','character-skin':'skin','character-face':'face','character-shirt':'shirt','character-pants':'pants','character-accessory':'accessory'};
+          Object.entries(pairs).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=v[key];});
+          const name=document.getElementById('character-name');if(name&&a.displayName)name.value=a.displayName;
+          updateCharacterPreview();
+        }
+        function characterHairMarkup(style,color){
+          const paths={
+            classic:'<path d="M62 91 Q54 31 105 25 Q158 28 149 91 L135 72 Q118 58 104 62 Q83 60 68 82Z"/>',
+            fringe:'<path d="M61 91 Q53 30 105 25 Q158 27 151 87 Q132 69 113 67 Q94 88 69 77Z"/>',
+            long:'<path d="M61 91 Q52 29 105 25 Q160 27 151 93 L153 151 Q143 163 134 148 L137 80 Q116 59 102 62 Q81 60 68 82 L72 150 Q62 163 55 150Z"/>',
+            curly:'<path d="M62 88 Q48 70 59 52 Q55 30 78 31 Q87 13 106 26 Q126 12 139 32 Q163 31 153 57 Q164 76 149 91 L139 74 Q122 59 104 63 Q83 60 68 82Z"/>',
+            spiky:'<path d="M62 89 L55 47 L78 59 L83 24 L105 49 L119 19 L130 54 L155 39 L148 91 L135 73 Q116 59 103 62 Q82 60 68 82Z"/>',
+            bald:''
+          };
+          return '<g fill="'+color+'" stroke="#09090b" stroke-width="3" stroke-linejoin="round">'+(paths[style]||paths.classic)+'</g>';
+        }
+        function updateCharacterPreview(){
+          const host=document.getElementById('character-preview');if(!host)return;
+          const a=getCharacterAppearance(),name=(document.getElementById('character-name')?.value||'Karakter Saya').trim()||'Karakter Saya';
+          const face={calm:'<path d="M83 111 Q88 108 93 111 M117 111 Q122 108 127 111 M96 132 Q105 136 114 132"/>',smile:'<path d="M82 110 Q88 106 94 110 M116 110 Q122 106 128 110 M91 128 Q105 145 119 128"/>',serious:'<path d="M82 110 L94 113 M116 113 L128 110 M94 133 L116 133"/>',scared:'<path d="M82 109 Q88 103 94 109 M116 109 Q122 103 128 109 M96 136 Q105 124 114 136"/><ellipse cx="88" cy="119" rx="3" ry="5" fill="#111"/><ellipse cx="122" cy="119" rx="3" ry="5" fill="#111"/>'}[a.face]||'';
+          const accessory=a.accessory==='glasses'?'<g fill="none" stroke="#111827" stroke-width="3"><rect x="77" y="105" width="20" height="15" rx="5"/><rect x="113" y="105" width="20" height="15" rx="5"/><path d="M97 111 H113"/></g>':a.accessory==='cap'?'<path d="M59 83 Q64 34 105 33 Q145 35 151 83 Q108 67 59 83Z" fill="#24364b" stroke="#0b1220" stroke-width="3"/><path d="M58 82 Q108 72 157 88 Q119 102 58 82Z" fill="#334155"/>':a.accessory==='headphones'?'<g fill="none" stroke="#64748b" stroke-width="8"><path d="M65 105 V83 Q65 40 105 40 Q145 40 145 83 V105"/><rect x="58" y="99" width="15" height="29" rx="6" fill="#334155"/><rect x="137" y="99" width="15" height="29" rx="6" fill="#334155"/></g>':'';
+          host.innerHTML='<svg viewBox="0 0 210 330" role="img" aria-label="Preview karakter" style="width:min(100%,250px);height:auto;filter:drop-shadow(0 18px 24px rgba(0,0,0,.5))"><ellipse cx="105" cy="311" rx="65" ry="10" fill="#020308" opacity=".7"/><path d="M68 184 Q48 192 44 247 L49 291 Q73 300 92 291 L92 218 L118 218 L118 291 Q143 300 161 291 L166 247 Q162 192 142 184Z" fill="'+a.pants+'" stroke="#09090b" stroke-width="4"/><path d="M72 174 Q47 180 40 211 L31 257 Q43 269 58 262 L75 219 L79 186Z M138 174 Q163 180 170 211 L179 257 Q167 269 152 262 L135 219 L131 186Z" fill="'+a.skin+'" stroke="#09090b" stroke-width="4"/><path d="M74 165 Q105 151 136 165 L151 222 Q105 241 59 222Z" fill="'+a.shirt+'" stroke="#09090b" stroke-width="4"/><path d="M88 163 L105 183 L122 163" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="4"/><path d="M93 151 H117 V176 Q105 187 93 176Z" fill="'+a.skin+'" stroke="#09090b" stroke-width="3"/><rect x="65" y="68" width="80" height="99" rx="34" fill="'+a.skin+'" stroke="#09090b" stroke-width="4"/>'+characterHairMarkup(a.hair,a.hairColor)+'<g fill="none" stroke="#20120f" stroke-width="3" stroke-linecap="round">'+face+'</g>'+accessory+'<path d="M84 298 L94 298 L94 307 L64 307 Q61 301 68 298Z M116 298 L126 298 L142 307 Q145 313 137 313 H113Z" fill="#111827" stroke="#05070a" stroke-width="3"/></svg>';
+          const label=document.getElementById('character-preview-name');if(label)label.textContent=name;
+        }
+        async function loadCharacterProfile(){
+          updateCharacterPreview();
+          const status=document.getElementById('character-save-status');if(!status)return;
+          if(!window.activeUser?.id||!window.supabaseClient){status.textContent='Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.';return;}
+          status.textContent='Memuat karakter tersimpan...';
+          const {data,error}=await supabaseClient.from('ghoustory_character_profiles').select('display_name,appearance').eq('user_id',activeUser.id).maybeSingle();
+          if(error){status.textContent='Belum dapat memuat data: '+error.message;return;}
+          if(data){setCharacterAppearance({...data.appearance,displayName:data.display_name});status.textContent='Karakter tersimpan berhasil dimuat dari akunmu.';}
+          else status.textContent='Belum ada karakter tersimpan. Atur penampilan lalu tekan Simpan Karakter.';
+        }
+        async function saveCharacterProfile(){
+          const status=document.getElementById('character-save-status'),button=document.getElementById('character-save-button');
+          if(!window.activeUser?.id||!window.supabaseClient){status.textContent='Silakan masuk ke akun Ghoustory terlebih dahulu.';return;}
+          const displayName=(document.getElementById('character-name')?.value||'Karakter Saya').trim().slice(0,24)||'Karakter Saya';
+          const appearance=getCharacterAppearance();if(button){button.disabled=true;button.classList.add('opacity-60');}
+          status.textContent='Menyimpan karakter ke cloud...';
+          try{
+            const {error}=await supabaseClient.from('ghoustory_character_profiles').upsert({user_id:activeUser.id,display_name:displayName,appearance,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+            if(error)throw error;
+            status.textContent='Karakter berhasil disimpan ke akunmu. Rancangan ini belum otomatis diterapkan ke Roblox.';
+          }catch(error){console.error('Character save error:',error);status.textContent='Gagal menyimpan: '+(error.message||'periksa koneksi.');}
+          finally{if(button){button.disabled=false;button.classList.remove('opacity-60');}}
+        }
+        function randomizeCharacter(){
+          const choose=(id,values)=>{const el=document.getElementById(id);if(el)el.value=values[Math.floor(Math.random()*values.length)];};
+          choose('character-hair',['classic','fringe','long','curly','spiky','bald']);choose('character-face',['calm','smile','serious','scared']);choose('character-skin',['#f0c7a4','#d9a17d','#b87955','#8c553b','#603c31']);choose('character-accessory',['none','glasses','cap','headphones']);choose('character-hair-color',['#171717','#2b1b16','#5b3826','#a16207','#d1d5db']);choose('character-shirt',['#7f1d1d','#1d4ed8','#166534','#374151','#713f12']);choose('character-pants',['#202638','#111827','#374151','#3f3f46']);updateCharacterPreview();
+        }
+        function resetCharacterCreator(){const n=document.getElementById('character-name');if(n)n.value='Karakter Saya';setCharacterAppearance(characterDefaults);const status=document.getElementById('character-save-status');if(status)status.textContent='Tampilan direset. Tekan Simpan Karakter jika ingin menyimpan perubahan.';}
+
         // LORE archive navigation and search foundation. Entries stay empty until source-verified records are added.
         const LORE_CATEGORY_LABELS={all:'Semua kategori',bestiary:'Tradisi & Ritual',folklore:'Kisah Gaib & Legenda',places:'Tempat Angker',artifacts:'Makhluk, Tokoh & Pusaka',cases:'Misteri & Kesaksian'};
         let activeLoreCategory='all';
