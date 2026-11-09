@@ -197,6 +197,7 @@ button:active{transform:scale(.97);background:#273650}
   <h1>DESA TERLARANG</h1>
   <p>Masuk ke ruang petualangan. Kamu bisa membuat ruang sendiri dan bermain sendirian, atau bergabung dengan teman menggunakan kode ruang.</p>
   <button id="create-room" class="primary" type="button">BUAT RUANG BARU</button>
+  <button id="customize-character" type="button" style="width:100%;margin-top:9px;padding:12px 14px;border:1px solid #d7b3a877;border-radius:12px;background:linear-gradient(110deg,#253e63,#18283f);color:#f5e9dc;font-size:11px;font-weight:900;letter-spacing:.12em">CUSTOM KARAKTER</button>
   <div style="margin-top:16px;font-size:10px;letter-spacing:.15em;color:#aab8d0">GABUNG DENGAN KODE</div>
   <input id="room-code-input" maxlength="6" placeholder="KODE RUANG" autocomplete="off" aria-label="Kode ruang">
   <button id="join-room" type="button">GABUNG RUANG</button>
@@ -247,6 +248,7 @@ button:active{transform:scale(.97);background:#273650}
  const hint=document.getElementById('hint');
  // Pasang handler lobby sedini mungkin agar tetap responsif bila inisialisasi dunia mengalami error.
  const earlyCreate=document.getElementById('create-room');
+ const earlyCustomize=document.getElementById('customize-character');
  const earlyJoin=document.getElementById('join-room');
  const earlyCode=document.getElementById('room-code-input');
  const earlyStatus=document.getElementById('room-status');
@@ -261,7 +263,7 @@ button:active{transform:scale(.97);background:#273650}
    activeRoom=pendingRoomCode;
    isRoomHost=true;
    roomStarted=false;
-   createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
+   createRoomBtn.style.display='none';if(earlyCustomize)earlyCustomize.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
    if(earlyStatus)earlyStatus.textContent='Tentukan penampilan karaktermu terlebih dahulu.';
    showCharacterSelection();
    return;
@@ -270,6 +272,10 @@ button:active{transform:scale(.97);background:#273650}
  }
  // Handler tunggal dipasang sebelum engine selesai dimuat; fungsi ini diaktifkan setelah inisialisasi.
  window.__ghoustoryLaunchCreateRoom=launchCreateRoom;
+ earlyCustomize?.addEventListener('click',()=>{
+  if(typeof window.__ghoustoryLaunchCreateRoom==='function'){window.__ghoustoryLaunchCreateRoom();}
+  else{window.__ghoustoryCreateRequested=true;if(earlyStatus)earlyStatus.textContent='Menyiapkan pemilihan karakter...';}
+ });
  earlyJoin?.addEventListener('click',()=>{
   try{startAmbientAudio();}catch(_){}
   try{enterRoom(earlyCode?.value||'',false);}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
@@ -1270,7 +1276,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   activeRoom=String(code||makeRoomCode()).toUpperCase().slice(0,6);
   isRoomHost=true;roomStarted=false;
   createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
-  createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
+  createRoomBtn.style.display='none';if(earlyCustomize)earlyCustomize.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
   lobbyRoomCode.textContent='MODE SOLO · OFFLINE';lobbyRoomCode.style.display='block';
   roomStatus.textContent='Mode solo aktif. Karakter siap; tekan MULAI PETUALANGAN.';
   if(characterSelectionConfirmed){if(characterSelectScreen)characterSelectScreen.style.display='none';startGameBtn.style.display='block';}
@@ -1376,7 +1382,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
     remotePlayers.forEach(entry=>scene.remove(entry.avatar));remotePlayers.clear();
     activeRoom='';isRoomHost=false;roomStarted=false;roomJoinInFlight=false;roomAttempt++;characterSelectionConfirmed=false;pendingStartFromBroadcast=false;
     lobbyRoomCode.style.display='none';lobbyRoomCode.textContent='';startGameBtn.style.display='none';
-    createRoomBtn.style.display='block';roomInput.style.display='block';joinRoomBtn.style.display='block';
+    createRoomBtn.style.display='block';if(earlyCustomize)earlyCustomize.style.display='block';roomInput.style.display='block';joinRoomBtn.style.display='block';
     createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
     roomCodeDisplay.style.display='none';roomPresence.style.display='none';saveRoomBtn.style.display='none';leaveRoomBtn.style.display='none';leaveRoomBtn.setAttribute('aria-hidden','true');
     roomStatus.textContent='Kamu sudah keluar dari ruang. Buat ruang baru atau gabung dengan kode lain.';
