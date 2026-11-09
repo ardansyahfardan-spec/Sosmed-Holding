@@ -1014,7 +1014,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    }
   });choices.appendChild(button);});
   panel.append(kicker,title,question,timer,feedback,choices);challengeOverlay.appendChild(panel);document.body.appendChild(challengeOverlay);
-  challengeTimer=setInterval(()=>{if(!challengePoint)return;challengeSeconds--;timer.textContent='WAKTU: '+challengeSeconds+' DETIK';if(challengeSeconds<=0){clearInterval(challengeTimer);challengeTimer=null;takeDamage(10,'Waktu habis. Sosok penjaga mendekat.');feedback.textContent='Waktu habis! Tekan salah satu jawaban untuk mencoba lagi.';challengeSeconds=20;challengeTimer=setInterval(()=>{if(!challengePoint)return;challengeSeconds--;timer.textContent='WAKTU: '+challengeSeconds+' DETIK';if(challengeSeconds<=0){clearInterval(challengeTimer);challengeTimer=null;takeDamage(10,'Penjaga semakin dekat.');feedback.textContent='Kamu masih belum menjawab. Coba lagi.';challengeSeconds=20;challengeTimer=setInterval(()=>{},1000);}},1000);}},1000);
+  challengeTimer=setInterval(()=>{if(!challengePoint)return;challengeSeconds--;timer.textContent='WAKTU: '+challengeSeconds+' DETIK';if(challengeSeconds<=0){takeDamage(10,'Waktu habis. Sosok penjaga semakin dekat.');feedback.textContent='Waktu habis! Kondisimu berkurang 10%. Waktu diulang, segera pilih jawaban.';challengeSeconds=20;}},1000);
  }
  function completeMissionFromInteraction(label){
   const point=missionPoints.find(p=>p.target===label);
