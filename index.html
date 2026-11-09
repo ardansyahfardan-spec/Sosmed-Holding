@@ -4813,8 +4813,14 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     if(statusEl)statusEl.textContent='AI menganalisis bagian '+(index+1)+'/'+total+' · transkrip dan terjemahan...';
                     const raw=await callGhoulAI('video-audio-chunk-analysis',{title, audioUrl:uploaded.url, mimeType:'audio/mpeg', offsetSeconds, chunkNumber:index+1, totalChunks:total});
                     const part=parseVideoAnalysisJson(raw);
-                    if(!String(part.fullTranscript||'').trim()&&!String(part.indonesianTranscript||'').trim())throw new Error('Bagian '+(index+1)+' tidak menghasilkan transkrip.');
-                    results.push({offsetSeconds,detectedLanguage:String(part.detectedLanguage||''),fullTranscript:String(part.fullTranscript||''),indonesianTranscript:String(part.indonesianTranscript||''),summary:Array.isArray(part.summary)?part.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(part.moments)?part.moments:[])});
+                    const originalTranscript=String(part.fullTranscript||'').trim();
+                    if(!originalTranscript)throw new Error('Bagian '+(index+1)+' tidak menghasilkan transkrip asli.');
+                    if(statusEl)statusEl.textContent='Menerjemahkan transkrip bagian '+(index+1)+'/'+total+' ke Bahasa Indonesia...';
+                    const translationRaw=await callGhoulAI('video-audio-chunk-translation',{title,transcript:originalTranscript,detectedLanguage:String(part.detectedLanguage||'')});
+                    const translation=parseVideoAnalysisJson(translationRaw);
+                    const translatedTranscript=String(translation.indonesianTranscript||'').trim();
+                    if(!translatedTranscript)throw new Error('Terjemahan bagian '+(index+1)+' kosong.');
+                    results.push({offsetSeconds,detectedLanguage:String(part.detectedLanguage||''),fullTranscript:originalTranscript,indonesianTranscript:translatedTranscript,summary:Array.isArray(part.summary)?part.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(part.moments)?part.moments:[])});
                 }finally{
                     if(uploaded?.path){const {error}=await supabaseClient.storage.from('vo-recordings').remove([uploaded.path]);if(error)console.warn('Audio bagian sementara gagal dihapus:',error);}
                 }
