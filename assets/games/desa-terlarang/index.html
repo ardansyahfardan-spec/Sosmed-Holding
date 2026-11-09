@@ -873,14 +873,20 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    channel.on('broadcast',{event:'environment_scare'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId){const dx=player.position.x-(Number(payload.x)||0),dz=player.position.z-(Number(payload.z)||0);if(dx*dx+dz*dz<26*26)triggerEnvironmentalScare(payload.id,true);}});
    channel.on('broadcast',{event:'survival'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry&&typeof payload.hidden==='boolean')entry.avatar.visible=!payload.hidden;});
    channel.on('broadcast',{event:'ritual'},({payload})=>{if(payload?.player_id!==playerId&&Number.isFinite(payload?.step)){if(Number.isFinite(payload.resetAt)&&payload.resetAt>=ritualResetAt){ritualResetAt=payload.resetAt;ritualStep=payload.reset?0:Math.max(ritualStep,payload.step);}else if(!Number.isFinite(payload.resetAt)&&!payload.reset){ritualStep=Math.max(ritualStep,payload.step);}if(ritualStep>=3){ritualComplete=true;addInventoryItem('Ritual selesai');if(typeof exitMarker!=='undefined')exitMarker.group.visible=true;}saveGameProgress();updateMission(false);}});
-   const connectTimer=setTimeout(()=>{if(activeRoom===code&&multiplayer!==channel){roomJoinInFlight=false;roomStatus.textContent='Koneksi multiplayer melewati batas waktu 18 detik. Coba lagi atau ganti jaringan.';lobby.style.display='flex';roomCodeDisplay.style.display='none';roomPresence.style.display='none';createRoomBtn.disabled=false;joinRoomBtn.disabled=false;activeRoom='';realtimeClient.removeChannel(channel);}},18000);
+   let channelReady=false;
+   const connectTimer=setTimeout(()=>{if(activeRoom===code&&!channelReady){roomJoinInFlight=false;roomStatus.textContent='Koneksi multiplayer melewati batas waktu 18 detik. Coba lagi atau ganti jaringan.';lobby.style.display='flex';roomCodeDisplay.style.display='none';roomPresence.style.display='none';createRoomBtn.disabled=false;joinRoomBtn.disabled=false;activeRoom='';realtimeClient.removeChannel(channel);}},18000);
    channel.subscribe(async status=>{
     if(activeRoom!==code)return;
-    if(status==='SUBSCRIBED'){
+    if(status==='SUBSCRIBED'&&!channelReady){
+     channelReady=true;
      clearTimeout(connectTimer);
-     roomJoinInFlight=false;
      multiplayer=channel;
-     await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});
+     try{
+      const helloStatus=await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});
+      if(helloStatus!=='ok')console.warn('[Desa Terlarang] Broadcast awal belum terkirim:',helloStatus);
+     }catch(sendError){console.warn('[Desa Terlarang] Broadcast awal gagal:',sendError);}
+     if(activeRoom!==code)return;
+     roomJoinInFlight=false;
      lobbyRoomCode.textContent='KODE RUANG  '+code;lobbyRoomCode.style.display='block';
      createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
      if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Ruang siap. Bagikan kode ini kepada temanmu. Tekan MULAI PETUALANGAN jika semua sudah bergabung.';}
@@ -890,7 +896,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      clearTimeout(connectTimer);
      if(activeRoom===code){
       roomJoinInFlight=false;
-      multiplayer=null;
+      if(multiplayer===channel)multiplayer=null;
       roomStatus.textContent='Koneksi ruang gagal ('+status+'). Periksa jaringan lalu coba lagi.';
       lobby.style.display='block';roomCodeDisplay.style.display='none';roomPresence.style.display='none';
       createRoomBtn.disabled=false;joinRoomBtn.disabled=false;activeRoom='';
