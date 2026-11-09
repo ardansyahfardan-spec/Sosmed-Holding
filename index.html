@@ -2050,43 +2050,13 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
     </div>
 
     <script>
-      // Login mandiri: tidak bergantung pada skrip utama aplikasi.
+      // Gunakan satu instance Supabase bersama dengan aplikasi utama.
       (() => {
         const button = document.getElementById('google-login-btn');
         if (!button) return;
-        let client = null;
-        let sdkPromise = null;
         const status = (message) => {
           const el = document.getElementById('login-status');
           if (el) { el.textContent = message; el.classList.remove('hidden'); }
-        };
-        const loadSdk = async () => {
-          if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
-          if (!sdkPromise) {
-            sdkPromise = (async () => {
-              const urls = [
-                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-                'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
-              ];
-              let lastError;
-              for (const src of urls) {
-                try {
-                  await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    const timeout = setTimeout(() => { script.remove(); reject(new Error('Waktu tunggu SDK habis')); }, 10000);
-                    script.src = src;
-                    script.onload = () => { clearTimeout(timeout); resolve(); };
-                    script.onerror = () => { clearTimeout(timeout); reject(new Error('Gagal memuat SDK: ' + src)); };
-                    document.head.appendChild(script);
-                  });
-                  if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
-                  lastError = new Error('SDK termuat tetapi fungsi createClient tidak tersedia.');
-                } catch (error) { lastError = error; console.warn('[Ghoustory login]', error); }
-              }
-              throw lastError || new Error('SDK Supabase tidak tersedia.');
-            })().catch(error => { sdkPromise = null; throw error; });
-          }
-          return sdkPromise;
         };
         button.addEventListener('click', async (event) => {
           event.preventDefault();
@@ -2095,26 +2065,25 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           button.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Menghubungkan...';
           status('Menghubungkan ke layanan login Google...');
           try {
-            const sdk = await loadSdk();
-            if (!client) client = sdk.createClient(
-              'https://xnbqckfbrrmdjiemfwqf.supabase.co',
-              'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL'
-            );
-            const { error } = await client.auth.signInWithOAuth({
+            const getClient = window.__getGhoustorySupabaseClient;
+            if (typeof getClient !== 'function') {
+              throw new Error('Koneksi autentikasi belum siap. Muat ulang halaman lalu coba lagi.');
+            }
+            const sharedClient = await getClient();
+            const { error } = await sharedClient.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo: 'https://ardansyahfardan-spec.github.io/Sosmed-Holding/' }
             });
             if (error) throw error;
-            status('Permintaan login dikirim. Menunggu pengalihan ke Google...');
           } catch (error) {
-            console.error('[Ghoustory login mandiri]', error);
+            console.error('[Ghoustory login]', error);
             status('Login gagal: ' + (error?.message || 'Periksa koneksi lalu coba lagi.'));
             button.disabled = false;
             button.innerHTML = '<i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google';
           }
         }, { passive: false });
       })();
-    </script>
+    </script>ipt>
 
     <!-- WELCOME / LOADING AFTER GOOGLE LOGIN -->
     <div id="welcome-screen" class="fixed inset-0 z-[120] hidden flex-col items-center justify-center text-center p-6 transition-opacity duration-700">
