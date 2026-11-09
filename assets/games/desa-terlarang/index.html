@@ -934,7 +934,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const humanHairTie=new THREE.Group();humanHairGroup.add(humanHairTie);
  sphere(humanHairTie,humanHairMat,0,-.13,.245,.105,.105,.09);
  const humanHairBand=mesh(humanHairTie,new THREE.TorusGeometry(.085,.018,6,14),humanMetalMat,0,-.13,.245);
- const humanFootwearDetails=humanLegRigs.map(({group})=>{const detail=new THREE.Group();group.add(detail);mesh(detail,new THREE.BoxGeometry(.19,.035,.025),humanMetalMat,0,-.94,-.17);mesh(detail,new THREE.BoxGeometry(.19,.035,.025),humanMetalMat,0,-.99,-.16);const heel=mesh(detail,new THREE.BoxGeometry(.075,.12,.09),humanShoeMat,0,-1.055,.015);return {detail,heel};});
+ const humanFootwearDetails=humanLegRigs.map(({group})=>{const detail=new THREE.Group();group.add(detail);mesh(detail,new THREE.BoxGeometry(.19,.035,.025),humanShoeMat,0,-.94,-.17);mesh(detail,new THREE.BoxGeometry(.19,.035,.025),humanShoeMat,0,-.99,-.16);const heel=mesh(detail,new THREE.BoxGeometry(.075,.12,.09),humanShoeMat,0,-1.055,.015);return {detail,heel};});
  const humanCurlGroup=new THREE.Group();humanHairGroup.add(humanCurlGroup);
  for(let i=0;i<9;i++){const a=i/9*Math.PI*2;sphere(humanCurlGroup,humanHairMat,Math.cos(a)*.205,.19+Math.sin(a)*.045,Math.sin(a)*.12,.075,.075,.075);}
  function updateHumanCharacter(c={}){
@@ -964,8 +964,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   humanBagGroup.visible=!!c.bag&&c.bag!=='Tidak memakai tas';humanBackpack.visible=c.bag==='Ransel';humanSling.visible=c.bag==='Tas selempang'||c.bag==='Tas kecil';
   humanBackpack.scale.set(c.bag==='Ransel'?1:.78,c.bag==='Ransel'?1:.78,1);
   humanAccessoryGroup.visible=!!c.accessory&&c.accessory!=='Tidak ada';humanGlasses.visible=c.accessory==='Kacamata';humanHat.visible=c.accessory==='Topi';humanNecklace.visible=c.accessory==='Kalung';humanWatch.visible=c.accessory==='Jam tangan'||c.accessory==='Gelang';
-  if(c['top-color']){humanTopMat.color.set(c['top-color']);humanTopLight.color.set(c['top-color']);humanTopDark.color.set(c['top-color']);}
-  if(c['bottom-color']){humanPantsMat.color.set(c['bottom-color']);humanPantsLight.color.set(c['bottom-color']);humanSkirt.material.color.set(c['bottom-color']);humanDress.material.color.set(c['bottom-color']);}
+  if(c['top-color']){humanTopMat.color.set(c['top-color']);humanTopLight.color.copy(humanTopMat.color).lerp(new THREE.Color(0xffffff),.2);humanTopDark.color.copy(humanTopMat.color).lerp(new THREE.Color(0x000000),.28);}
+  if(c['bottom-color']){humanPantsMat.color.set(c['bottom-color']);humanPantsLight.color.copy(humanPantsMat.color).lerp(new THREE.Color(0xffffff),.2);humanSkirt.material.color.set(c['bottom-color']);humanDress.material.color.set(c['bottom-color']);}
   if(c['hijab-color'])humanHijabMat.color.set(c['hijab-color']);if(c['hair-color'])humanHairMat.color.set(c['hair-color']);
   const skinMap={'#f2d0b2':0xf2d0b2,'#e4b48e':0xe4b48e,'#c98f68':0xc98f68,'#8d5b42':0x8d5b42};if(skinMap[c.skin])humanSkin.color.setHex(skinMap[c.skin]);
   if(c['shoes-color'])humanShoeMat.color.set(c['shoes-color']);
