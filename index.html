@@ -4801,8 +4801,6 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(total>240)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
             const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory',results=new Array(total);
             let nextIndex=0,workerFailure=null,completed=0;
-            let groqNextStartAt=0;
-            const waitForGroqSlot=async()=>{const now=Date.now(),scheduled=Math.max(now,groqNextStartAt);groqNextStartAt=scheduled+3100;const delay=scheduled-now;if(delay>0)await new Promise(resolve=>setTimeout(resolve,delay));};
             const processWorker=async()=>{
                 while(!workerFailure){
                     const index=nextIndex++;
@@ -4816,12 +4814,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         const chunkFile=new File([blob],base+'-part-'+String(index+1).padStart(2,'0')+'.mp3',{type:'audio/mpeg'});
                         if(statusEl)statusEl.textContent='Mengunggah bagian '+(index+1)+'/'+total+'...';
                         uploaded=await uploadVideoAnalysisMp3(chunkFile,statusEl);
-                        if(statusEl)statusEl.textContent='Groq Whisper mentranskrip bagian '+(index+1)+'/'+total+'...';
-                        await waitForGroqSlot();
+                        if(statusEl)statusEl.textContent='Gemini Flash-Lite mentranskrip bagian '+(index+1)+'/'+total+'...';
                         const transcriptionRaw=await callGhoulAI('video-audio-chunk-transcription',{audioUrl:uploaded.url,mimeType:'audio/mpeg',chunkNumber:index+1,totalChunks:total});
                         const transcription=parseVideoAnalysisJson(transcriptionRaw);
                         const originalTranscript=String(transcription.fullTranscript||transcription.text||'').trim();
-                        if(!originalTranscript)throw new Error('Groq tidak menghasilkan transkrip pada bagian '+(index+1)+'.');
+                        if(!originalTranscript)throw new Error('Gemini tidak menghasilkan transkrip pada bagian '+(index+1)+'.');
                         if(statusEl)statusEl.textContent='Gemini menerjemahkan dan menganalisis bagian '+(index+1)+'/'+total+'...';
                         const analysisRaw=await callGhoulAI('video-audio-chunk-text-analysis',{title,transcript:originalTranscript,detectedLanguage:String(transcription.detectedLanguage||transcription.language||'tidak diketahui'),offsetSeconds,chunkNumber:index+1,totalChunks:total});
                         const part=parseVideoAnalysisJson(analysisRaw);
