@@ -851,6 +851,106 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function sphere(parent,material,x,y,z,sx,sy,sz){
   const o=mesh(parent,new THREE.SphereGeometry(1,20,16),material,x,y,z);o.scale.set(sx,sy,sz);return o;
  }
+
+ // GHOUSTORY human-style avatar: soft anatomical forms with modular wardrobe pieces.
+ const humanAvatar=new THREE.Group();humanAvatar.name='ghoustory-human-avatar';player.add(humanAvatar);
+ const humanSkin=new THREE.MeshStandardMaterial({color:0xe4b48e,roughness:.84});humanSkin.name='avatar-skin';
+ const humanHairMat=new THREE.MeshStandardMaterial({color:0x211713,roughness:.92});humanHairMat.name='avatar-hair';
+ const humanTopMat=new THREE.MeshStandardMaterial({color:0x263e5c,roughness:.88});humanTopMat.name='avatar-jacket';
+ const humanTopLight=new THREE.MeshStandardMaterial({color:0x45617d,roughness:.85});humanTopLight.name='avatar-jacket-light';
+ const humanTopDark=new THREE.MeshStandardMaterial({color:0x17283d,roughness:.9});humanTopDark.name='avatar-jacket-dark';
+ const humanPantsMat=new THREE.MeshStandardMaterial({color:0x202d40,roughness:.9});humanPantsMat.name='avatar-pants';
+ const humanPantsLight=new THREE.MeshStandardMaterial({color:0x35465b,roughness:.88});humanPantsLight.name='avatar-pants-light';
+ const humanAccentMat=new THREE.MeshStandardMaterial({color:0xa52d3a,roughness:.7});humanAccentMat.name='avatar-accent';
+ const humanHijabMat=new THREE.MeshStandardMaterial({color:0x263b58,roughness:.95});humanHijabMat.name='avatar-hijab';
+ const humanShoeMat=new THREE.MeshStandardMaterial({color:0x171b24,roughness:.82});
+ const humanMetalMat=new THREE.MeshStandardMaterial({color:0xb8c5d4,metalness:.42,roughness:.36});
+ const humanFace=new THREE.Group();humanFace.position.y=2.35;humanAvatar.add(humanFace);
+ const humanHeadMesh=mesh(humanFace,new THREE.SphereGeometry(1,28,20),humanSkin,0,0,0);humanHeadMesh.scale.set(.255,.33,.235);
+ sphere(humanFace,humanSkin,-.255,-.015,0,.055,.085,.065);sphere(humanFace,humanSkin,.255,-.015,0,.055,.085,.065);
+ sphere(humanFace,humanSkin,0,-.075,-.222,.045,.07,.045);
+ const humanEyeMat=new THREE.MeshStandardMaterial({color:0x241b1a,roughness:.48});
+ const humanLipMat=new THREE.MeshStandardMaterial({color:0x99545b,roughness:.78});
+ for(const side of [-1,1]){sphere(humanFace,humanEyeMat,side*.095,.045,-.218,.025,.018,.012);sphere(humanFace,humanSkin,side*.095,.079,-.216,.045,.012,.009);}
+ sphere(humanFace,humanLipMat,0,-.145,-.216,.047,.012,.012);
+ const humanMakeup=new THREE.Group();humanMakeup.userData.characterStyle='female-makeup';humanFace.add(humanMakeup);
+ const humanShadowMat=new THREE.MeshStandardMaterial({color:0x9b6874,transparent:true,opacity:.5,roughness:.9});
+ const humanBlushMat=new THREE.MeshStandardMaterial({color:0xd98286,transparent:true,opacity:.52,roughness:.9});
+ for(const side of [-1,1]){sphere(humanMakeup,humanShadowMat,side*.095,.069,-.22,.045,.018,.008);sphere(humanMakeup,humanEyeMat,side*.095,.045,-.231,.032,.009,.008);sphere(humanMakeup,humanBlushMat,side*.17,-.075,-.18,.052,.032,.009);}
+ const humanHairGroup=new THREE.Group();humanFace.add(humanHairGroup);
+ sphere(humanHairGroup,humanHairMat,0,.245,.005,.27,.13,.245);
+ const humanFringe=sphere(humanHairGroup,humanHairMat,0,.15,-.192,.19,.095,.065);
+ const humanHairBack=sphere(humanHairGroup,humanHairMat,0,-.08,.12,.25,.34,.17);
+ const humanHairLeft=sphere(humanHairGroup,humanHairMat,-.225,-.06,-.015,.065,.28,.09);
+ const humanHairRight=sphere(humanHairGroup,humanHairMat,.225,-.06,-.015,.065,.28,.09);
+ const humanHijabGroup=new THREE.Group();humanHijabGroup.userData.characterStyle='female-hijab';humanFace.add(humanHijabGroup);
+ sphere(humanHijabGroup,humanHijabMat,0,.13,.07,.29,.37,.25);
+ sphere(humanHijabGroup,humanHijabMat,-.225,-.16,.055,.095,.34,.19);sphere(humanHijabGroup,humanHijabMat,.225,-.16,.055,.095,.34,.19);
+ sphere(humanHijabGroup,humanHijabMat,0,-.39,.09,.29,.17,.19);
+ cylinder(humanAvatar,.095,.105,.22,humanSkin,0,2.02,0,18);
+ const humanTorso=new THREE.Group();humanTorso.position.set(0,1.55,0);humanAvatar.add(humanTorso);
+ const humanBody=mesh(humanTorso,new THREE.CapsuleGeometry(.31,.48,8,20),humanTopMat,0,0,0);humanBody.scale.set(1.17,1,.76);
+ sphere(humanTorso,humanTopMat,0,.27,-.015,.37,.25,.26);
+ const humanCollar=mesh(humanTorso,new THREE.CylinderGeometry(.12,.16,.12,18),humanTopDark,0,.48,0);
+ const humanShirtPlacket=mesh(humanTorso,new THREE.BoxGeometry(.035,.58,.018),humanTopLight,0,.02,-.236);
+ const humanArmRigs=[];
+ for(const side of [-1,1]){
+  const arm=new THREE.Group();arm.position.set(side*.405,1.78,0);humanAvatar.add(arm);
+  sphere(arm,humanTopMat,0,-.055,0,.155,.16,.16);
+  const upper=mesh(arm,new THREE.CapsuleGeometry(.105,.34,6,14),humanTopMat,0,-.245,0,0,0,side*-.04);
+  const fore=mesh(arm,new THREE.CapsuleGeometry(.085,.32,6,14),humanSkin,side*.015,-.59,-.005,0,0,side*-.025);
+  sphere(arm,humanSkin,side*.018,-.82,-.015,.085,.105,.075);
+  humanArmRigs.push({group:arm,upper,fore,side});
+ }
+ const humanLegRigs=[];
+ for(const side of [-1,1]){
+  const leg=new THREE.Group();leg.position.set(side*.17,1.02,0);humanAvatar.add(leg);
+  const thigh=mesh(leg,new THREE.CapsuleGeometry(.125,.43,7,16),humanPantsMat,0,-.27,0);
+  sphere(leg,humanPantsMat,0,-.52,0,.12,.13,.12);
+  const shin=mesh(leg,new THREE.CapsuleGeometry(.095,.38,7,16),humanPantsMat,0,-.72,0);
+  const shoe=mesh(leg,new THREE.SphereGeometry(1,18,12),humanShoeMat,0,-.99,-.075);shoe.scale.set(.13,.085,.22);
+  humanLegRigs.push({group:leg,thigh,shin,shoe});
+ }
+ const humanSkirtGroup=new THREE.Group();humanAvatar.add(humanSkirtGroup);
+ const humanSkirt=mesh(humanSkirtGroup,new THREE.CylinderGeometry(.29,.48,.78,24,1,true),humanTopMat,0,.72,0);
+ const humanDressGroup=new THREE.Group();humanAvatar.add(humanDressGroup);
+ const humanDress=mesh(humanDressGroup,new THREE.CylinderGeometry(.28,.58,1.42,28,1,true),humanTopMat,0,1.08,0);
+ const humanOverallGroup=new THREE.Group();humanAvatar.add(humanOverallGroup);
+ mesh(humanOverallGroup,new THREE.CapsuleGeometry(.32,.52,7,18),humanTopMat,0,1.3,0);
+ for(const side of [-1,1]){mesh(humanOverallGroup,new THREE.BoxGeometry(.09,.55,.055),humanTopLight,side*.19,1.62,-.22);mesh(humanOverallGroup,new THREE.SphereGeometry(.035,10,8),humanMetalMat,side*.19,1.82,-.255);}
+ const humanBagGroup=new THREE.Group();humanAvatar.add(humanBagGroup);
+ const humanBackpack=mesh(humanBagGroup,new THREE.BoxGeometry(.38,.52,.19),humanTopDark,0,1.48,.25);
+ const humanSling=mesh(humanBagGroup,new THREE.BoxGeometry(.19,.27,.12),humanTopDark,.3,1.4,.08,0,0,-.28);
+ const humanAccessoryGroup=new THREE.Group();humanAvatar.add(humanAccessoryGroup);
+ const humanGlasses=new THREE.Group();humanAccessoryGroup.add(humanGlasses);
+ for(const side of [-1,1])mesh(humanGlasses,new THREE.TorusGeometry(.065,.009,6,16),humanMetalMat,side*.095,.045,-.225).scale.set(1,.78,1);
+ mesh(humanGlasses,new THREE.BoxGeometry(.07,.012,.012),humanMetalMat,0,.045,-.225);
+ const humanNecklace=mesh(humanAccessoryGroup,new THREE.TorusGeometry(.13,.012,6,22,Math.PI),humanMetalMat,0,1.78,-.19,Math.PI,0,0);
+ const humanWatch=mesh(humanAccessoryGroup,new THREE.TorusGeometry(.09,.018,6,18),humanMetalMat,-.43,1.18,-.015);
+ const humanHat=mesh(humanAccessoryGroup,new THREE.CylinderGeometry(.19,.21,.09,20),humanHairMat,0,2.72,0);
+ function updateHumanCharacter(c={}){
+  const female=c.gender==='female',hijab=female&&c.hijab==='yes',outfit=c.outfit||'separates',bottom=c.bottom||'pants-long',top=c.top||'tee-short';
+  humanMakeup.visible=female;humanHairGroup.visible=!hijab;humanHijabGroup.visible=hijab;
+  humanHairBack.scale.y=(c.hair==='long'||c.hair==='medium')?.34:.2;
+  humanHairLeft.visible=c.hair!=='short';humanHairRight.visible=c.hair!=='short';
+  humanFringe.visible=c['hair-style']==='fringe'||c['hair-style']==='layer';
+  humanHairBack.scale.x=c['hair-style']==='wavy'?1.12:1;
+  humanCollar.visible=top==='shirt'||top==='blouse';humanShirtPlacket.visible=top==='shirt'||top==='blouse';
+  humanBody.visible=outfit==='separates'||outfit==='uniform';
+  humanArmRigs.forEach(({upper,fore})=>{upper.visible=top!=='tee-short';upper.material=humanTopMat;fore.material=humanSkin;});
+  humanSkirtGroup.visible=outfit==='separates'&&(bottom==='skirt-short'||bottom==='skirt-long');
+  humanSkirt.scale.y=bottom==='skirt-short'?.78:1;humanDressGroup.visible=outfit==='dress'||outfit==='gown';
+  humanDress.scale.y=outfit==='gown'?1.12:.9;humanOverallGroup.visible=outfit==='overall';
+  humanLegRigs.forEach(({thigh,shin,shoe})=>{const skirtOn=humanSkirtGroup.visible||humanDressGroup.visible;thigh.material=skirtOn?humanSkin:humanPantsMat;shin.material=skirtOn?humanSkin:humanPantsMat;thigh.visible=bottom!=='pants-short'||skirtOn;shin.visible=true;shoe.material=humanShoeMat;});
+  humanBagGroup.visible=!!c.bag&&c.bag!=='Tidak memakai tas';humanBackpack.visible=c.bag==='Ransel';humanSling.visible=c.bag==='Tas selempang'||c.bag==='Tas kecil';
+  humanAccessoryGroup.visible=!!c.accessory&&c.accessory!=='Tidak ada';humanGlasses.visible=c.accessory==='Kacamata';humanHat.visible=c.accessory==='Topi';humanNecklace.visible=c.accessory==='Kalung';humanWatch.visible=c.accessory==='Jam tangan'||c.accessory==='Gelang';
+  if(c['top-color'])humanTopMat.color.set(c['top-color']);if(c['bottom-color']){humanPantsMat.color.set(c['bottom-color']);humanSkirt.material.color.set(c['bottom-color']);}
+  if(c['hijab-color'])humanHijabMat.color.set(c['hijab-color']);if(c['hair-color'])humanHairMat.color.set(c['hair-color']);
+  const skinMap={'#f2d0b2':0xf2d0b2,'#e4b48e':0xe4b48e,'#c98f68':0xc98f68,'#8d5b42':0x8d5b42};if(skinMap[c.skin])humanSkin.color.setHex(skinMap[c.skin]);
+  if(c['shoes-color'])humanShoeMat.color.set(c['shoes-color']);
+ }
+ updateHumanCharacter({gender:'male',hijab:'no'});
+
  // Hip block and separated classic toy legs.
  const hips=partBox(player,.73,.34,.38,pants,0,1.08,0);
  const legL=new THREE.Group();legL.name='avatar-leg-left';legL.position.set(-.205,.99,0);player.add(legL);
@@ -968,7 +1068,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
  const torchBeamGeometry=new THREE.CylinderGeometry(.012,.22,5,10,1,true);torchBeamGeometry.rotateX(-Math.PI/2);const torchBeam=new THREE.Mesh(torchBeamGeometry,new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.035,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.position.z=-2.7;torchBeam.visible=false;flashlightProp.add(torchBeam);
  const torchLensGlow=new THREE.PointLight(0x9edbff,0,5.5);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
-  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
+  // Keep the articulated human avatar visible instead of the original toy-style body.
+ for(const child of [...player.children])if(child!==humanAvatar&&child!==flashlightProp)child.visible=false;
+ humanAvatar.visible=true;
+ flashlightProp.position.set(.42,1.28,-.16);
+ // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
  const roomStatus=document.getElementById('room-status');
  const createRoomBtn=document.getElementById('create-room');
@@ -988,11 +1092,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function readCustomCharacter(){const value={};ccIds.forEach(id=>{const el=ccEl(id);if(el)value[id]=el.value;});return value;}
  function loadCustomCharacter(value){if(!value)return;ccIds.forEach(id=>{const el=ccEl(id);if(el&&value[id]!=null)el.value=value[id];});}
  function selectedBaseLook(c){if(c.gender==='female')return c.hijab==='yes'?'female-hijab':'female-long';return c.hair==='long'||c.hair==='medium'?'male-long':'male-short';}
- function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);}
+ function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);updateHumanCharacter(c);if(characterPreviewAvatar){characterPreviewScene.remove(characterPreviewAvatar);characterPreviewAvatar=player.clone(true);characterPreviewAvatar.position.set(0,0,0);characterPreviewAvatar.scale.setScalar(.92);characterPreviewScene.add(characterPreviewAvatar);}}
  ccIds.forEach(id=>{const el=ccEl(id);if(el)el.addEventListener('change',previewCustomCharacter);});
  try{const savedCustom=JSON.parse(localStorage.getItem('ghoustory-desa-custom-character')||'null');if(savedCustom)loadCustomCharacter(savedCustom);}catch(_){}
  function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';previewCustomCharacter();}startGameBtn.style.display='none';}
- characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
+ characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);updateHumanCharacter(customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
  const savedRoomsList=document.getElementById('saved-rooms-list');
  const savedRoomPrefix='ghoustory-room-save-';
  const savedRoomMetaKey='ghoustory-saved-room-meta-v1';
