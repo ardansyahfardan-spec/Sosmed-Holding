@@ -120,7 +120,7 @@ button:active{transform:scale(.97);background:#273650}
 </div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script>
-(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');function queueRoom(){window.__ghoustoryCreateRequested=true;if(s)s.textContent='Menyiapkan dunia dan koneksi ruang...';}b?.addEventListener('click',queueRoom);})();
+(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');b?.addEventListener('click',()=>{if(typeof window.__ghoustoryLaunchCreateRoom==='function'){window.__ghoustoryLaunchCreateRoom();}else{window.__ghoustoryCreateRequested=true;if(s)s.textContent='Menyiapkan dunia dan koneksi ruang...';}});})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';"></script>
 <script>
@@ -143,8 +143,8 @@ button:active{transform:scale(.97);background:#273650}
   try{startAmbientAudio();}catch(_){}
   try{enterRoom(makeRoomCode(),true);}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
  }
- // Satu jalur klik mendukung mouse, keyboard, dan tap layar sentuh.
- earlyCreate?.addEventListener('click',launchCreateRoom);
+ // Handler tunggal dipasang sebelum engine selesai dimuat; fungsi ini diaktifkan setelah inisialisasi.
+ window.__ghoustoryLaunchCreateRoom=launchCreateRoom;
  earlyJoin?.addEventListener('click',()=>{
   try{startAmbientAudio();}catch(_){}
   try{enterRoom(earlyCode?.value||'',false);}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
@@ -1148,8 +1148,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   renderer.render(scene,camera);
  }
  requestAnimationFrame(frame);
- // Jalankan permintaan BUAT RUANG yang terjadi sebelum engine 3D selesai diinisialisasi.
- if(window.__ghoustoryCreateRequested){window.__ghoustoryCreateRequested=false;setTimeout(()=>launchCreateRoom(),0);}
+ // Selesaikan satu permintaan klik yang masuk sebelum engine 3D selesai diinisialisasi.
+ if(window.__ghoustoryCreateRequested){window.__ghoustoryCreateRequested=false;window.__ghoustoryLaunchCreateRoom();}
  function resize(){const w=innerWidth,h=innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobileQuality?.62:1.2));}
  addEventListener('resize',resize,{passive:true});
  try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
