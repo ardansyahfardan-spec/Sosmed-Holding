@@ -403,11 +403,20 @@ Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk 
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis BAGIAN ${chunkNumber} dari ${totalChunks} audio. Judul: ${title}. Posisi bagian ini dimulai pada detik ke-${offsetSeconds} dari audio asli.
 Audio dapat memakai bahasa Jawa Timur/Sidoarjo, bahasa Indonesia, atau campuran.
-Buat transkrip asli lengkap untuk BAGIAN 1 menit ini dan terjemahan Indonesia natural. Jangan menambahkan penjelasan panjang. Ringkasan maksimal 2 poin. Pilih maksimal 1 momen Shorts paling menarik (durasi maksimal 60 detik); bila tidak ada momen kuat, moments boleh kosong. Timestamp relatif terhadap awal BAGIAN ini (00:00). Jangan mengarang ucapan atau waktu; tandai [tidak terdengar] bila perlu.
+Buat HANYA transkrip asli lengkap untuk bagian audio ini dalam bahasa yang benar-benar diucapkan. Jangan menerjemahkan. Jangan menambahkan penjelasan. Ringkasan maksimal 2 poin. Pilih maksimal 1 momen Shorts paling menarik (durasi maksimal 60 detik); bila tidak ada momen kuat, moments boleh kosong. Timestamp relatif terhadap awal bagian ini (00:00). Jangan mengarang ucapan atau waktu; tandai [tidak terdengar] bila perlu.
 Kembalikan HANYA JSON valid:
-{"title":"...","detectedLanguage":"...","fullTranscript":"...","indonesianTranscript":"...","summary":["..."],"moments":[{"start":"00:00","end":"00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
+{"title":"...","detectedLanguage":"...","fullTranscript":"...","indonesianTranscript":"","summary":["..."],"moments":[{"start":"00:00","end":"00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
 Ini hanya bagian ${chunkNumber}, bukan keseluruhan audio.`;
       requestParts[0] = { text: prompt };
+    } else if (task === "video-audio-chunk-translation") {
+      const transcript = String(body.transcript || "").slice(0, 26000);
+      const detectedLanguage = String(body.detectedLanguage || "bahasa sumber").slice(0, 80);
+      if (!transcript.trim()) return json({ error: "Transkrip asli untuk diterjemahkan kosong." }, 400);
+      prompt = `Terjemahkan transkrip berikut ke Bahasa Indonesia yang natural, akurat, dan tetap mempertahankan makna, gaya tutur, nama, serta istilah lokal. Bahasa sumber terdeteksi: ${detectedLanguage}. Jangan meringkas, jangan menambah informasi, dan jangan menghilangkan kalimat. Kembalikan HANYA JSON valid dengan satu properti indonesianTranscript.
+TRANSKRIP ASLI:
+${transcript}
+FORMAT:
+{"indonesianTranscript":"..."}`;
     } else if (task === "video-transcript-synthesis") {
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
       const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 240) : [];
@@ -490,8 +499,8 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis";
-    const maxOutputTokens = structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis" || task === "video-audio-chunk-translation";
+    const maxOutputTokens = task === "video-audio-chunk-translation" ? 9000 : structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     const videoAnalysisSchema = {
       type: "OBJECT",
       properties: {
@@ -517,6 +526,12 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       },
       required: ["title", "detectedLanguage", "fullTranscript", "indonesianTranscript", "summary", "moments"]
     };
+    const translationSchema = {
+      type: "OBJECT",
+      properties: { indonesianTranscript: { type: "STRING" } },
+      required: ["indonesianTranscript"]
+    };
+    const activeResponseSchema = task === "video-audio-chunk-translation" ? translationSchema : videoAnalysisSchema;
     let response: Response | null = null;
     let activeModel = "";
 
@@ -532,7 +547,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
           body: JSON.stringify({
             contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
-            generationConfig: { temperature: structuredJsonTask ? 0.3 : 0.75, maxOutputTokens, ...(structuredJsonTask ? { responseMimeType: "application/json", responseJsonSchema: videoAnalysisSchema } : {}) },
+            generationConfig: { temperature: structuredJsonTask ? 0.3 : 0.75, maxOutputTokens, ...(structuredJsonTask ? { responseMimeType: "application/json", responseJsonSchema: activeResponseSchema } : {}) },
           }),
           signal: AbortSignal.timeout(110_000),
         });
