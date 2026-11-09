@@ -849,6 +849,20 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function startAdventure(){if(roomStarted)return;roomStarted=true;try{const saved=localStorage.getItem('ghoustory-room-save-'+activeRoom);if(saved){sessionStorage.setItem(saveKey,saved);restoreGameProgress();hint.textContent='Simpanan ruang dipulihkan. Lanjutkan petualanganmu.';}else{sessionStorage.removeItem(saveKey);hint.textContent='Petualangan baru dimulai dari gerbang Desa Wanasetra.';}}catch(e){console.warn('Simpanan ruang tidak dapat dipulihkan',e);}if(multiplayer)multiplayer.send({type:'broadcast',event:'start',payload:{player_id:playerId}});lobby.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');roomCodeDisplay.textContent='KODE RUANG  '+activeRoom;roomCodeDisplay.style.display='block';roomPresence.style.display='block';saveRoomBtn.style.display='block';saveRoomBtn.textContent='SIMPAN RUANG';saveRoomBtn.classList.remove('saved');state.textContent='MULTIPLAYER AKTIF';updateRoomCount();broadcastMissionState();setTimeout(()=>{openClueSheet('MISI PERTAMA · GERBANG DESA','Ikuti tujuan pada panel informasi. Dekati penanda di gerbang desa untuk memulai penyelidikan.',true);},500);}
  startGameBtn.addEventListener('click',startAdventure);
  saveRoomBtn.addEventListener('click',()=>{try{saveGameProgress();const snapshot=sessionStorage.getItem(saveKey);if(!snapshot)throw new Error('Progres belum siap disimpan');localStorage.setItem('ghoustory-room-save-'+activeRoom,snapshot);const meta=readSavedRoomMeta();meta[activeRoom]=Date.now();localStorage.setItem(savedRoomMetaKey,JSON.stringify(meta));refreshSavedRooms();saveRoomBtn.textContent='RUANG TERSIMPAN ✓';saveRoomBtn.classList.add('saved');hint.textContent='Ruang berhasil disimpan. Gunakan daftar RUANG TERSIMPAN untuk melanjutkan.';}catch(e){saveRoomBtn.textContent='GAGAL MENYIMPAN';hint.textContent='Gagal menyimpan ruang. Periksa penyimpanan browser.';console.warn(e);}});
+ function startSoloFallback(code,reason){
+  roomJoinInFlight=false;roomAttempt++;
+  if(multiplayer){try{realtimeClient?.removeChannel(multiplayer);}catch(_){}multiplayer=null;}
+  activeRoom=String(code||makeRoomCode()).toUpperCase().slice(0,6);
+  isRoomHost=true;roomStarted=false;
+  createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
+  createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
+  lobbyRoomCode.textContent='MODE SOLO · OFFLINE';lobbyRoomCode.style.display='block';
+  roomStatus.textContent='Layanan multiplayer tidak tersedia. Petualangan dilanjutkan dalam mode solo.';
+  startAdventure();
+  roomCodeDisplay.textContent='MODE SOLO · TANPA KONEKSI';roomPresence.textContent='MODE SOLO · 1 PEMAIN';
+  hint.textContent='Kamu memasuki Desa Wanasetra sendirian. Progres akan tersimpan di perangkat ini.';
+  console.warn('[Desa Terlarang] Mode solo aktif:',reason||'Realtime tidak tersedia');
+ }
  async function enterRoom(code,host=false){
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
   if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
@@ -883,12 +897,13 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
     clearTimeout(connectTimer);if(hostHandshakeTimer){clearTimeout(hostHandshakeTimer);hostHandshakeTimer=null;}
     roomJoinInFlight=false;
     if(multiplayer===channel)multiplayer=null;
+    Promise.resolve(realtimeClient.removeChannel(channel)).catch(removeError=>console.warn('[Desa Terlarang] Gagal membersihkan channel:',removeError));
+    if(isRoomHost){startSoloFallback(code,message);return;}
     activeRoom='';
     isRoomHost=false;roomStarted=false;
     roomStatus.textContent=message;
     lobby.style.display='flex';roomCodeDisplay.style.display='none';roomPresence.style.display='none';leaveRoomBtn.style.display='none';leaveRoomBtn.setAttribute('aria-hidden','true');
     createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
-    Promise.resolve(realtimeClient.removeChannel(channel)).catch(removeError=>console.warn('[Desa Terlarang] Gagal membersihkan channel:',removeError));
    };
    const connectTimer=setTimeout(()=>{
     if(!channelReady)failRoomConnection('Koneksi multiplayer melewati batas waktu 18 detik. Coba lagi atau ganti jaringan.');
@@ -921,7 +936,14 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      failRoomConnection('Koneksi ruang ditutup sebelum berhasil. Periksa jaringan lalu coba lagi.');
     }
    });
-  }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomAttempt++;roomJoinInFlight=false;activeRoom='';multiplayer=null;roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');lobby.style.display='flex';leaveRoomBtn.style.display='none';leaveRoomBtn.setAttribute('aria-hidden','true');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;isRoomHost=false;roomStarted=false;}
+  }catch(error){
+   console.error('[Desa Terlarang multiplayer]',error);
+   roomAttempt++;roomJoinInFlight=false;multiplayer=null;
+   if(host){startSoloFallback(code,error?.message||'Koneksi realtime gagal');return;}
+   activeRoom='';roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');
+   lobby.style.display='flex';leaveRoomBtn.style.display='none';leaveRoomBtn.setAttribute('aria-hidden','true');
+   createRoomBtn.disabled=false;joinRoomBtn.disabled=false;isRoomHost=false;roomStarted=false;
+  }
  }
  async function leaveCurrentRoom(){
    if(!activeRoom||roomJoinInFlight)return;
