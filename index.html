@@ -4797,8 +4797,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 audioBuffer=await audioContext.decodeAudioData(await file.arrayBuffer());
             }catch(error){throw new Error('MP3 tidak dapat dibaca browser. Pastikan file tidak rusak dan coba lagi.');}
             finally{if(audioContext)try{await audioContext.close();}catch(_){}}
-            const sampleRate=audioBuffer.sampleRate,chunkFrames=240*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
-            if(total>60)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
+            const sampleRate=audioBuffer.sampleRate,chunkFrames=120*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
+            if(total>120)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
             const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory',results=[];
             for(let index=0;index<total;index++){
                 const startFrame=index*chunkFrames,endFrame=Math.min(audioBuffer.length,startFrame+chunkFrames),offsetSeconds=Math.floor(startFrame/sampleRate);
