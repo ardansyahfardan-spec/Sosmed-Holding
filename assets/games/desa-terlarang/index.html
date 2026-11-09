@@ -217,9 +217,18 @@ button:active{transform:scale(.97);background:#273650}
  });
  function launchCreateRoom(){
   window.__ghoustoryCreateRequested=false;
-  if(earlyStatus)earlyStatus.textContent='Membuat ruang baru...';
   try{startAmbientAudio();}catch(_){}
-  try{enterRoom(makeRoomCode(),true);}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
+  if(typeof showCharacterSelection==='function'&&typeof makeRoomCode==='function'){
+   pendingRoomCode=makeRoomCode();
+   activeRoom=pendingRoomCode;
+   isRoomHost=true;
+   roomStarted=false;
+   createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
+   if(earlyStatus)earlyStatus.textContent='Tentukan penampilan karaktermu terlebih dahulu.';
+   showCharacterSelection();
+   return;
+  }
+  if(earlyStatus)earlyStatus.textContent='Game belum siap. Coba muat ulang halaman.';
  }
  // Handler tunggal dipasang sebelum engine selesai dimuat; fungsi ini diaktifkan setelah inisialisasi.
  window.__ghoustoryLaunchCreateRoom=launchCreateRoom;
@@ -946,7 +955,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  ccIds.forEach(id=>{const el=ccEl(id);if(el)el.addEventListener('change',previewCustomCharacter);});
  try{const savedCustom=JSON.parse(localStorage.getItem('ghoustory-desa-custom-character')||'null');if(savedCustom)loadCustomCharacter(savedCustom);}catch(_){}
  function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';previewCustomCharacter();}startGameBtn.style.display='none';}
- characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
+ characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(pendingRoomCode){const code=pendingRoomCode;pendingRoomCode='';roomStatus.textContent='Karakter tersimpan. Menghubungkan ke ruang '+code+'...';enterRoom(code,true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
  const savedRoomsList=document.getElementById('saved-rooms-list');
  const savedRoomPrefix='ghoustory-room-save-';
  const savedRoomMetaKey='ghoustory-saved-room-meta-v1';
@@ -965,7 +974,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  let isRoomHost=false,roomStarted=false;
  const playerId=(crypto.randomUUID?crypto.randomUUID():('p'+Date.now()+Math.random().toString(36).slice(2)));
  const remotePlayers=new Map();
- let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
+ let multiplayer=null,activeRoom='',pendingRoomCode='',lastBroadcast=0,localNickname='Pemain';
  let realtimeClient=null,realtimeLoading=null,roomJoinInFlight=false,roomAttempt=0;
  let selectedCharacterId='male-short';try{selectedCharacterId=localStorage.getItem('ghoustory-desa-character')||'male-short';if(!characterLooks[selectedCharacterId])selectedCharacterId='male-short';}catch(_){}
  let characterSelectionConfirmed=false,pendingStartFromBroadcast=false;
@@ -1008,8 +1017,9 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   createRoomBtn.disabled=false;joinRoomBtn.disabled=false;
   createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
   lobbyRoomCode.textContent='MODE SOLO · OFFLINE';lobbyRoomCode.style.display='block';
-  roomStatus.textContent='Layanan multiplayer tidak tersedia. Petualangan dilanjutkan dalam mode solo.';
-  showCharacterSelection();
+  roomStatus.textContent='Mode solo aktif. Karakter siap; tekan MULAI PETUALANGAN.';
+  if(characterSelectionConfirmed){if(characterSelectScreen)characterSelectScreen.style.display='none';startGameBtn.style.display='block';}
+  else showCharacterSelection();
   roomCodeDisplay.textContent='MODE SOLO · TANPA KONEKSI';roomPresence.textContent='MODE SOLO · 1 PEMAIN';
   hint.textContent='Kamu memasuki Desa Wanasetra sendirian. Progres akan tersimpan di perangkat ini.';
   console.warn('[Desa Terlarang] Mode solo aktif:',reason||'Realtime tidak tersedia');
@@ -1076,7 +1086,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      roomJoinInFlight=false;
      lobbyRoomCode.textContent='KODE RUANG  '+code;lobbyRoomCode.style.display='block';
      createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
-     if(isRoomHost){startGameBtn.style.display='none';roomStatus.textContent='Ruang siap. Pilih karakter terlebih dahulu.';}
+     if(isRoomHost){if(characterSelectionConfirmed){startGameBtn.style.display='block';roomStatus.textContent='Ruang siap. Semua pengaturan karakter tersimpan; mulai saat siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Ruang siap. Pilih karakter terlebih dahulu.';}}
      else{startGameBtn.style.display='none';roomStatus.textContent='Berhasil bergabung. Menunggu host memulai petualangan...';}
      roomCodeDisplay.textContent='KODE RUANG  '+code;roomCodeDisplay.style.display='none';roomPresence.style.display='none';leaveRoomBtn.style.display='grid';leaveRoomBtn.setAttribute('aria-hidden','false');lobby.style.display='flex';updateRoomCount();showCharacterSelection();
     }else if(status==='CHANNEL_ERROR'){
