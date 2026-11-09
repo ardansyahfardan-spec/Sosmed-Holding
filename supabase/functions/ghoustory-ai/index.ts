@@ -389,6 +389,42 @@ KELUARAN HANYA JSON VALID TANPA MARKDOWN dengan struktur:
 {"title":"...","detectedLanguage":"...","fullTranscript":"transkrip asli lengkap","indonesianTranscript":"terjemahan Indonesia lengkap","summary":["..."],"moments":[{"start":"00:00:00","end":"00:00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
 Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk ditranskrip seluruhnya, nyatakan bagian yang tidak tercakup secara jujur pada fullTranscript dan jangan berpura-pura lengkap.`;
       requestParts[0] = { text: prompt };
+    } else if (task === "video-audio-chunk-analysis") {
+      const audioUrl = String(body.audioUrl || "");
+      audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+      const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
+      const offsetSeconds = Math.max(0, Number(body.offsetSeconds) || 0);
+      const chunkNumber = Math.max(1, Number(body.chunkNumber) || 1);
+      const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
+      if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
+      if (!audioUrl) return json({ error: "Tautan MP3 sementara untuk bagian audio tidak tersedia." }, 400);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title + " bagian " + chunkNumber, apiKey);
+      requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
+      uploadedGeminiFileName = uploadedAudio.name;
+      prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis BAGIAN ${chunkNumber} dari ${totalChunks} audio. Judul: ${title}. Posisi bagian ini dimulai pada detik ke-${offsetSeconds} dari audio asli.
+Audio dapat memakai bahasa Jawa Timur/Sidoarjo, bahasa Indonesia, atau campuran.
+Buat transkrip asli setia pada ucapan, terjemahan Indonesia natural, bahasa terdeteksi, ringkasan singkat bagian ini, dan maksimal 3 kandidat momen menarik dari bagian ini.
+Timestamp momen harus relatif terhadap awal BAGIAN ini (mulai 00:00), bukan keseluruhan audio. Setiap momen maksimal 60 detik. Jangan mengarang ucapan atau waktu; tandai confidence medium/low bila perkiraan. Jika bagian tidak jelas, tandai [tidak terdengar].
+Kembalikan HANYA JSON valid:
+{"title":"...","detectedLanguage":"...","fullTranscript":"...","indonesianTranscript":"...","summary":["..."],"moments":[{"start":"00:00","end":"00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
+Jangan mengklaim transkrip lengkap untuk keseluruhan video; ini hanya bagian ${chunkNumber}.`;
+      requestParts[0] = { text: prompt };
+    } else if (task === "video-transcript-synthesis") {
+      const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
+      const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 60) : [];
+      if (!chunks.length) return json({ error: "Data bagian audio untuk penggabungan transkrip kosong." }, 400);
+      const compactChunks = chunks.map((chunk: any, index: number) => ({
+        part: index + 1,
+        offsetSeconds: Math.max(0, Number(chunk?.offsetSeconds) || 0),
+        summary: Array.isArray(chunk?.summary) ? chunk.summary.slice(0, 3) : [],
+        moments: Array.isArray(chunk?.moments) ? chunk.moments.slice(0, 3) : [],
+      }));
+      prompt = `Kamu editor senior Ghoustory. Gabungkan ringkasan dan kandidat momen dari seluruh bagian audio menjadi hasil akhir untuk video berjudul: ${title}.
+DATA BAGIAN (offsetSeconds adalah posisi awal bagian di audio asli):
+${JSON.stringify(compactChunks)}
+Buat ringkasan akhir 3–6 poin. Pilih TEPAT 5 kandidat Shorts terbaik dari kandidat yang tersedia; jangan menciptakan kejadian/kutipan baru. Konversikan timestamp relatif bagian menjadi timestamp global dengan menambahkan offsetSeconds. Setiap durasi Shorts maksimal 60 detik. Urutkan berdasarkan potensi menarik penonton. Jika kandidat kurang dari 5, kembalikan sebanyak yang benar-benar tersedia dan jangan mengarang.
+Kembalikan HANYA JSON valid:
+{"summary":["..."],"moments":[{"start":"00:00:00","end":"00:00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}`;
     } else if (task === "subtitle-srt") {
       const translatedTranscript = String(body.translatedTranscript || "").slice(0, 30000);
       const audioUrl = String(body.audioUrl || "");
