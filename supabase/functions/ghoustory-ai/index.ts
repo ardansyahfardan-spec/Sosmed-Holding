@@ -608,8 +608,12 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     }
     console.log("[ghoustory-ai] stage=extracting_text");
     const candidate = result?.candidates?.[0];
+    console.log("[ghoustory-ai] stage=output_metadata task=" + task + " finishReason=" + String(candidate?.finishReason || "unknown") + " outputTokens=" + String(result?.usageMetadata?.candidatesTokenCount || 0));
     if (structuredJsonTask && candidate?.finishReason === "MAX_TOKENS") {
-      return json({ error: "Hasil transkrip terlalu panjang untuk satu kali keluaran AI. Coba audio yang lebih pendek." }, 502);
+      const outputLimitMessage = task === "video-audio-chunk-translation"
+        ? "Terjemahan satu potongan teks melewati batas keluaran AI. Sistem akan mencoba memproses teks dalam potongan yang lebih kecil."
+        : "Hasil transkrip terlalu panjang untuk satu kali keluaran AI. Coba audio yang lebih pendek.";
+      return json({ error: outputLimitMessage }, 502);
     }
     let text = (candidate?.content?.parts || [])
       .map((part: { text?: string }) => part.text || "")
