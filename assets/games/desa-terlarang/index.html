@@ -650,7 +650,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  function ghostTexture(base,stain){
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');
   ctx.fillStyle=base;ctx.fillRect(0,0,256,256);
-  for(let i=0;i<1450;i++){const x=(i*97)%256,y=(i*173)%256,r=1+(i%5);ctx.globalAlpha=.025+(i%5)*.012;ctx.fillStyle=i%2?stain:'#ffffff';ctx.fillRect(x,y,r,r*.7);}
+  for(let i=0;i<2300;i++){const x=(i*97)%256,y=(i*173)%256,r=1+(i%5);ctx.globalAlpha=.035+(i%5)*.014;ctx.fillStyle=i%3?stain:'#ffffff';ctx.fillRect(x,y,r,r*.7);}
   ctx.globalAlpha=1;const tex=new THREE.CanvasTexture(canvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2,2);return tex;
  }
  const ghostMaterials={
@@ -666,7 +666,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   pale:new THREE.MeshStandardMaterial({color:0xc4c0b4,map:ghostTexture('#c4c0b4','#77736a'),roughness:1})
  };
  // Material hantu dibuat sedikit tembus cahaya; tanpa shader pascaproses atau tekstur eksternal.
- [[ghostMaterials.shroud,.88],[ghostMaterials.skin,.92],[ghostMaterials.dark,.94],[ghostMaterials.cloth,.9],[ghostMaterials.wrap,.88],[ghostMaterials.pale,.9]].forEach(([material,opacity])=>{material.transparent=true;material.opacity=opacity;material.depthWrite=false;});
+ [[ghostMaterials.shroud,.97],[ghostMaterials.skin,.98],[ghostMaterials.dark,.98],[ghostMaterials.cloth,.96],[ghostMaterials.wrap,.96],[ghostMaterials.pale,.97]].forEach(([material,opacity])=>{material.transparent=true;material.opacity=opacity;material.depthWrite=true;material.side=THREE.DoubleSide;});
  const ghostRoster=[
   {id:'pocong',name:'Pocong',line:'Kain di tubuhnya sama dengan cap yang kau temukan di sumur. Ia menjaga rahasia keluarga yang dikubur.',speed:2.35,duration:13},
   {id:'anak',name:'Anak kecil',line:'Anak itu salah satu warga yang hilang tujuh belas tahun lalu. Suaranya memanggil dari arah sumur.',speed:1.35,duration:9},
@@ -1675,10 +1675,14 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   const survivalOpen=which==='survival'?!survivalPanel.classList.contains('open'):false;
   missionPanel.classList.toggle('open',missionOpen);
   survivalPanel.classList.toggle('open',survivalOpen);
+  missionPanel.style.display=missionOpen?'block':'none';
+  survivalPanel.style.display=survivalOpen?'block':'none';
+  missionPanel.style.pointerEvents=missionOpen?'auto':'none';
+  survivalPanel.style.pointerEvents=survivalOpen?'auto':'none';
   missionInfoBtn.setAttribute('aria-expanded',String(missionOpen));
   survivalInfoBtn.setAttribute('aria-expanded',String(survivalOpen));
  }
- missionInfoBtn.addEventListener('click',()=>{const willOpen=!missionPanel.classList.contains('open');missionPanel.classList.toggle('open',willOpen);missionPanel.style.display=willOpen?'block':'none';missionPanel.style.pointerEvents=willOpen?'auto':'none';missionInfoBtn.setAttribute('aria-expanded',String(willOpen));if(willOpen){survivalPanel.classList.remove('open');survivalInfoBtn.setAttribute('aria-expanded','false');}});
+ missionInfoBtn.addEventListener('click',()=>toggleInfoPanel('mission'));
  survivalInfoBtn.addEventListener('click',()=>toggleInfoPanel('survival'));
 
  function frame(t){
