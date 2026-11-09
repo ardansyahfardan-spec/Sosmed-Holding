@@ -974,27 +974,58 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   return {group:g,ring,beam,light,point:p,phase:i*2};
  });
  function updateMission(sync=true){const completed=missionPoints.filter(p=>p.done).length,next=missionPoints.find(p=>!p.done);missionProgress.textContent=completed+' / 6 TUJUAN';const found=Array.from(inventoryItems);document.getElementById('mission-items').textContent='DITEMUKAN: '+(found.length?found.join(' · '):'belum ada benda penting');missionMarkers.forEach(m=>{m.group.visible=!insideHouse&&!m.point.done&&m.point.unlocked&&m.point.target==='gate';});worldInteractions.forEach(o=>{const objective=missionPoints.find(p=>p.target===o.label);if(objective){const visibleInPlace=o.label==='Catatan ruang guru'?(insideHouse&&activeBuilding.school):!insideHouse;o.group.visible=!o.used&&!objective.done&&objective.unlocked&&visibleInPlace;}});if(next){const chapter=completed+1;missionChapter.textContent='BAB '+chapter+' · DESA TERLARANG';missionObjective.textContent=next.objective;missionDetail.textContent=next.detail;document.querySelector('.chapter').textContent='DESA TERLARANG · BAB '+chapter;state.textContent='INVESTIGASI '+chapter+'/6';}else{missionChapter.textContent='BAB AKHIR · RITUAL WANASETRA';missionObjective.textContent=ritualComplete?'Cari jalan keluar desa':'Selesaikan ritual di makam keluarga';missionDetail.textContent=ritualComplete?'Ikuti jalur ke selatan menuju jalan keluar.':'Pastikan lonceng, kain, dan nama keluarga sudah ditemukan.';state.textContent=ritualComplete?'JALAN KELUAR TERBUKA':'RITUAL TERAKHIR';}saveGameProgress();if(sync)broadcastMissionState();}
+ const missionChallengeDefinitions={
+  gate:{title:'TEKA-TEKI GERBANG',question:'Tiga lambang terukir pada batu: padi, bulan, dan matahari. Catatan kecil di bawahnya berbunyi: “Mulailah dari lambang yang memberi makan desa.”',options:['Padi','Bulan','Matahari'],answer:0,success:'Batu gerbang bergetar. Kunci simbol pertama terbuka.'},
+  'Kain ritual':{title:'TANTANGAN SUMUR',question:'Tali sumur bergerak sendiri dan terdengar suara dari bawah. Cara paling aman mengambil kain?',options:['Mencondongkan badan ke dalam sumur','Menariknya dari samping dengan pengait','Turun langsung ke dalam sumur'],answer:1,success:'Kain berhasil diambil tanpa mendekati bibir sumur.'},
+  'Jembatan sungai':{title:'JEMBATAN RAPUH',question:'Papan jembatan berderak. Kamu melihat tiga jalur. Mana yang paling aman?',options:['Papan tengah yang retak','Papan yang terikat tali di sisi kiri','Melompat di atas pagar jembatan'],answer:1,success:'Kamu menemukan pijakan aman dan berhasil meraih kunci.'},
+  'Catatan ruang guru':{title:'ARSIP RUANG GURU',question:'Catatan yang kamu temukan menyebut urutan untuk ritual Wanasetra. Mana urutan yang benar?',options:['Kain, nama keluarga, lonceng','Nama keluarga, lonceng, kain','Lonceng, kain, nama keluarga'],answer:2,success:'Kunci laci terbuka. Rahasia keluarga Wanasetra terungkap.'},
+  'Lonceng ritual':{title:'PENJAGA BAMBU',question:'Lonceng berbunyi sendiri. Suara langkah mulai mendekat. Apa yang harus dilakukan?',options:['Bersembunyi dan menunggu langkah menjauh','Mengejar suara ke dalam hutan','Terus membunyikan lonceng'],answer:0,success:'Penjaga kehilangan jejakmu. Lonceng ritual berhasil diamankan.'},
+  'Makam keluarga':{title:'UJIAN PENJAGA MAKAM',question:'Enam nisan berdiri di hadapanmu. Petunjuk menyebut makam keluarga yang tanahnya basah dan tanggalnya sama dengan malam hilangnya warga. Apa yang kamu periksa?',options:['Nisan dengan tanggal malam hilangnya warga','Nisan paling tinggi','Makam yang paling dekat jalan'],answer:0,success:'Makam yang benar terbuka. Penjaga Wanasetra mulai bangkit.'}
+ };
+ const missionChallengesPassed=new Set();
+ let challengeOverlay=null,challengeTimer=null,challengeSeconds=20,challengePoint=null;
+ function closeMissionChallenge(){if(challengeTimer){clearInterval(challengeTimer);challengeTimer=null;}if(challengeOverlay){challengeOverlay.remove();challengeOverlay=null;}challengePoint=null;}
+ function openMissionChallenge(point){
+  if(!point||missionChallengesPassed.has(point.target))return;
+  closeMissionChallenge();challengePoint=point;challengeSeconds=20;
+  const data=missionChallengeDefinitions[point.target];if(!data)return;
+  challengeOverlay=document.createElement('div');challengeOverlay.id='mission-challenge-overlay';
+  challengeOverlay.style.cssText='position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:18px;background:#02050deF;backdrop-filter:blur(7px);';
+  const panel=document.createElement('div');panel.style.cssText='width:min(460px,100%);padding:22px;border:1px solid #b88f7a;border-radius:17px;background:linear-gradient(145deg,#172238,#090e18);box-shadow:0 24px 80px #000c;color:#f4eee5;';
+  const kicker=document.createElement('div');kicker.textContent='UJIAN MISI · '+point.name.toUpperCase();kicker.style.cssText='font-size:9px;letter-spacing:.18em;color:#d5a9a2;font-weight:900;';
+  const title=document.createElement('h2');title.textContent=data.title;title.style.cssText='font-size:21px;margin:12px 0;color:#fff0d8;';
+  const question=document.createElement('p');question.textContent=data.question;question.style.cssText='font-size:13px;line-height:1.7;color:#d2d9e5;';
+  const timer=document.createElement('div');timer.textContent='WAKTU: 20 DETIK';timer.style.cssText='margin:12px 0;color:#e8bd83;font-size:10px;font-weight:900;letter-spacing:.12em;';
+  const feedback=document.createElement('div');feedback.style.cssText='min-height:34px;margin:8px 0;color:#e5c2b6;font-size:11px;line-height:1.5;';
+  const choices=document.createElement('div');choices.style.cssText='display:grid;gap:8px;';
+  data.options.forEach((option,index)=>{const button=document.createElement('button');button.type='button';button.textContent=(index+1)+'. '+option;button.style.cssText='width:100%;padding:13px;text-align:left;border:1px solid #8295b066;border-radius:10px;background:#111d30;color:#f5f2eb;font-size:12px;';button.addEventListener('click',()=>{
+   if(!challengePoint)return;
+   if(index===data.answer){
+    const completedPoint=challengePoint;missionChallengesPassed.add(completedPoint.target);closeMissionChallenge();hint.textContent=data.success;
+    if(completedPoint.target==='gate'){completeMissionFromInteraction('gate');}
+    else{
+     completeMissionFromInteraction(completedPoint.target);
+     const usedTarget=worldInteractions.find(item=>item.label===completedPoint.target);if(usedTarget){usedTarget.used=true;usedTarget.group.visible=false;broadcastMissionState();}
+    }
+    openClueSheet(data.title,data.success+' '+(completedPoint.target==='Makam keluarga'?'Bersiaplah menghadapi penjaga terakhir.':'Tetap waspada. Sesuatu mungkin sudah mendengar langkahmu.'),true);
+   }else{
+    takeDamage(8,'Jawabanmu salah. Penjaga desa menyadari keberadaanmu.');
+    feedback.textContent='Jawaban salah. Kondisimu berkurang 8%. Coba lagi sebelum waktu habis.';
+   }
+  });choices.appendChild(button);});
+  panel.append(kicker,title,question,timer,feedback,choices);challengeOverlay.appendChild(panel);document.body.appendChild(challengeOverlay);
+  challengeTimer=setInterval(()=>{if(!challengePoint)return;challengeSeconds--;timer.textContent='WAKTU: '+challengeSeconds+' DETIK';if(challengeSeconds<=0){clearInterval(challengeTimer);challengeTimer=null;takeDamage(10,'Waktu habis. Sosok penjaga mendekat.');feedback.textContent='Waktu habis! Tekan salah satu jawaban untuk mencoba lagi.';challengeSeconds=20;challengeTimer=setInterval(()=>{if(!challengePoint)return;challengeSeconds--;timer.textContent='WAKTU: '+challengeSeconds+' DETIK';if(challengeSeconds<=0){clearInterval(challengeTimer);challengeTimer=null;takeDamage(10,'Penjaga semakin dekat.');feedback.textContent='Kamu masih belum menjawab. Coba lagi.';challengeSeconds=20;challengeTimer=setInterval(()=>{},1000);}},1000);}},1000);
+ }
  function completeMissionFromInteraction(label){
   const point=missionPoints.find(p=>p.target===label);
   if(!point||point.done||!point.unlocked)return false;const pointIndex=missionPoints.indexOf(point);if(pointIndex>0&&!missionPoints[pointIndex-1].done){hint.textContent='Tahap ini masih terkunci. Selesaikan '+missionPoints[pointIndex-1].objective+' terlebih dahulu.';return false;}
-  const requirements={
-   'Kain ritual':'Kain ritual',
-   'Jembatan sungai':'Kunci berkarat',
-   'Catatan ruang guru':'Catatan ritual',
-   'Lonceng ritual':'Lonceng ritual'
-  };
-  const required=requirements[label];
-  if(required&&!inventoryItems.has(required))return false;
-  point.done=true;
-  const index=missionPoints.indexOf(point);
-  if(missionPoints[index+1])missionPoints[index+1].unlocked=true;
-  updateMission();
+  const requirements={'Kain ritual':'Kain ritual','Jembatan sungai':'Kunci berkarat','Catatan ruang guru':'Catatan ritual','Lonceng ritual':'Lonceng ritual'};
+  const required=requirements[label];if(required&&!inventoryItems.has(required))return false;
+  if(!missionChallengesPassed.has(label)){openMissionChallenge(point);return false;}
+  point.done=true;const index=missionPoints.indexOf(point);if(missionPoints[index+1])missionPoints[index+1].unlocked=true;updateMission();
   hint.textContent=point.objective+' — selesai. '+(missionPoints[index+1]?.objective||'Semua petunjuk utama terkumpul.');
-  if(index<ghostRoster.length){
-   const angle=Math.atan2(player.position.x-point.x,player.position.z-point.z);
-   spawnStoryGhost(index,player.position.x+Math.sin(angle+Math.PI)*9,player.position.z+Math.cos(angle+Math.PI)*9);
-  }
-  if(index===5){hint.textContent='Tanah makam bergetar. Bayangan besar bergerak di balik pepohonan.';speakGuide('Kau telah membangunkan penjaga Wanasetra. Jangan menoleh.');}
+  if(index<ghostRoster.length){const angle=Math.atan2(player.position.x-point.x,player.position.z-point.z);spawnStoryGhost(index,player.position.x+Math.sin(angle+Math.PI)*9,player.position.z+Math.cos(angle+Math.PI)*9);}
+  if(index===5){hint.textContent='Tanah makam bergetar. Genderuwo, penjaga terakhir Wanasetra, muncul dari balik pepohonan. Cari jalan keluar!';speakGuide('Penjaga terakhir telah bangun. Jangan menoleh. Cepat cari jalan keluar.');}
   return true;
  }
  player.position.set(0,0,2.2);player.rotation.y=0;lastSafePosition.copy(player.position);updateMission();
@@ -1117,16 +1148,9 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   soundToggle.textContent=audioEnabled?'🔊':'🔇';soundToggle.title=audioEnabled?'Audio aktif':'Audio mati';soundToggle.setAttribute('aria-label',audioEnabled?'Matikan audio':'Aktifkan audio');soundToggle.setAttribute('aria-pressed',String(audioEnabled));soundState.textContent=audioEnabled?'AUDIO AKTIF':'AUDIO MATI';if(!audioEnabled&&'speechSynthesis'in window)window.speechSynthesis.cancel();else speakGuide('Suara malam mulai terdengar. Tetap waspada.');
  });
  interactBtn.addEventListener('click',()=>{
-  if(nearbyWorld){const target=nearbyWorld;const objective=missionPoints.find(p=>p.target===target.label);if(objective&&!objective.unlocked){hint.textContent='Tahap ini masih terkunci. Selesaikan '+(missionPoints.find(p=>p.unlocked&&!p.done)?.objective||'tujuan sebelumnya')+' terlebih dahulu.';return;}const message=target.action();completeMissionFromInteraction(target.label);if(!target.repeatable&&!message.startsWith('Laci terkunci')&&!message.startsWith('Ritual belum')){target.used=true;target.group.visible=false;broadcastMissionState();}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah'&&!target.label.startsWith('BERSEMBUNYI')){hint.textContent=target.label+': '+message;openClueSheet(target.label,message,true);}nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
+  if(nearbyWorld){const target=nearbyWorld;const objective=missionPoints.find(p=>p.target===target.label);if(objective&&!objective.unlocked){hint.textContent='Tahap ini masih terkunci. Selesaikan '+(missionPoints.find(p=>p.unlocked&&!p.done)?.objective||'tujuan sebelumnya')+' terlebih dahulu.';return;}const message=target.action();const missionCompleted=objective?completeMissionFromInteraction(target.label):false;if(!objective||missionCompleted){if(!target.repeatable&&!message.startsWith('Laci terkunci')&&!message.startsWith('Ritual belum')){target.used=true;target.group.visible=false;broadcastMissionState();}}if(objective&&!missionCompleted){nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}if(target.label!=='Masuk rumah'&&target.label!=='Keluar rumah'&&!target.label.startsWith('BERSEMBUNYI')){hint.textContent=target.label+': '+message;openClueSheet(target.label,message,true);}nearbyWorld=null;interactBtn.style.display='none';playDiscoverySound();return;}
   if(!nearbyMission)return;
-  nearbyMission.done=true;
-  openClueSheet(nearbyMission.name,'Kamu menemukan petunjuk di lokasi ini. Periksa sekeliling, baca setiap catatan, dan ikuti penanda berikutnya. Jangan terburu-buru; suara dari desa bisa menyesatkan.',true);
-  const completedIndex=missionPoints.indexOf(nearbyMission);if(missionPoints[completedIndex+1])missionPoints[completedIndex+1].unlocked=true;
-  const marker=missionMarkers.find(m=>m.point===nearbyMission);if(marker)marker.group.visible=false;
-  hint.textContent=nearbyMission.name+': kamu menemukan petunjuk yang tertinggal. Ada sesuatu yang mengawasimu.';
-  nearbyMission=null;interactBtn.style.display='none';updateMission();playDiscoverySound();
-  if(completedIndex<ghostRoster.length){const angle=Math.atan2(player.position.x-missionPoints[completedIndex].x,player.position.z-missionPoints[completedIndex].z);spawnStoryGhost(completedIndex,player.position.x+Math.sin(angle+Math.PI)*9,player.position.z+Math.cos(angle+Math.PI)*9);}
-  if(completedIndex===5){hint.textContent='Tanah makam bergetar. Bayangan besar bergerak di balik pepohonan.';speakGuide('Kau telah membangunkan penjaga Wanasetra. Jangan menoleh.');}
+  const selectedMission=nearbyMission;nearbyMission=null;interactBtn.style.display='none';completeMissionFromInteraction(selectedMission.target);playDiscoverySound();
  });
 
  const joystick=document.getElementById('joystick'),stick=document.getElementById('stick');let joyX=0,joyY=0,joyPointer=null,walkingTime=0;
