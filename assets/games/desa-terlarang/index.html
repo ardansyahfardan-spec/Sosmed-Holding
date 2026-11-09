@@ -851,7 +851,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
   if(roomJoinInFlight){roomStatus.textContent='Permintaan ruang sedang diproses. Tunggu sebentar...';return;}
   roomJoinInFlight=true;
-  isRoomHost=!!host;roomStarted=false;createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Memuat layanan multiplayer...';
+  isRoomHost=!!host;roomStarted=false;let hostSeen=!!host,hostHandshakeTimer=null;createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Memuat layanan multiplayer...';
   try{
    await ensureRealtimeClient();
    roomStatus.textContent='Menghubungkan ke ruang '+code+'...';
@@ -864,7 +864,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
     const entry=addRemotePlayer(payload.player_id,payload);
     if(entry){entry.target.set(Number(payload.x)||0,0,Number(payload.z)||0);entry.rotation=Number(payload.rotation)||0;entry.moving=!!payload.moving;entry.avatar.visible=!payload.hidden;}
    });
-   channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId){const isNew=!remotePlayers.has(payload.player_id);addRemotePlayer(payload.player_id,payload);if(isNew&&multiplayer)multiplayer.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});if(payload.started&&!roomStarted)startAdventure();broadcastMissionState();if(activeStoryGhost&&activeStoryGhost.owner===playerId){multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index:lastStoryGhostIndex,x:activeStoryGhost.model.position.x,z:activeStoryGhost.model.position.z}});const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}}});
+   channel.on('broadcast',{event:'hello'},({payload})=>{if(payload?.host){hostSeen=true;if(hostHandshakeTimer){clearTimeout(hostHandshakeTimer);hostHandshakeTimer=null;}}if(payload?.player_id&&payload.player_id!==playerId){const isNew=!remotePlayers.has(payload.player_id);addRemotePlayer(payload.player_id,payload);if(isNew&&multiplayer)multiplayer.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});if(payload.started&&!roomStarted)startAdventure();broadcastMissionState();if(activeStoryGhost&&activeStoryGhost.owner===playerId){multiplayer.send({type:'broadcast',event:'story_ghost',payload:{player_id:playerId,index:lastStoryGhostIndex,x:activeStoryGhost.model.position.x,z:activeStoryGhost.model.position.z}});const gp=activeStoryGhost.model.position;multiplayer.send({type:'broadcast',event:'ghost_sync',payload:{player_id:playerId,active:true,x:gp.x,y:gp.y,z:gp.z}});}}});
    channel.on('broadcast',{event:'leave'},({payload})=>{const id=payload?.player_id;if(!id)return;const entry=remotePlayers.get(id);if(entry){scene.remove(entry.avatar);remotePlayers.delete(id);updateRoomCount();}});
    channel.on('broadcast',{event:'story_ghost'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId)spawnStoryGhost(Number(payload.index),Number(payload.x)||0,Number(payload.z)||0,true,payload.player_id);});
    channel.on('broadcast',{event:'ghost_sync'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;if(payload.active===false){if(activeStoryGhost?.owner===payload.player_id)finishStoryGhost();return;}if(activeStoryGhost?.owner!==payload.player_id)return;if(activeStoryGhost?.model)activeStoryGhost.model.position.set(Number(payload.x)||0,Number(payload.y)||0,Number(payload.z)||0);});
@@ -877,7 +877,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    const attempt=++roomAttempt;
    const failRoomConnection=(message)=>{
     if(attempt!==roomAttempt||activeRoom!==code)return;
-    clearTimeout(connectTimer);
+    clearTimeout(connectTimer);if(hostHandshakeTimer){clearTimeout(hostHandshakeTimer);hostHandshakeTimer=null;}
     roomJoinInFlight=false;
     if(multiplayer===channel)multiplayer=null;
     activeRoom='';
@@ -898,10 +898,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      clearTimeout(connectTimer);
      multiplayer=channel;
      try{
-      const helloStatus=await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});
+      const helloStatus=await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted,host:isRoomHost}});
       if(helloStatus!=='ok')console.warn('[Desa Terlarang] Broadcast awal belum terkirim:',helloStatus);
      }catch(sendError){console.warn('[Desa Terlarang] Broadcast awal gagal:',sendError);}
      if(attempt!==roomAttempt||activeRoom!==code)return;
+     if(!isRoomHost&&!hostSeen){hostHandshakeTimer=setTimeout(()=>{if(!hostSeen)failRoomConnection('Host tidak ditemukan. Pastikan temanmu membuat ruang lebih dulu, lalu periksa kembali kodenya.');},10000);}
      roomJoinInFlight=false;
      lobbyRoomCode.textContent='KODE RUANG  '+code;lobbyRoomCode.style.display='block';
      createRoomBtn.style.display='none';roomInput.style.display='none';joinRoomBtn.style.display='none';
