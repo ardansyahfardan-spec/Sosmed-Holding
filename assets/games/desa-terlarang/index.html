@@ -1090,10 +1090,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const torchBand=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),torchMetalMat);torchBand.position.z=-.23;flashlightProp.add(torchBand);
  const torchBeamGeometry=new THREE.CylinderGeometry(.012,.22,5,10,1,true);torchBeamGeometry.rotateX(-Math.PI/2);const torchBeam=new THREE.Mesh(torchBeamGeometry,new THREE.MeshBasicMaterial({color:0xb9ddff,transparent:true,opacity:.035,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));torchBeam.position.z=-2.7;torchBeam.visible=false;flashlightProp.add(torchBeam);
  const torchLensGlow=new THREE.PointLight(0x9edbff,0,5.5);torchLensGlow.position.z=-.43;flashlightProp.add(torchLensGlow);
-  // Keep the articulated human avatar visible instead of the original toy-style body.
- for(const child of [...player.children])if(child!==humanAvatar&&child!==flashlightProp)child.visible=false;
- humanAvatar.visible=true;
- flashlightProp.position.set(.42,1.28,-.16);
+  // Gunakan kembali avatar LEGO/blocky asli Desa Terlarang.
+ // Rig humanoid tambahan dinonaktifkan; seluruh bagian minifigure asli tetap aktif.
+ humanAvatar.visible=false;
+ for(const child of [...player.children])if(child!==humanAvatar)child.visible=true;
+ flashlightProp.position.set(.575,1.06,-.25);
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
  const roomStatus=document.getElementById('room-status');
