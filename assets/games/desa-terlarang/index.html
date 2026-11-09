@@ -810,11 +810,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  // Four distinct 3D hairstyle models.
  const shortHair=new THREE.Group();shortHair.userData.characterStyle='male-short';head.add(shortHair);
  sphere(shortHair,hair,0,.32,.025,.355,.16,.35);sphere(shortHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(shortHair,hair,.15,.29,-.18,.2,.12,.17);sphere(shortHair,hairLight,0,.235,-.285,.2,.095,.09);
- const longHair=new THREE.Group();longHair.userData.characterStyle='male-long';head.add(longHair);
+ const longHair=new THREE.Group();longHair.visible=false;longHair.userData.characterStyle='male-long';head.add(longHair);
  sphere(longHair,hair,0,.32,.025,.36,.17,.35);sphere(longHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(longHair,hair,.15,.29,-.18,.2,.12,.17);sphere(longHair,hair,0,-.02,.20,.31,.39,.22);sphere(longHair,hairLight,-.29,-.03,-.015,.10,.39,.12);sphere(longHair,hair,.29,-.03,-.015,.10,.39,.12);
- const femaleHair=new THREE.Group();femaleHair.userData.characterStyle='female-long';head.add(femaleHair);
+ const femaleHair=new THREE.Group();femaleHair.visible=false;femaleHair.userData.characterStyle='female-long';head.add(femaleHair);
  sphere(femaleHair,hair,0,.32,.025,.36,.17,.35);sphere(femaleHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(femaleHair,hair,.15,.29,-.18,.2,.12,.17);sphere(femaleHair,hair,0,-.015,.20,.33,.43,.24);sphere(femaleHair,hairLight,-.30,-.06,-.02,.11,.42,.13);sphere(femaleHair,hair,.30,-.06,-.02,.11,.42,.13);
- const hijabMat=plastic(0x263b58);hijabMat.name='avatar-hijab';const hijab=new THREE.Group();hijab.userData.characterStyle='female-hijab';head.add(hijab);
+ const hijabMat=plastic(0x263b58);hijabMat.name='avatar-hijab';const hijab=new THREE.Group();hijab.visible=false;hijab.userData.characterStyle='female-hijab';head.add(hijab);
  sphere(hijab,hijabMat,0,.22,.015,.385,.43,.38);sphere(hijab,hijabMat,0,-.19,-.015,.39,.31,.39);mesh(hijab,new THREE.CylinderGeometry(.34,.46,.42,32,1,true),hijabMat,0,-.32,.03).rotation.z=Math.PI;
  // Backpack: compact molded accessory.
  partBox(player,.48,.56,.2,jacketDark,0,1.57,.31);
@@ -912,7 +912,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(id===playerId)return null;
   let entry=remotePlayers.get(id);
   if(!entry){
-   const avatar=player.clone(true);const clonedMaterials=new Map();avatar.traverse(object=>{if(!object.isMesh||!object.material)return;const cloneOne=material=>{if(!clonedMaterials.has(material))clonedMaterials.set(material,material.clone());return clonedMaterials.get(material);};object.material=Array.isArray(object.material)?object.material.map(cloneOne):cloneOne(object.material);});applyCharacterLook(avatar,data.character||'explorer');avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
+   const avatar=player.clone(true);const clonedMaterials=new Map();avatar.traverse(object=>{if(!object.isMesh||!object.material)return;const cloneOne=material=>{if(!clonedMaterials.has(material))clonedMaterials.set(material,material.clone());return clonedMaterials.get(material);};object.material=Array.isArray(object.material)?object.material.map(cloneOne):cloneOne(object.material);});applyCharacterLook(avatar,data.character||'male-short');avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
    entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0,moving:!!data.moving,phase:Math.random()*6.28,lastSeen:Date.now(),parts:{armL:avatar.getObjectByName('avatar-arm-left'),armR:avatar.getObjectByName('avatar-arm-right'),legL:avatar.getObjectByName('avatar-leg-left'),legR:avatar.getObjectByName('avatar-leg-right')}};
    remotePlayers.set(id,entry);
   }
@@ -949,7 +949,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    activeRoom=code;
    const channel=realtimeClient.channel('desa-terlarang:'+code,{config:{broadcast:{self:false}}});
    channel.on('broadcast',{event:'start'},({payload})=>{if(payload?.player_id!==playerId)startAdventure(true);});
-   channel.on('broadcast',{event:'character'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry){applyCharacterLook(entry.avatar,payload.character||'explorer');entry.characterId=payload.character||'explorer';}});
+   channel.on('broadcast',{event:'character'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry){applyCharacterLook(entry.avatar,payload.character||'male-short');entry.characterId=payload.character||'male-short';}});
    channel.on('broadcast',{event:'move'},({payload})=>{
     if(!payload?.player_id||payload.player_id===playerId)return;
     const entry=addRemotePlayer(payload.player_id,payload);
