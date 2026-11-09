@@ -95,6 +95,15 @@ button:active{transform:scale(.97);background:#273650}
 #character-select-note{margin-top:10px;color:#98a7bd;font-size:10px;line-height:1.5;text-align:center}
 .look-male-long .figure-hair,.look-female-long .figure-hair{height:20px;border-radius:13px 13px 7px 7px}.look-male-long .figure-hair:before,.look-female-long .figure-hair:before{content:"";position:absolute;top:8px;left:-3px;width:7px;height:31px;border-radius:0 0 7px 7px;background:var(--hair)}.look-male-long .figure-hair:after,.look-female-long .figure-hair:after{content:"";position:absolute;top:8px;right:-3px;width:7px;height:31px;border-radius:0 0 7px 7px;background:var(--hair)}.look-hijab .figure-hair{top:0;left:14px;width:35px;height:39px;border-radius:17px 17px 12px 12px;background:var(--coat);border:2px solid #d2c6b3}.look-hijab .figure-hair:after{content:"";position:absolute;left:-4px;top:20px;width:39px;height:25px;border-radius:8px 8px 15px 15px;background:var(--coat);border:1px solid #d2c6b3}
 @media(max-width:560px){#character-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.character-choice{padding:10px 6px}}
+
+#custom-character-panel{margin:18px 0 8px;padding:15px;border:1px solid #8293aa44;border-radius:15px;background:#080f1dcc}
+.custom-section-title{margin:8px 0 10px;color:#d6a5a4;font-size:9px;font-weight:950;letter-spacing:.2em}
+.custom-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.custom-grid label{display:grid;gap:6px;color:#c8d3e2;font-size:10px;font-weight:800;min-width:0}
+.custom-grid select,.custom-grid input{width:100%;min-width:0;min-height:40px;padding:8px 9px;border:1px solid #60718a88;border-radius:9px;background:#101a2b;color:#f5f2eb;font:inherit;font-size:11px}
+.custom-grid input[type=color]{height:40px;padding:4px}
+#cc-preview-note{margin:4px 0 0;color:#95a5ba;font-size:10px;line-height:1.5}
+@media(max-width:560px){.custom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#custom-character-panel{padding:11px}}
 </style>
 </head>
 <body>
@@ -108,12 +117,33 @@ button:active{transform:scale(.97);background:#273650}
   <div class="eyebrow">GHOUSTORY · DESA TERLARANG</div>
   <h2 id="character-select-title">PILIH KARAKTER</h2>
   <p class="intro">Tentukan penampilan tokoh yang akan kamu bawa memasuki Desa Wanasetra. Pilihan ini berlaku di dalam permainan, bukan menu pengaturan dashboard.</p>
-  <div id="character-choice-grid">
-   <button class="character-choice" type="button" data-character-choice="male-short" aria-pressed="true"><span class="character-figure look-male-short" style="--coat:#263e5c;--pants:#202d40;--skin:#dca879;--hair:#17191f"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">COWOK RAMBUT PENDEK</span><span class="look-desc">Model pria · rambut pendek</span></button>
-   <button class="character-choice" type="button" data-character-choice="male-long" aria-pressed="false"><span class="character-figure look-male-long" style="--coat:#604044;--pants:#292b3b;--skin:#d99b70;--hair:#211713"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">COWOK RAMBUT PANJANG</span><span class="look-desc">Model pria · rambut panjang</span></button>
-   <button class="character-choice" type="button" data-character-choice="female-hijab" aria-pressed="false"><span class="character-figure look-hijab" style="--coat:#596044;--pants:#34372c;--skin:#e7b58a;--hair:#30231c"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">CEWEK BERHIJAB</span><span class="look-desc">Model wanita · hijab</span></button>
-   <button class="character-choice" type="button" data-character-choice="female-long" aria-pressed="false"><span class="character-figure look-female-long" style="--coat:#343b4b;--pants:#151c29;--skin:#e8bd91;--hair:#090b10"><i class="figure-hair"></i><i class="figure-head"></i><i class="figure-body"></i><i class="figure-leg"></i><i class="figure-leg right"></i></span><span class="look-name">CEWEK RAMBUT PANJANG</span><span class="look-desc">Model wanita · rambut panjang</span></button>
-</div>
+  <section id="custom-character-panel">
+   <div class="custom-section-title">IDENTITAS</div>
+   <div class="custom-grid">
+    <label>Gender<select id="cc-gender"><option value="male">Cowok</option><option value="female">Cewek</option></select></label>
+    <label>Model rambut<select id="cc-hair"><option value="short">Pendek</option><option value="medium">Sedang</option><option value="long">Panjang</option></select></label>
+    <label>Hijab<select id="cc-hijab"><option value="no">Tidak berhijab</option><option value="yes">Berhijab</option></select></label>
+    <label>Warna rambut<input id="cc-hair-color" type="color" value="#211713"></label>
+    <label>Warna kulit<select id="cc-skin"><option value="#f2d0b2">Cerah</option><option value="#e4b48e" selected>Sawo matang terang</option><option value="#c98f68">Sawo matang</option><option value="#8d5b42">Gelap</option></select></label>
+   </div>
+   <div class="custom-section-title">PAKAIAN</div>
+   <div class="custom-grid">
+    <label>Atasan<select id="cc-top"><option>Kaos lengan pendek</option><option>Kaos lengan panjang</option><option>Kemeja</option><option>Hoodie</option><option>Jaket</option><option>Dress</option></select></label>
+    <label>Bawahan<select id="cc-bottom"><option>Celana panjang</option><option>Celana pendek</option><option>Rok pendek</option><option>Rok panjang</option></select></label>
+    <label>Warna atasan<input id="cc-top-color" type="color" value="#263e5c"></label>
+    <label>Warna bawahan<input id="cc-bottom-color" type="color" value="#202d40"></label>
+    <label>Alas kaki<select id="cc-shoes"><option>Sepatu</option><option>Sandal</option><option>Heels</option></select></label>
+    <label>Warna alas kaki<input id="cc-shoes-color" type="color" value="#171b24"></label>
+    <label>Hijab / aksesori kepala<select id="cc-hijab-color"><option value="#263b58">Biru gelap</option><option value="#17191f">Hitam</option><option value="#6b3e45">Marun</option><option value="#596044">Hijau zaitun</option><option value="#d5c4a6">Krem</option></select></label>
+   </div>
+   <div class="custom-section-title">TAMBAHAN</div>
+   <div class="custom-grid">
+    <label>Tas<select id="cc-bag"><option>Tidak memakai tas</option><option>Ransel</option><option>Tas selempang</option><option>Tas kecil</option></select></label>
+    <label>Aksesori<select id="cc-accessory"><option>Tidak ada</option><option>Kacamata</option><option>Topi</option><option>Kalung</option><option>Jam tangan</option><option>Gelang</option></select></label>
+    <label>Warna aksesori<input id="cc-accessory-color" type="color" value="#d7c49a"></label>
+   </div>
+   <p id="cc-preview-note">Pengaturan karakter tersimpan di perangkat ini. Tampilan 3D akan mengikuti pilihan yang sudah didukung model karakter.</p>
+  </section>
   <label for="character-select-name" style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#bdc8d8">NAMA PEMAIN</label>
   <input id="character-select-name" maxlength="18" value="Pemain" autocomplete="nickname" placeholder="Masukkan nama pemain">
   <button id="character-select-confirm" type="button">KONFIRMASI KARAKTER</button>
@@ -739,8 +769,17 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   'female-hijab':{skin:0xe7b58a,hair:0x30231c,jacket:0x596044,jacketLight:0x7a805d,jacketDark:0x3a412f,pants:0x34372c,pantsLight:0x555b43,accent:0xb38b5d,hijab:0x263b58},
   'female-long':{skin:0xe8bd91,hair:0x090b10,jacket:0x343b4b,jacketLight:0x586273,jacketDark:0x202633,pants:0x151c29,pantsLight:0x30394a,accent:0x9b343c,hijab:0x263b58}
  };
- function applyCharacterLook(target,id){
-  const look=characterLooks[id]||characterLooks['male-short'];
+ function applyCharacterLook(target,id,customization=null){
+  const look={...(characterLooks[id]||characterLooks['male-short'])};
+  const c=customization||{};
+  const colorHex=value=>/^#[0-9a-f]{6}$/i.test(String(value||''))?Number.parseInt(String(value).slice(1),16):null;
+  const skinOptions={'#f2d0b2':0xf2d0b2,'#e4b48e':0xe4b48e,'#c98f68':0xc98f68,'#8d5b42':0x8d5b42};
+  look.skin=skinOptions[c.skin]??look.skin;
+  look.hair=colorHex(c['hair-color'])??look.hair;
+  look.jacket=colorHex(c['top-color'])??look.jacket;
+  look.jacketLight=look.jacketLight;look.jacketDark=look.jacketDark;
+  look.pants=colorHex(c['bottom-color'])??look.pants;
+  look.hijab=colorHex(c['hijab-color'])??look.hijab;
   const keys={'avatar-skin':'skin','avatar-hair':'hair','avatar-jacket':'jacket','avatar-jacket-light':'jacketLight','avatar-jacket-dark':'jacketDark','avatar-pants':'pants','avatar-pants-light':'pantsLight','avatar-accent':'accent','avatar-hijab':'hijab'};
   target.traverse(object=>{
    if(object.userData.characterStyle){object.visible=object.userData.characterStyle===id;return;}
@@ -866,9 +905,16 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const characterSelectScreen=document.getElementById('character-select-screen');
  const characterSelectName=document.getElementById('character-select-name');
  const characterSelectConfirm=document.getElementById('character-select-confirm');
- function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';document.querySelectorAll('[data-character-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.characterChoice===selectedCharacterId)));if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';}startGameBtn.style.display='none';}
- document.querySelectorAll('[data-character-choice]').forEach(button=>button.addEventListener('click',()=>{selectedCharacterId=button.dataset.characterChoice||'explorer';document.querySelectorAll('[data-character-choice]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
- characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';applyCharacterLook(player,selectedCharacterId);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
+ const ccIds=['gender','hair','hijab','hair-color','skin','top','bottom','top-color','bottom-color','shoes','shoes-color','hijab-color','bag','accessory','accessory-color'];
+ const ccEl=id=>document.getElementById('cc-'+id);
+ function readCustomCharacter(){const value={};ccIds.forEach(id=>{const el=ccEl(id);if(el)value[id]=el.value;});return value;}
+ function loadCustomCharacter(value){if(!value)return;ccIds.forEach(id=>{const el=ccEl(id);if(el&&value[id]!=null)el.value=value[id];});}
+ function selectedBaseLook(c){if(c.gender==='female')return c.hijab==='yes'?'female-hijab':'female-long';return c.hair==='long'||c.hair==='medium'?'male-long':'male-short';}
+ function previewCustomCharacter(){const c=readCustomCharacter();selectedCharacterId=selectedBaseLook(c);applyCharacterLook(player,selectedCharacterId,c);}
+ ccIds.forEach(id=>{const el=ccEl(id);if(el)el.addEventListener('change',previewCustomCharacter);});
+ try{const savedCustom=JSON.parse(localStorage.getItem('ghoustory-desa-custom-character')||'null');if(savedCustom)loadCustomCharacter(savedCustom);}catch(_){}
+ function showCharacterSelection(fromBroadcast=false){pendingStartFromBroadcast=!!fromBroadcast;characterSelectionConfirmed=false;if(characterSelectScreen){characterSelectScreen.style.display='flex';if(characterSelectName&&!characterSelectName.value.trim())characterSelectName.value=localNickname||'Pemain';previewCustomCharacter();}startGameBtn.style.display='none';}
+ characterSelectConfirm?.addEventListener('click',()=>{localNickname=(characterSelectName?.value||'').trim().slice(0,18)||'Pemain';const customCharacter=readCustomCharacter();selectedCharacterId=selectedBaseLook(customCharacter);applyCharacterLook(player,selectedCharacterId,customCharacter);characterSelectionConfirmed=true;try{localStorage.setItem('ghoustory-desa-character',selectedCharacterId);localStorage.setItem('ghoustory-desa-custom-character',JSON.stringify(customCharacter));}catch(_){}if(multiplayer)multiplayer.send({type:'broadcast',event:'character',payload:{player_id:playerId,character:selectedCharacterId,customization:customCharacter,nickname:localNickname}});if(characterSelectScreen)characterSelectScreen.style.display='none';if(pendingStartFromBroadcast){startAdventure(true);return;}if(isRoomHost){startGameBtn.style.display='block';roomStatus.textContent='Karakter siap. Tekan MULAI PETUALANGAN saat semua pemain siap.';}else{startGameBtn.style.display='none';roomStatus.textContent='Karakter siap. Menunggu host memulai petualangan...';}});
  const savedRoomsList=document.getElementById('saved-rooms-list');
  const savedRoomPrefix='ghoustory-room-save-';
  const savedRoomMetaKey='ghoustory-saved-room-meta-v1';
@@ -912,7 +958,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   if(id===playerId)return null;
   let entry=remotePlayers.get(id);
   if(!entry){
-   const avatar=player.clone(true);const clonedMaterials=new Map();avatar.traverse(object=>{if(!object.isMesh||!object.material)return;const cloneOne=material=>{if(!clonedMaterials.has(material))clonedMaterials.set(material,material.clone());return clonedMaterials.get(material);};object.material=Array.isArray(object.material)?object.material.map(cloneOne):cloneOne(object.material);});applyCharacterLook(avatar,data.character||'male-short');avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
+   const avatar=player.clone(true);const clonedMaterials=new Map();avatar.traverse(object=>{if(!object.isMesh||!object.material)return;const cloneOne=material=>{if(!clonedMaterials.has(material))clonedMaterials.set(material,material.clone());return clonedMaterials.get(material);};object.material=Array.isArray(object.material)?object.material.map(cloneOne):cloneOne(object.material);});applyCharacterLook(avatar,data.character||'male-short',data.customization||null);avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);scene.add(avatar);
    entry={avatar,target:new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0),rotation:Number(data.rotation)||0,moving:!!data.moving,phase:Math.random()*6.28,lastSeen:Date.now(),parts:{armL:avatar.getObjectByName('avatar-arm-left'),armR:avatar.getObjectByName('avatar-arm-right'),legL:avatar.getObjectByName('avatar-leg-left'),legR:avatar.getObjectByName('avatar-leg-right')}};
    remotePlayers.set(id,entry);
   }
@@ -949,7 +995,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    activeRoom=code;
    const channel=realtimeClient.channel('desa-terlarang:'+code,{config:{broadcast:{self:false}}});
    channel.on('broadcast',{event:'start'},({payload})=>{if(payload?.player_id!==playerId)startAdventure(true);});
-   channel.on('broadcast',{event:'character'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry){applyCharacterLook(entry.avatar,payload.character||'male-short');entry.characterId=payload.character||'male-short';}});
+   channel.on('broadcast',{event:'character'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry){applyCharacterLook(entry.avatar,payload.character||'male-short',payload.customization||null);entry.characterId=payload.character||'male-short';entry.customization=payload.customization||null;}});
    channel.on('broadcast',{event:'move'},({payload})=>{
     if(!payload?.player_id||payload.player_id===playerId)return;
     const entry=addRemotePlayer(payload.player_id,payload);
