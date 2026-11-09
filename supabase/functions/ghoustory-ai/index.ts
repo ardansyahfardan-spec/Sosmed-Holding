@@ -491,8 +491,8 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
-    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis";
-    const maxOutputTokens = structuredJsonTask ? 32000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
+    const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis";
+    const maxOutputTokens = structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
     const videoAnalysisSchema = {
       type: "OBJECT",
       properties: {
