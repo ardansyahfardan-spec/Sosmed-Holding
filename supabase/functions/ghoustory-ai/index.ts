@@ -403,15 +403,14 @@ Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk 
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis BAGIAN ${chunkNumber} dari ${totalChunks} audio. Judul: ${title}. Posisi bagian ini dimulai pada detik ke-${offsetSeconds} dari audio asli.
 Audio dapat memakai bahasa Jawa Timur/Sidoarjo, bahasa Indonesia, atau campuran.
-Buat transkrip asli setia pada ucapan, terjemahan Indonesia natural, bahasa terdeteksi, ringkasan singkat bagian ini, dan maksimal 3 kandidat momen menarik dari bagian ini.
-Timestamp momen harus relatif terhadap awal BAGIAN ini (mulai 00:00), bukan keseluruhan audio. Setiap momen maksimal 60 detik. Jangan mengarang ucapan atau waktu; tandai confidence medium/low bila perkiraan. Jika bagian tidak jelas, tandai [tidak terdengar].
+Buat transkrip asli lengkap untuk BAGIAN 1 menit ini dan terjemahan Indonesia natural. Jangan menambahkan penjelasan panjang. Ringkasan maksimal 2 poin. Pilih maksimal 1 momen Shorts paling menarik (durasi maksimal 60 detik); bila tidak ada momen kuat, moments boleh kosong. Timestamp relatif terhadap awal BAGIAN ini (00:00). Jangan mengarang ucapan atau waktu; tandai [tidak terdengar] bila perlu.
 Kembalikan HANYA JSON valid:
 {"title":"...","detectedLanguage":"...","fullTranscript":"...","indonesianTranscript":"...","summary":["..."],"moments":[{"start":"00:00","end":"00:35","title":"...","hook":"...","caption":"...","reason":"...","quote":"...","timestampConfidence":"high|medium|low"}]}
-Jangan mengklaim transkrip lengkap untuk keseluruhan video; ini hanya bagian ${chunkNumber}.`;
+Ini hanya bagian ${chunkNumber}, bukan keseluruhan audio.`;
       requestParts[0] = { text: prompt };
     } else if (task === "video-transcript-synthesis") {
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
-      const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 120) : [];
+      const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 240) : [];
       if (!chunks.length) return json({ error: "Data bagian audio untuk penggabungan transkrip kosong." }, 400);
       const compactChunks = chunks.map((chunk: any, index: number) => ({
         part: index + 1,
