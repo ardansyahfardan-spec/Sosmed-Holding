@@ -4797,8 +4797,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 audioBuffer=await audioContext.decodeAudioData(await file.arrayBuffer());
             }catch(error){throw new Error('MP3 tidak dapat dibaca browser. Pastikan file tidak rusak dan coba lagi.');}
             finally{if(audioContext)try{await audioContext.close();}catch(_){}}
-            const sampleRate=audioBuffer.sampleRate,chunkFrames=120*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
-            if(total>120)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
+            const sampleRate=audioBuffer.sampleRate,chunkFrames=60*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
+            if(total>240)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
             const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory',results=[];
             for(let index=0;index<total;index++){
                 const startFrame=index*chunkFrames,endFrame=Math.min(audioBuffer.length,startFrame+chunkFrames),offsetSeconds=Math.floor(startFrame/sampleRate);
@@ -4819,8 +4819,21 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     if(uploaded?.path){const {error}=await supabaseClient.storage.from('vo-recordings').remove([uploaded.path]);if(error)console.warn('Audio bagian sementara gagal dihapus:',error);}
                 }
             }
-            if(statusEl)statusEl.textContent='Menggabungkan '+total+' bagian dan memilih 5 momen terbaik...';
-            const synthesisRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:results.map(x=>({offsetSeconds:x.offsetSeconds,summary:x.summary,moments:x.moments}))});
+            if(statusEl)statusEl.textContent='Menggabungkan ringkasan secara bertahap dari '+total+' bagian...';
+            let synthesisInputs=results.map(x=>({offsetSeconds:x.offsetSeconds,summary:x.summary,moments:x.moments.slice(0,1)}));
+            while(synthesisInputs.length>20){
+                const nextLevel=[];
+                for(let groupStart=0;groupStart<synthesisInputs.length;groupStart+=20){
+                    const group=synthesisInputs.slice(groupStart,groupStart+20);
+                    if(statusEl)statusEl.textContent='Menggabungkan hasil tahap '+(nextLevel.length+1)+'...';
+                    const batchRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:group});
+                    const batch=parseVideoAnalysisJson(batchRaw);
+                    nextLevel.push({offsetSeconds:0,summary:Array.isArray(batch.summary)?batch.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(batch.moments)?batch.moments:[])});
+                }
+                synthesisInputs=nextLevel;
+            }
+            if(statusEl)statusEl.textContent='Menyusun ringkasan akhir dan 5 momen terbaik...';
+            const synthesisRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:synthesisInputs});
             const synthesis=parseVideoAnalysisJson(synthesisRaw);
             return {
                 detectedLanguage:[...new Set(results.map(x=>x.detectedLanguage).filter(Boolean))].join(' + ')||'Tidak diketahui',
