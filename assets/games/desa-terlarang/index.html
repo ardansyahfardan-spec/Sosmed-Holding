@@ -1048,22 +1048,53 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sphere(femaleMakeup,blushMat,.225,-.045,-.326,.061,.039,.012);
  sphere(femaleMakeup,lipMat,0,-.105,-.353,.067,.023,.013);
  sphere(femaleMakeup,lipHighlight,0,-.094,-.366,.031,.006,.006);
- // Four distinct 3D hairstyle models.
- const shortHair=new THREE.Group();shortHair.userData.characterStyle='male-short';head.add(shortHair);
- sphere(shortHair,hair,0,.32,.025,.355,.16,.35);sphere(shortHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(shortHair,hair,.15,.29,-.18,.2,.12,.17);sphere(shortHair,hairLight,0,.235,-.285,.2,.095,.09);
- const longHair=new THREE.Group();longHair.visible=false;longHair.userData.characterStyle='male-long';head.add(longHair);
- sphere(longHair,hair,0,.32,.025,.36,.17,.35);sphere(longHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(longHair,hair,.15,.29,-.18,.2,.12,.17);sphere(longHair,hair,0,-.02,.20,.31,.39,.22);sphere(longHair,hairLight,-.29,-.03,-.015,.10,.39,.12);sphere(longHair,hair,.29,-.03,-.015,.10,.39,.12);
- const femaleHair=new THREE.Group();femaleHair.visible=false;femaleHair.userData.characterStyle='female-long';head.add(femaleHair);
- sphere(femaleHair,hair,0,.32,.025,.36,.17,.35);sphere(femaleHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(femaleHair,hair,.15,.29,-.18,.2,.12,.17);sphere(femaleHair,hair,0,-.015,.20,.33,.43,.24);sphere(femaleHair,hairLight,-.30,-.06,-.02,.11,.42,.13);sphere(femaleHair,hair,.30,-.06,-.02,.11,.42,.13);
+ // Molded LEGO hair: one smooth cap, with connected side locks and a rear hair panel.
+ function makeHairCap(group){
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.365,28,18,0,Math.PI*2,0,Math.PI*.56),hair);
+  cap.position.set(0,.235,.015);group.add(cap);
+  for(const side of [-1,1]){
+   const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.22,5,10),hair);
+   lock.position.set(side*.285,.015,-.005);lock.rotation.z=side*-.08;group.add(lock);
+  }
+ }
+ function makeRearHair(group,drop=.58){
+  const shape=new THREE.Shape();
+  shape.moveTo(-.245,.22);shape.lineTo(.245,.22);shape.quadraticCurveTo(.31,.22,.31,.14);
+  shape.lineTo(.31,-drop+.08);shape.quadraticCurveTo(.31,-drop,.22,-drop);
+  shape.lineTo(-.22,-drop);shape.quadraticCurveTo(-.31,-drop,-.31,-drop+.08);
+  shape.lineTo(-.31,.14);shape.quadraticCurveTo(-.31,.22,-.245,.22);
+  const panel=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025}),hair);
+  panel.position.set(0,-.03,.19);group.add(panel);
+ }
+ const shortHair=new THREE.Group();shortHair.userData.characterStyle='male-short';head.add(shortHair);makeHairCap(shortHair);
+ const longHair=new THREE.Group();longHair.visible=false;longHair.userData.characterStyle='male-long';head.add(longHair);makeHairCap(longHair);makeRearHair(longHair,.56);
+ const femaleHair=new THREE.Group();femaleHair.visible=false;femaleHair.userData.characterStyle='female-long';head.add(femaleHair);makeHairCap(femaleHair);makeRearHair(femaleHair,.72);
+ for(const side of [-1,1]){
+  const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.085,.28,5,10),hair);
+  lock.position.set(side*.29,-.18,.055);femaleHair.add(lock);
+ }
  const hijabMat=plastic(0x263b58);hijabMat.name='avatar-hijab';const hijab=new THREE.Group();hijab.visible=false;hijab.userData.characterStyle='female-hijab';head.add(hijab);
- // Hijab sehari-hari: menutup rambut dan leher, tetapi seluruh bagian depan wajah tetap terbuka.
- sphere(hijab,hijabMat,0,.22,.12,.385,.43,.27);
- // Kain jatuh di sisi kepala hingga bahu, tidak melintang di depan mata atau mulut.
- sphere(hijab,hijabMat,-.29,-.13,.075,.13,.43,.245);
- sphere(hijab,hijabMat,.29,-.13,.075,.13,.43,.245);
- // Lipatan penutup leher berada di belakang garis dagu.
- sphere(hijab,hijabMat,0,-.39,.13,.32,.20,.22);
- sphere(hijab,hijabMat,0,-.56,.12,.39,.12,.22);
+ // Hijab kain harian: tudung membungkus kepala, membingkai wajah dan jatuh di sisi hingga bahu.
+ const hijabCap=new THREE.Mesh(new THREE.SphereGeometry(1,32,22),hijabMat);
+ hijabCap.scale.set(.365,.405,.355);hijabCap.position.set(0,.105,.055);hijab.add(hijabCap);
+ // Dua sisi kain memanjang mengikuti pipi dan menutup telinga/leher; wajah depan tetap bebas.
+ for(const side of [-1,1]){
+  const drape=new THREE.Mesh(new THREE.CapsuleGeometry(.125,.48,6,12),hijabMat);
+  drape.position.set(side*.285,-.255,.085);drape.rotation.z=side*-.045;hijab.add(drape);
+ }
+ // Kain depan menutup leher dan bagian atas dada, tidak naik ke area mata atau mulut.
+ const bibShape=new THREE.Shape();
+ bibShape.moveTo(-.18,-.27);bibShape.quadraticCurveTo(-.22,-.29,-.23,-.39);
+ bibShape.lineTo(-.29,-.69);bibShape.quadraticCurveTo(0,-.77,.29,-.69);
+ bibShape.lineTo(.23,-.39);bibShape.quadraticCurveTo(.22,-.29,.18,-.27);bibShape.closePath();
+ const hijabBib=new THREE.Mesh(new THREE.ExtrudeGeometry(bibShape,{depth:.055,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.018}),hijabMat);
+ hijabBib.position.set(0,0,-.205);hijab.add(hijabBib);
+ // Lipatan kecil di sisi memberi kesan kain, bukan helm atau penutup wajah.
+ const foldMat=plastic(0x344d6b);
+ for(const side of [-1,1]){
+  const fold=new THREE.Mesh(new THREE.TorusGeometry(.19,.012,5,18,Math.PI*.72),foldMat);
+  fold.position.set(side*.19,-.02,-.255);fold.rotation.set(0,0,side*.45);hijab.add(fold);
+ }
  // Backpack: compact molded accessory.
  partBox(player,.48,.56,.2,jacketDark,0,1.57,.31);
  partBox(player,.36,.12,.07,jacket,0,1.85,.42);
@@ -1128,11 +1159,11 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  partBox(gearWatch,.18,.09,.09,gearMetal,-.57,1.15,-.02);
  gearBag.visible=false;gearSling.visible=false;gearGlasses.visible=false;gearHat.visible=false;gearNecklace.visible=false;gearWatch.visible=false;
  const gearFringe=new THREE.Group();head.add(gearFringe);
- sphere(gearFringe,hair,0,.24,-.29,.22,.09,.07);
+ const fringe=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),hair);fringe.scale.set(.205,.075,.075);fringe.position.set(0,.175,-.302);gearFringe.add(fringe);
  const gearBun=new THREE.Group();head.add(gearBun);
- sphere(gearBun,hair,0,-.03,.31,.13,.13,.13);
+ const bun=new THREE.Mesh(new THREE.SphereGeometry(.12,16,12),hair);bun.position.set(0,-.055,.325);gearBun.add(bun);
  const gearCurls=new THREE.Group();head.add(gearCurls);
- for(let n=0;n<7;n++){const angle=n/7*Math.PI*2;sphere(gearCurls,hair,Math.cos(angle)*.22,.23,Math.sin(angle)*.2,.09,.1,.09);}
+ for(let n=0;n<5;n++){const angle=(n/5)*Math.PI*2;const curl=new THREE.Mesh(new THREE.SphereGeometry(.065,12,10),hair);curl.position.set(Math.cos(angle)*.17,.22,Math.sin(angle)*.16+.015);gearCurls.add(curl);}
  const gearBottomMat=new THREE.MeshStandardMaterial({color:0x202d40,roughness:.58});
  const gearSkirt=new THREE.Group();player.add(gearSkirt);
  partBox(gearSkirt,.48,.38,.07,gearBottomMat,0,.91,-.235);
@@ -1150,8 +1181,12 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   gearFringe.visible=!wearHijab&&(c['hair-style']==='fringe'||c['hair-style']==='layer');
   gearBun.visible=!wearHijab&&c['hair-style']==='tied';
   gearCurls.visible=!wearHijab&&c['hair-style']==='curly';
-  const hairScale=c.hair==='short'?.74:c.hair==='medium'?.88:1;
-  femaleHair.scale.y=hairScale;longHair.scale.y=hairScale;shortHair.scale.y=c['hair-style']==='wavy'?1.08:1;
+  const hairScale=c.hair==='short'?.82:c.hair==='medium'?.92:1;
+  femaleHair.scale.set(1,hairScale,1);longHair.scale.set(1,hairScale,1);shortHair.scale.set(1,1,1);
+  gearFringe.visible=!wearHijab&&c['hair-style']==='fringe';
+  gearCurls.visible=!wearHijab&&c['hair-style']==='curly';
+  gearBun.visible=!wearHijab&&c['hair-style']==='tied';
+  if(c['hair-style']==='wavy'){femaleHair.rotation.z=.035;longHair.rotation.z=.035;}else{femaleHair.rotation.z=0;longHair.rotation.z=0;}
   gearHat.visible=gearHat.visible&&!wearHijab;
   const skirtOn=c.bottom==='skirt-short'||c.bottom==='skirt-long'||c.outfit==='dress'||c.outfit==='gown';
   gearSkirt.visible=skirtOn;
@@ -1162,7 +1197,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
   gearMat.color.set(c['top-color']||'#263e5c');
   gearBottomMat.color.set(c['bottom-color']||'#202d40');
   gearMetal.color.set(c['accessory-color']||'#d7c49a');
-  hijab.scale.y=c['hijab-style']==='syari'?1.14:c['hijab-style']==='instant'?.94:1.04;
+  hijab.scale.set(1,c['hijab-style']==='syari'?1.08:c['hijab-style']==='instant'?.96:1,1);
  }
  // Multiplayer realtime: Presence untuk daftar pemain, Broadcast untuk posisi.
  const lobby=document.getElementById('multiplayer-lobby');
