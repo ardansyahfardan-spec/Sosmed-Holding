@@ -846,14 +846,28 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  sphere(head,print,.112,.072,-.346,.012,.014,.008);
  partBox(head,.105,.018,.014,ink,0,-.095,-.34);
  partBox(head,.09,.018,.014,yellowShadow,0,-.13,-.344);
- // Riasan wajah halus untuk karakter perempuan; wajah tetap terbuka dan ekspresif.
- const femaleMakeupMat=plastic(0x5b2636),blushMat=new THREE.MeshStandardMaterial({color:0xd98286,roughness:.82,transparent:true,opacity:.72});
- const lipMat=plastic(0x9f4054),femaleMakeup=new THREE.Group();femaleMakeup.userData.characterStyle='female-makeup';head.add(femaleMakeup);
- sphere(femaleMakeup,femaleMakeupMat,-.125,.115,-.338,.052,.012,.009);
- sphere(femaleMakeup,femaleMakeupMat,.125,.115,-.338,.052,.012,.009);
- sphere(femaleMakeup,blushMat,-.225,-.045,-.326,.055,.035,.012);
- sphere(femaleMakeup,blushMat,.225,-.045,-.326,.055,.035,.012);
- sphere(femaleMakeup,lipMat,0,-.105,-.353,.065,.021,.012);
+ // Makeup natural untuk semua karakter perempuan: eyeliner, bulu mata, eyeshadow,
+ // blush on dan lipstik. Semua detail berada di permukaan depan agar wajah tetap terbuka.
+ const femaleMakeup=new THREE.Group();femaleMakeup.userData.characterStyle='female-makeup';head.add(femaleMakeup);
+ const eyelinerMat=plastic(0x38232b),shadowMat=new THREE.MeshStandardMaterial({color:0x9b6874,roughness:.9,transparent:true,opacity:.58});
+ const browMat=plastic(0x49302b),blushMat=new THREE.MeshStandardMaterial({color:0xd98286,roughness:.86,transparent:true,opacity:.66});
+ const lipMat=plastic(0xa64259),lipHighlight=plastic(0xd87987);
+ // Eyeshadow lembut di atas mata, dengan garis eyeliner tipis.
+ sphere(femaleMakeup,shadowMat,-.125,.105,-.337,.061,.026,.009);
+ sphere(femaleMakeup,shadowMat,.125,.105,-.337,.061,.026,.009);
+ sphere(femaleMakeup,eyelinerMat,-.125,.079,-.348,.052,.009,.009);
+ sphere(femaleMakeup,eyelinerMat,.125,.079,-.348,.052,.009,.009);
+ // Bulu mata kecil di sudut luar mata.
+ sphere(femaleMakeup,eyelinerMat,-.185,.09,-.344,.022,.008,.008);
+ sphere(femaleMakeup,eyelinerMat,.185,.09,-.344,.022,.008,.008);
+ // Alis halus.
+ sphere(femaleMakeup,browMat,-.125,.19,-.337,.057,.012,.009);
+ sphere(femaleMakeup,browMat,.125,.19,-.337,.057,.012,.009);
+ // Blush on dan bibir berwarna rose natural.
+ sphere(femaleMakeup,blushMat,-.225,-.045,-.326,.061,.039,.012);
+ sphere(femaleMakeup,blushMat,.225,-.045,-.326,.061,.039,.012);
+ sphere(femaleMakeup,lipMat,0,-.105,-.353,.067,.023,.013);
+ sphere(femaleMakeup,lipHighlight,0,-.094,-.366,.031,.006,.006);
  // Four distinct 3D hairstyle models.
  const shortHair=new THREE.Group();shortHair.userData.characterStyle='male-short';head.add(shortHair);
  sphere(shortHair,hair,0,.32,.025,.355,.16,.35);sphere(shortHair,hairLight,-.16,.31,-.13,.18,.11,.2);sphere(shortHair,hair,.15,.29,-.18,.2,.12,.17);sphere(shortHair,hairLight,0,.235,-.285,.2,.095,.09);
