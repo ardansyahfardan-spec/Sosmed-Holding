@@ -120,7 +120,7 @@ button:active{transform:scale(.97);background:#273650}
 </div>
 <div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
 <script>
-(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');function queueRoom(){window.__ghoustoryCreateRequested=true;if(s)s.textContent='Memuat engine 3D, menyiapkan ruang...';}b?.addEventListener('pointerdown',queueRoom,{passive:true});b?.addEventListener('touchstart',queueRoom,{passive:true});b?.addEventListener('click',queueRoom);})();
+(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');function queueRoom(){window.__ghoustoryCreateRequested=true;if(s)s.textContent='Menyiapkan dunia dan koneksi ruang...';}b?.addEventListener('click',queueRoom);})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';"></script>
 <script>
@@ -137,19 +137,13 @@ button:active{transform:scale(.97);background:#273650}
  window.addEventListener('error',event=>{
   if(earlyStatus)earlyStatus.textContent='Game mengalami kesalahan saat dimuat: '+(event.message||'kesalahan JavaScript');
  });
- let lastCreateLaunch=0;
- function launchCreateRoom(event){
-  const now=Date.now();
-  if(now-lastCreateLaunch<900)return;
-  lastCreateLaunch=now;
+ function launchCreateRoom(){
   window.__ghoustoryCreateRequested=false;
-  if(earlyStatus)earlyStatus.textContent='Tombol terdeteksi. Menyiapkan ruang baru...';
+  if(earlyStatus)earlyStatus.textContent='Membuat ruang baru...';
   try{startAmbientAudio();}catch(_){}
-  try{Promise.resolve(enterRoom(makeRoomCode(),true)).catch(error=>{if(earlyStatus)earlyStatus.textContent='Gagal membuat ruang: '+(error.message||'kesalahan koneksi');});}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
+  try{enterRoom(makeRoomCode(),true);}catch(error){if(earlyStatus)earlyStatus.textContent='Game belum siap: '+(error.message||'kesalahan inisialisasi');}
  }
- // iOS Safari: pointer/touch fallback; click remains for keyboard and desktop.
- earlyCreate?.addEventListener('pointerdown',launchCreateRoom,{passive:true});
- earlyCreate?.addEventListener('touchstart',launchCreateRoom,{passive:true});
+ // Satu jalur klik mendukung mouse, keyboard, dan tap layar sentuh.
  earlyCreate?.addEventListener('click',launchCreateRoom);
  earlyJoin?.addEventListener('click',()=>{
   try{startAmbientAudio();}catch(_){}
@@ -820,7 +814,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  const playerId=(crypto.randomUUID?crypto.randomUUID():('p'+Date.now()+Math.random().toString(36).slice(2)));
  const remotePlayers=new Map();
  let multiplayer=null,activeRoom='',lastBroadcast=0,localNickname='Pemain';
- let realtimeClient=null,realtimeLoading=null;
+ let realtimeClient=null,realtimeLoading=null,roomJoinInFlight=false;
  async function ensureRealtimeClient(){
   if(realtimeClient)return realtimeClient;
   if(!realtimeLoading)realtimeLoading=new Promise((resolve,reject)=>{
@@ -855,6 +849,8 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
  async function enterRoom(code,host=false){
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
   if(code.length!==6){roomStatus.textContent='Kode ruang harus terdiri dari 6 karakter.';return;}
+  if(roomJoinInFlight){roomStatus.textContent='Permintaan ruang sedang diproses. Tunggu sebentar...';return;}
+  roomJoinInFlight=true;
   isRoomHost=!!host;roomStarted=false;createRoomBtn.disabled=true;joinRoomBtn.disabled=true;roomStatus.textContent='Memuat layanan multiplayer...';
   try{
    await ensureRealtimeClient();
@@ -877,11 +873,12 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
    channel.on('broadcast',{event:'environment_scare'},({payload})=>{if(payload?.player_id&&payload.player_id!==playerId){const dx=player.position.x-(Number(payload.x)||0),dz=player.position.z-(Number(payload.z)||0);if(dx*dx+dz*dz<26*26)triggerEnvironmentalScare(payload.id,true);}});
    channel.on('broadcast',{event:'survival'},({payload})=>{if(!payload?.player_id||payload.player_id===playerId)return;const entry=remotePlayers.get(payload.player_id);if(entry&&typeof payload.hidden==='boolean')entry.avatar.visible=!payload.hidden;});
    channel.on('broadcast',{event:'ritual'},({payload})=>{if(payload?.player_id!==playerId&&Number.isFinite(payload?.step)){if(Number.isFinite(payload.resetAt)&&payload.resetAt>=ritualResetAt){ritualResetAt=payload.resetAt;ritualStep=payload.reset?0:Math.max(ritualStep,payload.step);}else if(!Number.isFinite(payload.resetAt)&&!payload.reset){ritualStep=Math.max(ritualStep,payload.step);}if(ritualStep>=3){ritualComplete=true;addInventoryItem('Ritual selesai');if(typeof exitMarker!=='undefined')exitMarker.group.visible=true;}saveGameProgress();updateMission(false);}});
-   const connectTimer=setTimeout(()=>{if(activeRoom===code&&multiplayer!==channel){roomStatus.textContent='Koneksi multiplayer melewati batas waktu 15 detik. Coba lagi atau ganti jaringan.';lobby.style.display='block';roomCodeDisplay.style.display='none';roomPresence.style.display='none';createRoomBtn.disabled=false;joinRoomBtn.disabled=false;activeRoom='';realtimeClient.removeChannel(channel);}},15000);
+   const connectTimer=setTimeout(()=>{if(activeRoom===code&&multiplayer!==channel){roomJoinInFlight=false;roomStatus.textContent='Koneksi multiplayer melewati batas waktu 18 detik. Coba lagi atau ganti jaringan.';lobby.style.display='flex';roomCodeDisplay.style.display='none';roomPresence.style.display='none';createRoomBtn.disabled=false;joinRoomBtn.disabled=false;activeRoom='';realtimeClient.removeChannel(channel);}},18000);
    channel.subscribe(async status=>{
     if(activeRoom!==code)return;
     if(status==='SUBSCRIBED'){
      clearTimeout(connectTimer);
+     roomJoinInFlight=false;
      multiplayer=channel;
      await channel.send({type:'broadcast',event:'hello',payload:{player_id:playerId,nickname:localNickname,x:player.position.x,z:player.position.z,rotation:player.rotation.y,started:roomStarted}});
      lobbyRoomCode.textContent='KODE RUANG  '+code;lobbyRoomCode.style.display='block';
@@ -892,6 +889,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
     }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
      clearTimeout(connectTimer);
      if(activeRoom===code){
+      roomJoinInFlight=false;
       multiplayer=null;
       roomStatus.textContent='Koneksi ruang gagal ('+status+'). Periksa jaringan lalu coba lagi.';
       lobby.style.display='block';roomCodeDisplay.style.display='none';roomPresence.style.display='none';
@@ -899,7 +897,7 @@ function setFlashlightState(on){flashlightOn=!!on;flashlight.intensity=flashligh
      }
     }
    });
-  }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;isRoomHost=false;roomStarted=false;}
+  }catch(error){console.error('[Desa Terlarang multiplayer]',error);roomJoinInFlight=false;activeRoom='';roomStatus.textContent='Gagal masuk ruang: '+(error.message||'kesalahan koneksi');createRoomBtn.disabled=false;joinRoomBtn.disabled=false;isRoomHost=false;roomStarted=false;}
  }
  function makeRoomCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out;}
  addEventListener('beforeunload',()=>{try{sessionStorage.removeItem(saveKey);}catch(_){}if(multiplayer){multiplayer.send({type:'broadcast',event:'leave',payload:{player_id:playerId}});realtimeClient.removeChannel(multiplayer);}});
