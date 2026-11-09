@@ -3713,7 +3713,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         async function loadCharacterProfile(){
           updateCharacterPreview();
           const status=document.getElementById('character-save-status');if(!status)return;
-          if(!window.activeUser?.id||!window.supabaseClient){status.textContent='Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.';return;}
+          if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'||!supabaseClient){status.textContent='Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.';return;}
           status.textContent='Memuat karakter tersimpan...';
           const {data,error}=await supabaseClient.from('ghoustory_character_profiles').select('display_name,appearance').eq('user_id',activeUser.id).maybeSingle();
           if(error){status.textContent='Belum dapat memuat data: '+error.message;return;}
@@ -3722,7 +3722,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
         async function saveCharacterProfile(){
           const status=document.getElementById('character-save-status'),button=document.getElementById('character-save-button');
-          if(!window.activeUser?.id||!window.supabaseClient){status.textContent='Silakan masuk ke akun Ghoustory terlebih dahulu.';return;}
+          if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'||!supabaseClient){status.textContent='Silakan masuk ke akun Ghoustory terlebih dahulu.';return;}
           const displayName=(document.getElementById('character-name')?.value||'Karakter Saya').trim().slice(0,24)||'Karakter Saya';
           const appearance=getCharacterAppearance();if(button){button.disabled=true;button.classList.add('opacity-60');}
           status.textContent='Menyimpan karakter ke cloud...';
