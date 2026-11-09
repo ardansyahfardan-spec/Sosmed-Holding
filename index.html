@@ -2776,7 +2776,18 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                   </div>
                   <div class="mt-4 rounded-xl border border-amber-900/30 bg-amber-950/15 p-3">
                     <p class="text-[10px] text-amber-200 font-bold"><i class="fa-solid fa-circle-info mr-1"></i>CATATAN INTEGRASI</p>
-                    <p class="text-[10px] leading-relaxed text-gray-400 mt-1">Versi ini menyimpan rancangan ke akun Ghoustory. Penerapan otomatis ke avatar Roblox memerlukan penghubung khusus di dalam game, yang akan dibuat pada tahap integrasi berikutnya.</p>
+                    <p class="text-[10px] leading-relaxed text-gray-400 mt-1">Preview 3D ini adalah rancangan visual website. Hubungkan akun Roblox agar game dapat mengambil penampilan yang kamu simpan.</p>
+                  </div>
+                  <div class="mt-3 rounded-xl border border-blue-900/40 bg-blue-950/20 p-3">
+                    <div class="flex items-center gap-2"><i class="fa-brands fa-roblox text-blue-200"></i><p class="text-xs font-bold text-blue-100">Hubungkan ke Roblox</p></div>
+                    <p id="character-roblox-status" class="text-[10px] text-gray-400 mt-2">Memeriksa koneksi akun Roblox...</p>
+                    <button type="button" id="character-roblox-connect" onclick="generateRobloxLinkCode()" class="mt-3 w-full rounded-lg border border-blue-700/60 bg-blue-900/50 px-3 py-2.5 text-xs font-bold text-blue-100">Buat kode penghubung</button>
+                    <div id="character-roblox-code-wrap" class="hidden mt-3 rounded-lg bg-black/40 p-3 text-center">
+                      <p class="text-[9px] tracking-widest text-gray-400">KODE SEKALI PAKAI · BERLAKU 10 MENIT</p>
+                      <p id="character-roblox-code" class="my-2 text-2xl font-black tracking-[.22em] text-white">----------</p>
+                      <button type="button" onclick="copyRobloxLinkCode()" class="rounded-lg bg-blue-800 px-4 py-2 text-xs font-bold text-white"><i class="fa-regular fa-copy mr-1"></i>Salin kode</button>
+                    </div>
+                    <p class="text-[9px] text-gray-500 mt-2">Kode ini nanti dimasukkan di dalam game Desa Terlarang untuk memasangkan akun Roblox dengan akun website.</p>
                   </div>
                 </div>
                 <div class="rounded-2xl border border-gray-800 bg-[#101116] p-3 sm:p-5">
@@ -3807,8 +3818,36 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           if(character3D.model){character3D.scene.remove(character3D.model);character3D.model.traverse(o=>{if(o.isMesh){o.geometry.dispose();if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}});}
           character3D.model=characterBuildModel(a);character3D.model.rotation.y=character3D.rotation;character3D.scene.add(character3D.model);
         }
+        async function checkRobloxLinkStatus(){
+          const label=document.getElementById('character-roblox-status');if(!label)return;
+          if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'||!supabaseClient){label.textContent='Masuk ke akun Ghoustory untuk menghubungkan Roblox.';return;}
+          label.textContent='Memeriksa koneksi Roblox...';
+          try{
+            const {data,error}=await supabaseClient.functions.invoke('ghoustory-character',{body:{action:'status'}});
+            if(error)throw error;
+            label.textContent=data?.linked?'Roblox terhubung · User ID '+data.robloxUserId:'Belum terhubung ke akun Roblox.';
+            const button=document.getElementById('character-roblox-connect');if(button)button.textContent=data?.linked?'Buat kode untuk ganti akun Roblox':'Buat kode penghubung';
+          }catch(error){label.textContent='Status Roblox belum tersedia: '+(error.message||'periksa koneksi.');}
+        }
+        async function generateRobloxLinkCode(){
+          const button=document.getElementById('character-roblox-connect'),label=document.getElementById('character-roblox-status'),wrap=document.getElementById('character-roblox-code-wrap'),codeEl=document.getElementById('character-roblox-code');
+          if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'||!supabaseClient){label.textContent='Silakan masuk ke akun Ghoustory terlebih dahulu.';return;}
+          if(button){button.disabled=true;button.textContent='Membuat kode...';}
+          try{
+            const {data,error}=await supabaseClient.functions.invoke('ghoustory-character',{body:{action:'create_code'}});
+            if(error)throw error;if(!data?.code)throw new Error(data?.error||'Kode tidak berhasil dibuat.');
+            codeEl.textContent=data.code;wrap.classList.remove('hidden');label.textContent='Kode berhasil dibuat. Masukkan kode ini di dalam game Roblox dalam 10 menit.';
+          }catch(error){label.textContent=error.message||'Gagal membuat kode penghubung.';}
+          finally{if(button){button.disabled=false;button.textContent='Buat kode penghubung';}}
+        }
+        async function copyRobloxLinkCode(){
+          const code=document.getElementById('character-roblox-code')?.textContent||'';
+          try{await navigator.clipboard.writeText(code);const label=document.getElementById('character-roblox-status');if(label)label.textContent='Kode penghubung berhasil disalin.';}
+          catch{const label=document.getElementById('character-roblox-status');if(label)label.textContent='Tidak bisa menyalin otomatis. Tekan lama kode untuk menyalinnya.';}
+        }
         async function loadCharacterProfile(){
           updateCharacterPreview();
+          checkRobloxLinkStatus();
           const status=document.getElementById('character-save-status');if(!status)return;
           if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'||!supabaseClient){status.textContent='Masuk ke akun Ghoustory untuk menyimpan rancangan ke cloud.';return;}
           status.textContent='Memuat karakter tersimpan...';
