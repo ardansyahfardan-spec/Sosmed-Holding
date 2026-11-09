@@ -411,13 +411,13 @@ Jangan mengklaim transkrip lengkap untuk keseluruhan video; ini hanya bagian ${c
       requestParts[0] = { text: prompt };
     } else if (task === "video-transcript-synthesis") {
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
-      const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 60) : [];
+      const chunks = Array.isArray(body.chunks) ? body.chunks.slice(0, 120) : [];
       if (!chunks.length) return json({ error: "Data bagian audio untuk penggabungan transkrip kosong." }, 400);
       const compactChunks = chunks.map((chunk: any, index: number) => ({
         part: index + 1,
         offsetSeconds: Math.max(0, Number(chunk?.offsetSeconds) || 0),
         summary: Array.isArray(chunk?.summary) ? chunk.summary.slice(0, 3) : [],
-        moments: Array.isArray(chunk?.moments) ? chunk.moments.slice(0, 3) : [],
+        moments: Array.isArray(chunk?.moments) ? chunk.moments.slice(0, 2).map((moment: any) => ({ start: String(moment?.start || ""), end: String(moment?.end || ""), title: String(moment?.title || "").slice(0, 100), hook: String(moment?.hook || "").slice(0, 180), caption: String(moment?.caption || "").slice(0, 180), reason: String(moment?.reason || "").slice(0, 180), quote: String(moment?.quote || "").slice(0, 180), timestampConfidence: String(moment?.timestampConfidence || "medium") })) : [],
       }));
       prompt = `Kamu editor senior Ghoustory. Gabungkan ringkasan dan kandidat momen dari seluruh bagian audio menjadi hasil akhir untuk video berjudul: ${title}.
 DATA BAGIAN (offsetSeconds adalah posisi awal bagian di audio asli):
