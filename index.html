@@ -2152,8 +2152,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('arena')" class="gcr-home-item">
-                    <span class="gcr-home-icon"><i class="fa-solid fa-gamepad" aria-hidden="true" title="Arena Gaib"></i></span>
-                    <span class="gcr-home-copy"><b>Arena Gaib</b></span>
+                    <span class="gcr-home-icon"><i class="fa-solid fa-gamepad" aria-hidden="true" title="Game Ghoustory"></i></span>
+                    <span class="gcr-home-copy"><b>Game Ghoustory</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
                   <button type="button" onclick="showPage('radar')" class="gcr-home-item">
@@ -2169,29 +2169,18 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             <section id="page-arena" class="page-section max-w-6xl mx-auto">
               <div id="arena-lobby-view">
               <div class="mb-5">
-                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY CREW CHALLENGE</p>
-                <h2 class="text-2xl font-bold text-[#e9dfcf]">Arena Gaib</h2>
-                <p class="text-sm text-gray-400 mt-1">Delapan arena tantangan. Kumpulkan Poin Jiwa, buktikan kemampuanmu, dan rebut posisi teratas Crew.</p>
+                <p class="text-[10px] tracking-[.24em] font-bold text-red-300 mb-2">GHOUSTORY GAME HUB</p>
+                <h2 class="text-2xl font-bold text-[#e9dfcf]">Game Ghoustory</h2>
+                <p class="text-sm text-gray-400 mt-1">Pilih pengalaman utama Ghoustory. Dua game ini tetap tersedia tanpa papan skor Arena.</p>
               </div>
-              <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH ARENA</p><p class="text-xs text-gray-400 mt-1">Pilih tantangan untuk mulai bermain.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">3 GAME</span></div>
+              <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH GAME</p><p class="text-xs text-gray-400 mt-1">Game utama yang masih aktif.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">2 GAME</span></div>
               
               <div id="arena-game-grid" class="grid grid-cols-2 gap-2 sm:gap-3">
                 <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas" aria-label="GHOUSTORY: Desa Terlarang"><img class="arena-game-art" alt="GHOUSTORY: Desa Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Desa%20terlarang.JPG"></button>
-                <button onclick="playArena('jadi_wni')" class="arena-game-card" data-mode="jadi_wni" aria-label="JADI WNI — Monopoli Republik: Suara Rakyat"><img class="arena-game-art" alt="JADI WNI" loading="lazy" src="./assets/games/jadi-wni/cover/Gemini_Generated_Image_ex13tpex13tpex13.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="jadi-wni-cover-fallback" style="display:none;position:absolute;inset:0;z-index:2;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;background:linear-gradient(145deg,#e9dfc7,#9d8864);color:#211d18"><span style="font-size:clamp(28px,8vw,54px)">🗳️</span><b style="font-family:Georgia,serif;font-size:clamp(17px,4vw,27px);line-height:1.05">JADI WNI</b><small style="font-size:9px;letter-spacing:.12em;margin-top:7px">MONOPOLI REPUBLIK</small><small style="font-size:8px;margin-top:3px">SUARA RAKYAT</small></div></button>
                 <button onclick="openMalamTerlarang()" class="arena-game-card" data-mode="malam_terlarang"><img class="arena-game-art" alt="Malam Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Malam%20terlarang.JPG"></button>
               </div>
-              <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="rounded-xl border border-red-900/40 bg-gradient-to-br from-red-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POIN JIWAMU</p><b id="arena-my-score" class="text-xl text-red-200">—</b></div>
-                <div class="rounded-xl border border-blue-900/40 bg-gradient-to-br from-blue-950/40 to-gray-950 p-3"><p class="text-[9px] text-gray-400">POSISIMU</p><b id="arena-my-rank" class="text-xl text-blue-200">—</b></div>
-                <div class="rounded-xl border border-gray-700 bg-gray-950 p-3"><p class="text-[9px] text-gray-400">MODE GAME</p><b class="text-xl text-white">08</b></div>
-              </div>
-              <div class="rounded-2xl border border-red-900/30 bg-gradient-to-r from-red-950/25 via-gray-950 to-blue-950/25 p-4 mb-5">
-                <div class="flex items-center justify-between gap-3"><div><h3 class="font-bold text-sm text-[#eee8dd]">Papan Klasemen Crew</h3><p class="text-[10px] text-gray-500 mt-1">Total Poin Jiwa dari seluruh mode permainan</p></div><button onclick="refreshArena()" class="rounded-lg border border-gray-700 px-3 py-2 text-xs text-gray-300"><i class="fa-solid fa-rotate mr-1"></i>Segarkan</button></div>
-                <div id="arena-leaderboard" class="mt-3"><p class="text-xs text-gray-500 text-center py-4">Memuat klasemen...</p></div>
-              </div>
-              </div>
               <div id="arena-play-panel" class="hidden mt-5 rounded-2xl border border-red-900/40 bg-[#101116] p-4 sm:p-5" aria-live="polite"></div>
-              <p id="arena-footer-note" class="text-[10px] text-gray-600 mt-4 text-center">Poin tersimpan di database Crew. Main dengan sportif; skor tidak dapat ditukar menjadi hadiah uang.</p>
+              <p id="arena-footer-note" class="text-[10px] text-gray-600 mt-4 text-center">Desa Terlarang dan Malam Terlarang tetap tersedia. JADI WNI dan klasemen Arena telah dikeluarkan dari Control Room.</p>
             </section>
 
             <!-- CHAT KRU · INBOX DAN ROOM -->
@@ -3571,7 +3560,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Arena Gaib','KOMPETISI INTERNAL CREW'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Game Ghoustory','DESA TERLARANG • MALAM TERLARANG'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
@@ -3594,7 +3583,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(pageId==='anda'&&activeProfile)applyGhoustoryProfile(activeProfile);
             if(activeUser)window.loadGhoustoryNotifications?.();
             if(pageId==='character')loadCharacterProfile();
-            if(pageId==='arena')refreshArena();
+            
             if(pageId==='tim')refreshCrewHub().then(checkCrewAttendancePrompts).catch(console.warn);
             if(pageId==='crewhub')refreshCrewHub().then(renderCrewSummary).catch(console.warn);
         }
@@ -6704,7 +6693,7 @@ function toggleChatSearch(kind, forceOpen){
  .malam-player-chat-bubble:after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:rgba(18,29,48,.96);border-right:1px solid rgba(147,197,253,.55);border-bottom:1px solid rgba(147,197,253,.55);transform:translateX(-50%) rotate(45deg)}
  @keyframes malam-bubble-life{0%,72%{opacity:1}100%{opacity:0}}
 </style>
-
+<style id="gh-game-hub-two-card-layout">#page-arena #arena-game-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}</style>
 
 <script id="gh-arena-gaib-logic">
 (function(){
@@ -6732,7 +6721,7 @@ function showArenaGamePage(){
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function arenaBackHeader(kicker,title){
- return '<div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-800"><button type="button" onclick="closeArenaGame()" class="shrink-0 rounded-xl border border-gray-700 bg-black/30 px-3 py-2 text-xs text-gray-200"><i class="fa-solid fa-arrow-left mr-2"></i>Kembali ke Arena</button><div class="min-w-0"><p class="text-[9px] tracking-[.2em] text-red-300">'+esc(kicker)+'</p><h2 class="font-bold text-lg text-white">'+esc(title)+'</h2></div></div>';
+ return '<div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-800"><button type="button" onclick="closeArenaGame()" class="shrink-0 rounded-xl border border-gray-700 bg-black/30 px-3 py-2 text-xs text-gray-200"><i class="fa-solid fa-arrow-left mr-2"></i>Kembali ke Game Ghoustory</button><div class="min-w-0"><p class="text-[9px] tracking-[.2em] text-red-300">'+esc(kicker)+'</p><h2 class="font-bold text-lg text-white">'+esc(title)+'</h2></div></div>';
 }
 window.playArena=function(mode){
  const game=arenaModes[mode];if(!game)return;
@@ -6769,32 +6758,8 @@ window.submitArenaStory=async function(){
 };
 window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view'),note=$('arena-footer-note');if(p){p.classList.add('hidden');p.style.display='none';p.classList.remove('arena-game-page');p.innerHTML='';}if(l){l.classList.remove('hidden');l.style.display='';}if(note)note.style.display='';if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
 window.playArenaAgain=function(){if(!arenaCurrent||!arenaModes[arenaCurrent])return;const mode=arenaCurrent;arenaCurrent=null;const p=$('arena-play-panel');if(p)p.innerHTML='';window.playArena(mode);};
-async function saveArenaResult(mode,score){
- if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){alert('Sesi login belum siap. Silakan muat ulang lalu coba lagi.');return false;}
- const {error}=await supabaseClient.from('ghoustory_arena_results').insert({user_id:activeUser.id,game_mode:mode,score:score,details:{}});
- if(error){console.error('Arena save error',error);alert('Hasil belum tersimpan: '+(error.message||'periksa koneksi'));return false;}
- await refreshArena();return true;
-}
-
-/* Arena Gaib: bank konten dan mini-game interaktif */
-let arenaBankPack=null,arenaBankStep=0,arenaBankClues=[],arenaBankStats={health:3,sanity:3,battery:2,supplies:2},arenaBankSeen=new Set(),arenaBankCards=[];
-const arenaLegacyPlay=window.playArena;
-async function arenaFetchPack(mode){
- try{
-  const {data,error}=await supabaseClient.from('ghoustory_arena_content').select('id,title,content_type,payload,difficulty').eq('game_mode',mode).eq('is_active',true);
-  if(error)throw error;
-  if(data&&data.length){const fresh=data.filter(x=>!arenaBankSeen.has(x.id));const pool=fresh.length?fresh:data;const row=pool[Math.floor(Math.random()*pool.length)];arenaBankSeen.add(row.id);return row;}
- }catch(e){console.warn('Bank Arena belum dapat dimuat:',e.message||e);}
- return null;
-}
-window.playArena=async function(mode){
- if(mode==='berkas'){
-  arenaCurrent='berkas';showArenaGamePage();
-  const panel=$('arena-play-panel');
-  panel.innerHTML=arenaBackHeader('PETUALANGAN 3D','GHOUSTORY: DESA TERLARANG')+'<div class="desa-terlarang-frame" style="position:absolute;inset:0;width:100%;height:100%;min-height:0;overflow:hidden;background:#080b12"><iframe title="GHOUSTORY: Desa Terlarang" src="./assets/games/desa-terlarang/index.html" style="position:absolute;inset:0;display:block;width:100%;height:100%;min-height:100%;border:0;margin:0;padding:0" allow="autoplay; fullscreen; gamepad; screen-orientation"></iframe></div>';
-  return;
- }
- if(mode==='jadi_wni'){if(typeof window.playJadiWni==='function'){window.playJadiWni();}else{console.error('JADI WNI script belum siap dimuat.');alert('Game JADI WNI belum siap. Muat ulang halaman.');}return;}
+async function saveArenaResult(){return false;}
+ 
  if(!arenaModes[mode])return;
  arenaCurrent=mode;arenaIndex=0;arenaStep=0;arenaScore=0;arenaAnswers=[];
  arenaBankStep=0;arenaBankClues=[];arenaBankStats={health:3,sanity:3,battery:2,supplies:2};arenaBankCards=[];arenaBankPack=null;
@@ -7752,25 +7717,9 @@ window.generateArenaImages=async function(){
  finally{btn.disabled=false;btn.classList.remove("opacity-50");}
 };
 window.loadArenaImages();
-window.refreshArena=async function(){
- const board=$('arena-leaderboard');if(!board)return;
- if(typeof activeUser==='undefined'||!activeUser?.id||typeof supabaseClient==='undefined'){board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Masuk untuk melihat klasemen Crew.</p>';return;}
- board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Memuat klasemen...</p>';
- const [res,profilesRes]=await Promise.all([
-  supabaseClient.from('ghoustory_arena_results').select('user_id,score,game_mode,created_at').order('created_at',{ascending:false}).limit(1000),
-  supabaseClient.from('ghoustory_profiles').select('user_id,nickname,avatar_url')
- ]);
- if(res.error){board.innerHTML='<p class="text-xs text-red-300 text-center py-4">Klasemen belum dapat dimuat. '+esc(res.error.message)+'</p>';return;}
- const totals={};(res.data||[]).forEach(r=>{if(!totals[r.user_id])totals[r.user_id]={score:0,games:0};totals[r.user_id].score+=Number(r.score)||0;totals[r.user_id].games++;});
- const profiles=profilesRes.data||[],ranked=Object.entries(totals).map(([id,v])=>({id,...v,profile:profiles.find(p=>p.user_id===id)})).sort((a,b)=>b.score-a.score||b.games-a.games).slice(0,20);
- const mine=ranked.findIndex(p=>p.id===activeUser.id),my=ranked[mine];
- $('arena-my-score').textContent=my?my.score.toLocaleString('id-ID'):'0';$('arena-my-rank').textContent=my?'#'+(mine+1):'—';
- if(!ranked.length){board.innerHTML='<p class="text-xs text-gray-500 text-center py-4">Belum ada skor. Jadilah anggota pertama yang bermain!</p>';return;}
- board.innerHTML=ranked.map((p,i)=>'<div class="flex items-center gap-3 py-2 border-b border-gray-800/80"><span class="w-7 text-center font-bold '+(i===0?'text-yellow-300':i===1?'text-gray-300':i===2?'text-orange-300':'text-gray-600')+'">'+(i+1)+'</span><div class="min-w-0 flex-1"><b class="block text-xs text-gray-200 truncate">'+esc(p.profile?.nickname||'Anggota Crew')+'</b><span class="text-[10px] text-gray-500">'+p.games+' permainan</span></div><b class="text-sm text-red-200">'+p.score.toLocaleString('id-ID')+' XP</b></div>').join('');
-};
+
 })();
 </script>
 
-<script src="./assets/games/jadi-wni/jadi-wni.js?v=18"></script>
 </body>
 </html>
