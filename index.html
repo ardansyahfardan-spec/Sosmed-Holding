@@ -5648,8 +5648,27 @@ function renderChatMessages(){
  }).join("");
  enableChatSwipeActions(box);scrollChatToLatest("group");
 }
-async function loadChatMessages(){
-          if(!activeUser||chatLoadedForUser===activeUser.id)return;
+async function ensureGroupRealtime(){
+          if(!activeUser||!isGroupRoomVisible()||chatChannel)return;
+          const status=document.getElementById("chat-connection");
+          chatChannel=supabaseClient.channel("ghoustory-chat-live");
+          chatChannel.on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_chat_messages"},payload=>{
+            if(payload.eventType==="INSERT"&&!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);}
+            else if(payload.eventType==="UPDATE"){const i=chatMessages.findIndex(m=>m.id===payload.new.id);if(i>=0)chatMessages[i]=payload.new;}
+            saveChatCache();renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
+          }).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
+        }
+        async function closeGroupRealtime(){
+          if(!chatChannel)return;
+          const channel=chatChannel;chatChannel=null;
+          await supabaseClient.removeChannel(channel);
+        }
+        async function loadChatMessages(){
+          if(!activeUser)return;
+          if(chatLoadedForUser===activeUser.id){
+            if(isGroupRoomVisible())await ensureGroupRealtime();
+            return;
+          }
           const status=document.getElementById("chat-connection");
           try{
             if(!(await ensureRitualGroupAccess())){
@@ -5666,23 +5685,16 @@ async function loadChatMessages(){
             console.error("Gagal memeriksa akses grup:",accessError);
             return;
           }
-          
-        const {data,error}=await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:false}).limit(150);
+          const {data,error}=await supabaseClient.from("ghoustory_chat_messages").select("*").order("created_at",{ascending:false}).limit(150);
           if(error){chatLoadedForUser=null;if(status)status.textContent="Chat belum tersambung";console.error("Gagal memuat chat:",error);return;}
           chatMessages=(data||[]).reverse();const ids=chatMessages.map(m=>m.id);
           groupReads=[];
           if(ids.length){const [rx,pn,rd]=await Promise.all([supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids),supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids),supabaseClient.from("ghoustory_group_message_reads").select("message_id,user_id,read_at").in("message_id",ids)]);if(!rx.error)groupReactions=rx.data||[];if(!pn.error)groupPins=pn.data||[];if(!rd.error)groupReads=rd.data||[];}
           saveChatCache();renderChatMessages();if(status)status.textContent="Online";
-          if(chatChannel)await supabaseClient.removeChannel(chatChannel);
-          chatChannel=supabaseClient.channel("ghoustory-chat-live");
-          chatChannel.on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_chat_messages"},payload=>{
-            if(payload.eventType==="INSERT"&&!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);}
-            else if(payload.eventType==="UPDATE"){const i=chatMessages.findIndex(m=>m.id===payload.new.id);if(i>=0)chatMessages[i]=payload.new;}
-            saveChatCache();renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
-          }).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_reactions"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_reactions").select("*").in("message_id",ids);groupReactions=data||[];renderChatMessages();}}).on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_group_message_pins"},async()=>{const ids=chatMessages.map(m=>m.id);if(ids.length){const {data}=await supabaseClient.from("ghoustory_group_message_pins").select("*").in("message_id",ids);groupPins=data||[];renderChatMessages();}}).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
+          if(isGroupRoomVisible())await ensureGroupRealtime();
           if(isGroupRoomVisible())await markGroupMessagesRead();
         }
-        function isGroupRoomVisible(){return !!activeUser&&document.getElementById("page-chat")?.classList.contains("page-active")&&!document.getElementById("group-chat-card")?.classList.contains("hidden")&&document.visibilityState==="visible";}
+                function isGroupRoomVisible(){return !!activeUser&&document.getElementById("page-chat")?.classList.contains("page-active")&&!document.getElementById("group-chat-card")?.classList.contains("hidden")&&document.visibilityState==="visible";}
         function updateGroupUnreadBadge(){const el=document.getElementById("group-unread-badge");if(!el)return;const count=chatMessages.filter(m=>m.sender_id!==activeUser?.id&&!m.deleted_at&&!groupReads.some(r=>r.message_id===m.id&&r.user_id===activeUser?.id)).length;el.textContent=count>99?"99+":String(count);el.classList.toggle("hidden",!count);}
         function renderPinnedChatBanner(room){const isGroup=room==="group",bar=document.getElementById(isGroup?"group-pinned-banner":"dm-pinned-banner"),pins=isGroup?groupPins:dmPins,messages=isGroup?chatMessages:dmMessages;if(!bar)return;const items=(pins||[]).map(p=>({msg:messages.find(m=>String(m.id)===String(p.message_id))})).filter(x=>x.msg&&!x.msg.deleted_at).sort((a,b)=>new Date(b.msg.created_at||0)-new Date(a.msg.created_at||0));bar.replaceChildren();if(!items.length){bar.classList.add("hidden");return;}const top=items[0],button=document.createElement("button"),icon=document.createElement("i"),copy=document.createElement("span"),small=document.createElement("small"),strong=document.createElement("strong"),arrow=document.createElement("i");button.type="button";button.setAttribute("aria-label","Lihat pesan yang disematkan");button.addEventListener("click",()=>jumpToPinnedMessage(room,top.msg.id));icon.className="fa-solid fa-thumbtack text-blue-300";copy.className="gh-pinned-copy";small.textContent="Pesan disematkan"+(items.length>1?" · "+items.length+" pesan":"")+(top.msg.sender_name?" · "+top.msg.sender_name:"");strong.textContent=String(top.msg.body||"Pesan dibagikan").replace(/\s+/g," ").slice(0,150);copy.append(small,strong);arrow.className="fa-solid fa-chevron-right text-gray-400 text-xs";button.append(icon,copy,arrow);bar.append(button);bar.classList.remove("hidden");}
         function focusPinnedBanner(room){const bar=document.getElementById(room==="group"?"group-pinned-banner":"dm-pinned-banner");if(!bar||bar.classList.contains("hidden"))return;bar.scrollIntoView({behavior:"smooth",block:"nearest"});bar.animate?.([{filter:"brightness(1.45)"},{filter:"brightness(1)"}],{duration:650,easing:"ease-out"});}
@@ -5862,8 +5874,8 @@ async function loadChatMessages(){
         window.dispatchEvent(new Event('ghoustory-chat-ready'));
         function openSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeSystemStatus(){const m=document.getElementById('system-status-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
-        window.showChatInbox = function(){document.getElementById("main-app")?.classList.remove("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
-         function showChatRoom(kind,navOptions={}){document.getElementById("main-app")?.classList.add("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");if(!navOptions.fromHistory&&window.ghoustoryNavReady&&!page?.classList.contains("chat-room-open")){const depth=(window.ghoustoryNavDepth||0)+1;window.ghoustoryNavDepth=depth;history.pushState({ghoustoryApp:true,page:"chat",chatRoom:kind,depth},"");}panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
+        window.showChatInbox = function(){void closeGroupRealtime();if(dmRealtimeChannel){const channel=dmRealtimeChannel;dmRealtimeChannel=null;void supabaseClient.removeChannel(channel);}activeDmConversation=null;document.getElementById("main-app")?.classList.remove("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");page?.classList.remove("chat-room-open");panel?.classList.add("hidden");sidebar?.classList.remove("hidden");document.getElementById("direct-chat-card")?.classList.add("hidden");document.getElementById("group-chat-card")?.classList.add("hidden");}
+         function showChatRoom(kind,navOptions={}){if(kind==="group"&&dmRealtimeChannel){const channel=dmRealtimeChannel;dmRealtimeChannel=null;void supabaseClient.removeChannel(channel);activeDmConversation=null;}if(kind==="dm")void closeGroupRealtime();document.getElementById("main-app")?.classList.add("chat-room-mode");const page=document.getElementById("page-chat"),panel=document.getElementById("chat-room-panel"),sidebar=document.getElementById("chat-sidebar");if(!navOptions.fromHistory&&window.ghoustoryNavReady&&!page?.classList.contains("chat-room-open")){const depth=(window.ghoustoryNavDepth||0)+1;window.ghoustoryNavDepth=depth;history.pushState({ghoustoryApp:true,page:"chat",chatRoom:kind,depth},"");}panel?.classList.remove("hidden");page?.classList.add("chat-room-open");document.getElementById("chat-empty-state")?.classList.add("hidden");document.getElementById("direct-chat-card")?.classList.toggle("hidden",kind!=="dm");document.getElementById("group-chat-card")?.classList.toggle("hidden",kind!=="group");if(window.innerWidth<=767)sidebar?.classList.add("hidden");}
          async function ensureRitualGroupAccess(force=false){
           if(!activeUser)return false;
           if(!force&&isGhoustoryGroupMember!==null)return isGhoustoryGroupMember;
@@ -5900,7 +5912,7 @@ async function loadChatMessages(){
          function filterChatList(value){const q=String(value||"").trim().toLowerCase();document.querySelectorAll("#chat-sidebar .chat-list-row").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));document.querySelectorAll("#dm-conversations-list button").forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));}
 async function openDirectMessage(otherId){
           if(!activeUser||!otherId||otherId===activeUser.id)return;
-          const member=workspaceProfiles.find(p=>p.user_id===otherId);if(!member)return;showChatRoom("dm");
+          const member=workspaceProfiles.find(p=>p.user_id===otherId);if(!member)return;if(dmRealtimeChannel){const channel=dmRealtimeChannel;dmRealtimeChannel=null;await supabaseClient.removeChannel(channel);}showChatRoom("dm");
           document.getElementById("dm-title").textContent=member.nickname||"Whisper";const headerTitle=document.getElementById("header-page-title");if(headerTitle)headerTitle.textContent=member.nickname||"Whisper";
           document.getElementById("dm-subtitle").textContent=member.role||"Crew MEETING CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
