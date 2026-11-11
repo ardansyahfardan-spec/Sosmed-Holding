@@ -2017,20 +2017,42 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           button.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Menghubungkan...';
           status('Menghubungkan ke layanan login Google...');
           try {
-            // Bootstrap login tidak bergantung pada urutan eksekusi skrip aplikasi utama.
+            // Muat SDK secara mandiri agar login tetap bekerja meski skrip utama terlambat.
+            const loadSdk = async () => {
+              if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
+              if (window.__ghoustorySupabaseSdkPromise) return window.__ghoustorySupabaseSdkPromise;
+              window.__ghoustorySupabaseSdkPromise = (async () => {
+                const sources = [
+                  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js',
+                  'https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js'
+                ];
+                let lastError;
+                for (const src of sources) {
+                  try {
+                    await new Promise((resolve, reject) => {
+                      const script = document.createElement('script');
+                      script.src = src;
+                      script.async = true;
+                      script.onload = resolve;
+                      script.onerror = () => { script.remove(); reject(new Error('Gagal memuat SDK: ' + src)); };
+                      document.head.appendChild(script);
+                    });
+                    if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
+                  } catch (error) { lastError = error; }
+                }
+                window.__ghoustorySupabaseSdkPromise = null;
+                throw lastError || new Error('SDK Supabase tidak tersedia.');
+              })();
+              return window.__ghoustorySupabaseSdkPromise;
+            };
             let sharedClient = window.__ghoustorySupabaseClient || null;
-            if (!sharedClient && window.supabase && typeof window.supabase.createClient === 'function') {
-              sharedClient = window.supabase.createClient(
+            if (!sharedClient) {
+              const sdk = await loadSdk();
+              sharedClient = sdk.createClient(
                 'https://xnbqckfbrrmdjiemfwqf.supabase.co',
                 'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL'
               );
               window.__ghoustorySupabaseClient = sharedClient;
-            }
-            if (!sharedClient && typeof window.__getGhoustorySupabaseClient === 'function') {
-              sharedClient = await window.__getGhoustorySupabaseClient();
-            }
-            if (!sharedClient) {
-              throw new Error('SDK autentikasi belum termuat. Periksa koneksi internet, lalu coba lagi.');
             }
             const { error } = await sharedClient.auth.signInWithOAuth({
               provider: 'google',
@@ -2045,7 +2067,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           }
         }, { passive: false });
       })();
-    </script>ipt>
+    </script>
 
     <!-- WELCOME / LOADING AFTER GOOGLE LOGIN -->
     <div id="welcome-screen" class="fixed inset-0 z-[120] hidden flex-col items-center justify-center text-center p-6 transition-opacity duration-700">
