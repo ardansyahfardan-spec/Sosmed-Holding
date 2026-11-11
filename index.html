@@ -2022,10 +2022,20 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           button.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Menghubungkan...';
           status('Menyiapkan koneksi login Google...');
           try {
-            const getClient = window.__getGhoustorySupabaseClient;
-            if (typeof getClient !== 'function') {
-              throw new Error('Modul autentikasi belum siap. Muat ulang halaman lalu coba lagi.');
-            }
+            // Login panel berada sebelum skrip utama pada dokumen. Pada perangkat
+            // lambat, pengguna bisa menekan tombol sebelum getter client terdaftar.
+            // Tunggu inisialisasi utama sebentar, bukan langsung menggagalkan login.
+            const waitForClientGetter = async (timeoutMs = 20000) => {
+              const startedAt = Date.now();
+              while (typeof window.__getGhoustorySupabaseClient !== 'function') {
+                if (Date.now() - startedAt >= timeoutMs) {
+                  throw new Error('Inisialisasi autentikasi belum selesai. Muat ulang halaman dan coba lagi.');
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+              return window.__getGhoustorySupabaseClient;
+            };
+            const getClient = await waitForClientGetter();
             const client = await getClient();
             if (!client?.auth?.signInWithOAuth) {
               throw new Error('Klien autentikasi Supabase belum tersedia.');
