@@ -4546,15 +4546,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     }
                     const displayName = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || "Crew";
                     await presenceChannel.track({ user_id: user.id, name: displayName, role: profile?.role || "", avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || "", online_at: new Date().toISOString() });
-                    const touchLastSeen = async () => {
-                        const stamp = new Date().toISOString();
-                        const { error } = await supabaseClient.from("ghoustory_profiles").update({ last_seen_at: stamp }).eq("user_id", user.id);
-                        if (error) console.warn("Pembaruan terakhir aktif gagal:", error.message);
-                        else if (activeProfile) activeProfile.last_seen_at = stamp;
-                    };
-                    await touchLastSeen();
-                    if (ritualHeartbeatTimer) clearInterval(ritualHeartbeatTimer);
-                    ritualHeartbeatTimer = setInterval(touchLastSeen, 30000);
+                    if (ritualHeartbeatTimer) { clearInterval(ritualHeartbeatTimer); ritualHeartbeatTimer = null; }
                 }
             });
         }
@@ -5823,14 +5815,12 @@ async function loadChatMessages(){
           }
           if(dmBox)dmBox.innerHTML=aiMemberRow+members.map(p=>{
             const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
-            const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
-            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
+            return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Offline')+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
           }).join("");
           if(infoBox)infoBox.innerHTML=aiMemberRow+members.map(p=>{
             const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
-            const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Belum ada aktivitas";
             const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari MEETING CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
-            return '<div class="ritual-member-card"><span class="ritual-member-avatar"><img src="'+escapeHtml(avatar)+'" alt=""><i class="'+(online?'is-online':'is-offline')+'"></i></span><span class="ritual-member-copy"><b>'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small>'+escapeHtml(p.role||"Crew")+'</small><small class="'+(online?'is-online-text':'is-offline-text')+'">'+(online?'Online':'Terakhir aktif: '+escapeHtml(last))+'</small></span>'+kickButton+'</div>';
+            return '<div class="ritual-member-card"><span class="ritual-member-avatar"><img src="'+escapeHtml(avatar)+'" alt=""><i class="'+(online?'is-online':'is-offline')+'"></i></span><span class="ritual-member-copy"><b>'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small>'+escapeHtml(p.role||"Crew")+'</small><small class="'+(online?'is-online-text':'is-offline-text')+'">'+(online?'Online':'Offline')+'</small></span>'+kickButton+'</div>';
           }).join("");
           const count=document.getElementById("ritual-group-member-count");if(count)count.textContent=members.length+" Crew · 1 AI";
         }
@@ -5853,8 +5843,8 @@ async function loadChatMessages(){
           const box=document.getElementById("ritual-members-list");if(!activeUser||!box)return;
           box.innerHTML='<p class="text-xs text-gray-500 p-3">Memuat Crew...</p>';
           const [roster,profiles,admin,group]=await Promise.all([
-            supabaseClient.from("ghoustory_ritual_crew_profiles").select("user_id,nickname,role,avatar_url,last_seen_at").order("nickname"),
-            supabaseClient.from("ghoustory_profiles").select("user_id,nickname,role,avatar_url,last_seen_at").order("nickname"),
+            supabaseClient.from("ghoustory_ritual_crew_profiles").select("user_id,nickname,role,avatar_url").order("nickname"),
+            supabaseClient.from("ghoustory_profiles").select("user_id,nickname,role,avatar_url").order("nickname"),
             supabaseClient.rpc("is_ghoustory_admin"),
             supabaseClient.rpc("is_ghoustory_group_member")
           ]);
