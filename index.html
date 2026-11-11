@@ -3208,6 +3208,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     return;
                 }
                 applyGhoustoryProfile(savedProfile);
+                void optimizeLegacyGhoustoryAvatar(savedProfile);
                 if (welcomeStatus) welcomeStatus.textContent = 'Ruang kendali siap dibuka...';
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').style.opacity = '0';
@@ -3388,6 +3389,44 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 return file;
             } finally {
                 if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+            }
+        }
+
+        async function optimizeLegacyGhoustoryAvatar(profile) {
+            if (!activeUser || !profile || profile.user_id !== activeUser.id) return;
+            const currentUrl = String(profile.avatar_url || '');
+            const currentPath = String(profile.avatar_path || '');
+            if (!currentUrl.includes('/storage/v1/object/public/ghoustory-avatars/') || !/\\.jpe?g(?:$|[?#])/i.test(currentUrl) || currentPath.toLowerCase().endsWith('.webp')) return;
+            let uploadedPath = null;
+            try {
+                const response = await fetch(currentUrl, { mode:'cors', credentials:'omit', cache:'force-cache' });
+                if (!response.ok) throw new Error('Foto profil lama tidak dapat dibaca (' + response.status + ').');
+                const originalBlob = await response.blob();
+                if (!originalBlob.type.startsWith('image/')) throw new Error('Format foto profil lama tidak dikenali.');
+                const sourceFile = new File([originalBlob], 'legacy-avatar.jpg', { type:originalBlob.type });
+                const optimized = await optimizeGhoustoryAvatar(sourceFile);
+                if (!optimized || optimized.type !== 'image/webp') return;
+                if (optimized.size >= originalBlob.size * 0.95) return;
+                uploadedPath = activeUser.id + '/optimized-' + Date.now() + '.webp';
+                const { error: uploadError } = await supabaseClient.storage.from('ghoustory-avatars').upload(uploadedPath, optimized, {
+                    contentType:'image/webp', cacheControl:'31536000', upsert:false
+                });
+                if (uploadError) throw uploadError;
+                const { data: publicData } = supabaseClient.storage.from('ghoustory-avatars').getPublicUrl(uploadedPath);
+                const { data: updatedProfile, error: updateError } = await supabaseClient.from('ghoustory_profiles')
+                    .update({ avatar_url:publicData.publicUrl, avatar_path:uploadedPath, updated_at:new Date().toISOString() })
+                    .eq('user_id', activeUser.id).select().maybeSingle();
+                if (updateError) throw updateError;
+                if (!updatedProfile) throw new Error('Profil tidak berhasil diperbarui; foto lama tetap digunakan.');
+                activeProfile = updatedProfile;
+                applyGhoustoryProfile(updatedProfile);
+                console.info('Foto profil lama berhasil dioptimalkan ke WebP.');
+            } catch (error) {
+                if (uploadedPath) {
+                    const { error: cleanupError } = await supabaseClient.storage.from('ghoustory-avatars').remove([uploadedPath]);
+                    if (cleanupError) console.warn('File WebP sementara belum terhapus:', cleanupError.message);
+                }
+                console.warn('Migrasi foto profil lama dilewati; foto asli tetap digunakan:', error);
             }
         }
 
