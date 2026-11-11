@@ -3181,21 +3181,33 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             initSocialChart();
 
             // Cek Session saat halaman dimuat
-            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-            if (sessionError) console.error('Gagal memeriksa sesi login:', sessionError);
-            if (session) {
-                await masukKeAplikasi(session.user);
-            }
-
-            // Dengarkan perubahan status Login/Logout
+            // Pasang listener sebelum membaca sesi agar event callback OAuth tidak terlewat.
             supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    // Jalankan setelah callback auth selesai agar tidak mengunci event auth Supabase.
+                if (session && ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
+                    // Tunda agar operasi database tidak berjalan di dalam callback internal Auth.
                     setTimeout(() => masukKeAplikasi(session.user), 0);
                 } else if (event === 'SIGNED_OUT') {
                     location.reload();
                 }
             });
+
+            // Supabase biasanya menukar PKCE code secara otomatis. Cek juga secara eksplisit
+            // sebagai fallback untuk browser iOS/PWA yang terlambat memulihkan callback.
+            const callbackUrl = new URL(window.location.href);
+            const oauthCode = callbackUrl.searchParams.get('code');
+            const oauthError = callbackUrl.searchParams.get('error_description') || callbackUrl.searchParams.get('error');
+            if (oauthError) throw new Error('Google OAuth: ' + oauthError);
+            let { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError) throw sessionError;
+            if (!session && oauthCode) {
+                const exchanged = await supabaseClient.auth.exchangeCodeForSession(oauthCode);
+                if (exchanged.error) throw exchanged.error;
+                session = exchanged.data?.session || null;
+                callbackUrl.searchParams.delete('code');
+                callbackUrl.searchParams.delete('state');
+                window.history.replaceState({}, document.title, callbackUrl.pathname + callbackUrl.search + callbackUrl.hash);
+            }
+            if (session) await masukKeAplikasi(session.user);
         });
 
         async function masukKeAplikasi(user, resumeAfterInvite = false) {
@@ -3265,7 +3277,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             } catch (error) {
                 console.error('Database bersama belum siap:', error);
                 if (loginStatus) {
-                    loginStatus.textContent = 'Database belum siap: ' + (error?.message || String(error)) + '. Hubungi pengelola aplikasi dengan pesan ini.';
+                    loginStatus.textContent = 'Google berhasil mengenali akun, tetapi Control Room gagal dimuat: ' + (error?.message || String(error)) + '. Sesi tetap disimpan; muat ulang untuk mencoba lagi.';
                     loginStatus.classList.remove('hidden');
                 }
                 welcomeScreen.classList.add('hidden');
