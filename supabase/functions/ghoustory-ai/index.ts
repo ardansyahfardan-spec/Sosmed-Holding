@@ -182,10 +182,8 @@ Deno.serve(async (req) => {
 
   let uploadedGeminiFileName = "";
   try {
-    console.log("[ghoustory-ai] stage=reading_request");
     const body = await req.json();
     const task = String(body.task || "");
-    console.log("[ghoustory-ai] stage=request_parsed task=" + task);
 
     // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
     if (task === "health") {
@@ -524,7 +522,6 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       return json({ error: "Jenis tugas AI tidak dikenal." }, 400);
     }
 
-    console.log("[ghoustory-ai] stage=before_gemini task=" + task);
     const modelCandidates = task === "video-audio-chunk-transcription" ? ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] : task === "video-audio-chunk-text-analysis" ? ["gemini-3.5-flash", "gemini-3.5-flash-lite"] : ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
     const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis" || task === "video-audio-chunk-transcription" || task === "video-audio-chunk-text-analysis" || task === "video-audio-chunk-translation";
@@ -584,7 +581,6 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
           }),
           signal: AbortSignal.timeout(110_000),
         });
-        console.log("[ghoustory-ai] stage=gemini_attempt model=" + model + " attempt=" + (attempt + 1) + " status=" + response.status);
         if (response.ok || !retryableStatuses.includes(response.status)) break;
         if (attempt < attemptsForModel - 1) {
           const retryAfter = Number(response.headers.get("retry-after") || 0);
@@ -600,9 +596,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       }
     }
     if (!response) return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
-    console.log("[ghoustory-ai] stage=gemini_response model=" + activeModel + " status=" + response.status);
 
-    console.log("[ghoustory-ai] stage=gemini_response status=" + response.status);
     const responseText = await response.text();
     const uploadedGeminiFile = uploadedGeminiFileName;
     if (uploadedGeminiFile) {
@@ -617,7 +611,6 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       }
       uploadedGeminiFileName = "";
     }
-    console.log("[ghoustory-ai] stage=response_body_received chars=" + responseText.length);
     let result: Record<string, any>;
     try {
       result = JSON.parse(responseText);
@@ -625,13 +618,12 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       console.error("[ghoustory-ai] stage=json_parse_failed");
       return json({ error: "Respons Gemini bukan JSON yang valid." }, 502);
     }
-    console.log("[ghoustory-ai] stage=json_parsed");
     if (!response.ok) {
       const message = String(result?.error?.message || "Gemini API gagal memproses permintaan.");
       const status = Number(result?.error?.code || response.status);
       const reason = String(result?.error?.status || "UNKNOWN");
       // Log Gemini's diagnostic message (never log the API key or request headers).
-      console.error("[ghoustory-ai] stage=gemini_error status=" + status + " reason=" + reason + " message=" + message.slice(0, 1000));
+      console.error("[ghoustory-ai] stage=gemini_error status=" + status + " reason=" + reason + " message=" + message.slice(0, 300));
       return json({
         error: message,
         provider: "Gemini",
@@ -639,9 +631,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
         providerReason: reason,
       }, response.status);
     }
-    console.log("[ghoustory-ai] stage=extracting_text");
     const candidate = result?.candidates?.[0];
-    console.log("[ghoustory-ai] stage=output_metadata task=" + task + " finishReason=" + String(candidate?.finishReason || "unknown") + " outputTokens=" + String(result?.usageMetadata?.candidatesTokenCount || 0));
     if (structuredJsonTask && candidate?.finishReason === "MAX_TOKENS") {
       const outputLimitMessage = task === "video-audio-chunk-translation"
         ? "Terjemahan satu potongan teks melewati batas keluaran AI. Sistem akan mencoba memproses teks dalam potongan yang lebih kecil."
@@ -669,7 +659,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     const usage = result?.usageMetadata ? { promptTokens: result.usageMetadata.promptTokenCount || 0, outputTokens: result.usageMetadata.candidatesTokenCount || 0, totalTokens: result.usageMetadata.totalTokenCount || 0 } : null;
     return json({ text: text + sourceText, sources, usage });
   } catch (error) {
-    console.error("ghoustory-ai error:", error);
+    console.error("[ghoustory-ai] request_failed:", error instanceof Error ? error.message.slice(0, 400) : "Unknown error");
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
   }
 });
