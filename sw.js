@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ghoustory-control-room-v-next-2';
+const CACHE_NAME = 'ghoustory-control-room-v-next-3';
 const APP_SHELL = [ './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './ghoust-ai-avatar.svg', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -24,16 +24,15 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
+    // HTML aplikasi harus selalu berasal dari deployment terbaru.
+    // Jangan sajikan index.html lama dari cache PWA karena dapat menjalankan
+    // handler autentikasi versi lama setelah GitHub Pages diperbarui.
     event.respondWith(
       fetch(new Request(request, { cache: 'no-store' }))
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
-          }
-          return response;
-        })
-        .catch(async () => (await caches.match('./index.html')) || (await caches.match('./')))
+        .catch(() => new Response(
+          '<!doctype html><html lang="id"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Koneksi terputus</title><body style="background:#050505;color:#eee;font:16px sans-serif;padding:2rem"><h2>Koneksi internet terputus</h2><p>Ghoustory Control Room memerlukan koneksi internet. Sambungkan kembali lalu muat ulang halaman.</p></body></html>',
+          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        ))
     );
     return;
   }
