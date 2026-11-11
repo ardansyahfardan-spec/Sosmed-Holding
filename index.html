@@ -4182,8 +4182,6 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         const voAudioUrlCache = new Map();
         async function getVOAudioUrl(path){const cached=voAudioUrlCache.get(path);if(cached&&cached.expiresAt>Date.now())return cached.url;const {data,error}=await supabaseClient.storage.from('vo-recordings').createSignedUrl(path,3600);if(error){voAudioUrlCache.delete(path);console.error('Gagal membuat URL audio VO:',error);return '';}const signedUrl=data.signedUrl;voAudioUrlCache.set(path,{url:signedUrl,expiresAt:Date.now()+55*60*1000});return signedUrl;}
         async function playVOAudio(id){const item=db.vo.find(x=>Number(x.id)===Number(id));const host=document.getElementById('vo-audio-'+Number(id));if(!item?.audioPath||!host)return;const existing=host.querySelector('audio');if(existing){try{await existing.play();}catch(e){console.warn('Audio VO tidak dapat diputar:',e);}return;}const button=host.querySelector('button');if(!button)return;button.disabled=true;button.textContent='Menyiapkan audio...';try{const url=await getVOAudioUrl(item.audioPath);if(!url)throw new Error('URL audio tidak berhasil dibuat.');const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='w-full';audio.src=url;host.replaceChildren(audio);try{await audio.play();}catch(e){console.warn('Pemutaran otomatis ditolak browser; gunakan kontrol audio untuk memutar:',e);}}catch(e){button.disabled=false;button.textContent='Coba putar lagi';console.error('Gagal menyiapkan audio VO:',e);alert('Audio VO gagal dimuat: '+e.message);}}
-        const voAudioUrlCache = new Map();
-        async function getVOAudioUrl(path){const cached=voAudioUrlCache.get(path);if(cached&&cached.expiresAt>Date.now())return cached.url;const {data,error}=await supabaseClient.storage.from('vo-recordings').createSignedUrl(path,3600);if(error){voAudioUrlCache.delete(path);console.error('Gagal membuat URL audio VO:',error);return '';}const signedUrl=data.signedUrl;voAudioUrlCache.set(path,{url:signedUrl,expiresAt:Date.now()+55*60*1000});return signedUrl;}
         async function generateNotulen(){const area=document.getElementById('note-raw'),transcript=area.value.trim(),topic=document.getElementById('note-topic').value.trim()||'Rapat',btn=document.querySelector('button[onclick="generateNotulen()"]');if(!transcript)return alert('Isi atau rekam bahan rapat terlebih dahulu.');setButtonBusy(btn,true);try{const text=await callGhoulAI('minutes',{topic,transcript});db.notulen.unshift({id:Date.now(),topic,raw:text,source:transcript});area.value='';document.getElementById('note-topic').value='';saveData();refreshAllLists();switchTab('ghoustnote','arsip');}catch(e){alert('Gagal merangkum notulen AI: '+e.message);}finally{setButtonBusy(btn,false);}}
 
         function renderNotulenList() {
@@ -6789,16 +6787,7 @@ window.submitArenaStory=async function(){
 window.closeArenaGame=function(){const p=$('arena-play-panel'),l=$('arena-lobby-view'),note=$('arena-footer-note');if(p){p.classList.add('hidden');p.style.display='none';p.classList.remove('arena-game-page');p.innerHTML='';}if(l){l.classList.remove('hidden');l.style.display='';}if(note)note.style.display='';if(l)l.scrollIntoView({behavior:'smooth',block:'start'});};
 window.playArenaAgain=function(){if(!arenaCurrent||!arenaModes[arenaCurrent])return;const mode=arenaCurrent;arenaCurrent=null;const p=$('arena-play-panel');if(p)p.innerHTML='';window.playArena(mode);};
 async function saveArenaResult(){return false;}
- 
- if(!arenaModes[mode])return;
- arenaCurrent=mode;arenaIndex=0;arenaStep=0;arenaScore=0;arenaAnswers=[];
- arenaBankStep=0;arenaBankClues=[];arenaBankStats={health:3,sanity:3,battery:2,supplies:2};arenaBankCards=[];arenaBankPack=null;
- showArenaGamePage();
- const panel=$('arena-play-panel');panel.innerHTML=arenaBackHeader('MENYIAPKAN MISI',arenaModes[mode].title)+'<p class="text-sm text-gray-400">Mengambil paket tantangan dari Bank Arena...</p>';
- arenaBankPack=await arenaFetchPack(mode);
- if(!arenaBankPack){arenaLegacyPlay(mode);return;}
- renderArenaBankGame();
-};
+
 function arenaBankHeader(){return arenaBackHeader('PETUALANGAN INTERAKTIF',arenaBankPack?.title||arenaModes[arenaCurrent].title);}
 function arenaBankButton(label,action,sub=''){return '<button class="arena-answer w-full text-left mb-2" onclick="'+action+'"><b>'+esc(label)+'</b>'+(sub?'<div class="text-xs text-gray-400 mt-1">'+esc(sub)+'</div>':'')+'</button>';}
 function renderArenaBankGame(){
