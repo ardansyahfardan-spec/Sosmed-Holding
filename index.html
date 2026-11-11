@@ -3167,6 +3167,60 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 if (status) { status.textContent = 'Koneksi login belum siap. Periksa internet lalu tekan Continue with Google untuk mencoba lagi.'; status.classList.remove('hidden'); }
                 return;
             }
+            // Pasang listener auth sebelum inisialisasi UI lain agar tidak terlewat.
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (session && ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
+                    setTimeout(() => masukKeAplikasi(session.user), 0);
+                } else if (event === 'SIGNED_OUT') {
+                    location.reload();
+                }
+            });
+
+            // Pulihkan sesi dan tampilkan alasan yang jelas jika callback tidak berhasil.
+            const callbackUrl = new URL(window.location.href);
+            const oauthCode = callbackUrl.searchParams.get('code');
+            const oauthError = callbackUrl.searchParams.get('error_description') || callbackUrl.searchParams.get('error');
+            const loginStatus = document.getElementById('login-status');
+            if (oauthError) {
+                console.error('Google OAuth callback gagal:', oauthError);
+                if (loginStatus) {
+                    loginStatus.textContent = 'Login Google gagal: ' + oauthError;
+                    loginStatus.classList.remove('hidden');
+                }
+                return;
+            }
+
+            let session = null;
+            try {
+                const sessionResult = await supabaseClient.auth.getSession();
+                if (sessionResult.error) throw sessionResult.error;
+                session = sessionResult.data?.session || null;
+                if (!session && oauthCode) {
+                    const exchanged = await supabaseClient.auth.exchangeCodeForSession(oauthCode);
+                    if (exchanged.error) throw exchanged.error;
+                    session = exchanged.data?.session || null;
+                    callbackUrl.searchParams.delete('code');
+                    callbackUrl.searchParams.delete('state');
+                    window.history.replaceState({}, document.title, callbackUrl.pathname + callbackUrl.search + callbackUrl.hash);
+                }
+            } catch (error) {
+                console.error('Pemulihan sesi Google gagal:', error);
+                if (loginStatus) {
+                    loginStatus.textContent = 'Google sudah mengautentikasi akun, tetapi sesi di browser gagal dipulihkan: ' + (error?.message || String(error));
+                    loginStatus.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (session) {
+                await masukKeAplikasi(session.user);
+            } else if (oauthCode || callbackUrl.hash.includes('access_token')) {
+                if (loginStatus) {
+                    loginStatus.textContent = 'Google selesai, tetapi sesi belum terbaca oleh aplikasi. Coba mulai login dari browser yang sama dengan tempat Control Room dibuka.';
+                    loginStatus.classList.remove('hidden');
+                }
+            }
+
             setInterval(() => {
                 const clock = document.getElementById('live-clock');
                 if (clock) clock.innerText = new Date().toLocaleTimeString('id-ID') + " WIB";
@@ -3178,37 +3232,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     if (removed) { saveData(); refreshAllLists(); }
                 } catch (error) { console.error('Pembersihan otomatis gagal:', error); }
             }, 60 * 60 * 1000);
-            initSocialChart();
-
-            // Cek Session saat halaman dimuat
-            // Pasang listener sebelum membaca sesi agar event callback OAuth tidak terlewat.
-            supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (session && ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
-                    // Tunda agar operasi database tidak berjalan di dalam callback internal Auth.
-                    setTimeout(() => masukKeAplikasi(session.user), 0);
-                } else if (event === 'SIGNED_OUT') {
-                    location.reload();
-                }
-            });
-
-            // Supabase biasanya menukar PKCE code secara otomatis. Cek juga secara eksplisit
-            // sebagai fallback untuk browser iOS/PWA yang terlambat memulihkan callback.
-            const callbackUrl = new URL(window.location.href);
-            const oauthCode = callbackUrl.searchParams.get('code');
-            const oauthError = callbackUrl.searchParams.get('error_description') || callbackUrl.searchParams.get('error');
-            if (oauthError) throw new Error('Google OAuth: ' + oauthError);
-            let { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-            if (sessionError) throw sessionError;
-            if (!session && oauthCode) {
-                const exchanged = await supabaseClient.auth.exchangeCodeForSession(oauthCode);
-                if (exchanged.error) throw exchanged.error;
-                session = exchanged.data?.session || null;
-                callbackUrl.searchParams.delete('code');
-                callbackUrl.searchParams.delete('state');
-                window.history.replaceState({}, document.title, callbackUrl.pathname + callbackUrl.search + callbackUrl.hash);
-            }
-            if (session) await masukKeAplikasi(session.user);
-        });
+            try { initSocialChart(); } catch (error) { console.warn('Grafik sosial belum siap:', error); }        });
 
         async function masukKeAplikasi(user, resumeAfterInvite = false) {
             activeUser = user;
