@@ -1,0 +1,53 @@
+name: Validate inline JavaScript
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check every inline script in index.html
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess, tempfile
+
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.current = None
+                  self.items = []
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script":
+                      attrs = dict(attrs)
+                      self.current = None if attrs.get("src") else []
+              def handle_data(self, data):
+                  if self.current is not None:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.current is not None:
+                      self.items.append("".join(self.current))
+                      self.current = None
+
+          parser = Scripts()
+          parser.feed(Path("index.html").read_text(encoding="utf-8"))
+          print(f"Checking {len(parser.items)} inline scripts")
+          with tempfile.TemporaryDirectory() as tmp:
+              for i, source in enumerate(parser.items, 1):
+                  path = Path(tmp) / f"inline-{i}.js"
+                  path.write_text(source, encoding="utf-8")
+                  result = subprocess.run(["node", "--check", str(path)], text=True, capture_output=True)
+                  if result.returncode:
+                      print(f"\nSYNTAX ERROR in inline script #{i}:")
+                      print(result.stderr)
+                      raise SystemExit(result.returncode)
+          print("All inline JavaScript syntax checks passed.")
+          PY
