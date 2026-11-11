@@ -6207,7 +6207,7 @@ async function markDmMessagesRead(){
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (hadController) window.location.reload();
           }, { once: true });
-          navigator.serviceWorker.register('./sw.js?v=64', { scope: './', updateViaCache: 'none' })
+          navigator.serviceWorker.register('./sw.js?v=65', { scope: './', updateViaCache: 'none' })
             .then(registration => registration.update())
             .catch(error => console.warn('Service Worker:', error));
         }
