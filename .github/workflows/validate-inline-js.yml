@@ -4,6 +4,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -40,14 +43,33 @@ jobs:
           parser = Scripts()
           parser.feed(Path("index.html").read_text(encoding="utf-8"))
           print(f"Checking {len(parser.items)} inline scripts")
+          failures = []
           with tempfile.TemporaryDirectory() as tmp:
               for i, source in enumerate(parser.items, 1):
                   path = Path(tmp) / f"inline-{i}.js"
                   path.write_text(source, encoding="utf-8")
                   result = subprocess.run(["node", "--check", str(path)], text=True, capture_output=True)
                   if result.returncode:
-                      print(f"\nSYNTAX ERROR in inline script #{i}:")
-                      print(result.stderr)
-                      raise SystemExit(result.returncode)
-          print("All inline JavaScript syntax checks passed.")
+                      failures.append(f"SYNTAX ERROR in inline script #{i}:\n{result.stderr}")
+          report = "\n\n".join(failures) if failures else "All inline JavaScript syntax checks passed."
+          Path("syntax-report.txt").write_text(f"Inline scripts checked: {len(parser.items)}\n\n{report}\n", encoding="utf-8")
+          print(report)
+          if failures:
+              raise SystemExit(1)
           PY
+      - name: Publish diagnostic report to temporary branch
+        if: failure()
+        uses: actions/checkout@v4
+        with:
+          ref: js-diagnostics
+          path: diagnostics-branch
+      - name: Save diagnostic report
+        if: failure()
+        shell: bash
+        run: |
+          cp syntax-report.txt diagnostics-branch/report.txt
+          git -C diagnostics-branch config user.name "github-actions[bot]"
+          git -C diagnostics-branch config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C diagnostics-branch add report.txt
+          git -C diagnostics-branch commit -m "Record inline JavaScript syntax diagnostic"
+          git -C diagnostics-branch push
