@@ -2002,7 +2002,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
     </div>
 
     <script>
-      // Gunakan satu instance Supabase bersama dengan aplikasi utama.
+      // Login selalu memakai instance Supabase utama agar PKCE verifier dan sesi
+      // dibaca oleh listener autentikasi aplikasi yang sama.
       (() => {
         const button = document.getElementById('google-login-btn');
         if (!button) return;
@@ -2010,51 +2011,26 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           const el = document.getElementById('login-status');
           if (el) { el.textContent = message; el.classList.remove('hidden'); }
         };
+        const resetButton = () => {
+          button.disabled = false;
+          button.innerHTML = '<i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google';
+        };
         button.addEventListener('click', async (event) => {
           event.preventDefault();
           if (button.disabled) return;
           button.disabled = true;
           button.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Menghubungkan...';
-          status('Menghubungkan ke layanan login Google...');
+          status('Menyiapkan koneksi login Google...');
           try {
-            // Muat SDK secara mandiri agar login tetap bekerja meski skrip utama terlambat.
-            const loadSdk = async () => {
-              if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
-              if (window.__ghoustorySupabaseSdkPromise) return window.__ghoustorySupabaseSdkPromise;
-              window.__ghoustorySupabaseSdkPromise = (async () => {
-                const sources = [
-                  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js',
-                  'https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js'
-                ];
-                let lastError;
-                for (const src of sources) {
-                  try {
-                    await new Promise((resolve, reject) => {
-                      const script = document.createElement('script');
-                      script.src = src;
-                      script.async = true;
-                      script.onload = resolve;
-                      script.onerror = () => { script.remove(); reject(new Error('Gagal memuat SDK: ' + src)); };
-                      document.head.appendChild(script);
-                    });
-                    if (window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
-                  } catch (error) { lastError = error; }
-                }
-                window.__ghoustorySupabaseSdkPromise = null;
-                throw lastError || new Error('SDK Supabase tidak tersedia.');
-              })();
-              return window.__ghoustorySupabaseSdkPromise;
-            };
-            let sharedClient = window.__ghoustorySupabaseClient || null;
-            if (!sharedClient) {
-              const sdk = await loadSdk();
-              sharedClient = sdk.createClient(
-                'https://xnbqckfbrrmdjiemfwqf.supabase.co',
-                'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL'
-              );
-              window.__ghoustorySupabaseClient = sharedClient;
+            const getClient = window.__getGhoustorySupabaseClient;
+            if (typeof getClient !== 'function') {
+              throw new Error('Modul autentikasi belum siap. Muat ulang halaman lalu coba lagi.');
             }
-            const { error } = await sharedClient.auth.signInWithOAuth({
+            const client = await getClient();
+            if (!client?.auth?.signInWithOAuth) {
+              throw new Error('Klien autentikasi Supabase belum tersedia.');
+            }
+            const { error } = await client.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo: 'https://ardansyahfardan-spec.github.io/Sosmed-Holding/' }
             });
@@ -2062,8 +2038,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           } catch (error) {
             console.error('[Ghoustory login]', error);
             status('Login gagal: ' + (error?.message || 'Periksa koneksi lalu coba lagi.'));
-            button.disabled = false;
-            button.innerHTML = '<i class="fa-brands fa-google text-lg text-red-600"></i> Continue with Google';
+            resetButton();
           }
         }, { passive: false });
       })();
@@ -2960,8 +2935,16 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                                 const script = document.createElement('script');
                                 script.src = src;
                                 script.async = true;
-                                script.onload = resolve;
-                                script.onerror = () => reject(new Error('CDN gagal: ' + src));
+                                const timeoutId = setTimeout(() => {
+                                    script.remove();
+                                    reject(new Error('Waktu tunggu CDN Supabase habis: ' + src));
+                                }, 12000);
+                                script.onload = () => { clearTimeout(timeoutId); resolve(); };
+                                script.onerror = () => {
+                                    clearTimeout(timeoutId);
+                                    script.remove();
+                                    reject(new Error('CDN gagal: ' + src));
+                                };
                                 document.head.appendChild(script);
                             });
                             if (window.supabase && typeof window.supabase.createClient === 'function') {
