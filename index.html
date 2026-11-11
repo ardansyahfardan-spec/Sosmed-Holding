@@ -2017,11 +2017,21 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           button.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-600 text-lg mr-2"></i> Menghubungkan...';
           status('Menghubungkan ke layanan login Google...');
           try {
-            const getClient = window.__getGhoustorySupabaseClient;
-            if (typeof getClient !== 'function') {
-              throw new Error('Koneksi autentikasi belum siap. Muat ulang halaman lalu coba lagi.');
+            // Bootstrap login tidak bergantung pada urutan eksekusi skrip aplikasi utama.
+            let sharedClient = window.__ghoustorySupabaseClient || null;
+            if (!sharedClient && window.supabase && typeof window.supabase.createClient === 'function') {
+              sharedClient = window.supabase.createClient(
+                'https://xnbqckfbrrmdjiemfwqf.supabase.co',
+                'sb_publishable_sQ_aA1vmVTuN5BlASN5Tsw_v2NaGbNL'
+              );
+              window.__ghoustorySupabaseClient = sharedClient;
             }
-            const sharedClient = await getClient();
+            if (!sharedClient && typeof window.__getGhoustorySupabaseClient === 'function') {
+              sharedClient = await window.__getGhoustorySupabaseClient();
+            }
+            if (!sharedClient) {
+              throw new Error('SDK autentikasi belum termuat. Periksa koneksi internet, lalu coba lagi.');
+            }
             const { error } = await sharedClient.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo: 'https://ardansyahfardan-spec.github.io/Sosmed-Holding/' }
@@ -2900,8 +2910,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             document.getElementById("group-chat-card")?.classList.add("hidden");
         };
         // Jangan hentikan seluruh aplikasi jika CDN SDK terlambat/gagal dimuat.
-        let supabaseClient = (window.supabase && typeof window.supabase.createClient === 'function')
-            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        let supabaseClient = window.__ghoustorySupabaseClient ||
+            ((window.supabase && typeof window.supabase.createClient === 'function')
+                ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null);
         // Berbagi instance autentikasi yang sama dengan game di iframe satu-origin.
         if (supabaseClient) window.__ghoustorySupabaseClient = supabaseClient;
         let supabaseSdkLoadPromise = null;
