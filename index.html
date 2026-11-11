@@ -3366,6 +3366,31 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             modal?.classList.add('hidden'); modal?.classList.remove('flex');
         }
 
+        async function optimizeGhoustoryAvatar(file) {
+            if (typeof createImageBitmap !== 'function') return file;
+            let bitmap = null;
+            try {
+                bitmap = await createImageBitmap(file);
+                const maxDimension = 512;
+                const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+                const width = Math.max(1, Math.round(bitmap.width * scale));
+                const height = Math.max(1, Math.round(bitmap.height * scale));
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d');
+                if (!context) return file;
+                context.drawImage(bitmap, 0, 0, width, height);
+                const optimizedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.82));
+                return optimizedBlob && optimizedBlob.type === 'image/webp' ? optimizedBlob : file;
+            } catch (error) {
+                console.warn('Optimasi foto profil tidak tersedia, memakai file asli:', error);
+                return file;
+            } finally {
+                if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+            }
+        }
+
         async function saveGhoustoryProfile(event) {
             event.preventDefault();
             if (!activeUser) return;
@@ -3386,9 +3411,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             try {
                 let avatarUrl = activeProfile?.avatar_url || activeUser.user_metadata?.avatar_url || null;
                 if (file) {
-                    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+                    const optimizedAvatar = await optimizeGhoustoryAvatar(file);
+                    const contentType = optimizedAvatar.type || file.type;
+                    const ext = contentType === 'image/webp' ? 'webp' : contentType === 'image/png' ? 'png' : 'jpg';
                     newPath = activeUser.id + '/' + Date.now() + '.' + ext;
-                    const { error: uploadError } = await supabaseClient.storage.from('ghoustory-avatars').upload(newPath, file, { contentType:file.type, upsert:false });
+                    const { error: uploadError } = await supabaseClient.storage.from('ghoustory-avatars').upload(newPath, optimizedAvatar, { contentType, cacheControl:'31536000', upsert:false });
                     if (uploadError) throw uploadError;
                     const { data: publicData } = supabaseClient.storage.from('ghoustory-avatars').getPublicUrl(newPath);
                     avatarUrl = publicData.publicUrl;
