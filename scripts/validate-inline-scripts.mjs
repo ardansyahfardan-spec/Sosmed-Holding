@@ -4,7 +4,9 @@ import vm from "node:vm";
 const html = readFileSync("index.html", "utf8");
 const serviceWorker = readFileSync("sw.js", "utf8");
 
-const gameGrid = html.match(/<div id="arena-game-grid"[^>]*>[\\s\\S]*?<\\/div>/)?.[0] || "";
+const gameGridStart = html.indexOf('<div id="arena-game-grid"');
+const gameGridEnd = gameGridStart >= 0 ? html.indexOf("</div>", gameGridStart) : -1;
+const gameGrid = gameGridStart >= 0 && gameGridEnd > gameGridStart ? html.slice(gameGridStart, gameGridEnd + 6) : "";
 const gameHubChecks = [
   ["Desa Terlarang card opens the standalone game", gameGrid.includes('onclick="openDesaTerlarang()"') && gameGrid.includes('data-mode="desa_terlarang"')],
   ["Malam Terlarang card opens the Malam game", gameGrid.includes('onclick="openMalamTerlarang()"') && gameGrid.includes('data-mode="malam_terlarang"')],
@@ -16,7 +18,7 @@ const gameHubChecks = [
 
 const gameHubFailures = gameHubChecks.filter(([, passed]) => !passed).map(([name]) => name);
 if (gameHubFailures.length) {
-  console.error("Game Hub checks failed:\\n" + gameHubFailures.join("\\n"));
+  console.error("Game Hub checks failed:\\n" + gameHubFailures.join("\n"));
   process.exitCode = 1;
 } else {
   console.log("Passed " + gameHubChecks.length + " Game Hub navigation checks.");
