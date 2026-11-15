@@ -656,7 +656,10 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
         await response?.body?.cancel();
       }
     }
-    if (!response) return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
+    if (!response) {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
+      return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
+    }
 
     const responseText = await response.text();
     const uploadedGeminiFile = uploadedGeminiFileName;
@@ -677,6 +680,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       result = JSON.parse(responseText);
     } catch (_) {
       console.error("[ghoustory-ai] stage=json_parse_failed");
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       return json({ error: "Respons Gemini bukan JSON yang valid." }, 502);
     }
     if (!response.ok) {
@@ -685,6 +689,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       const reason = String(result?.error?.status || "UNKNOWN");
       // Log Gemini's diagnostic message (never log the API key or request headers).
       console.error("[ghoustory-ai] stage=gemini_error status=" + status + " reason=" + reason + " message=" + message.slice(0, 300));
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       return json({
         error: message,
         provider: "Gemini",
@@ -694,6 +699,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     }
     const candidate = result?.candidates?.[0];
     if (structuredJsonTask && candidate?.finishReason === "MAX_TOKENS") {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       const outputLimitMessage = task === "video-audio-chunk-translation"
         ? "Terjemahan satu potongan teks melewati batas keluaran AI. Sistem akan mencoba memproses teks dalam potongan yang lebih kecil."
         : "Hasil transkrip terlalu panjang untuk satu kali keluaran AI. Coba audio yang lebih pendek.";
@@ -703,12 +709,16 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       .map((part: { text?: string }) => part.text || "")
       .join("\n")
       .trim();
-    if (!text) return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
+    if (!text) {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
+      return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
+    }
     if (structuredJsonTask) {
       try {
         text = JSON.stringify(JSON.parse(text));
       } catch (_) {
         console.error("[ghoustory-ai] stage=structured_output_invalid task=" + task + " finishReason=" + String(candidate?.finishReason || "unknown"));
+        await recordAiUsage(req, usageTask, usageModel, null, "error");
         return json({ error: "Gemini belum menghasilkan JSON analisis yang utuh. Silakan coba sekali lagi." }, 502);
       }
     }
