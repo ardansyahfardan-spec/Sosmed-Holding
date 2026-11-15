@@ -67,7 +67,7 @@
           <span class="workspace-pill">${esc(item.status.replace('_',' '))}</span>
         </div>
         <div class="workspace-meta"><span>Prioritas: ${esc(item.priority)}</span><span>${dateLabel(item.due_at)}</span></div>
-        ${item.status !== 'done' && item.status !== 'cancelled' ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
+        ${item.status !== 'done' && item.status !== 'cancelled' && currentUser && (currentUser.id === item.created_by || isWorkspaceAdmin) ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
       </article>`).join('');
   }
   function renderMonitor() {
@@ -215,7 +215,7 @@
   async function completeTask(id) {
     const db = client();
     const task = cachedTasks.find(x => x.id === id);
-    if (!task) return;
+    if (!task || (!isWorkspaceAdmin && task.created_by !== currentUser?.id)) return status('Hanya pembuat tugas atau admin yang dapat menyelesaikan tugas ini.', true);
     try {
       const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id).select('id').single();
       if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
