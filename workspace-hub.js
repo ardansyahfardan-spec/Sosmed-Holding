@@ -112,6 +112,7 @@
             outputTokens: Number(data.outputTokens || 0)
           });
       renderIdeas();
+      renderTasks();
     } catch {
       aiUsageSummary = 'Gagal dimuat';
       aiUsageLoaded = false;
@@ -257,11 +258,11 @@
   async function completeTask(id) {
     const db = client();
     const task = cachedTasks.find(x => x.id === id);
-    if (!task || (!isWorkspaceAdmin && task.created_by !== currentUser?.id && task.assigned_to !== currentUser?.id)) return status('Hanya pembuat tugas, penanggung jawab, atau admin yang dapat menyelesaikan tugas ini.', true);
+    if (!task) return;
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_complete_task', {p_task_id:id});
       if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
-      if (!data) return status('Akses tidak diizinkan untuk menyelesaikan tugas ini.', true);
+      if (!data) return status('Hanya pembuat tugas, penanggung jawab, atau admin yang dapat menyelesaikan tugas ini.', true);
       cachedTasks = cachedTasks.map(item => item.id === id ? {...item,status:'done'} : item);
       cachedActivity = [{id:'local-' + Date.now(),entity_type:'task',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
       renderTasks(); renderMonitor();
