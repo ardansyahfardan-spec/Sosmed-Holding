@@ -4035,6 +4035,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         // ARSIP NASKAH UTAMA
         let activeScriptDraftId=null;
         function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function safeImageSrc(value){const src=String(value??'').trim();if(/^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(src))return src;try{const url=new URL(src,window.location.origin);return url.protocol==='https:'?url.href:'';}catch(_){return '';}}
         function saveScriptDraft(){const title=document.getElementById('script-title').value.trim(),content=document.getElementById('script-editor').value.trim();if(!title)return alert('Isi judul naskah terlebih dahulu.');if(!content)return alert('Naskah masih kosong.');const now=new Date().toISOString(),item=db.scriptDrafts.find(x=>x.id===activeScriptDraftId);if(item){item.title=title;item.content=content;item.updatedAt=now;}else{activeScriptDraftId=Date.now();db.scriptDrafts.unshift({id:activeScriptDraftId,title,content,createdAt:now,updatedAt:now});}db.script=content;saveData();renderScriptDrafts();alert('Naskah disimpan ke arsip. Sinkronisasi cloud berjalan otomatis.');}
         function newScriptDraft(){activeScriptDraftId=null;document.getElementById('script-title').value='';document.getElementById('script-editor').value='';document.getElementById('script-editor').focus();}
         function openScriptDraft(id){const x=db.scriptDrafts.find(d=>d.id===id);if(!x)return alert('Naskah tidak ditemukan.');activeScriptDraftId=x.id;document.getElementById('script-title').value=x.title||'';document.getElementById('script-editor').value=x.content||'';switchTab('grimoire','editor');window.scrollTo({top:0,behavior:'smooth'});}
@@ -4456,7 +4457,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 grid.innerHTML += `<div class="bg-black border border-gray-800 p-4 rounded-xl flex flex-col justify-between">
                     <div onclick="openSegmenVideoDetail(${idx})" class="cursor-pointer">
                         <div class="flex items-center gap-3 mb-2">
-                            ${seg.logo ? `<img src="${seg.logo}" class="w-10 h-10 object-cover rounded-full border border-orange-500">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
+                            ${safeImageSrc(seg.logo) ? `<img src="${escapeHtml(safeImageSrc(seg.logo))}" class="w-10 h-10 object-cover rounded-full border border-orange-500" alt="" loading="lazy" decoding="async">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
                             <div><h4 class="font-bold text-orange-400 text-sm">${escapeHtml(seg.nama)}</h4><p class="text-[11px] text-gray-400 italic">${escapeHtml(seg.tagline)}</p></div>
                         </div>
                         <p class="text-xs text-gray-300 mb-3">${escapeHtml(seg.desc)}</p>
