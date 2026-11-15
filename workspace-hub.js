@@ -72,14 +72,14 @@
       ['Ide Crew', cachedIdeas.length],
       ['Tugas', cachedTasks.length],
       ['Aktivitas tercatat', cachedActivity.length],
-      ['Catatan pemakaian AI', aiUsageCount === null ? 'Admin saja' : aiUsageCount]
+      ['Log AI', 'Belum terhubung']
     ];
     const root = $('workspace-monitor-grid');
     if (root) root.innerHTML = values.map(([label,value]) => `<div class="workspace-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('');
     const activity = $('workspace-activity-list');
     if (activity) activity.innerHTML = cachedActivity.length ? cachedActivity.map(a => `<div class="workspace-activity-row"><b>${esc(a.action)} · ${esc(a.entity_type)}</b><span>${dateLabel(a.created_at)}</span></div>`).join('') : '<p class="workspace-empty">Belum ada aktivitas.</p>';
     const note = $('workspace-monitor-note');
-    if (note) note.textContent = 'Angka ini adalah jumlah data fitur Workspace, bukan batas kuota Supabase. Pencatatan token dan provider AI belum dihubungkan ke Edge Function.';
+    if (note) note.textContent = 'Angka ini adalah jumlah data fitur Workspace, bukan batas kuota Supabase. Pencatatan token/provider AI belum dihubungkan ke Edge Function dan tidak menambah query berkala.';
   }
   async function loadWorkspace() {
     const db = client();
@@ -96,7 +96,7 @@
     ]);
     if (ideas.error || tasks.error || activity.error) {
       const err = ideas.error || tasks.error || activity.error;
-      status(err.message.includes('does not exist') ? 'Fitur belum aktif: migration Workspace belum diterapkan.' : 'Gagal memuat Workspace: ' + err.message, true);
+      status((err.message.includes('does not exist') || err.message.includes('Could not find the table')) ? 'Fitur belum aktif: migration Workspace belum diterapkan.' : 'Gagal memuat Workspace: ' + err.message, true);
       return;
     }
     cachedIdeas = ideas.data || [];
@@ -160,11 +160,6 @@
       const button = event.target.closest('[data-complete-task]');
       if (button) completeTask(button.dataset.completeTask);
     });
-    document.querySelectorAll('[data-open-workspace]').forEach(el => el.addEventListener('click', () => {
-      if (typeof window.showPage === 'function') window.showPage('workspace');
-      else document.getElementById('page-workspace')?.classList.add('page-active');
-      loadWorkspace();
-    }));
     document.querySelectorAll('[data-workspace-tab]').forEach(el => el.setAttribute('type','button'));
     const page = $('page-workspace');
     if (page) {
