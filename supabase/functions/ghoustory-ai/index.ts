@@ -15,6 +15,26 @@ const json = (body: unknown, status = 200) =>
 
 
 
+async function isWorkspaceMember(req: Request): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  if (!supabaseUrl || !anonKey || !/^Bearer\\s+\\S+/i.test(authorization)) return false;
+
+  const response = await fetch(supabaseUrl.replace(/\\/$/, "") + "/rest/v1/rpc/is_ghoustory_workspace_member", {
+    method: "POST",
+    headers: {
+      "apikey": anonKey,
+      "Authorization": authorization,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error("Pemeriksaan keanggotaan Crew gagal (HTTP " + response.status + ").");
+  return (await response.json()) === true;
+}
+
 async function recordAiUsage(
   req: Request,
   feature: string,
@@ -255,6 +275,17 @@ Deno.serve(async (req) => {
         message: "Edge Function runtime berjalan.",
         geminiConfigured: Boolean(Deno.env.get("GEMINI_API_KEY")),
       });
+    }
+
+    // JWT verification proves the caller is signed in; this second check
+    // ensures only invited Crew can spend the project's Gemini quota.
+    try {
+      if (!(await isWorkspaceMember(req))) {
+        return json({ error: "Akses AI hanya tersedia untuk Crew Ghoustory yang terdaftar." }, 403);
+      }
+    } catch (membershipError) {
+      console.error("[ghoustory-ai] membership_check_failed:", membershipError instanceof Error ? membershipError.message.slice(0, 180) : "unknown");
+      return json({ error: "Akses Crew belum dapat diverifikasi. Coba lagi sebentar." }, 503);
     }
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
