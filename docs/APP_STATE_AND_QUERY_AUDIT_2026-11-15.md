@@ -111,3 +111,10 @@ Jangan langsung memecah seluruh 16 key menjadi banyak tabel sebelum hasil migras
 - Workflow CI diperluas untuk menjalankan `deno check` pada `ghoustory-ai`, `ghoustory-push`, dan `ghoustory-character`.
 - Perubahan push hanya ada di branch. Fungsi produksi tetap versi 6 dan belum dideploy ulang. Perlu pengujian fungsional dengan dua akun DM (anggota dan bukan anggota) serta grup sebelum rilis.
 - CORS masih wildcard pada ketiga Edge Function; akses tetap memakai JWT pada AI/push, sedangkan character sengaja memakai endpoint publik untuk pairing Roblox. Jangan mengubah origin atau `verify_jwt` sebelum alur Roblox diuji.
+
+
+## Addendum — perbaikan ringkasan metrik AI Workspace (15 Nov 2026)
+- Audit frontend menemukan ketidaksesuaian kontrak RPC: `ghoustory_workspace_ai_usage_count()` mengembalikan angka scalar, sedangkan UI membaca objek berisi jumlah permintaan dan total token masuk/keluar. Akibatnya metrik dapat tampil sebagai nol meskipun data tersedia.
+- Frontend diperbaiki agar tetap mengenali admin saat RPC lama masih mengembalikan scalar selama masa transisi, tetapi tidak menampilkan angka token palsu; metrik diberi status perlu diperbarui.
+- Migration branch-only `20261115052000_workspace_ai_usage_metrics.sql` mengubah hasil RPC menjadi JSON berisi `requests`, `inputTokens`, dan `outputTokens`. Non-admin tetap menerima NULL. Migration ini belum diterapkan ke Supabase live.
+- Verifikasi database live bersifat baca-saja: tabel `ghoustory_ai_usage` memiliki kolom `input_tokens`, `output_tokens`, `status`, dan `created_at`; policy SELECT membatasi akses authenticated ke admin. Tidak ada data AI yang dibaca atau diubah dalam pemeriksaan ini.
