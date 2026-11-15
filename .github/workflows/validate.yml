@@ -80,3 +80,17 @@ jobs:
         run: |
           psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -c "create table public.future_permission_probe (id integer primary key);"
           psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/assert_security_migrations.sql
+
+  game-browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Smoke-test Desa Terlarang in Chromium
+        run: node scripts/smoke-test-desa-terlarang.mjs
