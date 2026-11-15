@@ -92,9 +92,14 @@ try {
       position: getComputedStyle(element).position,
       width: getComputedStyle(element).width,
       height: getComputedStyle(element).height,
-      rect: { width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height },
+      transform: getComputedStyle(element).transform,
+      filter: getComputedStyle(element).filter,
+      contain: getComputedStyle(element).contain,
+      rect: { x: element.getBoundingClientRect().x, y: element.getBoundingClientRect().y, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height },
       classes: element.className,
     } : null;
+    const ancestors = [];
+    for (let el = panel; el && ancestors.length < 7; el = el.parentElement) ancestors.push({ tag: el.tagName, id: el.id, style: styleOf(el) });
     return {
       href: location.href,
       readyState: document.readyState,
@@ -109,6 +114,7 @@ try {
       app: styleOf(app),
       arena: styleOf(arena),
       panel: styleOf(panel),
+      ancestors,
     };
   });
   const canvasReady = frameDiagnostics.canvas &&
