@@ -57,3 +57,27 @@ if (failures.length) {
 } else {
   console.log("Validated " + scripts.length + " inline JavaScript blocks in index.html.");
 }
+
+
+// Validate the standalone Desa Terlarang game as part of the application.
+const desaGame = readFileSync("assets/games/desa-terlarang/index.html", "utf8");
+if (!/<meta\s+name=["']viewport["']/i.test(desaGame)) {
+  console.error("Desa Terlarang is missing its viewport meta tag.");
+  process.exitCode = 1;
+}
+const desaScripts = [...desaGame.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+  .filter(([, attributes, body]) => !/\bsrc\s*=/.test(attributes) && body.trim());
+for (let i = 0; i < desaScripts.length; i += 1) {
+  try {
+    new vm.Script(desaScripts[i][2], { filename: "Desa-Terlarang:inline-script-" + (i + 1) });
+  } catch (error) {
+    console.error("Desa Terlarang inline script " + (i + 1) + ": " + error.message);
+    process.exitCode = 1;
+  }
+}
+if (desaScripts.length) {
+  console.log("Validated " + desaScripts.length + " inline JavaScript blocks in Desa Terlarang.");
+} else {
+  console.error("No inline JavaScript blocks found in Desa Terlarang.");
+  process.exitCode = 1;
+}
