@@ -136,7 +136,6 @@ try {
     isMobile: true,
     hasTouch: true,
   });
-  mobilePage.on("pageerror", (error) => errors.push(error.message));
   await mobilePage.route("https://**/*", async (route) => {
     const url = route.request().url();
     if (url.startsWith("https://cdn.jsdelivr.net/npm/three@0.159.0/") ||
