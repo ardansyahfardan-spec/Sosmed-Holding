@@ -7,12 +7,160 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const json = (body: unknown, status = 200) =>
+const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", ...extraHeaders },
   });
 
+
+
+class RequestError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "RequestError";
+    this.status = status;
+  }
+}
+
+async function readJsonBody(req: Request, maxBytes = 25 * 1024 * 1024): Promise<Record<string, any>> {
+  const declaredLength = Number(req.headers.get("content-length") || 0);
+  if (declaredLength > maxBytes) throw new RequestError("Ukuran permintaan terlalu besar. Batas payload 25 MiB.", 413);
+  if (!req.body) throw new RequestError("Payload JSON tidak tersedia.", 400);
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new RequestError("Ukuran permintaan terlalu besar. Batas payload 25 MiB.", 413);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    throw new RequestError("Payload JSON tidak valid.", 400);
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new RequestError("Payload harus berupa objek JSON.", 400);
+  }
+  return parsed as Record<string, any>;
+}
+
+async function isWorkspaceMember(req: Request): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  if (!supabaseUrl || !anonKey) throw new Error("Konfigurasi API Supabase belum tersedia.");
+  if (!/^Bearer\s+\S+/i.test(authorization)) return false;
+
+  const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/is_ghoustory_workspace_member", {
+    method: "POST",
+    headers: {
+      "apikey": anonKey,
+      "Authorization": authorization,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error("Pemeriksaan keanggotaan Crew gagal (HTTP " + response.status + ").");
+  return (await response.json()) === true;
+}
+
+async function takeAiRateLimit(req: Request): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  if (!supabaseUrl || !anonKey || !/^Bearer\s+\S+/i.test(authorization)) {
+    throw new Error("Konfigurasi pemeriksaan batas AI belum tersedia.");
+  }
+  const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/ghoustory_ai_take_rate_limit", {
+    method: "POST",
+    headers: {
+      "apikey": anonKey,
+      "Authorization": authorization,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error("Pemeriksaan batas permintaan AI gagal (HTTP " + response.status + ").");
+  return (await response.json()) === true;
+}
+
+async function recordAiUsage(
+  req: Request,
+  feature: string,
+  model: string,
+  usage: { promptTokens?: number; outputTokens?: number } | null,
+  status: "success" | "error",
+): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "");
+  let userId: string | null = null;
+
+  // Supabase Edge Gateway verifies the JWT before this function runs.
+  // Decode only its verified subject; never trust a user_id from the request body.
+  try {
+    const payloadPart = token.split(".")[1];
+    if (payloadPart) {
+      const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")));
+      const subject = String(payload.sub || "");
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(subject)) userId = subject;
+    }
+  } catch {
+    userId = null;
+  }
+
+  if (!supabaseUrl || !serviceRoleKey || !userId) return;
+  try {
+    const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/ghoustory_ai_usage", {
+      method: "POST",
+      headers: {
+        "apikey": serviceRoleKey,
+        "Authorization": "Bearer " + serviceRoleKey,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        provider: "gemini",
+        model: model || null,
+        feature: feature.slice(0, 80),
+        input_tokens: Math.max(0, Math.floor(usage?.promptTokens || 0)),
+        output_tokens: Math.max(0, Math.floor(usage?.outputTokens || 0)),
+        status,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) console.warn("[ghoustory-ai] usage_log_failed status=" + response.status);
+  } catch (error) {
+    console.warn("[ghoustory-ai] usage_log_failed:", error instanceof Error ? error.message.slice(0, 160) : "unknown");
+  }
+}
 
 function youtubeVideoId(input: string): string {
   const u = new URL(input);
@@ -27,10 +175,10 @@ function decodeCaptionText(value: string): string {
   return value.replace(/<br\s*\/?\s*>/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/\s+/g, " ").trim();
 }
 function secondsLabel(value: number): string { const s=Math.max(0,Math.floor(value)); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
-async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string): Promise<{ uri: string; name: string }> {
+async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string, onUploaded?: (name: string) => void): Promise<{ uri: string; name: string }> {
   const parsed = new URL(audioUrl);
   const projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
-  if (parsed.origin !== projectUrl.origin || !parsed.pathname.includes("/storage/v1/object/sign/vo-recordings/")) {
+  if (parsed.origin !== projectUrl.origin || !parsed.pathname.startsWith("/storage/v1/object/sign/vo-recordings/")) {
     throw new Error("Tautan audio sementara tidak valid.");
   }
   const audioResponse = await fetch(audioUrl, { signal: AbortSignal.timeout(90000) });
@@ -69,6 +217,9 @@ async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, api
   const uploaded = await finishResponse.json();
   let file = uploaded?.file;
   if (!file?.uri || !file?.name) throw new Error("Gemini tidak mengembalikan identitas file yang valid.");
+  // Register the file immediately so the request-level catch can clean it up
+  // even when Gemini's asynchronous file processing fails or times out.
+  onUploaded?.(String(file.name));
   for (let attempt = 0; attempt < 10 && file.state && file.state !== "ACTIVE"; attempt++) {
     if (file.state === "FAILED") throw new Error("Gemini gagal menyiapkan audio untuk dianalisis.");
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -181,18 +332,43 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   let uploadedGeminiFileName = "";
+  let usageTask = "";
+  let usageModel = "";
+  let aiRequestStarted = false;
   try {
-    const body = await req.json();
+    const body = await readJsonBody(req);
     const task = String(body.task || "");
+    usageTask = task;
 
-    // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
+    // JWT verification proves the caller is signed in; this second check
+    // ensures only invited Crew can spend the project's Gemini quota.
+    try {
+      if (!(await isWorkspaceMember(req))) {
+        return json({ error: "Akses AI hanya tersedia untuk Crew Ghoustory yang terdaftar." }, 403);
+      }
+    } catch (membershipError) {
+      console.error("[ghoustory-ai] membership_check_failed:", membershipError instanceof Error ? membershipError.message.slice(0, 180) : "unknown");
+      return json({ error: "Akses Crew belum dapat diverifikasi. Coba lagi sebentar." }, 503);
+    }
+
+    // Health diagnostics are available only to verified Workspace members and
+    // never reveal whether provider secrets are configured.
     if (task === "health") {
       return json({
         ok: true,
         function: "ghoustory-ai",
         message: "Edge Function runtime berjalan.",
-        geminiConfigured: Boolean(Deno.env.get("GEMINI_API_KEY")),
       });
+    }
+
+    // Atomic per-user burst protection; fail closed if the database check is unavailable.
+    try {
+      if (!(await takeAiRateLimit(req))) {
+        return json({ error: "Batas penggunaan AI tercapai. Coba lagi setelah satu menit." }, 429, { "Retry-After": "60" });
+      }
+    } catch (rateLimitError) {
+      console.error("[ghoustory-ai] rate_limit_check_failed:", rateLimitError instanceof Error ? rateLimitError.message.slice(0, 180) : "unknown");
+      return json({ error: "Layanan pembatas AI belum dapat diverifikasi. Coba lagi sebentar." }, 503);
     }
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
@@ -337,7 +513,10 @@ KELUARAN HARUS DUA BAGIAN:
 ⏳ BELUM DIPUTUSKAN — hanya hal yang masih menggantung; jika tidak ada, tulis "—".
 
 Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf panjang, pengulangan, dan basa-basi. Jangan mengarang nama, keputusan, tanggal, PIC, atau tenggat. Bedakan usulan dari keputusan. Jika pembicara tidak dapat dikenali dengan yakin, jangan menebak identitasnya. Topik rapat: ${topic}. Pisahkan dengan heading TRANSKRIP dan NOTULEN.`;
-      if (requestParts.length) requestParts[0] = { text: prompt };
+      requestParts = [
+        { text: prompt },
+        { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
+      ];
     } else if (task === "social-screenshot") {
       const imageBase64 = String(body.imageBase64 || "");
       const imageMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -369,7 +548,7 @@ Pastikan semua nilai views berupa integer. Jika label metrik utama tidak jelas, 
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Fitur Analisis Video menerima file MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten untuk kanal horor Indonesia Ghoustory. Dengarkan seluruh file MP3 ini. Audio dapat menggunakan bahasa Jawa (termasuk dialek Jawa Timur/Sidoarjo), bahasa Indonesia, atau campuran. Judul/keterangan: ${title}.
@@ -394,7 +573,7 @@ Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk 
       const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory transkripsi bagian " + chunkNumber, apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory transkripsi bagian " + chunkNumber, apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Transkripsikan audio bagian ${chunkNumber} dari ${totalChunks} secara lengkap dan verbatim. Audio dapat menggunakan Bahasa Indonesia, bahasa Jawa Timur/Sidoarjo, atau campuran. Pertahankan kata, nama, istilah lokal, dan gaya tutur yang benar-benar terdengar. Jangan menerjemahkan, meringkas, atau mengarang ucapan. Jika ada bagian yang tidak jelas, tandai [tidak terdengar]. Deteksi bahasa yang digunakan.
@@ -424,7 +603,7 @@ ${transcript}`;
       const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara untuk bagian audio tidak tersedia." }, 400);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title + " bagian " + chunkNumber, apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title + " bagian " + chunkNumber, apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis BAGIAN ${chunkNumber} dari ${totalChunks} audio. Judul: ${title}. Posisi bagian ini dimulai pada detik ke-${offsetSeconds} dari audio asli.
@@ -464,19 +643,28 @@ Kembalikan HANYA JSON valid:
       const audioUrl = String(body.audioUrl || "");
       audioMimeType = String(body.mimeType || "audio/mpeg").split(";")[0].trim().toLowerCase();
       if (!translatedTranscript.trim()) return json({ error: "Teks terjemahan kosong." }, 400);
+      let uploadedAudioUri = "";
+      const audioBase64 = String(body.audioBase64 || "");
       if (audioUrl) {
         if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
-        const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey);
-        requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
-        (globalThis as any).__ghoustoryUploadedGeminiFile = uploadedAudio.name;
+        const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey, (name) => { uploadedGeminiFileName = name; });
+        uploadedAudioUri = uploadedAudio.uri;
+        uploadedGeminiFileName = uploadedAudio.name;
+      } else if (audioBase64) {
+        if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
+        if (!/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64) || audioBase64.length > 23_000_000) {
+          return json({ error: "Data MP3 kosong atau terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
+        }
       }
-      prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${audioBase64 ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
+      const hasAudio = Boolean(uploadedAudioUri || audioBase64);
+      prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${hasAudio ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
 Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
 Kembalikan HANYA JSON valid: {"segments":[{"start":"00:00:00.000","end":"00:00:02.400","text":"Teks subtitle"}],"timing":"aligned|estimated"}
 TERJEMAHAN:
 ${translatedTranscript}`;
       requestParts = [{ text: prompt }];
-      if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
+      if (uploadedAudioUri) requestParts.push({ file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudioUri } });
+      else if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
     } else if (task === "shorts-moment-finder") {
       const audioBase64 = String(body.audioBase64 || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -569,9 +757,11 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     // documented stable Flash-Lite fallback using the same Gemini API key.
     for (const model of modelCandidates) {
       activeModel = model;
+      usageModel = model;
       const attemptsForModel = model === modelCandidates[0] ? 3 : 2;
       for (let attempt = 0; attempt < attemptsForModel; attempt++) {
         const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+        aiRequestStarted = true;
         response = await fetch(geminiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -595,7 +785,10 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
         await response?.body?.cancel();
       }
     }
-    if (!response) return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
+    if (!response) {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
+      return json({ error: "Tidak berhasil menghubungi Gemini." }, 502);
+    }
 
     const responseText = await response.text();
     const uploadedGeminiFile = uploadedGeminiFileName;
@@ -616,6 +809,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       result = JSON.parse(responseText);
     } catch (_) {
       console.error("[ghoustory-ai] stage=json_parse_failed");
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       return json({ error: "Respons Gemini bukan JSON yang valid." }, 502);
     }
     if (!response.ok) {
@@ -624,6 +818,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       const reason = String(result?.error?.status || "UNKNOWN");
       // Log Gemini's diagnostic message (never log the API key or request headers).
       console.error("[ghoustory-ai] stage=gemini_error status=" + status + " reason=" + reason + " message=" + message.slice(0, 300));
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       return json({
         error: message,
         provider: "Gemini",
@@ -633,6 +828,7 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     }
     const candidate = result?.candidates?.[0];
     if (structuredJsonTask && candidate?.finishReason === "MAX_TOKENS") {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
       const outputLimitMessage = task === "video-audio-chunk-translation"
         ? "Terjemahan satu potongan teks melewati batas keluaran AI. Sistem akan mencoba memproses teks dalam potongan yang lebih kecil."
         : "Hasil transkrip terlalu panjang untuk satu kali keluaran AI. Coba audio yang lebih pendek.";
@@ -642,12 +838,16 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       .map((part: { text?: string }) => part.text || "")
       .join("\n")
       .trim();
-    if (!text) return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
+    if (!text) {
+      await recordAiUsage(req, usageTask, usageModel, null, "error");
+      return json({ error: "Gemini tidak menghasilkan teks. Coba lagi." }, 502);
+    }
     if (structuredJsonTask) {
       try {
         text = JSON.stringify(JSON.parse(text));
       } catch (_) {
         console.error("[ghoustory-ai] stage=structured_output_invalid task=" + task + " finishReason=" + String(candidate?.finishReason || "unknown"));
+        await recordAiUsage(req, usageTask, usageModel, null, "error");
         return json({ error: "Gemini belum menghasilkan JSON analisis yang utuh. Silakan coba sekali lagi." }, 502);
       }
     }
@@ -657,8 +857,27 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       .map((web: { uri?: string; title?: string }) => ({ title: web.title || web.uri, url: web.uri }));
     const sourceText = sources.length ? "\\n\\nSUMBER WEB UNTUK DIVERIFIKASI:\\n" + sources.map((source: {title:string;url:string}, index:number) => (index+1)+". "+source.title+" — "+source.url).join("\\n") : "";
     const usage = result?.usageMetadata ? { promptTokens: result.usageMetadata.promptTokenCount || 0, outputTokens: result.usageMetadata.candidatesTokenCount || 0, totalTokens: result.usageMetadata.totalTokenCount || 0 } : null;
+    await recordAiUsage(req, task, activeModel, usage, "success");
     return json({ text: text + sourceText, sources, usage });
   } catch (error) {
+    // Ensure temporary Gemini uploads are deleted even if the model request or
+    // response parsing throws before the normal cleanup path is reached.
+    if (uploadedGeminiFileName) {
+      try {
+        await fetch("https://generativelanguage.googleapis.com/v1beta/" + uploadedGeminiFileName, {
+          method: "DELETE",
+          headers: { "x-goog-api-key": Deno.env.get("GEMINI_API_KEY") || "" },
+          signal: AbortSignal.timeout(10000),
+        });
+      } catch (cleanupError) {
+        console.warn("[ghoustory-ai] temporary Gemini file cleanup failed:", cleanupError);
+      }
+      uploadedGeminiFileName = "";
+    }
+    if (aiRequestStarted && usageTask) await recordAiUsage(req, usageTask, usageModel, null, "error");
+    if (error instanceof RequestError) {
+      return json({ error: error.message }, error.status);
+    }
     console.error("[ghoustory-ai] request_failed:", error instanceof Error ? error.message.slice(0, 400) : "Unknown error");
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
   }

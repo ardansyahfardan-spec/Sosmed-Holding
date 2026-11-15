@@ -1,0 +1,82 @@
+name: Validate Ghoustory Control Room
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [audit/six-core-areas]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check workspace JavaScript
+        run: node --check workspace-hub.js
+      - name: Check inline application scripts
+        run: node scripts/validate-inline-scripts.mjs
+      - name: Check Jadi WNI game JavaScript
+        run: node --check assets/games/jadi-wni/jadi-wni.js
+      - name: Type-check AI Edge Function
+        run: |
+          deno check supabase/functions/ghoustory-ai/index.ts
+          deno check supabase/functions/ghoustory-push/index.ts
+
+  database-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghoustory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ghoustory_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Supabase-compatible test roles and schema
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/supabase_migration_fixture.sql
+      - name: Apply AI rate-limit migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115050000_ghoustory_ai_rate_limit.sql
+      - name: Apply TRUNCATE privilege migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115051000_revoke_public_truncate_grants.sql
+      - name: Apply AI usage metrics migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115052000_workspace_ai_usage_metrics.sql
+      - name: Verify admin-only AI usage metrics
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/assert_ai_usage_metrics.sql
+      - name: Apply scheduled Workspace retention migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115053000_workspace_retention_scheduled_cleanup.sql
+      - name: Verify scheduled Workspace retention windows
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/assert_workspace_retention.sql
+      - name: Create a future public table and verify permissions and rate limits
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -c "create table public.future_permission_probe (id integer primary key);"
+          psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/assert_security_migrations.sql

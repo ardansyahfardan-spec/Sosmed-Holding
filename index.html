@@ -12,17 +12,18 @@
     <meta name="apple-mobile-web-app-title" content="Ghoustory">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self' https://accounts.google.com https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://www.googleapis.com; frame-src 'self' https://accounts.google.com https://*.supabase.co https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
     <link rel="manifest" href="./manifest.webmanifest">
     <title>Ghoustory Control Room</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- CDN Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2.119.0'"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"></script>
     
@@ -2120,6 +2121,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     <span class="gcr-home-copy"><b>Markas Crew</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
+                  <button type="button" onclick="showPage('workspace')" class="gcr-home-item"><span class="gcr-home-icon"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></span><span class="gcr-home-copy"><b>Workspace Crew</b></span><i class="fa-solid fa-chevron-right gcr-home-chevron"></i></button>
                   <button type="button" onclick="showPage('arena')" class="gcr-home-item">
                     <span class="gcr-home-icon"><i class="fa-solid fa-gamepad" aria-hidden="true" title="Game Ghoustory"></i></span>
                     <span class="gcr-home-copy"><b>Game Ghoustory</b></span>
@@ -2145,7 +2147,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
               <div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[10px] tracking-widest text-gray-500 font-bold">PILIH GAME</p><p class="text-xs text-gray-400 mt-1">Game utama yang masih aktif.</p></div><span class="text-[10px] text-red-300 border border-red-900/40 rounded-full px-2 py-1">2 GAME</span></div>
               
               <div id="arena-game-grid" class="grid grid-cols-2 gap-2 sm:gap-3">
-                <button onclick="playArena('berkas')" class="arena-game-card" data-mode="berkas" aria-label="GHOUSTORY: Desa Terlarang"><img class="arena-game-art" alt="GHOUSTORY: Desa Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Desa%20terlarang.JPG"></button>
+                <button onclick="openDesaTerlarang()" class="arena-game-card" data-mode="desa_terlarang" aria-label="GHOUSTORY: Desa Terlarang"><img class="arena-game-art" alt="GHOUSTORY: Desa Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Desa%20terlarang.JPG"></button>
                 <button onclick="openMalamTerlarang()" class="arena-game-card" data-mode="malam_terlarang"><img class="arena-game-art" alt="Malam Terlarang" loading="lazy" src="https://raw.githubusercontent.com/ardansyahfardan-spec/Sosmed-Holding/main/assets/arena/Malam%20terlarang.JPG"></button>
               </div>
               <div id="arena-play-panel" class="hidden mt-5 rounded-2xl border border-red-900/40 bg-[#101116] p-4 sm:p-5" aria-live="polite"></div>
@@ -2341,7 +2343,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                             <textarea id="seg-desc" placeholder="Deskripsi Segmen..." class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white h-16"></textarea>
                             <div>
                                 <label class="text-gray-400 block mb-1">Upload Logo Segmen (File Gambar)</label>
-                                <input type="file" id="seg-logo-file" accept="image/*" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-700 file:text-white hover:file:bg-orange-600">
+                                <input type="file" id="seg-logo-file" accept="image/jpeg,image/png,image/webp" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-700 file:text-white hover:file:bg-orange-600">
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="saveNewSegmentManual()" class="flex-grow bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Simpan Segmen</button>
@@ -2701,7 +2703,27 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
       </div>
     </section>
 
-        </main>
+        
+<section id="page-workspace" class="page-section max-w-5xl mx-auto">
+  <button type="button" class="feature-back-button" onclick="showPage('home')" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
+  <div class="flex items-center justify-between gap-3"><div><h2 class="text-xl font-bold">Workspace Crew</h2><p class="text-xs text-gray-400 mt-1">Ide, tugas, dan aktivitas dalam satu ruang.</p></div><button id="workspace-refresh" type="button" class="workspace-button">Muat ulang</button></div>
+  <div class="workspace-tabs" role="tablist" aria-label="Workspace Crew">
+    <button type="button" class="workspace-tab is-active" data-workspace-tab="ideas" aria-pressed="true">Ide Crew</button>
+    <button type="button" class="workspace-tab" data-workspace-tab="tasks" aria-pressed="false">Tugas</button>
+    <button type="button" class="workspace-tab" data-workspace-tab="monitor" aria-pressed="false">Monitoring</button>
+  </div>
+  <div id="workspace-panel-ideas">
+    <div class="workspace-panel"><h3>Kirim ide baru</h3><form id="workspace-idea-form"><input id="workspace-idea-title" class="workspace-input" maxlength="120" minlength="3" placeholder="Judul ide" required><textarea id="workspace-idea-description" class="workspace-input" rows="3" maxlength="3000" placeholder="Ceritakan ide secara singkat"></textarea><select id="workspace-idea-category" class="workspace-input"><option>Umum</option><option>Konten</option><option>Produksi</option><option>Marketing</option><option>Fitur Control Room</option><option>Game</option></select><button id="workspace-idea-submit" class="workspace-button" type="submit">Kirim ide</button></form></div>
+    <div class="workspace-panel"><h3>Ide dari Crew</h3><div id="workspace-ideas-list"><p class="workspace-empty">Memuat ide…</p></div></div>
+  </div>
+  <div id="workspace-panel-tasks" class="hidden">
+    <div class="workspace-panel"><h3>Buat tugas</h3><form id="workspace-task-form"><input id="workspace-task-title" class="workspace-input" maxlength="140" minlength="3" placeholder="Nama tugas" required><textarea id="workspace-task-description" class="workspace-input" rows="3" maxlength="3000" placeholder="Detail tugas"></textarea><div class="grid grid-cols-2 gap-2"><input id="workspace-task-project" class="workspace-input" maxlength="80" placeholder="Nama proyek — default Umum"><select id="workspace-task-assignee" class="workspace-input"><option value="">Belum ditugaskan</option></select></div><div class="grid grid-cols-2 gap-2"><select id="workspace-task-priority" class="workspace-input"><option value="normal">Prioritas normal</option><option value="low">Prioritas rendah</option><option value="high">Prioritas tinggi</option><option value="urgent">Mendesak</option></select><input id="workspace-task-due" type="datetime-local" class="workspace-input" aria-label="Tenggat tugas"></div><button id="workspace-task-submit" class="workspace-button" type="submit">Tambah tugas</button></form></div>
+    <div class="workspace-panel"><h3>Daftar tugas</h3><div id="workspace-tasks-list"><p class="workspace-empty">Memuat tugas…</p></div></div>
+  </div>
+  <div id="workspace-panel-monitor" class="hidden"><div class="workspace-panel"><h3>Ringkasan penggunaan Workspace</h3><div id="workspace-monitor-grid" class="grid grid-cols-2 gap-2"></div><p id="workspace-monitor-note" class="text-xs text-gray-500 mt-3"></p></div><div class="workspace-panel"><h3>Aktivitas terbaru</h3><div id="workspace-activity-list"></div></div></div>
+  <p id="workspace-status" class="text-xs mt-3 text-gray-400" role="status" aria-live="polite">Workspace siap dibuka.</p>
+</section>
+</main>
         <div id="bottom-navigation" class="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-[80] w-[min(94vw,430px)] rounded-full border border-white/15 bg-[#111827]/65 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,.45)] px-3 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
           <div class="grid grid-cols-4 gap-1">
             <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house-crack text-lg" title="Ghouse"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Ghouse</span></button>
@@ -2936,8 +2958,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if (!supabaseSdkLoadPromise) {
                 supabaseSdkLoadPromise = (async () => {
                     const sources = [
-                        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
-                        'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+                        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js',
+                        'https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js'
                     ];
                     for (const src of sources) {
                         try {
@@ -3011,6 +3033,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         let presenceChannel = null;
         let lastCloudSyncAt = null;
         let lastAppStateUpdatedAt = null;
+        let lastPersistedDbSnapshot = '';
+        let lastScheduledDbSnapshot = '';
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
@@ -3057,40 +3081,69 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 lastAppStateUpdatedAt = seeded?.updated_at || null;
             }
 
+            lastPersistedDbSnapshot = JSON.stringify(db);
+            lastScheduledDbSnapshot = lastPersistedDbSnapshot;
             const purgedCompletedItems = await purgeCompletedItems();
             window.__ghoustorySyncConflict = false;
             sharedSyncReady = true;
             if (purgedCompletedItems) saveData();
+            // Move legacy Base64 logos into Storage; app_state retains only small public URLs.
+            await migrateLegacySegmentLogos();
             if (document.getElementById('script-editor')) {
                 document.getElementById('script-editor').value = db.script || '';
             }
         }
 
-        function queueSharedSave(snapshot) {
+        function queueSharedSave(snapshot, snapshotText = JSON.stringify(snapshot)) {
             sharedSaveQueue = sharedSaveQueue
                 .then(async () => {
                     if (window.__ghoustorySyncConflict) throw new Error('Data berubah di perangkat lain. Muat ulang halaman sebelum menyimpan lagi.');
-                    const nextUpdatedAt = new Date().toISOString();
-                    let query = supabaseClient
-                        .from('app_state')
-                        .update({ data: snapshot, updated_by: activeUser?.id || null, updated_at: nextUpdatedAt })
-                        .eq('id', 'ghoustory');
-                    if (lastAppStateUpdatedAt) query = query.eq('updated_at', lastAppStateUpdatedAt);
-                    const { data, error } = await query.select('updated_at').maybeSingle();
+                    if (!lastAppStateUpdatedAt) throw new Error('Versi data belum siap. Muat ulang halaman sebelum menyimpan.');
+
+                    const previous = JSON.parse(lastPersistedDbSnapshot || '{}');
+                    const patch = {};
+                    const removeKeys = [];
+                    const keys = new Set([...Object.keys(previous), ...Object.keys(snapshot)]);
+                    keys.forEach(key => {
+                        if (!Object.prototype.hasOwnProperty.call(snapshot, key)) {
+                            removeKeys.push(key);
+                        } else if (JSON.stringify(previous[key]) !== JSON.stringify(snapshot[key])) {
+                            patch[key] = snapshot[key];
+                        }
+                    });
+
+                    if (!Object.keys(patch).length && !removeKeys.length) {
+                        lastPersistedDbSnapshot = snapshotText;
+                        return;
+                    }
+
+                    const { data: nextUpdatedAt, error } = await supabaseClient.rpc('ghoustory_patch_app_state', {
+                        p_patch: patch,
+                        p_remove_keys: removeKeys,
+                        p_expected_updated_at: lastAppStateUpdatedAt
+                    });
                     if (error) throw error;
-                    if (!data) {
+                    if (!nextUpdatedAt) {
                         const latest = await supabaseClient.from('app_state').select('updated_at').eq('id', 'ghoustory').maybeSingle();
                         if (!latest.error && latest.data?.updated_at) lastAppStateUpdatedAt = latest.data.updated_at;
                         window.__ghoustorySyncConflict = true;
                         throw new Error('Data baru saja diubah dari perangkat lain. Muat ulang halaman sebelum menyimpan lagi agar perubahan Crew lain tidak tertimpa.');
                     }
-                    lastAppStateUpdatedAt = data.updated_at || nextUpdatedAt;
+
+                    lastAppStateUpdatedAt = nextUpdatedAt;
+                    lastPersistedDbSnapshot = snapshotText;
                     lastCloudSyncAt = new Date();
                     window.__ghoustorySyncError = null;
                     updateFooterStatus();
                 })
                 .catch(error => {
+                    if (!window.__ghoustorySyncConflict && lastScheduledDbSnapshot === snapshotText) {
+                        lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                    }
                     console.error('Gagal menyimpan data ke database bersama:', error);
+                    if (!window.__ghoustorySyncConflict && lastScheduledDbSnapshot === snapshotText) {
+                        lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                    }
                     window.__ghoustorySyncError = error.message || String(error);
                     updateFooterStatus();
                 });
@@ -3103,9 +3156,21 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             updateFooterStatus(true);
 
             if (!sharedSyncReady) return;
+            const snapshotText = JSON.stringify(db);
+            if (snapshotText === lastPersistedDbSnapshot) {
+                clearTimeout(sharedSaveTimer);
+                sharedSaveTimer = null;
+                lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                return;
+            }
+            if (snapshotText === lastScheduledDbSnapshot) return;
             clearTimeout(sharedSaveTimer);
-            const snapshot = JSON.parse(JSON.stringify(db));
-            sharedSaveTimer = setTimeout(() => queueSharedSave(snapshot), 700);
+            lastScheduledDbSnapshot = snapshotText;
+            const snapshot = JSON.parse(snapshotText);
+            sharedSaveTimer = setTimeout(() => {
+                sharedSaveTimer = null;
+                queueSharedSave(snapshot, snapshotText);
+            }, 700);
         }
 
         // ================= STATUS SELESAI & PEMBERSIHAN OTOMATIS =================
@@ -3373,7 +3438,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         function applyGhoustoryProfile(profile) {
             activeProfile = profile;
             const fallback = activeUser?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
-            const avatar = profile?.avatar_url || fallback;
+            const avatar = safeImageSrc(profile?.avatar_url) || safeImageSrc(fallback) || "";
             const nickname = profile?.nickname || activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
             const role = profile?.role || "Crew";
             const headerAvatar = document.getElementById('user-avatar');
@@ -3389,7 +3454,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 
         }
 
-        async function clearGhoustoryCache(){if(!confirm('Bersihkan cache aplikasi di perangkat ini? Data akun, chat, jadwal, Kas, dan Supabase tidak akan dihapus.'))return;try{if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ghoustory-control-room-')).map(k=>caches.delete(k)));}if(activeUser)localStorage.removeItem('ghoustory-chat-'+activeUser.id);alert('Cache sementara perangkat berhasil dibersihkan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){alert('Cache belum berhasil dibersihkan: '+e.message);}}
+        async function clearGhoustoryCache(){if(!confirm('Bersihkan cache aplikasi di perangkat ini? Data akun, chat, jadwal, Kas, dan Supabase tidak akan dihapus.'))return;try{if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ghoustory-control-room-')).map(k=>caches.delete(k)));}alert('Cache sementara perangkat berhasil dibersihkan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){alert('Cache belum berhasil dibersihkan: '+e.message);}}
         function openAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
@@ -3415,7 +3480,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const selectedRoles = [...new Set(savedRoles.map(value => legacyRoleMap[value] || value))];
             document.querySelectorAll('input[name="profile-role-option"]').forEach(input => { input.checked = selectedRoles.includes(input.value); });
             syncProfileRoleSelection();
-            preview.src = activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
+            preview.src = safeImageSrc(activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url) || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
             file.value = '';
             save.textContent = mode === 'register' ? 'Simpan & Masuk' : 'Simpan Perubahan';
             modal.classList.remove('hidden');
@@ -3637,7 +3702,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Game Ghoustory','DESA TERLARANG • MALAM TERLARANG'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Game Ghoustory','DESA TERLARANG • MALAM TERLARANG'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],workspace:['Workspace Crew','Ide, tugas & aktivitas'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
@@ -3917,10 +3982,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 return;
             }
             list.innerHTML=items.map(item=>{
-                const cover=item.imageUrl
-                    ? `<img class="lore-entry-cover" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.imageAlt||item.title)}" loading="lazy" onerror="this.style.display='none'">`
+                const cover=safeImageSrc(item.imageUrl)
+                    ? `<img class="lore-entry-cover" src="${escapeHtml(safeImageSrc(item.imageUrl))}" alt="${escapeHtml(item.imageAlt||item.title)}" loading="lazy" onerror="this.style.display='none'">`
                     : '<span class="lore-entry-cover lore-entry-placeholder" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>';
-                return `<button type="button" onclick="openLoreEntry('${escapeHtml(item.id)}')" class="lore-entry-card w-full text-left rounded-xl border border-white/10 bg-black/20 p-2 hover:border-red-900/60 hover:bg-red-950/10 transition">${cover}<div class="lore-entry-copy min-w-0"><h4 class="text-sm font-bold text-[#eee8dd]">${escapeHtml(item.title)}</h4><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(item.region)}</p><p class="text-xs text-gray-400 mt-2 leading-relaxed">${escapeHtml(item.summary)}</p><p class="text-[9px] text-red-200/80 mt-2">${escapeHtml(item.classification)} · ${escapeHtml(item.sourceLevel)}</p></div><i class="fa-solid fa-chevron-right text-[10px] text-gray-600 shrink-0"></i></button>`;
+                return `<button type="button" onclick="openLoreEntry(${escapeHtml(JSON.stringify(String(item.id)))})" class="lore-entry-card w-full text-left rounded-xl border border-white/10 bg-black/20 p-2 hover:border-red-900/60 hover:bg-red-950/10 transition">${cover}<div class="lore-entry-copy min-w-0"><h4 class="text-sm font-bold text-[#eee8dd]">${escapeHtml(item.title)}</h4><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(item.region)}</p><p class="text-xs text-gray-400 mt-2 leading-relaxed">${escapeHtml(item.summary)}</p><p class="text-[9px] text-red-200/80 mt-2">${escapeHtml(item.classification)} · ${escapeHtml(item.sourceLevel)}</p></div><i class="fa-solid fa-chevron-right text-[10px] text-gray-600 shrink-0"></i></button>`;
             }).join('');;
         }
         function openLoreEntry(id){
@@ -3928,8 +3993,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const modal=document.getElementById('lore-entry-modal');const content=document.getElementById('lore-entry-modal-content');if(!modal||!content)return;
             const category=LORE_CATEGORY_LABELS[item.category]||'LORE';
             const paragraphs=String(item.body||'').split(/\n\n/).filter(Boolean).map((p,index)=>'<p class="text-sm sm:text-[15px] text-gray-300 leading-[1.85] mb-4">'+escapeHtml(p)+'</p>').join('');
-            const sources=(item.sources||[]).map((source,index)=>'<li class="rounded-xl border border-white/10 bg-black/20 p-3.5 sm:p-4"><div class="flex items-start gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-red-950/30 text-[10px] font-bold text-red-200">'+(index+1)+'</span><div class="min-w-0 flex-1"><a class="text-sm font-semibold leading-relaxed text-red-200 underline underline-offset-2 decoration-red-900/70 hover:text-red-100" href="'+escapeHtml(source.url)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(source.title)+'</a><p class="text-[10px] sm:text-[11px] text-gray-400 mt-1.5">'+escapeHtml(source.author)+' · '+escapeHtml(source.year)+'</p><p class="text-xs text-gray-500 leading-relaxed mt-2">'+escapeHtml(source.note)+'</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-600 mt-1"></i></div></li>').join('');
-            const image=item.imageUrl?'<figure class="lore-detail-figure mb-5"><img src="'+escapeHtml(item.imageUrl)+'" alt="'+escapeHtml(item.imageAlt||item.title)+'" loading="lazy" onerror="this.closest(\'figure\').style.display=\'none\'"><figcaption><a href="'+escapeHtml(item.imageCreditUrl||'#')+'" target="_blank" rel="noopener noreferrer">Kredit foto: '+escapeHtml(item.imageCredit||'Sumber foto')+'</a><span>'+escapeHtml(item.imageNote||'Foto konteks.')+'</span></figcaption></figure>':'';
+            const sources=(item.sources||[]).map((source,index)=>'<li class="rounded-xl border border-white/10 bg-black/20 p-3.5 sm:p-4"><div class="flex items-start gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-red-950/30 text-[10px] font-bold text-red-200">'+(index+1)+'</span><div class="min-w-0 flex-1"><a class="text-sm font-semibold leading-relaxed text-red-200 underline underline-offset-2 decoration-red-900/70 hover:text-red-100" href="'+escapeHtml(safeExternalUrl(source.url))+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(source.title)+'</a><p class="text-[10px] sm:text-[11px] text-gray-400 mt-1.5">'+escapeHtml(source.author)+' · '+escapeHtml(source.year)+'</p><p class="text-xs text-gray-500 leading-relaxed mt-2">'+escapeHtml(source.note)+'</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-600 mt-1"></i></div></li>').join('');
+            const image=item.imageUrl?'<figure class="lore-detail-figure mb-5"><img src="'+escapeHtml(safeImageSrc(item.imageUrl))+'" alt="'+escapeHtml(item.imageAlt||item.title)+'" loading="lazy" onerror="this.closest(\'figure\').style.display=\'none\'"><figcaption><a href="'+escapeHtml(safeExternalUrl(item.imageCreditUrl))+'" target="_blank" rel="noopener noreferrer">Kredit foto: '+escapeHtml(item.imageCredit||'Sumber foto')+'</a><span>'+escapeHtml(item.imageNote||'Foto konteks.')+'</span></figcaption></figure>':'';
             content.innerHTML='<article class="p-4 sm:p-6 lg:p-7"><header class="flex items-start justify-between gap-4 pb-5 border-b border-white/10"><div class="min-w-0"><div class="flex flex-wrap items-center gap-2 mb-3"><span class="text-[9px] tracking-[.2em] font-bold text-red-300">'+escapeHtml(category.toUpperCase())+'</span><span class="text-[9px] text-gray-500">/</span><span class="text-[9px] tracking-wider text-gray-500">ARSIP MISTERI NUSANTARA</span></div><h2 class="text-xl sm:text-2xl lg:text-[28px] font-bold leading-tight tracking-tight text-[#eee8dd]">'+escapeHtml(item.title)+'</h2><p class="text-xs sm:text-sm text-gray-400 mt-2 leading-relaxed"><i class="fa-solid fa-location-dot text-red-300/80 mr-1.5"></i>'+escapeHtml(item.region)+'</p></div><button type="button" onclick="closeLoreEntry()" class="w-9 h-9 shrink-0 rounded-xl border border-white/10 bg-white/[.03] text-gray-300 hover:bg-white/10" aria-label="Tutup detail"><i class="fa-solid fa-xmark"></i></button></header><div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_250px] gap-5 lg:gap-7 pt-5"><div class="min-w-0">'+image+'<section class="mb-5 rounded-xl border border-red-900/30 bg-red-950/[.12] p-3.5 sm:p-4"><p class="text-[9px] font-bold tracking-[.18em] text-red-200 mb-2">RINGKASAN ARSIP</p><p class="text-sm sm:text-[15px] text-[#e9dfcf] leading-relaxed">'+escapeHtml(item.summary)+'</p></section><section><div class="flex items-center gap-2 mb-3"><span class="w-1 h-4 rounded-full bg-red-400"></span><h3 class="text-xs font-bold tracking-[.14em] text-[#eee8dd]">CATATAN & DOKUMENTASI</h3></div><div class="lore-article-body">'+paragraphs+'</div></section></div><aside class="min-w-0 space-y-3"><section class="rounded-xl border border-white/10 bg-white/[.025] p-3.5"><p class="text-[9px] font-bold tracking-[.16em] text-gray-500 mb-3">IDENTITAS ENTRI</p><div class="space-y-3"><div><p class="text-[9px] text-gray-500 mb-1">Klasifikasi</p><p class="text-xs text-gray-200 leading-relaxed">'+escapeHtml(item.classification)+'</p></div><div class="pt-3 border-t border-white/[.07]"><p class="text-[9px] text-gray-500 mb-1">Tingkat sumber</p><p class="text-xs text-gray-200 leading-relaxed">'+escapeHtml(item.sourceLevel)+'</p></div><div class="pt-3 border-t border-white/[.07]"><p class="text-[9px] text-gray-500 mb-1">Status dokumentasi</p><p class="inline-flex items-center gap-1.5 text-xs text-emerald-200"><i class="fa-solid fa-circle-check text-[9px]"></i>'+escapeHtml(item.status)+'</p></div><div class="pt-3 border-t border-white/[.07]"><p class="text-[9px] text-gray-500 mb-1">Referensi tercatat</p><p class="text-xs text-gray-200">'+(item.sources||[]).length+' sumber</p></div></div></section><section class="rounded-xl border border-amber-900/30 bg-amber-950/[.10] p-3.5"><div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-scale-balanced text-amber-200 text-xs"></i><h3 class="text-[10px] font-bold tracking-wider text-amber-100">BATAS INFORMASI</h3></div><p class="text-xs text-gray-300 leading-relaxed">'+escapeHtml(item.boundary)+'</p></section><p class="px-1 text-[9px] text-gray-600 leading-relaxed">Pencatatan sumber menunjukkan asal informasi dapat ditelusuri; bukan pembuktian atas klaim supranatural.</p></aside></div><section class="mt-6 pt-5 border-t border-white/10"><div class="flex items-center justify-between gap-3 mb-3"><div><p class="text-[9px] tracking-[.18em] font-bold text-red-300">RUJUKAN</p><h3 class="text-sm font-bold text-[#eee8dd] mt-1">Sumber & Referensi</h3></div><span class="text-[9px] text-gray-500">'+(item.sources||[]).length+' dokumen</span></div><ul class="grid grid-cols-1 '+((item.sources||[]).length>1?'lg:grid-cols-2':'')+' gap-2.5">'+(sources||'<li class="text-xs text-gray-500">Belum ada referensi yang dicatat.</li>')+'</ul></section><footer class="mt-5 pt-3 border-t border-white/[.07] flex flex-wrap items-center justify-between gap-2"><span class="text-[9px] text-gray-600">Ghoustory Control Room · LORE Archive</span><button type="button" onclick="closeLoreEntry()" class="text-[10px] font-semibold text-red-200 hover:text-red-100">Tutup artikel <i class="fa-solid fa-arrow-right ml-1"></i></button></footer></article>';
             modal.classList.remove('hidden');modal.classList.add('flex');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
         }
@@ -3971,6 +4036,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         // ARSIP NASKAH UTAMA
         let activeScriptDraftId=null;
         function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function safeImageSrc(value){const src=String(value??'').trim();if(/^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(src))return src;try{const url=new URL(src,window.location.origin);return url.protocol==='https:'&&!url.username&&!url.password?url.href:'';}catch(_){return '';}}
+        function safeExternalUrl(value){try{const url=new URL(String(value??'').trim());return url.protocol==='https:'&&!url.username&&!url.password?url.href:'#';}catch(_){return '#';}}
         function saveScriptDraft(){const title=document.getElementById('script-title').value.trim(),content=document.getElementById('script-editor').value.trim();if(!title)return alert('Isi judul naskah terlebih dahulu.');if(!content)return alert('Naskah masih kosong.');const now=new Date().toISOString(),item=db.scriptDrafts.find(x=>x.id===activeScriptDraftId);if(item){item.title=title;item.content=content;item.updatedAt=now;}else{activeScriptDraftId=Date.now();db.scriptDrafts.unshift({id:activeScriptDraftId,title,content,createdAt:now,updatedAt:now});}db.script=content;saveData();renderScriptDrafts();alert('Naskah disimpan ke arsip. Sinkronisasi cloud berjalan otomatis.');}
         function newScriptDraft(){activeScriptDraftId=null;document.getElementById('script-title').value='';document.getElementById('script-editor').value='';document.getElementById('script-editor').focus();}
         function openScriptDraft(id){const x=db.scriptDrafts.find(d=>d.id===id);if(!x)return alert('Naskah tidak ditemukan.');activeScriptDraftId=x.id;document.getElementById('script-title').value=x.title||'';document.getElementById('script-editor').value=x.content||'';switchTab('grimoire','editor');window.scrollTo({top:0,behavior:'smooth'});}
@@ -4189,7 +4256,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(db.notulen.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada notulen.</div>'; return; }
             db.notulen.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
-                    <div><b class="text-red-500">${item.topic}</b><div class="text-xs text-gray-400 truncate max-w-xs">${item.raw}</div></div>
+                    <div><b class="text-red-500">${escapeHtml(item.topic)}</b><div class="text-xs text-gray-400 truncate max-w-xs">${escapeHtml(item.raw)}</div></div>
                     <div class="flex gap-1">
                         ${renderDoneControl('notulen', item)}
                         <button onclick="openModalNotulen(${i})" class="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-gray-200">Preview / Edit</button>
@@ -4231,7 +4298,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(db.metadata.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada metadata AI.</div>'; return; }
             db.metadata.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
-                    <div><b class="text-blue-400">${item.title}</b><div class="text-xs text-gray-400">${item.aiText.substring(0,40)}...</div></div>
+                    <div><b class="text-blue-400">${escapeHtml(item.title)}</b><div class="text-xs text-gray-400">${escapeHtml(String(item.aiText||'').substring(0,40))}...</div></div>
                     <div class="flex gap-1">
                         ${renderDoneControl('metadata', item)}
                         <button onclick="editMetadata(${i})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-yellow-100">Edit</button>
@@ -4269,25 +4336,77 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen'), document.getElementById('tayang-segment')];
             sels.forEach(sel => {
                 if(!sel) return; sel.innerHTML = '';
-                db.segmenList.forEach(sg => { sel.innerHTML += `<option value="${sg.nama}">${sg.nama} - ${sg.tagline}</option>`; });
+                db.segmenList.forEach(sg => { const name=String(sg.nama??''); const tagline=String(sg.tagline??''); const option=document.createElement('option'); option.value=name; option.textContent=name+' - '+tagline; sel.appendChild(option); });
             });
         }
 
+        // Compress segment logos to WebP and store binary files in Supabase Storage,
+        // keeping only their public URLs in app_state.
+        function compressSegmentLogo(dataUri) {
+            return new Promise((resolve, reject) => {
+                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return reject(new Error('Format logo tidak valid.'));
+                const image = new Image();
+                image.onload = () => {
+                    try {
+                        const maxDimension = 512;
+                        const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+                        canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+                        const context = canvas.getContext('2d');
+                        if (!context) return reject(new Error('Browser tidak dapat memproses logo.'));
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            if (!blob || blob.type !== 'image/webp') return reject(new Error('Konversi logo WebP gagal.'));
+                            resolve(blob);
+                        }, 'image/webp', 0.82);
+                    } catch (error) { reject(error); }
+                };
+                image.onerror = () => reject(new Error('File logo tidak dapat dibaca.'));
+                image.src = dataUri;
+            });
+        }
+
+        async function uploadSegmentLogo(dataUri) {
+            if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return dataUri || '';
+            const blob = await compressSegmentLogo(dataUri);
+            if (blob.size > 10 * 1024 * 1024) throw new Error('Ukuran logo hasil kompresi melebihi batas 10 MB.');
+            const uniqueName = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+            const filePath = 'segments/' + uniqueName + '.webp';
+            const uploaded = await supabaseClient.storage.from('arena-game-images').upload(filePath, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
+            if (uploaded.error) throw uploaded.error;
+            const publicData = supabaseClient.storage.from('arena-game-images').getPublicUrl(uploaded.data.path).data;
+            if (!publicData || !publicData.publicUrl) throw new Error('URL logo tidak berhasil dibuat.');
+            return publicData.publicUrl;
+        }
+
+        async function migrateLegacySegmentLogos() {
+            let changed = false;
+            let failed = 0;
+            for (const segment of db.segmenList || []) {
+                if (!segment || typeof segment.logo !== 'string' || !segment.logo.startsWith('data:image/')) continue;
+                try { segment.logo = await uploadSegmentLogo(segment.logo); changed = true; }
+                catch (error) { failed++; console.warn('Migrasi logo segmen tertunda:', error); }
+            }
+            if (changed) saveData();
+            if (failed) console.warn(failed + ' logo lama masih tersimpan sementara di app_state; migrasi akan dicoba lagi saat Crew membuka aplikasi.');
+            return changed;
+        }
         function saveNewSegmentManual() {
             const editIdx = parseInt(document.getElementById('seg-edit-index').value);
             const nama = document.getElementById('seg-nama').value;
             const tag = document.getElementById('seg-tagline').value;
             const desc = document.getElementById('seg-desc').value;
             const fileInput = document.getElementById('seg-logo-file');
-            
+
             if(!nama) return alert("Nama segmen wajib diisi!");
 
             const finishSave = (logoBase64) => {
-                const segObj = { 
-                    nama: nama.startsWith('#') ? nama : '#' + nama, 
-                    tagline: tag, 
-                    desc: desc, 
-                    logo: logoBase64 || (editIdx >= 0 ? db.segmenList[editIdx].logo : '') 
+                const segObj = {
+                    nama: nama.startsWith('#') ? nama : '#' + nama,
+                    tagline: tag,
+                    desc: desc,
+                    logo: logoBase64 || (editIdx >= 0 ? db.segmenList[editIdx].logo : '')
                 };
 
                 if(editIdx >= 0) {
@@ -4301,9 +4420,14 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             };
 
             if(fileInput.files && fileInput.files[0]) {
+                const logoFile=fileInput.files[0];if(!['image/jpeg','image/png','image/webp'].includes(logoFile.type)||logoFile.size>5*1024*1024){alert('Logo harus JPG, PNG, atau WebP dengan ukuran maksimal 5 MB.');return;}
                 const reader = new FileReader();
-                reader.onload = function(e) { finishSave(e.target.result); };
-                reader.readAsDataURL(fileInput.files[0]);
+                reader.onload = async function(e) {
+                    try { finishSave(await uploadSegmentLogo(e.target.result)); }
+                    catch (error) { console.error('Gagal mengunggah logo segmen:', error); alert('Logo gagal diunggah. Data segmen belum diubah. ' + (error.message || 'Periksa koneksi dan hak akses Crew.')); }
+                };
+                reader.onerror = () => alert('File logo tidak dapat dibaca.');
+                reader.readAsDataURL(logoFile);
             } else {
                 finishSave(null);
             }
@@ -4336,10 +4460,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 grid.innerHTML += `<div class="bg-black border border-gray-800 p-4 rounded-xl flex flex-col justify-between">
                     <div onclick="openSegmenVideoDetail(${idx})" class="cursor-pointer">
                         <div class="flex items-center gap-3 mb-2">
-                            ${seg.logo ? `<img src="${seg.logo}" class="w-10 h-10 object-cover rounded-full border border-orange-500">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
-                            <div><h4 class="font-bold text-orange-400 text-sm">${seg.nama}</h4><p class="text-[11px] text-gray-400 italic">${seg.tagline}</p></div>
+                            ${safeImageSrc(seg.logo) ? `<img src="${escapeHtml(safeImageSrc(seg.logo))}" class="w-10 h-10 object-cover rounded-full border border-orange-500" alt="" loading="lazy" decoding="async">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
+                            <div><h4 class="font-bold text-orange-400 text-sm">${escapeHtml(seg.nama)}</h4><p class="text-[11px] text-gray-400 italic">${escapeHtml(seg.tagline)}</p></div>
                         </div>
-                        <p class="text-xs text-gray-300 mb-3">${seg.desc}</p>
+                        <p class="text-xs text-gray-300 mb-3">${escapeHtml(seg.desc)}</p>
                         <p class="text-xs text-orange-300 mb-2"><i class="fa-solid fa-film"></i> ${db.tayang.filter(v => v.segment === seg.nama && v.agreed !== false).length} video disepakati</p>
                         <p class="text-[10px] text-gray-500">Klik untuk melihat daftar video <i class="fa-solid fa-arrow-right"></i></p>
                     </div>
@@ -4465,16 +4589,16 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
                 schedules.forEach(sch => {
                     let totalHadir = 0; let kruTidakHadir = [];
-                    KRU_NAMES.forEach(k => { if(sch.absen?.[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${sch.absen?.[k]?.alasan||'tanpa alasan'})`); });
+                    KRU_NAMES.forEach(k => { if(sch.absen?.[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${escapeHtml(sch.absen?.[k]?.alasan||'tanpa alasan')})`); });
 
                     dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-0.5 bg-red-950 text-red-300 text-[8px] p-0.5 rounded cursor-pointer truncate">🎥 ${escapeHtml(sch.title)} (${totalHadir}/5)</div><div class="flex gap-1 mt-1"><button onclick="editJadwal(${sch.id})" class="text-[8px] bg-gray-800 text-yellow-300 px-1 rounded">Edit</button><button onclick="hapusJadwal(${sch.id})" class="text-[8px] bg-red-950 text-red-200 px-1 rounded">Hapus</button></div>`;
                     
                     ringkasanList.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-xs text-white flex flex-col gap-2">
                         <div class="flex justify-between items-center">
-                            <div><b>🎥 ${sch.title}</b><div class="text-[10px] text-gray-400">Narasumber: <b class="text-yellow-400">${sch.narsum || '-'}</b> | Segmen: ${sch.segment || '-'}</div></div>
+                            <div><b>🎥 ${escapeHtml(sch.title)}</b><div class="text-[10px] text-gray-400">Narasumber: <b class="text-yellow-400">${escapeHtml(sch.narsum || '-')}</b> | Segmen: ${escapeHtml(sch.segment || '-')}</div></div>
                             <div class="flex gap-1">
                                 ${renderDoneControl('jadwal', sch)}
-                                <button onclick="selesaiShooting('${sch.narsum || sch.title}')" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-white font-bold">Selesai Shooting</button>
+                                <button onclick="selesaiShootingForSchedule(${Number(sch.id)})" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-white font-bold">Selesai Shooting</button>
                                 <button onclick="editJadwal(${sch.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
                                 <button onclick="hapusJadwal(${sch.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
                             </div>
@@ -4494,19 +4618,19 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         function openModalAbsen(schId) {
             const sch = db.jadwal.find(j => j.id === schId); if(!sch) return;
             activeScheduleId = schId;
-            document.getElementById('absen-detail-info').innerHTML = `<b>🎥 ${sch.title}</b><br>Narsum: ${sch.narsum}<br>📍 ${sch.loc} (${sch.time})`;
+            document.getElementById('absen-detail-info').textContent = `🎥 ${sch.title || '-'} | Narasumber: ${sch.narsum || '-'} | Lokasi: ${sch.loc || '-'} (${sch.time || '-'})`;
             const listDiv = document.getElementById('absen-list-kru'); listDiv.innerHTML = '';
             
             KRU_NAMES.forEach(name => {
                 const data = sch.absen[name] || { hadir: true, alasan: '' };
                 listDiv.innerHTML += `<div class="bg-black p-2 rounded border border-gray-700 flex flex-col gap-2">
-                    <div class="flex justify-between items-center"><span class="text-white text-sm">${name}</span>
+                    <div class="flex justify-between items-center"><span class="text-white text-sm">${escapeHtml(name)}</span>
                         <div class="flex gap-1">
-                            <button onclick="setAbsenKru('${name}', true)" class="px-2 py-1 text-[10px] rounded ${data.hadir?'bg-green-700 text-white font-bold':'bg-gray-800 text-gray-500'}">HADIR</button>
-                            <button onclick="setAbsenKru('${name}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
+                            <button onclick="setAbsenKru('${escapeHtml(name)}', true)" class="px-2 py-1 text-[10px] rounded ${data.hadir?'bg-green-700 text-white font-bold':'bg-gray-800 text-gray-500'}">HADIR</button>
+                            <button onclick="setAbsenKru('${escapeHtml(name)}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
                         </div>
                     </div>
-                    ${!data.hadir ? `<input type="text" value="${data.alasan}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
+                    ${!data.hadir ? `<input type="text" value="${escapeHtml(data.alasan)}" onchange="saveAbsenAlasan('${escapeHtml(name)}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
                 </div>`;
             });
             document.getElementById('modal-absen').classList.remove('hidden'); document.getElementById('modal-absen').classList.add('flex');
@@ -4607,7 +4731,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 if (avatarWrap) {
                     avatarWrap.innerHTML = onlineUsers.map(entry => {
                         const name = entry.name || "Crew";
-                        const photo = entry.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
+                        const photo = safeImageSrc(entry.avatar_url) || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
                         return '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(name) + '" title="' + escapeHtml(name) + '" loading="lazy" decoding="async" class="w-7 h-7 rounded-full object-cover border-2 border-darkBg shadow">';
                     }).join("");
                 }
@@ -4631,6 +4755,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
 
         // STOK & KLASIFIKASI
+        function selesaiShootingForSchedule(scheduleId){const sch=db.jadwal.find(item=>Number(item.id)===Number(scheduleId));if(!sch)return alert('Jadwal tidak ditemukan.');return selesaiShooting(sch.narsum||sch.title||'');}
         function selesaiShooting(narsumName) {
             if(!narsumName) return alert("Nama narasumber kosong!");
             const id = Date.now();
@@ -4649,8 +4774,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(db.stok.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada stok.</div>'; return; }
             db.stok.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
-                    <div><b>👤 Narasumber: ${item.text}</b><div class="text-[10px] text-yellow-400">${item.format} | Status: ${item.status}</div></div>
-                    ${renderDoneControl('stok', item)}<button onclick="editStok(${item.id})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-white">Edit</button><button onclick="hapusStok(${item.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
+                    <div><b>👤 Narasumber: ${escapeHtml(item.text)}</b><div class="text-[10px] text-yellow-400">${escapeHtml(item.format)} | Status: ${escapeHtml(item.status)}</div></div>
+                    ${renderDoneControl('stok', item)}<button onclick="editStok(${Number(item.id)})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-white">Edit</button><button onclick="hapusStok(${Number(item.id)})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
                 </div>`;
             });
         }
@@ -4747,7 +4872,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     if(isOut) totalKeluar += amount; else totalMasuk += amount;
                     rows.push({date:k.date||'-', label:d.label||k.desc||'Transaksi', amount, type:isOut?'out':'in'});
                 });
-                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${Number(k.amount||0).toLocaleString('id-ID')}</b><button onclick="editKas(${k.id})" class="text-yellow-400" title="Edit transaksi"><i class="fa-solid fa-pen"></i></button><button onclick="hapusKas(${k.id})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
+                c.innerHTML += `<div class="bg-black border border-gray-800 p-2 rounded text-xs flex justify-between items-center"><span class="text-white">${escapeHtml(k.desc)} (${escapeHtml(k.date)})</span><div class="flex items-center gap-2"><b class="${k.amount>=0?'text-green-500':'text-red-500'}">Rp ${Number(k.amount||0).toLocaleString('id-ID')}</b><button onclick="editKas(${Number(k.id)})" class="text-yellow-400" title="Edit transaksi"><i class="fa-solid fa-pen"></i></button><button onclick="hapusKas(${Number(k.id)})" class="text-red-400" title="Hapus transaksi"><i class="fa-solid fa-trash"></i></button></div></div>`;
             });
             document.getElementById('total-saldo-kas').innerText = `Rp ${total.toLocaleString('id-ID')}`;
             renderKasOverview();
@@ -4954,19 +5079,20 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const btn=document.getElementById('video-analysis-youtube-run');
             const status=document.getElementById('video-analysis-status');
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
+            const parsedYoutubeUrl=safeExternalUrl(url);if(parsedYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(parsedYoutubeUrl).hostname))return alert('Gunakan tautan YouTube atau youtu.be yang valid.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             setButtonBusy(btn,true);
             let metadataError='';
             try {
-                const aiText=await callGhoulAI('metadata',{url});
-                db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+url.slice(0,45),aiText,url});
+                const aiText=await callGhoulAI('metadata',{url:parsedYoutubeUrl});
+                db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+parsedYoutubeUrl.slice(0,45),aiText,url:parsedYoutubeUrl});
                 saveData();
                 renderMetadataList();
             } catch(error) {
                 metadataError=error?.message||String(error);
             }
             try {
-                await runVideoAnalysis('youtube',url,false);
+                await runVideoAnalysis('youtube',parsedYoutubeUrl,false);
                 const currentStatus=status?.textContent||'';
                 if(metadataError) {
                     status.textContent=currentStatus+' Metadata gagal dibuat: '+metadataError;
@@ -4980,8 +5106,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         async function analyzeVideoYoutube() {
             const url=document.getElementById('ai-yt-link')?.value.trim();
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
+            const parsedYoutubeUrl=safeExternalUrl(url);if(parsedYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(parsedYoutubeUrl).hostname))return alert('Gunakan tautan YouTube atau youtu.be yang valid.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
-            await runVideoAnalysis('youtube',url);
+            await runVideoAnalysis('youtube',parsedYoutubeUrl);
         }
         const MAX_VIDEO_ANALYSIS_MP3_BYTES = 50 * 1024 * 1024;
         async function uploadVideoAnalysisMp3(file,statusEl) {
@@ -5121,8 +5248,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             try {
                 let title='',raw='';
                 if(source==='youtube') {
-                    raw=await callGhoulAI('youtube-video-analysis',{url:value});
-                    title='Analisis YouTube - '+value;
+                    const safeYoutubeUrl=safeExternalUrl(value);if(safeYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(safeYoutubeUrl).hostname))throw new Error('Tautan YouTube tidak valid.');
+                    raw=await callGhoulAI('youtube-video-analysis',{url:safeYoutubeUrl});
+                    title='Analisis YouTube - '+safeYoutubeUrl;
                 } else {
                     const file=value;
                     title=document.getElementById('video-analysis-title').value.trim()||file.name.replace(/\.mp3$/i,'');
@@ -5130,11 +5258,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     raw=JSON.stringify(data);
                 }
                 const data=parseVideoAnalysisJson(raw);
-                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
+                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?safeExternalUrl(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
                 if(!item.fullTranscript&&!item.indonesianTranscript)throw new Error('Transkrip tidak ditemukan pada hasil AI.');
                 if(item.indonesianTranscript&&item.indonesianTranscript.length<=30000){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioUrl:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}else if(item.indonesianTranscript.length>30000){item.subtitleTiming='estimated';}
                 videoAnalysisDraft=item;
-                preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
+                preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(safeExternalUrl(item.sourceUrl))+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
                 preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
                 status.textContent='Analisis selesai. Periksa transkrip, terjemahan, dan timestamp sebelum menyimpan.';
             } catch(error) {
@@ -5373,7 +5501,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const ranking = document.getElementById('social-platform-ranking');
             if (ranking) {
                 if (!rows.length) ranking.innerHTML='<p class="text-xs text-gray-500 text-center">Belum ada laporan. Impor CSV untuk menampilkan peringkat nyata.</p>';
-                else { const max=Math.max(1,...totals.map(x=>x.views)); ranking.innerHTML=totals.map((x,i)=>'<div class="bg-black/60 border border-gray-800 rounded-lg p-3"><div class="flex justify-between text-xs mb-2"><span class="font-bold text-white">'+(i+1)+'. '+x.label+'</span><span class="text-gray-300">'+fmt(x.views)+' views</span></div><div class="h-2 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full" style="width:'+Math.max(x.views?2:0,x.views/max*100)+'%;background:'+x.color+'"></div></div></div>').join(''); }
+                else { const max=Math.max(1,...totals.map(x=>x.views)); ranking.innerHTML=totals.map((x,i)=>{const barColor=/^#[0-9a-f]{6}$/i.test(x.color||'')?x.color:'#64748b';return '<div class="bg-black/60 border border-gray-800 rounded-lg p-3"><div class="flex justify-between text-xs mb-2"><span class="font-bold text-white">'+(i+1)+'. '+escapeHtml(x.label)+'</span><span class="text-gray-300">'+fmt(x.views)+' views</span></div><div class="h-2 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full" style="width:'+Math.max(x.views?2:0,x.views/max*100)+'%;background:'+barColor+'"></div></div></div>';}).join(''); }
             }
             if (socialChartInstance) {
                 socialChartInstance.data.labels=dates.map(date=>{const [y,m,d]=date.split('-');return d+'/'+m;});
@@ -5567,7 +5695,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
               await navigator.share({files:[file],title:'Jadwal Shooting GHOUSTORY',text:'Informasi jadwal shooting GHOUSTORY.'});
             }else{
-              const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+              const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=String(file.name||'export.csv').replace(/[\\/:*?"<>|]+/g,'_').slice(0,120);document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
               alert('Gambar JPG berhasil dibuat dan diunduh. Silakan kirim ke narasumber melalui WhatsApp atau aplikasi pesan.');
             }
           }catch(error){if(error?.name==='AbortError')return;console.error('Gagal membagikan jadwal JPG:',error);alert('JPG belum berhasil dibuat: '+(error.message||'Terjadi kesalahan.'));}
@@ -5666,9 +5794,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           stok:{label:"Stok",items:()=>db.stok||[],title:x=>x.title||x.name||"Stok",page:"tim",tab:"stok"},
           tayang:{label:"Data Tayang",items:()=>db.tayang||[],title:x=>x.title||"Data Tayang",page:"segmen",tab:null}
         };
-        function chatCacheKey(){return "ghoustory-chat-"+(activeUser?.id||"guest");}
-        function saveChatCache(){try{localStorage.setItem(chatCacheKey(),JSON.stringify(chatMessages.slice(-150)));}catch(e){console.warn("Cache chat lokal tidak tersedia",e);}}
-        function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
+                function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
         
 function closeChatMessageMenu(){document.getElementById("gh-chat-message-menu")?.remove();}
 function openChatMessageMenu(bubble){
@@ -5720,7 +5846,7 @@ function renderChatMessages(){
   const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
   const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
   const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';
-  const avatarUrl=getGhoustoryChatAvatar(msg.sender_id,msg.sender_avatar,msg.sender_name);
+  const avatarUrl=safeImageSrc(getGhoustoryChatAvatar(msg.sender_id,msg.sender_avatar,msg.sender_name))||"https://ui-avatars.com/api/?name=Crew&background=172554&color=fff";
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil '+who+'" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own&&!msg.deleted_at?'1':'0')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+who+(isAI?' <span class="ml-1 text-[9px] font-semibold text-blue-300 border border-blue-800 rounded-full px-1.5 py-0.5">AI Crew</span>':"")+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div></div>'+(!samePrev&&!isAI&&own?avatarHtml:'')+'</div>';
  }).join("");
@@ -5733,7 +5859,7 @@ async function ensureGroupRealtime(){
           chatChannel.on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_chat_messages"},payload=>{
             if(payload.eventType==="INSERT"&&!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);}
             else if(payload.eventType==="UPDATE"){const i=chatMessages.findIndex(m=>m.id===payload.new.id);if(i>=0)chatMessages[i]=payload.new;}
-            saveChatCache();renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
+            renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
           }).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
         }
         async function closeGroupRealtime(){
@@ -5751,13 +5877,13 @@ async function ensureGroupRealtime(){
           try{
             if(!(await ensureRitualGroupAccess())){
               chatMessages=[];groupReads=[];chatLoadedForUser=null;
-              try{localStorage.removeItem(chatCacheKey());}catch(e){}
+              
               if(status)status.textContent="Akun ini tidak tergabung dalam MEETING CREW";
               renderChatMessages();
               return;
             }
             chatLoadedForUser=activeUser.id;
-            try{const cached=localStorage.getItem(chatCacheKey());if(cached){chatMessages=JSON.parse(cached)||[];renderChatMessages();}}catch(e){}
+            
           }catch(accessError){
             if(status)status.textContent="Akses MEETING CREW gagal diperiksa";
             console.error("Gagal memeriksa akses grup:",accessError);
@@ -5768,7 +5894,7 @@ async function ensureGroupRealtime(){
           chatMessages=(data||[]).reverse();const ids=chatMessages.map(m=>m.id);
           groupReads=[];
           if(ids.length){const {data:rd,error:rdError}=await supabaseClient.from("ghoustory_group_message_reads").select("message_id,user_id,read_at").in("message_id",ids);if(!rdError)groupReads=rd||[];}
-          saveChatCache();renderChatMessages();if(status)status.textContent="Online";
+          renderChatMessages();if(status)status.textContent="Online";
           if(isGroupRoomVisible())await ensureGroupRealtime();
           if(isGroupRoomVisible())await markGroupMessagesRead();
         }
@@ -5785,8 +5911,8 @@ async function ensureGroupRealtime(){
         }
         function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"Crew")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
         function clearGroupReply(){groupReplyTo=null;document.getElementById("group-reply-preview")?.classList.add("hidden");}
-        async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
-        async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
+        async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
+        async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null,sender_name=null,sender_avatar=null,notify=true}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
@@ -5806,7 +5932,7 @@ async function ensureGroupRealtime(){
         async function sendChatMessage(event){
           event.preventDefault();
           const input=document.getElementById("chat-input"),button=document.getElementById("chat-send"),body=input?.value.trim();
-          if(!body||!activeUser||!button)return;
+          if(!body||!activeUser||!button)return;if(body.length>4000)return alert("Pesan maksimal 4.000 karakter.");
           const mention=/(^|\s)@ghoust\b/i.test(body);
           const question=body.replace(/@ghoust\b/ig,"").replace(/\s+/g," ").trim()||"Ikut nimbrung dan bantu diskusi Crew Ghoustory.";
           button.disabled=true;
@@ -5834,27 +5960,57 @@ async function ensureGroupRealtime(){
         }
         // Direktori Crew, riwayat percakapan, dan pesan pribadi MEETING CREW.
         let ritualMembers=[],workspaceProfiles=[],isGhoustoryAdmin=false,isGhoustoryGroupMember=null,activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="";
-        async function loadDirectConversations(){
-          const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
-          box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
-          try{
-            const {data:mine,error}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(error)throw error;
-            const rows=[];
-            for(const part of mine||[]){
-              const {data:people,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",part.conversation_id);if(e1)throw e1;
-              const other=(people||[]).find(x=>x.user_id!==activeUser.id);if(!other)continue;
-              const member=workspaceProfiles.find(x=>x.user_id===other.user_id);
-              const {data:msgs,error:e2}=await supabaseClient.from("ghoustory_dm_messages").select("body,created_at,sender_id,deleted_at").eq("conversation_id",part.conversation_id).order("created_at",{ascending:false}).limit(1);if(e2)throw e2;
-              const last=msgs?.[0],nickname=member?.nickname||"Crew";
-              const avatar=member?.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(nickname)+"&background=172554&color=fff";
-              const time=last?.created_at?new Date(last.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"";
-              const {data:unreadMessages,error:e3}=await supabaseClient.from("ghoustory_dm_messages").select("id").eq("conversation_id",part.conversation_id).neq("sender_id",activeUser.id).is("deleted_at",null).order("created_at",{ascending:false}).limit(150);if(e3)throw e3;const unreadIds=(unreadMessages||[]).map(m=>m.id);let unreadCount=0;if(unreadIds.length){const {data:readRows,error:e4}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id").eq("user_id",activeUser.id).in("message_id",unreadIds);if(e4)throw e4;const readIds=new Set((readRows||[]).map(x=>String(x.message_id)));unreadCount=unreadIds.filter(id=>!readIds.has(String(id))).length;}
-              rows.push({id:part.conversation_id,user_id:other.user_id,nickname,avatar,last:last?.deleted_at?"Pesan dihapus":last?.body||"Belum ada pesan",created_at:last?.created_at||"",time,unreadCount});
+        let dmListRefreshTimer = null;
+        let dmListLoading = false;
+        let dmListRefreshPending = false;
+        function scheduleDirectConversationRefresh() {
+          clearTimeout(dmListRefreshTimer);
+          dmListRefreshTimer = setTimeout(() => {
+            dmListRefreshTimer = null;
+            loadDirectConversations();
+          }, 250);
+        }
+        async function loadDirectConversations() {
+          const box = document.getElementById("dm-conversations-list");
+          if (!activeUser || !box) return;
+          if (dmListLoading) { dmListRefreshPending = true; return; }
+          dmListLoading = true;
+          box.innerHTML = '<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
+          try {
+            const { data, error } = await supabaseClient.rpc("ghoustory_dm_inbox");
+            if (error) throw error;
+            const rows = (data || []).map(row => {
+              const nickname = row.nickname || "Crew";
+              const avatar = safeImageSrc(row.avatar_url) || "https://ui-avatars.com/api/?name=" + encodeURIComponent(nickname) + "&background=172554&color=fff";
+              const time = row.last_created_at ? new Date(row.last_created_at).toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) : "";
+              return {
+                id: row.conversation_id,
+                user_id: row.peer_user_id,
+                nickname,
+                avatar,
+                last: row.last_deleted_at ? "Pesan dihapus" : row.last_body || "Belum ada pesan",
+                created_at: row.last_created_at || "",
+                time,
+                unreadCount: Number(row.unread_count) || 0
+              };
+            });
+            box.innerHTML = rows.length ? rows.map(x =>
+              '<button type="button" onclick="openDirectMessage(&quot;' + x.user_id + '&quot;)" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 ' + (x.id === activeDmConversation ? 'bg-blue-950/70 border border-blue-900' : '') + '"><img src="' + escapeHtml(x.avatar) + '" alt="Foto profil ' + escapeHtml(x.nickname) + '" loading="lazy" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">' + escapeHtml(x.nickname) + '</b><small class="block text-[11px] text-gray-400 truncate">' + escapeHtml(x.last) + '</small></span><span class="flex flex-col items-end gap-1 shrink-0"><small class="text-[10px] text-gray-500">' + escapeHtml(x.time) + '</small>' + (x.unreadCount ? '<span class="gh-unread-badge">' + (x.unreadCount > 99 ? "99+" : x.unreadCount) + '</span>' : "") + '</span></button>'
+            ).join("") : '<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+            if (!dmListRealtimeChannel) {
+              dmListRealtimeChannel = supabaseClient.channel("ghoustory-dm-list")
+                .on("postgres_changes", {event:"INSERT",schema:"public",table:"ghoustory_dm_messages"}, scheduleDirectConversationRefresh)
+                .subscribe();
             }
-            rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(&quot;'+x.user_id+'&quot;)" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><img src="'+escapeHtml(x.avatar)+'" alt="Foto profil '+escapeHtml(x.nickname)+'" loading="lazy" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[11px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span><span class="flex flex-col items-end gap-1 shrink-0"><small class="text-[10px] text-gray-500">'+escapeHtml(x.time)+'</small>'+(x.unreadCount?'<span class="gh-unread-badge">'+(x.unreadCount>99?"99+":x.unreadCount)+'</span>':"")+'</span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
-            if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
-          }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
+          } catch (e) {
+            box.textContent = "Riwayat gagal dimuat: " + (e.message || e);
+          } finally {
+            dmListLoading = false;
+            if (dmListRefreshPending) {
+              dmListRefreshPending = false;
+              scheduleDirectConversationRefresh();
+            }
+          }
         }
         let ritualPresenceChannel=null,ritualHeartbeatTimer=null,ritualOnlineIds=new Set(),ritualOnlineUsers=[];
         function updateOnlineCrewIndicators(){
@@ -5865,7 +6021,7 @@ async function ensureGroupRealtime(){
           const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" Crew sedang aktif";
           const list=document.getElementById("online-crew-list");if(!list)return;
           if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada Crew yang online.</p>';return;}
-          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
+          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=safeImageSrc(u.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
         }
         function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
         function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
@@ -5880,11 +6036,11 @@ async function ensureGroupRealtime(){
             return;
           }
           if(dmBox)dmBox.innerHTML=aiMemberRow+members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=safeImageSrc(p.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Offline')+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
           }).join("");
           if(infoBox)infoBox.innerHTML=aiMemberRow+members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=safeImageSrc(p.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari MEETING CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
             return '<div class="ritual-member-card"><span class="ritual-member-avatar"><img src="'+escapeHtml(avatar)+'" alt=""><i class="'+(online?'is-online':'is-offline')+'"></i></span><span class="ritual-member-copy"><b>'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small>'+escapeHtml(p.role||"Crew")+'</small><small class="'+(online?'is-online-text':'is-offline-text')+'">'+(online?'Online':'Offline')+'</small></span>'+kickButton+'</div>';
           }).join("");
@@ -5949,7 +6105,7 @@ async function ensureGroupRealtime(){
           try{
             if(!(await ensureRitualGroupAccess(true))){
               chatMessages=[];groupReads=[];chatLoadedForUser=null;
-              try{localStorage.removeItem(chatCacheKey());}catch(e){}
+              
               renderChatMessages();window.showChatInbox();
               alert("Akun ini masih aktif di Ghoustory Control Room, tetapi sudah tidak tergabung dalam MEETING CREW.");
               return;
@@ -5978,9 +6134,14 @@ async function openDirectMessage(otherId){
           document.getElementById("dm-subtitle").textContent=member.role||"Crew MEETING CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
-            const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
-            let found=null;
-            for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
+            const {data:lookup,error:lookupError}=await supabaseClient.rpc("ghoustory_dm_find_conversation",{p_other_user_id:otherId});
+            let found=lookup||null;
+            if(lookupError){
+              const missingRpc=lookupError.code==="PGRST202"||/could not find the function|schema cache/i.test(lookupError.message||"");
+              if(!missingRpc)throw lookupError;
+              const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
+              for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
+            }
             if(!found){const {data:c,error:e3}=await supabaseClient.from("ghoustory_dm_conversations").insert({created_by:activeUser.id}).select("id").single();if(e3)throw e3;const {error:e4}=await supabaseClient.from("ghoustory_dm_participants").insert([{conversation_id:c.id,user_id:activeUser.id,added_by:activeUser.id},{conversation_id:c.id,user_id:otherId,added_by:activeUser.id}]);if(e4)throw e4;found=c.id;}
             activeDmConversation=found;activeDmMember=member;clearDmReply();await loadDirectMessages();scrollChatToLatest("dm");await loadDirectConversations();
             document.getElementById("dm-input").disabled=false;document.getElementById("dm-send").disabled=false;document.getElementById("dm-input").placeholder="Kirim pesan pribadi...";
@@ -5993,8 +6154,8 @@ async function openDirectMessage(otherId){
           if(ids.length){const {data:reads,error:readError}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id,user_id,read_at").in("message_id",ids);if(readError)throw readError;dmReads=reads||[];}
           await markDmMessagesRead();renderDirectMessages();const id=activeDmConversation;
           dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
-            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();loadDirectConversations();})
-            .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);if(activeDmConversation===id)renderDirectMessages();loadDirectConversations();})
+            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();scheduleDirectConversationRefresh();})
+            .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);if(activeDmConversation===id)renderDirectMessages();scheduleDirectConversationRefresh();})
             .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
         }
         function renderDirectMessages(){
@@ -6007,7 +6168,7 @@ async function openDirectMessage(otherId){
   const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
   const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";
-  const avatarUrl=own?(activeProfile?.avatar_url||activeUser?.user_metadata?.avatar_url||getGhoustoryChatAvatar(activeUser?.id,"",activeProfile?.nickname||"Anda")):(activeDmMember?.avatar_url||getGhoustoryChatAvatar(m.sender_id,"",activeDmMember?.nickname||"Crew"));
+  const avatarUrl=safeImageSrc(own?(activeProfile?.avatar_url||activeUser?.user_metadata?.avatar_url||getGhoustoryChatAvatar(activeUser?.id,"",activeProfile?.nickname||"Anda")):(activeDmMember?.avatar_url||getGhoustoryChatAvatar(m.sender_id,"",activeDmMember?.nickname||"Crew")))||"https://ui-avatars.com/api/?name=Crew&background=172554&color=fff";
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own&&!m.deleted_at?'1':'0')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div></div>'+(!samePrev&&own?avatarHtml:'')+'</div>';
  }).join("");
@@ -6020,14 +6181,14 @@ async function markDmMessagesRead(){
           const rows=pending.map(m=>({message_id:m.id,user_id:activeUser.id}));
           const {error}=await supabaseClient.from("ghoustory_dm_message_reads").upsert(rows,{onConflict:"message_id,user_id",ignoreDuplicates:true});
           if(error)console.warn("Status baca belum tersimpan:",error.message);
-          else{rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));loadDirectConversations();}
+          else{rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));scheduleDirectConversationRefresh();}
         }
         function setDmReply(id){dmReplyTo=dmMessages.find(m=>m.id===id)||null;const wrap=document.getElementById("dm-reply-preview"),label=document.getElementById("dm-reply-text");if(!dmReplyTo||!wrap||!label)return;label.textContent="Membalas: "+(dmReplyTo.deleted_at?"Pesan dihapus":dmReplyTo.body);wrap.classList.remove("hidden");document.getElementById("dm-input")?.focus();}
         function clearDmReply(){dmReplyTo=null;document.getElementById("dm-reply-preview")?.classList.add("hidden");}
         async function editDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;const body=prompt("Edit pesan:",m.body||"");if(body===null)return;const clean=body.trim();if(!clean)return alert("Pesan tidak boleh kosong.");try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({body:clean.slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();}catch(e){alert("Pesan gagal diedit: "+(e.message||e));}}
-        async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();await loadDirectConversations();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
+        async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();scheduleDirectConversationRefresh();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
         async function sendDirectMessage(event){
-          event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
+          event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(body.length>4000)return alert("Pesan maksimal 4.000 karakter.");if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
           try{const payload={conversation_id:activeDmConversation,sender_id:activeUser.id,body};if(dmReplyTo)payload.reply_to=dmReplyTo.id;const {data:sent,error}=await supabaseClient.from("ghoustory_dm_messages").insert(payload).select("id").single();if(error)throw error;await sendGhoustoryPush(sent.id,"dm");input.value="";clearDmReply();}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
         }
         function openChatTools(){
@@ -6058,7 +6219,8 @@ async function markDmMessagesRead(){
           c.innerHTML='<p class="text-xs text-gray-400">Pilih formulir data. Setelah disimpan, data masuk ke fitur terkait dan ringkasannya dikirim ke MEETING CREW.</p>'+options.map(([k,v])=>'<button type="button" onclick="showChatCreateForm(&quot;'+k+'&quot;)" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-chevron-right float-right text-red-400"></i></button>').join("");
         }
         function chatCreateField(id,label,placeholder,type="text",required=false){
-          return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
+          const limit=type==="number"?20:180,extra=type==="number"?' min="0" max="1000000000" step="1"':' maxlength="'+limit+'"';
+          return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+extra+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
         }
         function showChatCreateForm(type){
           const c=document.getElementById("chat-tools-content");
@@ -6069,10 +6231,10 @@ async function markDmMessagesRead(){
           }else if(type==="kas"){
             fields='<p class="text-xs text-gray-400">Isi nominal iuran Crew dan/atau pengeluaran. Nominal yang tidak digunakan boleh dikosongkan.</p>'+["Artdan","Yhola","Tio","Bila"].map((n,i)=>chatCreateField("member-"+i,"Iuran "+n,"Nominal rupiah","number")).join("")+chatCreateField("out-desc","Keterangan pengeluaran","Contoh: Konsumsi shooting")+chatCreateField("out-amount","Nominal pengeluaran","Nominal rupiah","number");
           }else if(type==="production") fields=chatCreateField("title","Nama konten / tugas","Judul konten","text",true);
-          else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
-          else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
+          else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" maxlength="20000" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
+          else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" maxlength="50000" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
           else if(type==="mitos") fields=chatCreateField("title","Ide / topik mitos","Contoh: Rumah tua ...","text",true);
-          else if(type==="vo") fields=chatCreateField("title","Judul catatan VO","Judul VO","text",true)+'<label class="block text-xs text-gray-300">Isi / arahan VO<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Arahan pengisi suara..."></textarea></label>';
+          else if(type==="vo") fields=chatCreateField("title","Judul catatan VO","Judul VO","text",true)+'<label class="block text-xs text-gray-300">Isi / arahan VO<textarea id="chat-create-content" rows="5" maxlength="12000" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Arahan pengisi suara..."></textarea></label>';
           else return;
           c.innerHTML='<button type="button" onclick="showChatCreateCategories()" class="text-xs text-blue-300 mb-1">← Kembali ke pilihan data</button><h4 class="text-sm font-bold text-white">'+titles[type]+'</h4><form id="chat-create-form" class="space-y-3" onsubmit="submitChatCreateForm(event,&quot;'+type+'&quot;)">'+fields+'<button type="submit" class="w-full bg-red-800 hover:bg-red-700 p-3 rounded-lg text-sm font-semibold text-white"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan ke Fitur & Kirim ke Chat</button></form>';
         }
@@ -6133,7 +6295,7 @@ async function markDmMessagesRead(){
         }
         function openGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.remove("hidden");m.classList.add("flex");setTimeout(()=>document.getElementById("ghoust-ai-input")?.focus(),80);}
         function closeGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.add("hidden");m.classList.remove("flex");}
-        async function askGhoustAI(event){event.preventDefault();const input=document.getElementById("ghoust-ai-input"),q=input.value.trim();if(!q||ghoustAiBusy)return;input.value="";const history=document.getElementById("ghoust-ai-history");history.textContent+="\n\nKamu: "+q;try{const answer=await runGhoustAI(q,false);history.textContent+="\n\nGhoust · AI Crew: "+answer;}catch(e){history.textContent+="\n\nGhoust: "+e.message;}}
+        async function askGhoustAI(event){event.preventDefault();const input=document.getElementById("ghoust-ai-input"),q=input.value.trim();if(!q||ghoustAiBusy)return;if(q.length>2000)return alert("Pertanyaan Ghoust maksimal 2.000 karakter.");input.value="";const history=document.getElementById("ghoust-ai-history");history.textContent+="\n\nKamu: "+q;try{const answer=await runGhoustAI(q,false);history.textContent+="\n\nGhoust · AI Crew: "+answer;}catch(e){history.textContent+="\n\nGhoust: "+e.message;}}
         async function runGhoustAI(question,postToGroup){
           if(ghoustAiBusy)throw new Error("GHOUSTORY AI sedang memproses pertanyaan lain.");ghoustAiBusy=true;
           try{
@@ -6234,7 +6396,7 @@ async function markDmMessagesRead(){
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (hadController) window.location.reload();
           }, { once: true });
-          navigator.serviceWorker.register('./sw.js?v=66', { scope: './', updateViaCache: 'none' })
+          navigator.serviceWorker.register('./sw.js?v=67', { scope: './', updateViaCache: 'none' })
             .then(registration => registration.update())
             .catch(error => console.warn('Service Worker:', error));
         }
@@ -7064,12 +7226,12 @@ window.malamTrialOpen=function(type){
  if((type==='vote'||type==='action'||type==='team')&&!me.alive){malamTrialNotice('Kamu sudah gugur dan tidak bisa voting atau melakukan aksi.');return;}
  const isAction=type==='action',isVote=type==='vote';
  title.textContent=type==='role'?'Peran Rahasiamu':type==='players'?'Daftar Pemain':type==='discussion'?'Diskusi Warga':type==='chat'?'Chat Pemain':type==='team'?'Bisik-Bisik Siluman':isAction?'Aksi Malam':isVote?'Voting Rahasia':'Catatan Diskusi';
- if(type==='role')content.innerHTML='<div class="text-center"><img src="'+malamRoleArtUrl(me.role)+'" alt="Kartu peran '+role[0]+'" class="block w-full max-w-[210px] max-h-[300px] object-contain mx-auto rounded-2xl shadow-[0_12px_35px_rgba(0,0,0,.55)]"><small class="block text-purple-300 tracking-widest mt-4">IDENTITAS RAHASIAMU</small><b class="block text-2xl text-white mt-2">'+role[0]+'</b><span class="inline-block rounded-full bg-purple-950/70 px-3 py-1 text-[10px] text-purple-200 mt-2">'+role[2]+'</span><p class="text-sm text-gray-300 mt-4">'+role[3]+'</p>'+(s.investigation?'<div class="mt-4 rounded-xl border border-purple-700/40 p-3"><small class="text-purple-300">HASIL PEMERIKSAAN</small><b class="block mt-1 '+(s.investigation.role==='siluman'?'text-red-300':'text-green-300')+'">'+s.investigation.name+': '+(malamRoles[s.investigation.role]?.[0]||s.investigation.role||'Tidak diketahui')+'</b></div>':'')+'</div>';
- else if(type==='players'){content.innerHTML='<div class="grid grid-cols-2 gap-2">'+s.players.map(p=>'<div class="flex items-center gap-2 rounded-xl bg-gray-900 p-2"><span class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-800">'+(p.avatar_url?'<img src="'+esc(p.avatar_url)+'" class="h-full w-full object-cover" alt="">':'<span class="flex h-full w-full items-center justify-center text-xs font-bold">'+esc(p.name.slice(0,1))+'</span>')+'</span><span class="min-w-0 flex-1"><b class="block truncate text-xs">'+esc(p.name)+(p.id==='t0'?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(p.alive?'text-green-300':'text-gray-500')+'">'+(p.alive?'HIDUP':'GUGUR')+'</small>'+(p.alive?'':'<b class="block text-[10px] text-amber-300 mt-1">'+(malamRoles[p.role]?.[0]||p.role)+'</b>')+'</span></div>').join('')+'</div><p class="text-[9px] text-gray-500 mt-3">Peran pemain yang gugur terbuka untuk semua.</p>';}
+ if(type==='role')content.innerHTML='<div class="text-center"><img src="'+malamRoleArtUrl(me.role)+'" alt="Kartu peran '+role[0]+'" class="block w-full max-w-[210px] max-h-[300px] object-contain mx-auto rounded-2xl shadow-[0_12px_35px_rgba(0,0,0,.55)]"><small class="block text-purple-300 tracking-widest mt-4">IDENTITAS RAHASIAMU</small><b class="block text-2xl text-white mt-2">'+role[0]+'</b><span class="inline-block rounded-full bg-purple-950/70 px-3 py-1 text-[10px] text-purple-200 mt-2">'+role[2]+'</span><p class="text-sm text-gray-300 mt-4">'+role[3]+'</p>'+(s.investigation?'<div class="mt-4 rounded-xl border border-purple-700/40 p-3"><small class="text-purple-300">HASIL PEMERIKSAAN</small><b class="block mt-1 '+(s.investigation.role==='siluman'?'text-red-300':'text-green-300')+'">'+esc(s.investigation.name)+': '+(malamRoles[s.investigation.role]?.[0]||s.investigation.role||'Tidak diketahui')+'</b></div>':'')+'</div>';
+ else if(type==='players'){content.innerHTML='<div class="grid grid-cols-2 gap-2">'+s.players.map(p=>'<div class="flex items-center gap-2 rounded-xl bg-gray-900 p-2"><span class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-800">'+(p.avatar_url?'<img src="'+esc(safeImageSrc(p.avatar_url))+'" class="h-full w-full object-cover" alt="">':'<span class="flex h-full w-full items-center justify-center text-xs font-bold">'+esc(p.name.slice(0,1))+'</span>')+'</span><span class="min-w-0 flex-1"><b class="block truncate text-xs">'+esc(p.name)+(p.id==='t0'?' <span class="text-blue-300">(Kamu)</span>':'')+'</b><small class="text-[9px] '+(p.alive?'text-green-300':'text-gray-500')+'">'+(p.alive?'HIDUP':'GUGUR')+'</small>'+(p.alive?'':'<b class="block text-[10px] text-amber-300 mt-1">'+(malamRoles[p.role]?.[0]||p.role)+'</b>')+'</span></div>').join('')+'</div><p class="text-[9px] text-gray-500 mt-3">Peran pemain yang gugur terbuka untuk semua.</p>';}
  else if(isAction||isVote){
   const valid=alive.filter(x=>x.id!=='t0'&&!(isAction&&me.role==='siluman'&&x.role==='siluman'));
   const label=isVote?'Pilih pemain yang paling kamu curigai':({siluman:'Pilih korban malam ini',paranormal:'Pilih orang untuk diperiksa',penjaga:'Pilih orang untuk dilindungi'}[me.role]||'Pilih target');
-  content.innerHTML='<div class="rounded-xl border '+(isVote?'border-orange-800/50 bg-orange-950/20':'border-indigo-800/50 bg-indigo-950/20')+' p-3 mb-3"><b class="text-sm text-white">'+label+'</b><p class="text-[10px] text-gray-300 mt-1">'+(isVote?'Suaramu dirahasiakan dan dihitung saat waktu voting berakhir.':'Pilihanmu diproses otomatis saat malam berakhir.')+'</p>'+(s.selected?'<p class="text-[10px] text-green-300 mt-2">Pilihan tersimpan. Kamu masih bisa menggantinya.</p>':'')+'</div><div class="grid grid-cols-2 gap-2">'+valid.map(x=>'<button onclick="malamTrialSelect(\''+x.id+'\')" class="flex items-center gap-2 rounded-xl border '+(s.selected===x.id?'border-amber-400 bg-amber-950/40':'border-gray-700 bg-gray-900')+' p-2 text-left"><span class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-800">'+(x.avatar_url?'<img src="'+esc(x.avatar_url)+'" class="h-full w-full object-cover" alt="">':'<span class="flex h-full w-full items-center justify-center text-xs font-bold">'+esc(x.name.slice(0,1))+'</span>')+'</span><span class="min-w-0 flex-1 truncate text-xs">'+esc(x.name)+'</span>'+(s.selected===x.id?'<i class="fa-solid fa-check text-amber-300"></i>':'')+'</button>').join('')+'</div><p class="text-[9px] text-gray-500 mt-3 text-center">Popup tetap terbuka sampai fase ini selesai.</p>';
+  content.innerHTML='<div class="rounded-xl border '+(isVote?'border-orange-800/50 bg-orange-950/20':'border-indigo-800/50 bg-indigo-950/20')+' p-3 mb-3"><b class="text-sm text-white">'+label+'</b><p class="text-[10px] text-gray-300 mt-1">'+(isVote?'Suaramu dirahasiakan dan dihitung saat waktu voting berakhir.':'Pilihanmu diproses otomatis saat malam berakhir.')+'</p>'+(s.selected?'<p class="text-[10px] text-green-300 mt-2">Pilihan tersimpan. Kamu masih bisa menggantinya.</p>':'')+'</div><div class="grid grid-cols-2 gap-2">'+valid.map(x=>'<button onclick="malamTrialSelect(\''+x.id+'\')" class="flex items-center gap-2 rounded-xl border '+(s.selected===x.id?'border-amber-400 bg-amber-950/40':'border-gray-700 bg-gray-900')+' p-2 text-left"><span class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-800">'+(x.avatar_url?'<img src="'+esc(safeImageSrc(x.avatar_url))+'" class="h-full w-full object-cover" alt="">':'<span class="flex h-full w-full items-center justify-center text-xs font-bold">'+esc(x.name.slice(0,1))+'</span>')+'</span><span class="min-w-0 flex-1 truncate text-xs">'+esc(x.name)+'</span>'+(s.selected===x.id?'<i class="fa-solid fa-check text-amber-300"></i>':'')+'</button>').join('')+'</div><p class="text-[9px] text-gray-500 mt-3 text-center">Popup tetap terbuka sampai fase ini selesai.</p>';
  }else if(type==='discussion'){
   const speakers=(s.chatMessages||[]).filter(m=>m.phase==='discussion');
   content.innerHTML='<div class="rounded-xl border border-amber-800/50 bg-amber-950/20 p-3 mb-3"><b class="text-sm text-amber-100">Musyawarah Desa</b><p class="text-[10px] text-gray-300 mt-1">Para pemain AI sudah menyampaikan pendapat. Kamu bisa menanggapi dan berdiskusi sebelum voting.</p></div><div class="max-h-[42dvh] overflow-y-auto space-y-2">'+(speakers.map(m=>'<div class="rounded-xl border border-gray-800 bg-gray-900/80 p-3"><b class="block text-xs '+(m.self?'text-blue-200':'text-amber-200')+'">'+esc(m.name)+'</b><p class="text-xs leading-relaxed text-gray-200 mt-1">'+esc(m.body)+'</p></div>').join('')||'<p class="text-xs text-gray-400 text-center py-5">AI sedang mengamati keadaan.</p>')+'</div><button type="button" onclick="malamTrialOpen(\'chat\')" class="mt-3 w-full rounded-xl border border-blue-700/60 bg-blue-950/50 py-3 text-xs font-bold text-blue-100">Tanggapi di Chat</button>';
@@ -7212,7 +7374,7 @@ window.malamTrialRender=function(){
  const tracker='<div class="flex items-center justify-between gap-1 mb-4 px-1">'+phases.map((x,i)=>'<div class="flex min-w-0 flex-1 flex-col items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full '+(i===idx?'bg-red-400 ring-4 ring-red-500/15':i<idx?'bg-blue-400':'bg-gray-700')+'"></span><span class="text-[8px] tracking-wide whitespace-nowrap '+(i===idx?'text-red-200 font-bold':i<idx?'text-blue-200':'text-gray-600')+'">'+x+'</span></div>').join('')+'</div>';
  const modal='<div id="malam-trial-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4" onclick="if(event.target===this)malamTrialClose()"><div class="malam-trial-modal-card w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-amber-800/60 bg-[#101116] p-4 shadow-[0_25px_80px_rgba(0,0,0,.65)]"><div class="flex justify-between items-center mb-4 shrink-0"><b id="malam-trial-modal-title" class="text-sm">Uji Coba</b><button onclick="malamTrialClose()" class="w-8 h-8 shrink-0 rounded-full bg-gray-800">×</button></div><div id="malam-trial-modal-content" class="min-h-0"></div></div></div>';
  malamAudioOnPhase('trial',s.phase,s.round,s.lastEvent,s.winner);
- p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · '+(s.players.length-1)+' PEMAIN AI · '+s.players.length+' TOTAL</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="malam-utility-actions flex items-center justify-center gap-5 mb-3 py-1"><button type="button" aria-label="Peranku" title="Peranku" data-malam-utility="role" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" data-malam-utility="players" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Catatan" title="Catatan" data-malam-utility="log" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-gray-300/90 hover:text-white"><i class="fa-solid fa-scroll text-[13px]"></i></button>'+(['discussion','voting'].includes(s.phase)?'<button type="button" aria-label="Chat pemain" title="Chat pemain" data-malam-utility="chat" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-amber-200/90 hover:text-amber-100"><i class="fa-solid fa-comments text-[13px]"></i></button>':'')+(s.phase==='night'&&me.alive&&me.role==='siluman'?'<button aria-label="Bisik-bisik Siluman" title="Bisik-bisik Siluman" data-malam-utility="team" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-100"><i class="fa-solid fa-user-secret text-[13px]"></i></button>':'')+'</div>'+tracker+arena+'<div id="malam-trial-countdown" class="text-center text-sm font-black text-amber-200 mb-3">Timer berjalan</div><div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+s.lastEvent+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
+ p.innerHTML=malamHeader()+malamAudioControls()+'<div class="flex items-center justify-between mb-3"><div><small class="text-amber-300">MODE LATIHAN · '+(s.players.length-1)+' PEMAIN AI · '+s.players.length+' TOTAL</small><p class="text-[9px] text-gray-500">Babak '+s.round+' · '+(s.phase==='night'?'Malam':s.phase==='discussion'?'Diskusi':s.phase==='voting'?'Voting':'Selesai')+'</p></div><button onclick="malamTrialExit()" class="text-xs text-gray-500 underline">Keluar latihan</button></div><div class="malam-utility-actions flex items-center justify-center gap-5 mb-3 py-1"><button type="button" aria-label="Peranku" title="Peranku" data-malam-utility="role" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-purple-200/90 hover:text-purple-100"><i class="fa-solid fa-mask text-[13px]"></i></button><button aria-label="Pemain" title="Pemain" data-malam-utility="players" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-blue-200/90 hover:text-blue-100"><i class="fa-solid fa-users text-[13px]"></i></button><button aria-label="Catatan" title="Catatan" data-malam-utility="log" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-gray-300/90 hover:text-white"><i class="fa-solid fa-scroll text-[13px]"></i></button>'+(['discussion','voting'].includes(s.phase)?'<button type="button" aria-label="Chat pemain" title="Chat pemain" data-malam-utility="chat" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-amber-200/90 hover:text-amber-100"><i class="fa-solid fa-comments text-[13px]"></i></button>':'')+(s.phase==='night'&&me.alive&&me.role==='siluman'?'<button aria-label="Bisik-bisik Siluman" title="Bisik-bisik Siluman" data-malam-utility="team" data-malam-utility-mode="trial" class="w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-100"><i class="fa-solid fa-user-secret text-[13px]"></i></button>':'')+'</div>'+tracker+arena+'<div id="malam-trial-countdown" class="text-center text-sm font-black text-amber-200 mb-3">Timer berjalan</div><div class="rounded-2xl border border-gray-800 bg-gradient-to-r from-gray-950 to-blue-950/20 p-4 mb-3"><small class="text-red-300">KEJADIAN TERAKHIR</small><p class="text-sm text-white mt-2">'+esc(String(s.lastEvent||''))+'</p><p class="text-[10px] text-gray-500 mt-2">'+alive.length+' pemain masih bertahan</p></div>'+action+'<p id="malam-trial-notice" class="text-xs text-red-300 mt-2"></p>'+modal;
  malamBindUtilityButtons(p);
  if(s.phase==='finished'){
   const outcome=(me.role==='siluman')===(s.winner==='siluman')?'win':'lose';
@@ -7403,7 +7565,7 @@ window.malamLoadState=async function(){
  }
 };
 function malamPlayerCard(x,phase){
- const alive=!!x.is_alive,avatar=x.avatar_url||'',revealedRole=!alive&&x.revealed_role?malamRoles[x.revealed_role]?.[0]||x.revealed_role:'';
+ const alive=!!x.is_alive,avatar=safeImageSrc(x.avatar_url)||'',revealedRole=!alive&&x.revealed_role?malamRoles[x.revealed_role]?.[0]||x.revealed_role:'';
  const photo=avatar?'<img src="'+esc(avatar)+'" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">':'<span class="text-xs font-black">'+esc((x.nickname||'C').trim().slice(0,1).toUpperCase())+'</span>';
  return '<div class="flex items-center gap-2 rounded-xl border '+(x.is_host?'border-blue-800/70':'border-gray-800')+' '+(alive?'bg-gray-950/70':'bg-black/30 opacity-60')+' p-2">'+
  '<div class="relative w-9 h-9 shrink-0 overflow-visible rounded-full '+(alive?'':'opacity-90 grayscale')+' flex items-center justify-center">'+(alive?photo:'<img src="assets/arena/status/Mati.png" alt="Mati" class="w-full h-full object-contain">')+(alive?'<img src="assets/arena/status/Hidup.png" alt="Hidup" class="absolute -right-1 -bottom-1 w-4 h-4 object-contain drop-shadow">':'')+'</div>'+
@@ -7414,9 +7576,9 @@ function malamArenaMarkup(players,phase,myTeamIds=[],interaction={}){
  const mySilumanTeam=new Set(myTeamIds||[]),teamChoices=interaction.teamActionTargets||[],count=players.length;if(!count)return '';
  const day=phase!=='night',compact=count>=9,medium=count>=7,radius=compact?39:medium?38:36,seatWidth=compact?58:medium?64:70,avatarSize=compact?38:medium?42:48,meId=interaction.ownId||'';
  const seats=players.map((x,i)=>{
-  const angle=(-90+(360/count)*i)*Math.PI/180,left=50+Math.cos(angle)*radius,top=50+Math.sin(angle)*radius,alive=!!x.is_alive,avatar=x.avatar_url||'',initial=esc((x.nickname||'C').trim().slice(0,1).toUpperCase()),photo=avatar?'<img src="'+esc(avatar)+'" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover">':'<span class="text-lg font-black">'+initial+'</span>';
+  const angle=(-90+(360/count)*i)*Math.PI/180,left=50+Math.cos(angle)*radius,top=50+Math.sin(angle)*radius,alive=!!x.is_alive,avatar=safeImageSrc(x.avatar_url)||'',initial=esc((x.nickname||'C').trim().slice(0,1).toUpperCase()),photo=avatar?'<img src="'+esc(avatar)+'" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover">':'<span class="text-lg font-black">'+initial+'</span>';
   const role=interaction.role||'',voting=phase==='voting',nightAction=phase==='night'&&['siluman','paranormal','penjaga'].includes(role),canClick=!!interaction.alive&&alive&&(voting||nightAction)&&!(role==='paranormal'&&interaction.investigationDone)&&!(role==='paranormal'&&x.user_id===meId)&&!(voting&&x.user_id===meId)&&!(role==='siluman'&&mySilumanTeam.has(x.user_id)),selected=interaction.selectedTarget===x.user_id;
-  const suspicion=(x.suspicion_from||[]).map(id=>{const source=players.find(z=>z.user_id===id),src=source?.avatar_url||'';return '<span title="Dicurigai oleh '+esc(source?.nickname||'pemain')+'" class="inline-flex h-4 w-4 -ml-1 overflow-hidden items-center justify-center rounded-full border border-amber-300 bg-gray-800 text-[7px] font-bold text-white">'+(src?'<img src="'+esc(src)+'" class="h-full w-full object-cover" alt="">':esc((source?.nickname||'?').slice(0,1).toUpperCase()))+'</span>';}).join('');
+  const suspicion=(x.suspicion_from||[]).map(id=>{const source=players.find(z=>z.user_id===id),src=safeImageSrc(source?.avatar_url)||'';return '<span title="Dicurigai oleh '+esc(source?.nickname||'pemain')+'" class="inline-flex h-4 w-4 -ml-1 overflow-hidden items-center justify-center rounded-full border border-amber-300 bg-gray-800 text-[7px] font-bold text-white">'+(src?'<img src="'+esc(src)+'" class="h-full w-full object-cover" alt="">':esc((source?.nickname||'?').slice(0,1).toUpperCase()))+'</span>';}).join('');
   const click=canClick?' role="button" tabindex="0" onclick="malamArenaPlayerClick(\''+esc(x.user_id)+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();malamArenaPlayerClick(\''+esc(x.user_id)+'\')}"':'';
   const bubble=x.chat_bubble?'<div class="mb-1 max-w-[104px] rounded-xl border border-amber-300/40 bg-black/90 px-2 py-1 text-[8px] leading-tight text-amber-50 shadow-lg break-words">'+esc(String(x.chat_bubble).slice(0,110))+'</div>':'';
   const teamVotes=phase==='night'&&role==='siluman'?teamChoices.filter(a=>a.target_id===x.user_id):[];
@@ -7740,5 +7902,27 @@ window.loadArenaImages();
 })();
 </script>
 
+<script src="./workspace-hub.js" defer></script>
+
+<script id="gh-desa-terlarang-launcher">
+(function(){
+  window.openDesaTerlarang=function(){
+    const lobby=document.getElementById('arena-lobby-view');
+    const panel=document.getElementById('arena-play-panel');
+    const note=document.getElementById('arena-footer-note');
+    if(!lobby||!panel)return;
+    lobby.classList.add('hidden');
+    lobby.style.display='none';
+    if(note)note.style.display='none';
+    panel.classList.remove('hidden');
+    panel.style.display='block';
+    panel.classList.add('arena-game-page');
+    panel.innerHTML=
+      '<button type="button" onclick="closeArenaGame()" aria-label="Kembali ke Game Ghoustory" style="position:fixed;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:10030;padding:10px 14px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(5,5,8,.82);color:#fff;font-size:12px;font-weight:700;backdrop-filter:blur(8px)"><i class="fa-solid fa-arrow-left" style="margin-right:7px"></i>Kembali</button>'+
+      '<iframe title="GHOUSTORY: Desa Terlarang" src="./assets/games/desa-terlarang/index.html" allow="autoplay; fullscreen; gamepad; pointer-lock" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;min-height:100%;border:0;background:#050505"></iframe>';
+    panel.scrollTop=0;
+  };
+})();
+</script>
 </body>
 </html>
