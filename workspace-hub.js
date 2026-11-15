@@ -8,6 +8,8 @@
   let cachedIdeas = [];
   let cachedTasks = [];
   let cachedActivity = [];
+  let cachedProfiles = [];
+  let crewOptionsLoaded = false;
   let aiUsageSummary = null;
   let aiUsageLoaded = false;
   let isWorkspaceAdmin = false;
@@ -34,6 +36,7 @@
       const panel = $('workspace-panel-' + key);
       if (panel) panel.classList.toggle('hidden', key !== tab);
     });
+    if (tab === 'tasks') loadCrewOptions();
     if (tab === 'monitor') { renderMonitor(); loadAiUsage(); }
   }
   function renderIdeas() {
@@ -67,7 +70,8 @@
           <span class="workspace-pill">${esc(({todo:'Belum dikerjakan',in_progress:'Sedang dikerjakan',done:'Selesai',cancelled:'Dibatalkan'})[item.status] || item.status)}</span>
         </div>
         <div class="workspace-meta"><span>Proyek: ${esc(item.project_name || 'Umum')}</span><span>Prioritas: ${esc(item.priority)}</span><span>${dateLabel(item.due_at)}</span></div>
-        ${item.status !== 'done' && item.status !== 'cancelled' && currentUser && (currentUser.id === item.created_by || isWorkspaceAdmin) ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
+        <div class="workspace-meta"><span>Penanggung jawab: ${esc(cachedProfiles.find(profile => profile.user_id === item.assigned_to)?.nickname || (item.assigned_to ? 'Crew' : 'Belum ditugaskan'))}</span></div>
+        ${item.status !== 'done' && item.status !== 'cancelled' && currentUser && (currentUser.id === item.created_by || currentUser.id === item.assigned_to || isWorkspaceAdmin) ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
       </article>`).join('');
   }
   function renderMonitor() {
@@ -110,6 +114,27 @@
       aiUsageLoaded = false;
     }
     renderMonitor();
+  }
+  async function loadCrewOptions() {
+    if (crewOptionsLoaded) return;
+    const db = client();
+    const select = $('workspace-task-assignee');
+    if (!db || !select) return;
+    crewOptionsLoaded = true;
+    const { data, error } = await db.from('ghoustory_profiles')
+      .select('user_id,nickname,role')
+      .order('nickname', {ascending:true})
+      .limit(100);
+    if (error) {
+      crewOptionsLoaded = false;
+      status('Daftar Crew belum dapat dimuat; tugas tetap bisa dibuat tanpa penanggung jawab.', true);
+      return;
+    }
+    cachedProfiles = data || [];
+    select.innerHTML = '<option value="">Belum ditugaskan</option>' + cachedProfiles.map(profile =>
+      '<option value="' + esc(profile.user_id) + '">' + esc(profile.nickname || 'Crew') + (profile.role ? ' · ' + esc(profile.role) : '') + '</option>'
+    ).join('');
+    renderTasks();
   }
   async function loadWorkspace() {
     try {
@@ -193,13 +218,14 @@
     const description = $('workspace-task-description')?.value.trim() || '';
     const priority = $('workspace-task-priority')?.value || 'normal';
     const projectName = ($('workspace-task-project')?.value.trim() || 'Umum').slice(0,80);
+    const assignedTo = $('workspace-task-assignee')?.value || null;
     const due = $('workspace-task-due')?.value || '';
     if (title.length < 3) return status('Judul tugas minimal 3 karakter.', true);
     const button = $('workspace-task-submit');
     if (button) button.disabled = true;
     try {
       const { data, error } = await db.from('ghoustory_workspace_tasks')
-        .insert({title,description,priority,project_name:projectName,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id})
+        .insert({title,description,priority,project_name:projectName,assigned_to:assignedTo,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id})
         .select('id,title,description,status,priority,project_name,due_at,assigned_to,created_by,created_at').single();
       if (error) return status('Tugas gagal dibuat: ' + error.message, true);
       cachedTasks = [data, ...cachedTasks].slice(0, 40);
@@ -216,10 +242,11 @@
   async function completeTask(id) {
     const db = client();
     const task = cachedTasks.find(x => x.id === id);
-    if (!task || (!isWorkspaceAdmin && task.created_by !== currentUser?.id)) return status('Hanya pembuat tugas atau admin yang dapat menyelesaikan tugas ini.', true);
+    if (!task || (!isWorkspaceAdmin && task.created_by !== currentUser?.id && task.assigned_to !== currentUser?.id)) return status('Hanya pembuat tugas, penanggung jawab, atau admin yang dapat menyelesaikan tugas ini.', true);
     try {
-      const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id).select('id').single();
+      const { data, error } = await db.rpc('ghoustory_workspace_complete_task', {p_task_id:id});
       if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
+      if (!data) return status('Akses tidak diizinkan untuk menyelesaikan tugas ini.', true);
       cachedTasks = cachedTasks.map(item => item.id === id ? {...item,status:'done'} : item);
       cachedActivity = [{id:'local-' + Date.now(),entity_type:'task',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
       renderTasks(); renderMonitor();
