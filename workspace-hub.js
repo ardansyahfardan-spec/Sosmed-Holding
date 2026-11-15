@@ -121,20 +121,25 @@
     const select = $('workspace-task-assignee');
     if (!db || !select) return;
     crewOptionsLoaded = true;
-    const { data, error } = await db.from('ghoustory_profiles')
-      .select('user_id,nickname,role')
-      .order('nickname', {ascending:true})
-      .limit(100);
-    if (error) {
+    try {
+      const { data, error } = await db.from('ghoustory_profiles')
+        .select('user_id,nickname,role')
+        .order('nickname', {ascending:true})
+        .limit(100);
+      if (error) {
+        crewOptionsLoaded = false;
+        status('Daftar Crew belum dapat dimuat; tugas tetap bisa dibuat tanpa penanggung jawab.', true);
+        return;
+      }
+      cachedProfiles = data || [];
+      select.innerHTML = '<option value="">Belum ditugaskan</option>' + cachedProfiles.map(profile =>
+        '<option value="' + esc(profile.user_id) + '">' + esc(profile.nickname || 'Crew') + (profile.role ? ' · ' + esc(profile.role) : '') + '</option>'
+      ).join('');
+      renderTasks();
+    } catch {
       crewOptionsLoaded = false;
-      status('Daftar Crew belum dapat dimuat; tugas tetap bisa dibuat tanpa penanggung jawab.', true);
-      return;
+      status('Daftar Crew gagal dimuat. Tugas tetap bisa dibuat tanpa penanggung jawab.', true);
     }
-    cachedProfiles = data || [];
-    select.innerHTML = '<option value="">Belum ditugaskan</option>' + cachedProfiles.map(profile =>
-      '<option value="' + esc(profile.user_id) + '">' + esc(profile.nickname || 'Crew') + (profile.role ? ' · ' + esc(profile.role) : '') + '</option>'
-    ).join('');
-    renderTasks();
   }
   async function loadWorkspace() {
     try {
