@@ -102,14 +102,16 @@
     if (!db) return;
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
-      isWorkspaceAdmin = !error && data !== null;
+      // The RPC returns null for non-admins and a JSON summary for admins.
+      // Never interpret a scalar count as the full metrics object.
+      isWorkspaceAdmin = !error && data !== null && typeof data === 'object' && !Array.isArray(data);
       if (error) aiUsageLoaded = false;
       aiUsageSummary = error
         ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
         : (data === null ? 'Admin saja' : {
-            requests: Number(data.requests || 0),
-            inputTokens: Number(data.inputTokens || 0),
-            outputTokens: Number(data.outputTokens || 0)
+            requests: Math.max(0, Number(data.requests || 0)),
+            inputTokens: Math.max(0, Number(data.inputTokens || 0)),
+            outputTokens: Math.max(0, Number(data.outputTokens || 0))
           });
       renderIdeas();
       renderTasks();
