@@ -124,6 +124,7 @@
     cachedActivity = activity.data || [];
     aiUsageCount = null;
     aiUsageLoaded = false;
+    isWorkspaceAdmin = false;
     renderIdeas(); renderTasks(); renderMonitor();
     if (activeTab === 'monitor') loadAiUsage();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
@@ -136,12 +137,17 @@
     const allowed = ['new','reviewing','accepted','rejected','implemented'];
     if (!allowed.includes(nextStatus)) return;
     const db = client();
-    const { error } = await db.from('ghoustory_workspace_ideas').update({status:nextStatus}).eq('id',id).select('id').single();
-    if (error) return status('Status ide gagal diperbarui: ' + error.message, true);
-    cachedIdeas = cachedIdeas.map(item => item.id === id ? {...item,status:nextStatus} : item);
-    cachedActivity = [{id:'local-' + Date.now(),entity_type:'idea',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
-    renderIdeas(); renderMonitor();
-    status('Status ide berhasil diperbarui.');
+    try {
+      const { error } = await db.from('ghoustory_workspace_ideas').update({status:nextStatus}).eq('id',id).select('id').single();
+      if (error) { renderIdeas(); return status('Status ide gagal diperbarui: ' + error.message, true); }
+      cachedIdeas = cachedIdeas.map(item => item.id === id ? {...item,status:nextStatus} : item);
+      cachedActivity = [{id:'local-' + Date.now(),entity_type:'idea',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
+      renderIdeas(); renderMonitor();
+      status('Status ide berhasil diperbarui.');
+    } catch {
+      renderIdeas();
+      status('Status ide gagal diperbarui. Periksa koneksi lalu coba lagi.', true);
+    }
   }
   async function submitIdea(event) {
     event.preventDefault();
