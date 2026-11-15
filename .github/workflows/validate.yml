@@ -23,3 +23,40 @@ jobs:
         run: node scripts/validate-inline-scripts.mjs
       - name: Type-check AI Edge Function
         run: deno check supabase/functions/ghoustory-ai/index.ts
+
+  database-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghoustory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ghoustory_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Supabase-compatible test roles and schema
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/supabase_migration_fixture.sql
+      - name: Apply AI rate-limit migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115050000_ghoustory_ai_rate_limit.sql
+      - name: Apply TRUNCATE privilege migration
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261115051000_revoke_public_truncate_grants.sql
+      - name: Create a future public table and verify permissions and rate limits
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -c "create table public.future_permission_probe (id integer primary key);"
+          psql -h localhost -U postgres -d ghoustory_test -v ON_ERROR_STOP=1 -f tests/sql/assert_security_migrations.sql
