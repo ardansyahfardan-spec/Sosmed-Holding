@@ -13,6 +13,8 @@
   let aiUsageSummary = null;
   let aiUsageLoaded = false;
   let isWorkspaceAdmin = false;
+  let workspaceLoading = false;
+  let lastWorkspaceLoadAt = 0;
 
   function status(message, error = false) {
     const el = $('workspace-status');
@@ -101,6 +103,7 @@
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
       isWorkspaceAdmin = !error && data !== null;
+      if (error) aiUsageLoaded = false;
       aiUsageSummary = error
         ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
         : (data === null ? 'Admin saja' : {
@@ -141,7 +144,12 @@
       status('Daftar Crew gagal dimuat. Tugas tetap bisa dibuat tanpa penanggung jawab.', true);
     }
   }
-  async function loadWorkspace() {
+  async function loadWorkspace(force = false) {
+    if (workspaceLoading) return;
+    const now = Date.now();
+    if (!force && now - lastWorkspaceLoadAt < 2000) return;
+    workspaceLoading = true;
+    lastWorkspaceLoadAt = now;
     try {
     const db = client();
     if (!db) { status('Koneksi database belum siap. Muat ulang setelah login.', true); return; }
@@ -166,10 +174,12 @@
     aiUsageLoaded = false;
     isWorkspaceAdmin = false;
     renderIdeas(); renderTasks(); renderMonitor();
-    if (activeTab === 'monitor') loadAiUsage();
+    loadAiUsage();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
     } catch (error) {
       status('Workspace gagal dimuat. Periksa koneksi lalu coba lagi.', true);
+    } finally {
+      workspaceLoading = false;
     }
   }
   async function updateIdeaStatus(id, nextStatus) {
@@ -264,7 +274,7 @@
     $('workspace-idea-form')?.addEventListener('submit', submitIdea);
     $('workspace-task-form')?.addEventListener('submit', submitTask);
     document.querySelectorAll('[data-workspace-tab]').forEach(el => el.addEventListener('click', () => setTab(el.dataset.workspaceTab)));
-    $('workspace-refresh')?.addEventListener('click', loadWorkspace);
+    $('workspace-refresh')?.addEventListener('click', () => loadWorkspace(true));
     $('workspace-ideas-list')?.addEventListener('click', event => {
       const button = event.target.closest('[data-complete-task]');
       if (button) completeTask(button.dataset.completeTask);
