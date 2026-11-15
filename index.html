@@ -5954,27 +5954,57 @@ async function ensureGroupRealtime(){
         }
         // Direktori Crew, riwayat percakapan, dan pesan pribadi MEETING CREW.
         let ritualMembers=[],workspaceProfiles=[],isGhoustoryAdmin=false,isGhoustoryGroupMember=null,activeDmConversation=null,activeDmMember=null,dmRealtimeChannel=null,dmListRealtimeChannel=null,dmMessages=[],dmReads=[],dmReplyTo=null,dmSearchTerm="";
-        async function loadDirectConversations(){
-          const box=document.getElementById("dm-conversations-list");if(!activeUser||!box)return;
-          box.innerHTML='<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
-          try{
-            const {data:mine,error}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(error)throw error;
-            const rows=[];
-            for(const part of mine||[]){
-              const {data:people,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",part.conversation_id);if(e1)throw e1;
-              const other=(people||[]).find(x=>x.user_id!==activeUser.id);if(!other)continue;
-              const member=workspaceProfiles.find(x=>x.user_id===other.user_id);
-              const {data:msgs,error:e2}=await supabaseClient.from("ghoustory_dm_messages").select("body,created_at,sender_id,deleted_at").eq("conversation_id",part.conversation_id).order("created_at",{ascending:false}).limit(1);if(e2)throw e2;
-              const last=msgs?.[0],nickname=member?.nickname||"Crew";
-              const avatar=member?.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(nickname)+"&background=172554&color=fff";
-              const time=last?.created_at?new Date(last.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"";
-              const {data:unreadMessages,error:e3}=await supabaseClient.from("ghoustory_dm_messages").select("id").eq("conversation_id",part.conversation_id).neq("sender_id",activeUser.id).is("deleted_at",null).order("created_at",{ascending:false}).limit(150);if(e3)throw e3;const unreadIds=(unreadMessages||[]).map(m=>m.id);let unreadCount=0;if(unreadIds.length){const {data:readRows,error:e4}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id").eq("user_id",activeUser.id).in("message_id",unreadIds);if(e4)throw e4;const readIds=new Set((readRows||[]).map(x=>String(x.message_id)));unreadCount=unreadIds.filter(id=>!readIds.has(String(id))).length;}
-              rows.push({id:part.conversation_id,user_id:other.user_id,nickname,avatar,last:last?.deleted_at?"Pesan dihapus":last?.body||"Belum ada pesan",created_at:last?.created_at||"",time,unreadCount});
+        let dmListRefreshTimer = null;
+        let dmListLoading = false;
+        let dmListRefreshPending = false;
+        function scheduleDirectConversationRefresh() {
+          clearTimeout(dmListRefreshTimer);
+          dmListRefreshTimer = setTimeout(() => {
+            dmListRefreshTimer = null;
+            loadDirectConversations();
+          }, 250);
+        }
+        async function loadDirectConversations() {
+          const box = document.getElementById("dm-conversations-list");
+          if (!activeUser || !box) return;
+          if (dmListLoading) { dmListRefreshPending = true; return; }
+          dmListLoading = true;
+          box.innerHTML = '<p class="text-xs text-gray-500 p-2">Memuat percakapan...</p>';
+          try {
+            const { data, error } = await supabaseClient.rpc("ghoustory_dm_inbox");
+            if (error) throw error;
+            const rows = (data || []).map(row => {
+              const nickname = row.nickname || "Crew";
+              const avatar = row.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(nickname) + "&background=172554&color=fff";
+              const time = row.last_created_at ? new Date(row.last_created_at).toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) : "";
+              return {
+                id: row.conversation_id,
+                user_id: row.peer_user_id,
+                nickname,
+                avatar,
+                last: row.last_deleted_at ? "Pesan dihapus" : row.last_body || "Belum ada pesan",
+                created_at: row.last_created_at || "",
+                time,
+                unreadCount: Number(row.unread_count) || 0
+              };
+            });
+            box.innerHTML = rows.length ? rows.map(x =>
+              '<button type="button" onclick="openDirectMessage(&quot;' + x.user_id + '&quot;)" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 ' + (x.id === activeDmConversation ? 'bg-blue-950/70 border border-blue-900' : '') + '"><img src="' + escapeHtml(x.avatar) + '" alt="Foto profil ' + escapeHtml(x.nickname) + '" loading="lazy" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">' + escapeHtml(x.nickname) + '</b><small class="block text-[11px] text-gray-400 truncate">' + escapeHtml(x.last) + '</small></span><span class="flex flex-col items-end gap-1 shrink-0"><small class="text-[10px] text-gray-500">' + escapeHtml(x.time) + '</small>' + (x.unreadCount ? '<span class="gh-unread-badge">' + (x.unreadCount > 99 ? "99+" : x.unreadCount) + '</span>' : "") + '</span></button>'
+            ).join("") : '<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
+            if (!dmListRealtimeChannel) {
+              dmListRealtimeChannel = supabaseClient.channel("ghoustory-dm-list")
+                .on("postgres_changes", {event:"INSERT",schema:"public",table:"ghoustory_dm_messages"}, scheduleDirectConversationRefresh)
+                .subscribe();
             }
-            rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-            box.innerHTML=rows.length?rows.map(x=>'<button type="button" onclick="openDirectMessage(&quot;'+x.user_id+'&quot;)" class="chat-list-row w-full text-left p-3 rounded-xl hover:bg-blue-950/60 flex items-center gap-3 '+(x.id===activeDmConversation?'bg-blue-950/70 border border-blue-900':'')+'"><img src="'+escapeHtml(x.avatar)+'" alt="Foto profil '+escapeHtml(x.nickname)+'" loading="lazy" class="w-11 h-11 shrink-0 rounded-full object-cover border border-blue-900/70"><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(x.nickname)+'</b><small class="block text-[11px] text-gray-400 truncate">'+escapeHtml(x.last)+'</small></span><span class="flex flex-col items-end gap-1 shrink-0"><small class="text-[10px] text-gray-500">'+escapeHtml(x.time)+'</small>'+(x.unreadCount?'<span class="gh-unread-badge">'+(x.unreadCount>99?"99+":x.unreadCount)+'</span>':"")+'</span></button>').join(""):'<p class="text-xs text-gray-500 p-2">Belum ada percakapan pribadi.</p>';
-            if(!dmListRealtimeChannel){dmListRealtimeChannel=supabaseClient.channel("ghoustory-dm-list").on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_messages"},()=>loadDirectConversations()).subscribe();}
-          }catch(e){box.textContent="Riwayat gagal dimuat: "+(e.message||e);}
+          } catch (e) {
+            box.textContent = "Riwayat gagal dimuat: " + (e.message || e);
+          } finally {
+            dmListLoading = false;
+            if (dmListRefreshPending) {
+              dmListRefreshPending = false;
+              scheduleDirectConversationRefresh();
+            }
+          }
         }
         let ritualPresenceChannel=null,ritualHeartbeatTimer=null,ritualOnlineIds=new Set(),ritualOnlineUsers=[];
         function updateOnlineCrewIndicators(){
@@ -6113,7 +6143,7 @@ async function openDirectMessage(otherId){
           if(ids.length){const {data:reads,error:readError}=await supabaseClient.from("ghoustory_dm_message_reads").select("message_id,user_id,read_at").in("message_id",ids);if(readError)throw readError;dmReads=reads||[];}
           await markDmMessagesRead();renderDirectMessages();const id=activeDmConversation;
           dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
-            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();loadDirectConversations();})
+            .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();scheduleDirectConversationRefresh();})
             .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);if(activeDmConversation===id)renderDirectMessages();loadDirectConversations();})
             .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
         }
