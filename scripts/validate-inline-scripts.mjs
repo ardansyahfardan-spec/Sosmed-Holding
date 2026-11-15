@@ -14,12 +14,15 @@ const securityChecks = [
   ["Supabase JS CDN is version-pinned", html.includes("@supabase/supabase-js@2.119.0")],
   ["Chart.js CDN is version-pinned", html.includes("chart.js@4.6.1")],
   ["tus client CDN is version-pinned", html.includes("tus-js-client@4.3.1")],
+  ["segment logos have file type and size limits", html.includes("logoFile.size>5*1024*1024")],
+  ["dynamic chat forms constrain field lengths", html.includes("maxlength=\"20000\"") && html.includes("maxlength=\"50000\"") && html.includes("maxlength=\"12000\"")],
   ["group and DM composers have length limits", html.includes('id="chat-input" type="text" maxlength="4000"') && html.includes('id="dm-input" maxlength="4000"')],
-];;
+
+];
 
 const securityFailures = securityChecks.filter(([, passed]) => !passed).map(([name]) => name);
 if (securityFailures.length) {
-  console.error("Security checks failed:\\n" + securityFailures.join("\\n"));
+  console.error("Security checks failed:\\n" + securityFailures.join("\n"));
   process.exitCode = 1;
 } else {
   console.log("Passed " + securityChecks.length + " static security checks.");
