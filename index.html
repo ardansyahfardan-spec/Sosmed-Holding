@@ -4342,7 +4342,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         // while dramatically reducing the multi-megabyte data URIs found in older records.
         function compressSegmentLogo(dataUri) {
             return new Promise(resolve => {
-                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return resolve(dataUri || '');
+                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/') || dataUri.startsWith('data:image/webp')) return resolve(dataUri || '');
                 const image = new Image();
                 image.onload = () => {
                     try {
@@ -4355,7 +4355,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         if (!context) return resolve(dataUri);
                         context.drawImage(image, 0, 0, canvas.width, canvas.height);
                         canvas.toBlob(blob => {
-                            if (!blob || blob.size >= dataUri.length * 0.72) return resolve(dataUri);
+                            if (!blob || blob.type !== 'image/webp' || blob.size >= dataUri.length * 0.72) return resolve(dataUri);
                             const reader = new FileReader();
                             reader.onload = () => resolve(reader.result || dataUri);
                             reader.onerror = () => resolve(dataUri);
@@ -4374,7 +4374,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             let changed = false;
             for (const segment of db.segmenList || []) {
                 if (!segment || typeof segment.logo !== 'string' ||
-                    !segment.logo.startsWith('data:image/') || segment.logo.length < 120000) continue;
+                    !segment.logo.startsWith('data:image/') || segment.logo.startsWith('data:image/webp') || segment.logo.length < 120000) continue;
                 const optimized = await compressSegmentLogo(segment.logo);
                 if (optimized && optimized !== segment.logo) {
                     segment.logo = optimized;
