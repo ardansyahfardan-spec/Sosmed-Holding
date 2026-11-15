@@ -1,5 +1,7 @@
--- Return a compact admin-only 30-day AI usage summary without transferring raw log rows.
-create or replace function public.ghoustory_workspace_ai_usage_count()
+-- Replace the scalar count with a compact admin-only 30-day token summary.
+drop function if exists public.ghoustory_workspace_ai_usage_count();
+
+create function public.ghoustory_workspace_ai_usage_count()
 returns jsonb
 language sql
 stable
@@ -20,3 +22,6 @@ as $$
     else null
   end;
 $$;
+
+revoke all on function public.ghoustory_workspace_ai_usage_count() from public, anon;
+grant execute on function public.ghoustory_workspace_ai_usage_count() to authenticated;
