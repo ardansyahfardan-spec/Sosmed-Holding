@@ -3032,6 +3032,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         let presenceChannel = null;
         let lastCloudSyncAt = null;
         let lastAppStateUpdatedAt = null;
+        let lastPersistedDbSnapshot = '';
+        let lastScheduledDbSnapshot = '';
 
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
@@ -3078,6 +3080,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 lastAppStateUpdatedAt = seeded?.updated_at || null;
             }
 
+            lastPersistedDbSnapshot = JSON.stringify(db);
+            lastScheduledDbSnapshot = lastPersistedDbSnapshot;
             const purgedCompletedItems = await purgeCompletedItems();
             window.__ghoustorySyncConflict = false;
             sharedSyncReady = true;
@@ -3087,7 +3091,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             }
         }
 
-        function queueSharedSave(snapshot) {
+        function queueSharedSave(snapshot, snapshotText = JSON.stringify(snapshot)) {
             sharedSaveQueue = sharedSaveQueue
                 .then(async () => {
                     if (window.__ghoustorySyncConflict) throw new Error('Data berubah di perangkat lain. Muat ulang halaman sebelum menyimpan lagi.');
@@ -3106,11 +3110,15 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         throw new Error('Data baru saja diubah dari perangkat lain. Muat ulang halaman sebelum menyimpan lagi agar perubahan Crew lain tidak tertimpa.');
                     }
                     lastAppStateUpdatedAt = data.updated_at || nextUpdatedAt;
+                    lastPersistedDbSnapshot = snapshotText;
                     lastCloudSyncAt = new Date();
                     window.__ghoustorySyncError = null;
                     updateFooterStatus();
                 })
                 .catch(error => {
+                    if (!window.__ghoustorySyncConflict && lastScheduledDbSnapshot === snapshotText) {
+                        lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                    }
                     console.error('Gagal menyimpan data ke database bersama:', error);
                     window.__ghoustorySyncError = error.message || String(error);
                     updateFooterStatus();
@@ -3124,9 +3132,21 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             updateFooterStatus(true);
 
             if (!sharedSyncReady) return;
+            const snapshotText = JSON.stringify(db);
+            if (snapshotText === lastPersistedDbSnapshot) {
+                clearTimeout(sharedSaveTimer);
+                sharedSaveTimer = null;
+                lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                return;
+            }
+            if (snapshotText === lastScheduledDbSnapshot) return;
             clearTimeout(sharedSaveTimer);
-            const snapshot = JSON.parse(JSON.stringify(db));
-            sharedSaveTimer = setTimeout(() => queueSharedSave(snapshot), 700);
+            lastScheduledDbSnapshot = snapshotText;
+            const snapshot = JSON.parse(snapshotText);
+            sharedSaveTimer = setTimeout(() => {
+                sharedSaveTimer = null;
+                queueSharedSave(snapshot, snapshotText);
+            }, 700);
         }
 
         // ================= STATUS SELESAI & PEMBERSIHAN OTOMATIS =================
