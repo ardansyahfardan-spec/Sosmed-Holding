@@ -138,11 +138,15 @@
     const button = $('workspace-idea-submit');
     if (button) button.disabled = true;
     try {
-      const { error } = await db.from('ghoustory_workspace_ideas').insert({title,description,category,created_by:currentUser.id});
+      const { data, error } = await db.from('ghoustory_workspace_ideas')
+        .insert({title,description,category,created_by:currentUser.id})
+        .select('id,title,description,category,status,created_by,created_at').single();
       if (error) return status('Ide gagal dikirim: ' + error.message, true);
+      cachedIdeas = [data, ...cachedIdeas].slice(0, 40);
+      cachedActivity = [{id:'local-' + Date.now(),entity_type:'idea',action:'created',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
+      renderIdeas(); renderMonitor();
       $('workspace-idea-form')?.reset();
       status('Ide berhasil dikirim ke Crew.');
-      await loadWorkspace();
     } catch (error) {
       status('Ide gagal dikirim. Periksa koneksi lalu coba lagi.', true);
     } finally {
@@ -161,11 +165,15 @@
     const button = $('workspace-task-submit');
     if (button) button.disabled = true;
     try {
-      const { error } = await db.from('ghoustory_workspace_tasks').insert({title,description,priority,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id});
+      const { data, error } = await db.from('ghoustory_workspace_tasks')
+        .insert({title,description,priority,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id})
+        .select('id,title,description,status,priority,due_at,assigned_to,created_by,created_at').single();
       if (error) return status('Tugas gagal dibuat: ' + error.message, true);
+      cachedTasks = [data, ...cachedTasks].slice(0, 40);
+      cachedActivity = [{id:'local-' + Date.now(),entity_type:'task',action:'created',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
+      renderTasks(); renderMonitor();
       $('workspace-task-form')?.reset();
       status('Tugas berhasil ditambahkan.');
-      await loadWorkspace();
     } catch (error) {
       status('Tugas gagal dibuat. Periksa koneksi lalu coba lagi.', true);
     } finally {
@@ -177,9 +185,12 @@
     const task = cachedTasks.find(x => x.id === id);
     if (!task) return;
     try {
-      const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id);
+      const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id).select('id').single();
       if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
-      await loadWorkspace();
+      cachedTasks = cachedTasks.map(item => item.id === id ? {...item,status:'done'} : item);
+      cachedActivity = [{id:'local-' + Date.now(),entity_type:'task',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
+      renderTasks(); renderMonitor();
+      status('Tugas ditandai selesai.');
     } catch {
       status('Status tugas gagal diperbarui. Periksa koneksi lalu coba lagi.', true);
     }
