@@ -99,7 +99,6 @@ try {
       iframeRect: frameRect ? { width: frameRect.width, height: frameRect.height } : null,
       panelRect: panel ? { width: panel.getBoundingClientRect().width, height: panel.getBoundingClientRect().height } : null,
       arenaClasses: arena?.className || null,
-      runtimeErrors: errors,
     };
   });
   const canvasReady = frameDiagnostics.canvas &&
