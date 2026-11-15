@@ -3,7 +3,7 @@ create or replace function public.ghoustory_workspace_ai_usage_count()
 returns bigint
 language sql
 stable
-security definer
+security invoker
 set search_path = ''
 as $$
   select case
