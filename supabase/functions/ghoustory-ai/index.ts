@@ -523,19 +523,28 @@ Kembalikan HANYA JSON valid:
       const audioUrl = String(body.audioUrl || "");
       audioMimeType = String(body.mimeType || "audio/mpeg").split(";")[0].trim().toLowerCase();
       if (!translatedTranscript.trim()) return json({ error: "Teks terjemahan kosong." }, 400);
+      let uploadedAudioUri = "";
+      const audioBase64 = String(body.audioBase64 || "");
       if (audioUrl) {
         if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
         const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey);
-        requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
-        (globalThis as any).__ghoustoryUploadedGeminiFile = uploadedAudio.name;
+        uploadedAudioUri = uploadedAudio.uri;
+        uploadedGeminiFileName = uploadedAudio.name;
+      } else if (audioBase64) {
+        if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
+        if (!/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64) || audioBase64.length > 23_000_000) {
+          return json({ error: "Data MP3 kosong atau terlalu besar. Batas unggahan sekitar 17 MB." }, 413);
+        }
       }
-      prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${audioBase64 ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
+      const hasAudio = Boolean(uploadedAudioUri || audioBase64);
+      prompt = `Susun teks terjemahan Bahasa Indonesia berikut menjadi subtitle SRT yang siap dipakai editor. ${hasAudio ? "Dengarkan audio MP3 yang disertakan dan selaraskan setiap kalimat dengan waktu ucapan yang benar-benar terdengar." : "Audio tidak tersedia. Buat perkiraan waktu berdasarkan alur kalimat dan beri catatan estimasi pada hasil."}
 Aturan: pecah menjadi baris subtitle pendek, maksimal sekitar 42 karakter per baris dan 2 baris per cue; jangan mengubah, meringkas, atau menghilangkan makna; urutkan sesuai ucapan; jangan tumpang tindih; start dan end harus berformat HH:MM:SS.mmm; tiap cue minimal 0,8 detik. Jangan mengarang jeda panjang.
 Kembalikan HANYA JSON valid: {"segments":[{"start":"00:00:00.000","end":"00:00:02.400","text":"Teks subtitle"}],"timing":"aligned|estimated"}
 TERJEMAHAN:
 ${translatedTranscript}`;
       requestParts = [{ text: prompt }];
-      if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
+      if (uploadedAudioUri) requestParts.push({ file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudioUri } });
+      else if (audioBase64) requestParts.push({ inline_data: { mime_type: audioMimeType, data: audioBase64 } });
     } else if (task === "shorts-moment-finder") {
       const audioBase64 = String(body.audioBase64 || "");
       audioMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
