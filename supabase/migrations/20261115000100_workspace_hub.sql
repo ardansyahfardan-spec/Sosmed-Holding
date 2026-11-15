@@ -91,12 +91,12 @@ create policy "Admins delete ideas"
 drop policy if exists "Workspace members read tasks" on public.ghoustory_workspace_tasks;
 create policy "Workspace members read tasks"
   on public.ghoustory_workspace_tasks for select to authenticated
-  using (private.is_ghoustory_workspace_member());
+  using (private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin());
 
 drop policy if exists "Members create tasks" on public.ghoustory_workspace_tasks;
 create policy "Members create tasks"
   on public.ghoustory_workspace_tasks for insert to authenticated
-  with check (private.is_ghoustory_workspace_member() and created_by = (select auth.uid()));
+  with check ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and created_by = (select auth.uid()));
 
 drop policy if exists "Task owners update tasks" on public.ghoustory_workspace_tasks;
 create policy "Task owners update tasks"
@@ -112,7 +112,7 @@ create policy "Admins delete tasks"
 drop policy if exists "Workspace members read activity" on public.ghoustory_workspace_activity;
 create policy "Workspace members read activity"
   on public.ghoustory_workspace_activity for select to authenticated
-  using (private.is_ghoustory_workspace_member());
+  using (private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin());
 
 drop policy if exists "Admins read AI usage" on public.ghoustory_ai_usage;
 create policy "Admins read AI usage"
