@@ -8,7 +8,7 @@
   let cachedIdeas = [];
   let cachedTasks = [];
   let cachedActivity = [];
-  let aiUsageCount = null;
+  let aiUsageSummary = null;
   let aiUsageLoaded = false;
   let isWorkspaceAdmin = false;
 
@@ -71,11 +71,16 @@
       </article>`).join('');
   }
   function renderMonitor() {
+    const aiPending = aiUsageSummary === null;
+    const aiRestricted = aiUsageSummary === 'Admin saja' || aiUsageSummary === 'Belum aktif' || aiUsageSummary === 'Gagal dimuat';
+    const aiRequests = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : Number(aiUsageSummary.requests || 0);
+    const aiTokens = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : (Number(aiUsageSummary.inputTokens || 0).toLocaleString('id-ID') + ' masuk / ' + Number(aiUsageSummary.outputTokens || 0).toLocaleString('id-ID') + ' keluar');
     const values = [
       ['Ide Crew', cachedIdeas.length],
       ['Tugas', cachedTasks.length],
       ['Aktivitas tercatat', cachedActivity.length],
-      ['Log AI · 30 hari', aiUsageCount === null ? 'Buka tab untuk memuat' : aiUsageCount]
+      ['Permintaan AI · 30 hari', aiRequests],
+      ['Token AI · 30 hari', aiTokens]
     ];
     const root = $('workspace-monitor-grid');
     if (root) root.innerHTML = values.map(([label,value]) => `<div class="workspace-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('');
@@ -92,9 +97,13 @@
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
       isWorkspaceAdmin = !error && data !== null;
-      aiUsageCount = error
+      aiUsageSummary = error
         ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
-        : (data === null ? 'Admin saja' : Number(data || 0));
+        : (data === null ? 'Admin saja' : {
+            requests: Number(data.requests || 0),
+            inputTokens: Number(data.inputTokens || 0),
+            outputTokens: Number(data.outputTokens || 0)
+          });
       renderIdeas();
     } catch {
       aiUsageCount = 'Gagal dimuat';
@@ -122,7 +131,7 @@
     cachedIdeas = ideas.data || [];
     cachedTasks = tasks.data || [];
     cachedActivity = activity.data || [];
-    aiUsageCount = null;
+    aiUsageSummary = null;
     aiUsageLoaded = false;
     isWorkspaceAdmin = false;
     renderIdeas(); renderTasks(); renderMonitor();
