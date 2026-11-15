@@ -128,6 +128,56 @@ try {
   await page.locator("#arena-lobby-view").waitFor({ state: "visible", timeout: 10000 });
 
   console.log("Game Hub integration test passed: launcher opens the iframe outside the hidden lobby, Three.js r159 initializes WebGL, character selection opens, and Back restores the lobby.");
+
+  // Exercise the same launch/return flow at an iPhone-sized touch viewport.
+  const mobilePage = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    isMobile: true,
+    hasTouch: true,
+  });
+  mobilePage.on("pageerror", (error) => errors.push(error.message));
+  await mobilePage.route("https://**/*", async (route) => {
+    const url = route.request().url();
+    if (url.startsWith("https://cdn.jsdelivr.net/npm/three@0.159.0/") ||
+        url.startsWith("https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/")) {
+      await route.continue();
+    } else {
+      await route.abort();
+    }
+  });
+  await mobilePage.goto("http://127.0.0.1:4173/index.html", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await mobilePage.waitForFunction(() => typeof window.openDesaTerlarang === "function", { timeout: 30000 });
+  await mobilePage.evaluate(() => {
+    const app = document.getElementById("main-app");
+    app?.classList.remove("hidden");
+    app?.classList.add("opacity-100");
+    window.showPage("arena");
+    window.openDesaTerlarang();
+  });
+  const mobileFrame = mobilePage.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
+  if (!mobileFrame) throw new Error("Mobile Game Hub did not load the Desa Terlarang iframe.");
+  await mobileFrame.waitForFunction(() => window.THREE?.REVISION === "159", { timeout: 30000 });
+  await mobileFrame.waitForFunction(() => {
+    const canvas = document.querySelector("#game");
+    return !!canvas && canvas.width > 0 && canvas.height > 0 &&
+      !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  }, { timeout: 30000 });
+  const mobileFrameSize = await mobileFrame.evaluate(() => {
+    const rect = window.frameElement?.getBoundingClientRect();
+    return rect ? { width: rect.width, height: rect.height } : null;
+  });
+  if (!mobileFrameSize || mobileFrameSize.width < 380 || mobileFrameSize.height < 800) {
+    throw new Error("Mobile Game Hub iframe does not fill the phone viewport: " + JSON.stringify(mobileFrameSize));
+  }
+  await mobileFrame.locator("#create-room").tap();
+  await mobileFrame.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
+  await mobilePage.locator('#arena-play-panel > button[aria-label="Kembali ke Game Ghoustory"]').tap();
+  await mobilePage.waitForFunction(() => document.querySelector("#arena-play-panel")?.parentElement?.id === "arena-lobby-view");
+  await mobilePage.locator("#arena-lobby-view").waitFor({ state: "visible", timeout: 10000 });
+  if (errors.length) throw new Error("Mobile game runtime errors: " + errors.join(" | "));
+  console.log("Mobile Game Hub test passed: 390x844 touch viewport, full-size iframe, WebGL, character selection, and return-to-lobby flow.");
+  await mobilePage.close();
 } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
