@@ -1,8 +1,8 @@
 -- Verify the admin-only AI metrics RPC returns the complete 30-day summary.
-insert into auth.users(id) values ('00000000-0000-4000-8000-000000000001');
-insert into private.ghoustory_app_admins(user_id) values ('00000000-0000-4000-8000-000000000001');
+insert into auth.users(id) values ('00000000-0000-4000-8000-000000000002');
+insert into private.ghoustory_app_admins(user_id) values ('00000000-0000-4000-8000-000000000002');
 insert into public.ghoustory_ai_usage(user_id,provider,model,feature,input_tokens,output_tokens,status,created_at)
-values ('00000000-0000-4000-8000-000000000001','test','fixture','test',101,202,'success',now());
+values ('00000000-0000-4000-8000-000000000002','test','fixture','test',101,202,'success',now());
 
 do $$
 begin
@@ -16,7 +16,7 @@ end;
 $$;
 
 begin;
-select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', true);
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000002', true);
 set local role authenticated;
 do $$
 declare
