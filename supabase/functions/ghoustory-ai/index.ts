@@ -7,10 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const json = (body: unknown, status = 200) =>
+const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", ...extraHeaders },
   });
 
 
@@ -84,6 +84,27 @@ async function isWorkspaceMember(req: Request): Promise<boolean> {
     signal: AbortSignal.timeout(8000),
   });
   if (!response.ok) throw new Error("Pemeriksaan keanggotaan Crew gagal (HTTP " + response.status + ").");
+  return (await response.json()) === true;
+}
+
+async function takeAiRateLimit(req: Request): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  if (!supabaseUrl || !anonKey || !/^Bearer\\s+\\S+/i.test(authorization)) {
+    throw new Error("Konfigurasi pemeriksaan batas AI belum tersedia.");
+  }
+  const response = await fetch(supabaseUrl.replace(/\\/$/, "") + "/rest/v1/rpc/ghoustory_ai_take_rate_limit", {
+    method: "POST",
+    headers: {
+      "apikey": anonKey,
+      "Authorization": authorization,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error("Pemeriksaan batas permintaan AI gagal (HTTP " + response.status + ").");
   return (await response.json()) === true;
 }
 
@@ -338,6 +359,16 @@ Deno.serve(async (req) => {
         function: "ghoustory-ai",
         message: "Edge Function runtime berjalan.",
       });
+    }
+
+    // Atomic per-user burst protection; fail closed if the database check is unavailable.
+    try {
+      if (!(await takeAiRateLimit(req))) {
+        return json({ error: "Batas penggunaan AI tercapai. Coba lagi setelah satu menit." }, 429, { "Retry-After": "60" });
+      }
+    } catch (rateLimitError) {
+      console.error("[ghoustory-ai] rate_limit_check_failed:", rateLimitError instanceof Error ? rateLimitError.message.slice(0, 180) : "unknown");
+      return json({ error: "Layanan pembatas AI belum dapat diverifikasi. Coba lagi sebentar." }, 503);
     }
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
