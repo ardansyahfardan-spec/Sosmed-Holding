@@ -72,3 +72,14 @@ Jangan langsung memecah seluruh 16 key menjadi banyak tabel sebelum hasil migras
 - Pencarian percakapan 1:1 menggunakan RPC `ghoustory_dm_find_conversation()` ketika migration tersedia; fallback lama dipertahankan untuk kompatibilitas sebelum migration.
 - Event pesan, tanda baca, dan penghapusan kini memakai debounce refresh inbox 250 ms.
 - Migration pencarian DM hanya tersimpan di branch; belum ada perubahan produksi dari migration tersebut.
+
+
+## Hardening Edge Function AI (branch PR #2, 15 Nov 2026)
+
+- Parsing body kini dibatasi dengan pembacaan stream maksimum 25 MiB sebelum JSON.parse; Content-Length yang melebihi batas ditolak dengan HTTP 413. Batas ini tetap kompatibel dengan jalur audio Base64 yang saat ini membatasi payload audio mentah sekitar 17 MB.
+- Diagnostik `task=health` kini dijalankan setelah verifikasi JWT dan membership Crew; respons tidak lagi mengungkap apakah secret provider Gemini terpasang.
+- Ditambahkan pembatas burst atomik per pengguna: maksimum 10 request AI per menit melalui RPC `ghoustory_ai_take_rate_limit()`. Jika RPC gagal diverifikasi, endpoint menolak pemrosesan AI dengan HTTP 503 (fail closed); jika kuota burst habis, HTTP 429 dan `Retry-After: 60`.
+- Migration pembatas AI dan perubahan Edge Function hanya berada di branch PR #2. Tidak dijalankan ke Supabase live dan tidak ada request Gemini yang dikirim.
+- GitHub Actions run #76 pada commit `16225fc2f4cd1d1dc4a3c024ba46f04fae21e438` lulus: validasi JavaScript Workspace, delapan skrip inline, dan `deno check` Edge Function.
+- Pemeriksaan browser/E2E belum dilakukan. Sebelum merge/deploy, migration perlu diuji pada environment non-produksi, termasuk batas 10 request/menit, reset window, dan respons 503 saat RPC tidak tersedia.
+- Temuan konfigurasi Auth yang tidak dapat diperbaiki melalui repository (perlindungan kata sandi bocor) tetap perlu diaktifkan melalui dashboard setelah persetujuan admin. Endpoint `ghoustory-character` di project live memakai `verify_jwt=false` untuk alur pairing Roblox publik; aksi yang mengubah akun tetap memvalidasi token atau kode pairing satu kali, dan alur publik perlu diuji ulang sebelum perubahan konfigurasi.
