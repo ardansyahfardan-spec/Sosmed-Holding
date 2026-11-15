@@ -12,9 +12,9 @@ if (scripts.length === 0) {
 const failures = [];
 for (let i = 0; i < scripts.length; i += 1) {
   try {
-    new vm.Script(scripts[i][2], { filename: \`index.html:inline-script-\${i + 1}\` });
+    new vm.Script(scripts[i][2], { filename: "index.html:inline-script-" + (i + 1) });
   } catch (error) {
-    failures.push(\`Inline script \${i + 1}: \${error.message}\`);
+    failures.push("Inline script " + (i + 1) + ": " + error.message);
   }
 }
 
@@ -22,5 +22,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log(\`Validated \${scripts.length} inline JavaScript blocks in index.html.\`);
+  console.log("Validated " + scripts.length + " inline JavaScript blocks in index.html.");
 }
