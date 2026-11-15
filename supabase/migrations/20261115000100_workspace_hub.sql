@@ -102,7 +102,7 @@ drop policy if exists "Task owners update tasks" on public.ghoustory_workspace_t
 create policy "Task owners update tasks"
   on public.ghoustory_workspace_tasks for update to authenticated
   using (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()))
-  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()));
+  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()));
 
 drop policy if exists "Admins delete tasks" on public.ghoustory_workspace_tasks;
 create policy "Admins delete tasks"
