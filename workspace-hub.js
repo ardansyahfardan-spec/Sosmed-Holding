@@ -82,9 +82,9 @@
     const aiRequests = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : Number(aiUsageSummary.requests || 0);
     const aiTokens = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : (Number(aiUsageSummary.inputTokens || 0).toLocaleString('id-ID') + ' masuk / ' + Number(aiUsageSummary.outputTokens || 0).toLocaleString('id-ID') + ' keluar');
     const values = [
-      ['Ide Crew', cachedIdeas.length],
-      ['Tugas', cachedTasks.length],
-      ['Aktivitas tercatat', cachedActivity.length],
+      ['Ide terbaru (maks. 40)', cachedIdeas.length],
+      ['Tugas terbaru (maks. 40)', cachedTasks.length],
+      ['Aktivitas terbaru (maks. 20)', cachedActivity.length],
       ['Permintaan AI · 30 hari', aiRequests],
       ['Token AI · 30 hari', aiTokens]
     ];
@@ -93,7 +93,7 @@
     const activity = $('workspace-activity-list');
     if (activity) activity.innerHTML = cachedActivity.length ? cachedActivity.map(a => `<div class="workspace-activity-row"><b>${esc(a.action)} · ${esc(a.entity_type)}</b><span>${dateLabel(a.created_at)}</span></div>`).join('') : '<p class="workspace-empty">Belum ada aktivitas.</p>';
     const note = $('workspace-monitor-note');
-    if (note) note.textContent = 'Ringkasan Workspace bukan batas kuota Supabase. Ringkasan AI 30 hari diperiksa sekali saat Workspace dibuka untuk mengenali akses admin; hanya admin yang menerima angka token. Tidak ada polling otomatis.';
+    if (note) note.textContent = 'Angka Workspace menunjukkan item terbaru yang dimuat, bukan total seluruh data atau batas kuota Supabase. Ringkasan AI 30 hari diperiksa sekali saat Workspace dibuka untuk mengenali akses admin; hanya admin yang menerima angka token. Tidak ada polling otomatis.';
   }
   async function loadAiUsage() {
     if (aiUsageLoaded) return;
