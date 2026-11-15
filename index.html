@@ -4457,9 +4457,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     <div onclick="openSegmenVideoDetail(${idx})" class="cursor-pointer">
                         <div class="flex items-center gap-3 mb-2">
                             ${seg.logo ? `<img src="${seg.logo}" class="w-10 h-10 object-cover rounded-full border border-orange-500">` : `<div class="w-10 h-10 rounded-full bg-orange-950 flex items-center justify-center text-orange-500 font-bold"><i class="fa-solid fa-hashtag"></i></div>`}
-                            <div><h4 class="font-bold text-orange-400 text-sm">${seg.nama}</h4><p class="text-[11px] text-gray-400 italic">${seg.tagline}</p></div>
+                            <div><h4 class="font-bold text-orange-400 text-sm">${escapeHtml(seg.nama)}</h4><p class="text-[11px] text-gray-400 italic">${escapeHtml(seg.tagline)}</p></div>
                         </div>
-                        <p class="text-xs text-gray-300 mb-3">${seg.desc}</p>
+                        <p class="text-xs text-gray-300 mb-3">${escapeHtml(seg.desc)}</p>
                         <p class="text-xs text-orange-300 mb-2"><i class="fa-solid fa-film"></i> ${db.tayang.filter(v => v.segment === seg.nama && v.agreed !== false).length} video disepakati</p>
                         <p class="text-[10px] text-gray-500">Klik untuk melihat daftar video <i class="fa-solid fa-arrow-right"></i></p>
                     </div>
@@ -4591,10 +4591,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     
                     ringkasanList.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-xs text-white flex flex-col gap-2">
                         <div class="flex justify-between items-center">
-                            <div><b>🎥 ${sch.title}</b><div class="text-[10px] text-gray-400">Narasumber: <b class="text-yellow-400">${sch.narsum || '-'}</b> | Segmen: ${sch.segment || '-'}</div></div>
+                            <div><b>🎥 ${escapeHtml(sch.title)}</b><div class="text-[10px] text-gray-400">Narasumber: <b class="text-yellow-400">${escapeHtml(sch.narsum || '-')}</b> | Segmen: ${escapeHtml(sch.segment || '-')}</div></div>
                             <div class="flex gap-1">
                                 ${renderDoneControl('jadwal', sch)}
-                                <button onclick="selesaiShooting('${sch.narsum || sch.title}')" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-white font-bold">Selesai Shooting</button>
+                                <button onclick="selesaiShootingForSchedule(${Number(sch.id)})" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-white font-bold">Selesai Shooting</button>
                                 <button onclick="editJadwal(${sch.id})" class="text-xs bg-gray-800 px-2 py-1 rounded text-yellow-400">Edit</button>
                                 <button onclick="hapusJadwal(${sch.id})" class="text-xs bg-red-900 px-2 py-1 rounded text-white">Hapus</button>
                             </div>
@@ -4614,7 +4614,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         function openModalAbsen(schId) {
             const sch = db.jadwal.find(j => j.id === schId); if(!sch) return;
             activeScheduleId = schId;
-            document.getElementById('absen-detail-info').innerHTML = `<b>🎥 ${sch.title}</b><br>Narsum: ${sch.narsum}<br>📍 ${sch.loc} (${sch.time})`;
+            document.getElementById('absen-detail-info').textContent = `🎥 ${sch.title || '-'} | Narasumber: ${sch.narsum || '-'} | Lokasi: ${sch.loc || '-'} (${sch.time || '-'})`;
             const listDiv = document.getElementById('absen-list-kru'); listDiv.innerHTML = '';
             
             KRU_NAMES.forEach(name => {
@@ -4626,7 +4626,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                             <button onclick="setAbsenKru('${name}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
                         </div>
                     </div>
-                    ${!data.hadir ? `<input type="text" value="${data.alasan}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
+                    ${!data.hadir ? `<input type="text" value="${escapeHtml(data.alasan)}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
                 </div>`;
             });
             document.getElementById('modal-absen').classList.remove('hidden'); document.getElementById('modal-absen').classList.add('flex');
@@ -4751,6 +4751,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
 
         // STOK & KLASIFIKASI
+        function selesaiShootingForSchedule(scheduleId){const sch=db.jadwal.find(item=>Number(item.id)===Number(scheduleId));if(!sch)return alert('Jadwal tidak ditemukan.');return selesaiShooting(sch.narsum||sch.title||'');}
         function selesaiShooting(narsumName) {
             if(!narsumName) return alert("Nama narasumber kosong!");
             const id = Date.now();
