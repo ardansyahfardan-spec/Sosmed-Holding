@@ -74,7 +74,7 @@ try {
   });
   await page.goto("http://127.0.0.1:4173/index.html", { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForFunction(() => typeof window.openDesaTerlarang === "function", { timeout: 30000 });
-  await page.evaluate(() => { window.showPage("arena"); window.openDesaTerlarang(); });
+  await page.evaluate(() => { const app = document.getElementById("main-app"); app?.classList.remove("hidden"); app?.classList.add("opacity-100"); window.showPage("arena"); window.openDesaTerlarang(); });
   await page.locator("#arena-play-panel iframe").waitFor({ state: "attached", timeout: 10000 });
 
   const gameFrame = page.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
