@@ -19,7 +19,8 @@ async function isWorkspaceMember(req: Request): Promise<boolean> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const authorization = req.headers.get("authorization") || "";
-  if (!supabaseUrl || !anonKey || !/^Bearer\s+\S+/i.test(authorization)) return false;
+  if (!supabaseUrl || !anonKey) throw new Error("Konfigurasi API Supabase belum tersedia.");
+  if (!/^Bearer\s+\S+/i.test(authorization)) return false;
 
   const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/is_ghoustory_workspace_member", {
     method: "POST",
