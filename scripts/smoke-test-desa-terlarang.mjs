@@ -80,10 +80,32 @@ try {
   const gameFrame = page.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
   if (!gameFrame) throw new Error("Game Hub did not load the Desa Terlarang iframe.");
   await gameFrame.waitForFunction(() => window.THREE?.REVISION === "159", { timeout: 30000 });
-  await gameFrame.waitForFunction(() => {
+  await page.waitForTimeout(1000);
+  const frameDiagnostics = await gameFrame.evaluate(() => {
     const canvas = document.querySelector("#game");
-    return !!canvas && canvas.width > 0 && canvas.height > 0 && !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  }, { timeout: 30000 });
+    const frameRect = window.frameElement?.getBoundingClientRect();
+    const panel = window.parent.document.querySelector("#arena-play-panel");
+    const arena = window.parent.document.querySelector("#page-arena");
+    return {
+      href: location.href,
+      readyState: document.readyState,
+      threeRevision: window.THREE?.REVISION || null,
+      canvas: canvas ? {
+        width: canvas.width, height: canvas.height,
+        clientWidth: canvas.clientWidth, clientHeight: canvas.clientHeight,
+        webgl2: !!canvas.getContext("webgl2"),
+        webgl: !!canvas.getContext("webgl"),
+      } : null,
+      iframeRect: frameRect ? { width: frameRect.width, height: frameRect.height } : null,
+      panelRect: panel ? { width: panel.getBoundingClientRect().width, height: panel.getBoundingClientRect().height } : null,
+      arenaClasses: arena?.className || null,
+      runtimeErrors: errors,
+    };
+  });
+  const canvasReady = frameDiagnostics.canvas &&
+    frameDiagnostics.canvas.width > 0 && frameDiagnostics.canvas.height > 0 &&
+    (frameDiagnostics.canvas.webgl2 || frameDiagnostics.canvas.webgl);
+  if (!canvasReady) throw new Error("Desa game iframe did not initialize WebGL: " + JSON.stringify(frameDiagnostics));
   await gameFrame.locator("#create-room").click();
   await gameFrame.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
 
