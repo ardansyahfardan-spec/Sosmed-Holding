@@ -21,6 +21,8 @@ jobs:
         run: node --check workspace-hub.js
       - name: Check inline application scripts
         run: node scripts/validate-inline-scripts.mjs
+      - name: Check Jadi WNI game JavaScript
+        run: node --check assets/games/jadi-wni/jadi-wni.js
       - name: Type-check AI Edge Function
         run: |
           deno check supabase/functions/ghoustory-ai/index.ts
