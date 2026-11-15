@@ -88,11 +88,10 @@
     const db = client();
     if (!db) return;
     try {
-      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { count, error } = await db.from('ghoustory_ai_usage')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', cutoff);
-      aiUsageCount = error ? (error.message.includes('does not exist') || error.message.includes('Could not find the table') ? 'Belum aktif' : 'Khusus admin') : (count ?? 0);
+      const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
+      aiUsageCount = error
+        ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
+        : (data === null ? 'Admin saja' : Number(data || 0));
     } catch {
       aiUsageCount = 'Gagal dimuat';
     }
