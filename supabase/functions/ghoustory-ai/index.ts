@@ -82,10 +82,10 @@ function decodeCaptionText(value: string): string {
   return value.replace(/<br\s*\/?\s*>/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/\s+/g, " ").trim();
 }
 function secondsLabel(value: number): string { const s=Math.max(0,Math.floor(value)); return [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
-async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string): Promise<{ uri: string; name: string }> {
+async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, apiKey: string, onUploaded?: (name: string) => void): Promise<{ uri: string; name: string }> {
   const parsed = new URL(audioUrl);
   const projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
-  if (parsed.origin !== projectUrl.origin || !parsed.pathname.includes("/storage/v1/object/sign/vo-recordings/")) {
+  if (parsed.origin !== projectUrl.origin || !parsed.pathname.startsWith("/storage/v1/object/sign/vo-recordings/")) {
     throw new Error("Tautan audio sementara tidak valid.");
   }
   const audioResponse = await fetch(audioUrl, { signal: AbortSignal.timeout(90000) });
@@ -124,6 +124,9 @@ async function uploadAudioUrlToGemini(audioUrl: string, displayName: string, api
   const uploaded = await finishResponse.json();
   let file = uploaded?.file;
   if (!file?.uri || !file?.name) throw new Error("Gemini tidak mengembalikan identitas file yang valid.");
+  // Register the file immediately so the request-level catch can clean it up
+  // even when Gemini's asynchronous file processing fails or times out.
+  onUploaded?.(String(file.name));
   for (let attempt = 0; attempt < 10 && file.state && file.state !== "ACTIVE"; attempt++) {
     if (file.state === "FAILED") throw new Error("Gemini gagal menyiapkan audio untuk dianalisis.");
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -431,7 +434,7 @@ Pastikan semua nilai views berupa integer. Jika label metrik utama tidak jelas, 
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Fitur Analisis Video menerima file MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
       const title = String(body.title || "Analisis Video Ghoustory").slice(0, 180);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title || "Ghoustory MP3", apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten untuk kanal horor Indonesia Ghoustory. Dengarkan seluruh file MP3 ini. Audio dapat menggunakan bahasa Jawa (termasuk dialek Jawa Timur/Sidoarjo), bahasa Indonesia, atau campuran. Judul/keterangan: ${title}.
@@ -456,7 +459,7 @@ Jangan menghilangkan bagian penting transkrip. Jika audio terlalu panjang untuk 
       const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara tidak tersedia." }, 400);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory transkripsi bagian " + chunkNumber, apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory transkripsi bagian " + chunkNumber, apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Transkripsikan audio bagian ${chunkNumber} dari ${totalChunks} secara lengkap dan verbatim. Audio dapat menggunakan Bahasa Indonesia, bahasa Jawa Timur/Sidoarjo, atau campuran. Pertahankan kata, nama, istilah lokal, dan gaya tutur yang benar-benar terdengar. Jangan menerjemahkan, meringkas, atau mengarang ucapan. Jika ada bagian yang tidak jelas, tandai [tidak terdengar]. Deteksi bahasa yang digunakan.
@@ -486,7 +489,7 @@ ${transcript}`;
       const totalChunks = Math.max(chunkNumber, Number(body.totalChunks) || chunkNumber);
       if (audioMimeType !== "audio/mpeg" && audioMimeType !== "audio/mp3") return json({ error: "Bagian audio harus berformat MP3." }, 400);
       if (!audioUrl) return json({ error: "Tautan MP3 sementara untuk bagian audio tidak tersedia." }, 400);
-      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title + " bagian " + chunkNumber, apiKey);
+      const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, title + " bagian " + chunkNumber, apiKey, (name) => { uploadedGeminiFileName = name; });
       requestParts = [{ text: "" }, { file_data: { mime_type: "audio/mpeg", file_uri: uploadedAudio.uri } }];
       uploadedGeminiFileName = uploadedAudio.name;
       prompt = `Kamu adalah editor transkrip dan produser konten kanal horor Indonesia Ghoustory. Analisis BAGIAN ${chunkNumber} dari ${totalChunks} audio. Judul: ${title}. Posisi bagian ini dimulai pada detik ke-${offsetSeconds} dari audio asli.
@@ -530,7 +533,7 @@ Kembalikan HANYA JSON valid:
       const audioBase64 = String(body.audioBase64 || "");
       if (audioUrl) {
         if (audioMimeType !== "audio/mpeg") return json({ error: "Format audio untuk subtitle harus MP3." }, 400);
-        const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey);
+        const uploadedAudio = await uploadAudioUrlToGemini(audioUrl, "Ghoustory subtitle audio", apiKey, (name) => { uploadedGeminiFileName = name; });
         uploadedAudioUri = uploadedAudio.uri;
         uploadedGeminiFileName = uploadedAudio.name;
       } else if (audioBase64) {
