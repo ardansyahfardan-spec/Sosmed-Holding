@@ -101,11 +101,10 @@
     const { data: auth, error: authError } = await db.auth.getUser();
     if (authError || !auth?.user) { status('Silakan login terlebih dahulu.', true); return; }
     currentUser = auth.user;
-    const [ideas, tasks, activity, aiCount] = await Promise.all([
+    const [ideas, tasks, activity] = await Promise.all([
       db.from('ghoustory_workspace_ideas').select('id,title,description,category,status,created_by,created_at').order('created_at',{ascending:false}).limit(40),
       db.from('ghoustory_workspace_tasks').select('id,title,description,status,priority,due_at,assigned_to,created_by,created_at').order('created_at',{ascending:false}).limit(40),
-      db.from('ghoustory_workspace_activity').select('id,entity_type,action,created_at').order('created_at',{ascending:false}).limit(20),
-      Promise.resolve({data:[],error:null,count:null})
+      db.from('ghoustory_workspace_activity').select('id,entity_type,action,created_at').order('created_at',{ascending:false}).limit(20)
     ]);
     if (ideas.error || tasks.error || activity.error) {
       const err = ideas.error || tasks.error || activity.error;
@@ -118,6 +117,7 @@
     aiUsageCount = null;
     aiUsageLoaded = false;
     renderIdeas(); renderTasks(); renderMonitor();
+    if (activeTab === 'monitor') loadAiUsage();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
   }
   async function submitIdea(event) {
