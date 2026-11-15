@@ -9,6 +9,7 @@
   let cachedTasks = [];
   let cachedActivity = [];
   let aiUsageCount = null;
+  let aiUsageLoaded = false;
 
   function status(message, error = false) {
     const el = $('workspace-status');
@@ -32,7 +33,7 @@
       const panel = $('workspace-panel-' + key);
       if (panel) panel.classList.toggle('hidden', key !== tab);
     });
-    if (tab === 'monitor') renderMonitor();
+    if (tab === 'monitor') { renderMonitor(); loadAiUsage(); }
   }
   function renderIdeas() {
     const root = $('workspace-ideas-list');
@@ -72,14 +73,26 @@
       ['Ide Crew', cachedIdeas.length],
       ['Tugas', cachedTasks.length],
       ['Aktivitas tercatat', cachedActivity.length],
-      ['Log AI', 'Belum terhubung']
+      ['Log AI · 30 hari', aiUsageCount === null ? 'Buka tab untuk memuat' : aiUsageCount]
     ];
     const root = $('workspace-monitor-grid');
     if (root) root.innerHTML = values.map(([label,value]) => `<div class="workspace-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('');
     const activity = $('workspace-activity-list');
     if (activity) activity.innerHTML = cachedActivity.length ? cachedActivity.map(a => `<div class="workspace-activity-row"><b>${esc(a.action)} · ${esc(a.entity_type)}</b><span>${dateLabel(a.created_at)}</span></div>`).join('') : '<p class="workspace-empty">Belum ada aktivitas.</p>';
     const note = $('workspace-monitor-note');
-    if (note) note.textContent = 'Angka ini adalah jumlah data fitur Workspace, bukan batas kuota Supabase. Pencatatan token/provider AI belum dihubungkan ke Edge Function dan tidak menambah query berkala.';
+    if (note) note.textContent = 'Ringkasan Workspace bukan batas kuota Supabase. Log AI hanya dimuat saat tab Monitoring dibuka, khusus admin, tanpa polling otomatis.';
+  }
+  async function loadAiUsage() {
+    if (aiUsageLoaded) return;
+    aiUsageLoaded = true;
+    const db = client();
+    if (!db) return;
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await db.from('ghoustory_ai_usage')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', cutoff);
+    aiUsageCount = error ? (error.message.includes('does not exist') || error.message.includes('Could not find the table') ? 'Belum aktif' : 'Khusus admin') : (count ?? 0);
+    renderMonitor();
   }
   async function loadWorkspace() {
     const db = client();
@@ -103,6 +116,7 @@
     cachedTasks = tasks.data || [];
     cachedActivity = activity.data || [];
     aiUsageCount = null;
+    aiUsageLoaded = false;
     renderIdeas(); renderTasks(); renderMonitor();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
   }
