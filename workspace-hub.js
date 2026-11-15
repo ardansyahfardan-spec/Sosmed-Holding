@@ -289,7 +289,7 @@
     });
     $('workspace-tasks-list')?.addEventListener('click', event => {
       const button = event.target.closest('[data-complete-task]');
-      if (button) completeTask(button.dataset.completeTask);
+      if (button) completeTask(button.dataset.completeTask, button);
     });
     document.querySelectorAll('[data-workspace-tab]').forEach(el => el.setAttribute('type','button'));
     const page = $('page-workspace');
