@@ -93,7 +93,7 @@
     const activity = $('workspace-activity-list');
     if (activity) activity.innerHTML = cachedActivity.length ? cachedActivity.map(a => `<div class="workspace-activity-row"><b>${esc(a.action)} · ${esc(a.entity_type)}</b><span>${dateLabel(a.created_at)}</span></div>`).join('') : '<p class="workspace-empty">Belum ada aktivitas.</p>';
     const note = $('workspace-monitor-note');
-    if (note) note.textContent = 'Ringkasan Workspace bukan batas kuota Supabase. Log AI hanya dimuat saat tab Monitoring dibuka, khusus admin, tanpa polling otomatis.';
+    if (note) note.textContent = 'Ringkasan Workspace bukan batas kuota Supabase. Ringkasan AI 30 hari diperiksa sekali saat Workspace dibuka untuk mengenali akses admin; hanya admin yang menerima angka token. Tidak ada polling otomatis.';
   }
   async function loadAiUsage() {
     if (aiUsageLoaded) return;
