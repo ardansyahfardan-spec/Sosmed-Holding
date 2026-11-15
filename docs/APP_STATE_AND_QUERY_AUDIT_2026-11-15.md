@@ -91,3 +91,16 @@ Jangan langsung memecah seluruh 16 key menjadi banyak tabel sebelum hasil migras
 - Migration juga mengubah default privileges untuk role pembuat tabel `postgres` dan `supabase_admin`, agar tabel public baru tidak otomatis memberikan TRUNCATE kepada anon/authenticated.
 - Migration ini branch-only dan belum dijalankan ke Supabase live. Perlu validasi pada project non-produksi sebelum dipertimbangkan untuk rilis.
 - GitHub Actions run #84 pada commit `44f2f41d024a3890eae5bf73e8e2464ebc064603` lulus: validasi JavaScript Workspace, delapan skrip inline, dan pemeriksaan tipe Edge Function Deno. CI tidak mengeksekusi SQL migration.
+
+
+### Uji regresi migration dan verifikasi lanjutan (15 Nov 2026)
+- Pipeline CI kini menjalankan PostgreSQL 16 terisolasi, menyiapkan fixture kompatibel Supabase, menerapkan kedua migration baru, lalu menguji:
+  - TRUNCATE tidak tersedia pada tabel publik yang sudah ada maupun tabel publik baru untuk `anon` dan `authenticated`.
+  - Tabel private pembatas AI tidak dapat dibaca langsung oleh role browser.
+  - RPC hanya dapat dieksekusi role `authenticated`, dan batasnya tepat 10 request berhasil per user per menit; request ke-11 ditolak.
+- GitHub Actions run #91 lulus pada commit `7d3515b46f9dc18c80396d2511edc8c890166227`, termasuk kedua job `syntax` dan `database-migrations`.
+- Pemeriksaan Supabase mengonfirmasi tabel `ghoustory_character_pair_codes` dan `ghoustory_roblox_links` tidak memberi grant langsung kepada `anon`/ `authenticated`; keduanya memang dilayani Edge Function menggunakan service role. Karena itu dua peringatan RLS tanpa policy pada tabel tersebut tidak berarti browser dapat mengakses tabel secara langsung. Tetap perlu menjaga pola service-role-only ini.
+- Belum ada Supabase development branch pada project. Migration diuji pada PostgreSQL CI yang terisolasi, bukan pada database Supabase non-produksi.
+- Uji browser login Crew/Admin belum berhasil dijalankan: saldo TinyFish tidak mencukupi dan situs GitHub Pages tidak dapat dibaca melalui pemeriksaan web. Tidak ada login atau perubahan data yang dilakukan.
+- Leaked Password Protection masih nonaktif. Konektor Supabase yang tersedia tidak menyediakan operasi untuk mengubah pengaturan Auth ini; perlu diaktifkan di Dashboard Supabase > Authentication > Settings > Password Security.
+- Semua migration baru tetap branch-only; tidak ada migration atau deployment baru ke produksi.
