@@ -4334,7 +4334,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen'), document.getElementById('tayang-segment')];
             sels.forEach(sel => {
                 if(!sel) return; sel.innerHTML = '';
-                db.segmenList.forEach(sg => { sel.innerHTML += `<option value="${sg.nama}">${sg.nama} - ${sg.tagline}</option>`; });
+                db.segmenList.forEach(sg => { const name=escapeHtml(sg.nama); const tagline=escapeHtml(sg.tagline); sel.innerHTML += `<option value="${name}">${name} - ${tagline}</option>`; });
             });
         }
 
