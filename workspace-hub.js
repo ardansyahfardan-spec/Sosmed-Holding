@@ -255,10 +255,11 @@
       if (button) button.disabled = false;
     }
   }
-  async function completeTask(id) {
+  async function completeTask(id, button) {
     const db = client();
     const task = cachedTasks.find(x => x.id === id);
-    if (!task) return;
+    if (!task || button?.disabled) return;
+    if (button) button.disabled = true;
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_complete_task', {p_task_id:id});
       if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
@@ -269,6 +270,8 @@
       status('Tugas ditandai selesai.');
     } catch {
       status('Status tugas gagal diperbarui. Periksa koneksi lalu coba lagi.', true);
+    } finally {
+      if (button?.isConnected) button.disabled = false;
     }
   }
   function bind() {
@@ -278,7 +281,7 @@
     $('workspace-refresh')?.addEventListener('click', () => loadWorkspace(true));
     $('workspace-ideas-list')?.addEventListener('click', event => {
       const button = event.target.closest('[data-complete-task]');
-      if (button) completeTask(button.dataset.completeTask);
+      if (button) completeTask(button.dataset.completeTask, button);
     });
     $('workspace-ideas-list')?.addEventListener('change', event => {
       const select = event.target.closest('[data-idea-status]');
