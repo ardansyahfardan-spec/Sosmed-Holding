@@ -6128,9 +6128,14 @@ async function openDirectMessage(otherId){
           document.getElementById("dm-subtitle").textContent=member.role||"Crew MEETING CREW";
           const box=document.getElementById("dm-messages");box.textContent="Membuka percakapan...";
           try{
-            const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
-            let found=null;
-            for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
+            const {data:lookup,error:lookupError}=await supabaseClient.rpc("ghoustory_dm_find_conversation",{p_other_user_id:otherId});
+            let found=lookup||null;
+            if(lookupError){
+              const missingRpc=lookupError.code==="PGRST202"||/could not find the function|schema cache/i.test(lookupError.message||"");
+              if(!missingRpc)throw lookupError;
+              const {data:mine,error:e1}=await supabaseClient.from("ghoustory_dm_participants").select("conversation_id").eq("user_id",activeUser.id);if(e1)throw e1;
+              for(const row of mine||[]){const {data:people,error:e2}=await supabaseClient.from("ghoustory_dm_participants").select("user_id").eq("conversation_id",row.conversation_id);if(e2)throw e2;const ids=(people||[]).map(x=>x.user_id);if(ids.length===2&&ids.includes(activeUser.id)&&ids.includes(otherId)){found=row.conversation_id;break;}}
+            }
             if(!found){const {data:c,error:e3}=await supabaseClient.from("ghoustory_dm_conversations").insert({created_by:activeUser.id}).select("id").single();if(e3)throw e3;const {error:e4}=await supabaseClient.from("ghoustory_dm_participants").insert([{conversation_id:c.id,user_id:activeUser.id,added_by:activeUser.id},{conversation_id:c.id,user_id:otherId,added_by:activeUser.id}]);if(e4)throw e4;found=c.id;}
             activeDmConversation=found;activeDmMember=member;clearDmReply();await loadDirectMessages();scrollChatToLatest("dm");await loadDirectConversations();
             document.getElementById("dm-input").disabled=false;document.getElementById("dm-send").disabled=false;document.getElementById("dm-input").placeholder="Kirim pesan pribadi...";
@@ -6144,7 +6149,7 @@ async function openDirectMessage(otherId){
           await markDmMessagesRead();renderDirectMessages();const id=activeDmConversation;
           dmRealtimeChannel=supabaseClient.channel("ghoustory-dm-"+id)
             .on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_dm_messages",filter:"conversation_id=eq."+id},p=>{if(activeDmConversation!==id)return;if(p.eventType==="INSERT"&&!dmMessages.some(m=>m.id===p.new.id))dmMessages.push(p.new);else if(p.eventType==="UPDATE"){const i=dmMessages.findIndex(m=>m.id===p.new.id);if(i>=0)dmMessages[i]=p.new;}dmMessages=dmMessages.slice(-150);renderDirectMessages();markDmMessagesRead();scheduleDirectConversationRefresh();})
-            .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);if(activeDmConversation===id)renderDirectMessages();loadDirectConversations();})
+            .on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_dm_message_reads"},p=>{if(!dmMessages.some(m=>m.id===p.new.message_id))return;if(!dmReads.some(x=>x.message_id===p.new.message_id&&x.user_id===p.new.user_id))dmReads.push(p.new);if(activeDmConversation===id)renderDirectMessages();scheduleDirectConversationRefresh();})
             .subscribe(state=>{if(activeDmConversation===id)document.getElementById("dm-status").textContent=state==="SUBSCRIBED"?"Online":"Menghubungkan...";});
         }
         function renderDirectMessages(){
@@ -6170,12 +6175,12 @@ async function markDmMessagesRead(){
           const rows=pending.map(m=>({message_id:m.id,user_id:activeUser.id}));
           const {error}=await supabaseClient.from("ghoustory_dm_message_reads").upsert(rows,{onConflict:"message_id,user_id",ignoreDuplicates:true});
           if(error)console.warn("Status baca belum tersimpan:",error.message);
-          else{rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));loadDirectConversations();}
+          else{rows.forEach(r=>dmReads.push({...r,read_at:new Date().toISOString()}));scheduleDirectConversationRefresh();}
         }
         function setDmReply(id){dmReplyTo=dmMessages.find(m=>m.id===id)||null;const wrap=document.getElementById("dm-reply-preview"),label=document.getElementById("dm-reply-text");if(!dmReplyTo||!wrap||!label)return;label.textContent="Membalas: "+(dmReplyTo.deleted_at?"Pesan dihapus":dmReplyTo.body);wrap.classList.remove("hidden");document.getElementById("dm-input")?.focus();}
         function clearDmReply(){dmReplyTo=null;document.getElementById("dm-reply-preview")?.classList.add("hidden");}
         async function editDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;const body=prompt("Edit pesan:",m.body||"");if(body===null)return;const clean=body.trim();if(!clean)return alert("Pesan tidak boleh kosong.");try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({body:clean.slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();}catch(e){alert("Pesan gagal diedit: "+(e.message||e));}}
-        async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();await loadDirectConversations();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
+        async function deleteDmMessage(id){const m=dmMessages.find(x=>x.id===id);if(!m||m.sender_id!==activeUser?.id||m.deleted_at)return;if(!confirm("Hapus pesan ini untuk semua peserta percakapan?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_dm_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=dmMessages.findIndex(x=>x.id===id);if(i>=0)dmMessages[i]=data;renderDirectMessages();scheduleDirectConversationRefresh();}catch(e){alert("Pesan gagal dihapus: "+(e.message||e));}}
         async function sendDirectMessage(event){
           event.preventDefault();const input=document.getElementById("dm-input"),button=document.getElementById("dm-send"),body=input.value.trim();if(!body||!activeDmConversation||!activeUser)return;button.disabled=true;
           try{const payload={conversation_id:activeDmConversation,sender_id:activeUser.id,body};if(dmReplyTo)payload.reply_to=dmReplyTo.id;const {data:sent,error}=await supabaseClient.from("ghoustory_dm_messages").insert(payload).select("id").single();if(error)throw error;await sendGhoustoryPush(sent.id,"dm");input.value="";clearDmReply();}catch(e){alert("Pesan pribadi belum terkirim: "+(e.message||e));}finally{button.disabled=false;input.focus();}
