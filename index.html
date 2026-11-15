@@ -3086,9 +3086,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             window.__ghoustorySyncConflict = false;
             sharedSyncReady = true;
             if (purgedCompletedItems) saveData();
-            // Compress legacy segment logos once so large data URIs stop inflating app_state.
-            const optimizedSegmentLogos = await optimizeLegacySegmentLogos();
-            if (optimizedSegmentLogos) saveData();
+            // Move legacy Base64 logos into Storage; app_state retains only small public URLs.
+            await migrateLegacySegmentLogos();
             if (document.getElementById('script-editor')) {
                 document.getElementById('script-editor').value = db.script || '';
             }
@@ -4338,11 +4337,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             });
         }
 
-        // Resize segment logos before storing them in app_state. WebP keeps transparency
-        // while dramatically reducing the multi-megabyte data URIs found in older records.
+        // Compress segment logos to WebP and store binary files in Supabase Storage,
+        // keeping only their public URLs in app_state.
         function compressSegmentLogo(dataUri) {
-            return new Promise(resolve => {
-                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/') || dataUri.startsWith('data:image/webp')) return resolve(dataUri || '');
+            return new Promise((resolve, reject) => {
+                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return reject(new Error('Format logo tidak valid.'));
                 const image = new Image();
                 image.onload = () => {
                     try {
@@ -4352,38 +4351,44 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
                         canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
                         const context = canvas.getContext('2d');
-                        if (!context) return resolve(dataUri);
+                        if (!context) return reject(new Error('Browser tidak dapat memproses logo.'));
                         context.drawImage(image, 0, 0, canvas.width, canvas.height);
                         canvas.toBlob(blob => {
-                            if (!blob || blob.type !== 'image/webp' || blob.size >= dataUri.length * 0.72) return resolve(dataUri);
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result || dataUri);
-                            reader.onerror = () => resolve(dataUri);
-                            reader.readAsDataURL(blob);
+                            if (!blob || blob.type !== 'image/webp') return reject(new Error('Konversi logo WebP gagal.'));
+                            resolve(blob);
                         }, 'image/webp', 0.82);
-                    } catch (_) {
-                        resolve(dataUri);
-                    }
+                    } catch (error) { reject(error); }
                 };
-                image.onerror = () => resolve(dataUri);
+                image.onerror = () => reject(new Error('File logo tidak dapat dibaca.'));
                 image.src = dataUri;
             });
         }
 
-        async function optimizeLegacySegmentLogos() {
-            let changed = false;
-            for (const segment of db.segmenList || []) {
-                if (!segment || typeof segment.logo !== 'string' ||
-                    !segment.logo.startsWith('data:image/') || segment.logo.startsWith('data:image/webp') || segment.logo.length < 120000) continue;
-                const optimized = await compressSegmentLogo(segment.logo);
-                if (optimized && optimized !== segment.logo) {
-                    segment.logo = optimized;
-                    changed = true;
-                }
-            }
-            return changed;
+        async function uploadSegmentLogo(dataUri) {
+            if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return dataUri || '';
+            const blob = await compressSegmentLogo(dataUri);
+            if (blob.size > 10 * 1024 * 1024) throw new Error('Ukuran logo hasil kompresi melebihi batas 10 MB.');
+            const uniqueName = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+            const filePath = 'segments/' + uniqueName + '.webp';
+            const uploaded = await supabaseClient.storage.from('arena-game-images').upload(filePath, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
+            if (uploaded.error) throw uploaded.error;
+            const publicData = supabaseClient.storage.from('arena-game-images').getPublicUrl(uploaded.data.path).data;
+            if (!publicData || !publicData.publicUrl) throw new Error('URL logo tidak berhasil dibuat.');
+            return publicData.publicUrl;
         }
 
+        async function migrateLegacySegmentLogos() {
+            let changed = false;
+            let failed = 0;
+            for (const segment of db.segmenList || []) {
+                if (!segment || typeof segment.logo !== 'string' || !segment.logo.startsWith('data:image/')) continue;
+                try { segment.logo = await uploadSegmentLogo(segment.logo); changed = true; }
+                catch (error) { failed++; console.warn('Migrasi logo segmen tertunda:', error); }
+            }
+            if (changed) saveData();
+            if (failed) console.warn(failed + ' logo lama masih tersimpan sementara di app_state; migrasi akan dicoba lagi saat Crew membuka aplikasi.');
+            return changed;
+        }
         function saveNewSegmentManual() {
             const editIdx = parseInt(document.getElementById('seg-edit-index').value);
             const nama = document.getElementById('seg-nama').value;
@@ -4414,9 +4419,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = async function(e) {
-                    const optimized = await compressSegmentLogo(e.target.result);
-                    finishSave(optimized);
+                    try { finishSave(await uploadSegmentLogo(e.target.result)); }
+                    catch (error) { console.error('Gagal mengunggah logo segmen:', error); alert('Logo gagal diunggah. Data segmen belum diubah. ' + (error.message || 'Periksa koneksi dan hak akses Crew.')); }
                 };
+                reader.onerror = () => alert('File logo tidak dapat dibaca.');
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
                 finishSave(null);
