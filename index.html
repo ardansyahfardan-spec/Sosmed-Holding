@@ -3453,7 +3453,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 
         }
 
-        async function clearGhoustoryCache(){if(!confirm('Bersihkan cache aplikasi di perangkat ini? Data akun, chat, jadwal, Kas, dan Supabase tidak akan dihapus.'))return;try{if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ghoustory-control-room-')).map(k=>caches.delete(k)));}if(activeUser)localStorage.removeItem('ghoustory-chat-'+activeUser.id);alert('Cache sementara perangkat berhasil dibersihkan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){alert('Cache belum berhasil dibersihkan: '+e.message);}}
+        async function clearGhoustoryCache(){if(!confirm('Bersihkan cache aplikasi di perangkat ini? Data akun, chat, jadwal, Kas, dan Supabase tidak akan dihapus.'))return;try{if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ghoustory-control-room-')).map(k=>caches.delete(k)));}alert('Cache sementara perangkat berhasil dibersihkan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){alert('Cache belum berhasil dibersihkan: '+e.message);}}
         function openAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
         function closeAppUpdateHistory(){const m=document.getElementById('app-update-history-modal');m?.classList.add('hidden');m?.classList.remove('flex');}
         function openNotificationSettings(){const mode=localStorage.getItem('ghoustory-notification-style')||'vibrate';const el=document.querySelector('input[name="ghoustory-notif-style"][value="'+mode+'"]');if(el)el.checked=true;const m=document.getElementById('notification-settings-modal');m?.classList.remove('hidden');m?.classList.add('flex');}
@@ -5786,9 +5786,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
           stok:{label:"Stok",items:()=>db.stok||[],title:x=>x.title||x.name||"Stok",page:"tim",tab:"stok"},
           tayang:{label:"Data Tayang",items:()=>db.tayang||[],title:x=>x.title||"Data Tayang",page:"segmen",tab:null}
         };
-        function chatCacheKey(){return "ghoustory-chat-"+(activeUser?.id||"guest");}
-        function saveChatCache(){try{localStorage.setItem(chatCacheKey(),JSON.stringify(chatMessages.slice(-150)));}catch(e){console.warn("Cache chat lokal tidak tersedia",e);}}
-        function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
+                function getChatLinkedItem(msg){const cfg=CHAT_COLLECTIONS[msg.data_type];if(!cfg)return null;return cfg.items().find(x=>String(x.id)===String(msg.data_id))||null;}
         
 function closeChatMessageMenu(){document.getElementById("gh-chat-message-menu")?.remove();}
 function openChatMessageMenu(bubble){
@@ -5853,7 +5851,7 @@ async function ensureGroupRealtime(){
           chatChannel.on("postgres_changes",{event:"*",schema:"public",table:"ghoustory_chat_messages"},payload=>{
             if(payload.eventType==="INSERT"&&!chatMessages.some(m=>m.id===payload.new.id)){chatMessages.push(payload.new);chatMessages=chatMessages.slice(-150);}
             else if(payload.eventType==="UPDATE"){const i=chatMessages.findIndex(m=>m.id===payload.new.id);if(i>=0)chatMessages[i]=payload.new;}
-            saveChatCache();renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
+            renderChatMessages();if(isGroupRoomVisible())markGroupMessagesRead();
           }).on("postgres_changes",{event:"INSERT",schema:"public",table:"ghoustory_group_message_reads"},payload=>{if(!chatMessages.some(m=>m.id===payload.new.message_id))return;if(!groupReads.some(r=>r.message_id===payload.new.message_id&&r.user_id===payload.new.user_id))groupReads.push(payload.new);renderChatMessages();}).subscribe(state=>{if(status&&state!=="SUBSCRIBED")status.textContent=state==="CHANNEL_ERROR"?"Koneksi bermasalah":"Menghubungkan...";else if(status)status.textContent="Online";});
         }
         async function closeGroupRealtime(){
@@ -5871,13 +5869,13 @@ async function ensureGroupRealtime(){
           try{
             if(!(await ensureRitualGroupAccess())){
               chatMessages=[];groupReads=[];chatLoadedForUser=null;
-              try{localStorage.removeItem(chatCacheKey());}catch(e){}
+              
               if(status)status.textContent="Akun ini tidak tergabung dalam MEETING CREW";
               renderChatMessages();
               return;
             }
             chatLoadedForUser=activeUser.id;
-            try{const cached=localStorage.getItem(chatCacheKey());if(cached){chatMessages=JSON.parse(cached)||[];renderChatMessages();}}catch(e){}
+            
           }catch(accessError){
             if(status)status.textContent="Akses MEETING CREW gagal diperiksa";
             console.error("Gagal memeriksa akses grup:",accessError);
@@ -5888,7 +5886,7 @@ async function ensureGroupRealtime(){
           chatMessages=(data||[]).reverse();const ids=chatMessages.map(m=>m.id);
           groupReads=[];
           if(ids.length){const {data:rd,error:rdError}=await supabaseClient.from("ghoustory_group_message_reads").select("message_id,user_id,read_at").in("message_id",ids);if(!rdError)groupReads=rd||[];}
-          saveChatCache();renderChatMessages();if(status)status.textContent="Online";
+          renderChatMessages();if(status)status.textContent="Online";
           if(isGroupRoomVisible())await ensureGroupRealtime();
           if(isGroupRoomVisible())await markGroupMessagesRead();
         }
@@ -5905,8 +5903,8 @@ async function ensureGroupRealtime(){
         }
         function setGroupReply(id){groupReplyTo=chatMessages.find(m=>m.id===id)||null;const bar=document.getElementById("group-reply-preview"),label=document.getElementById("group-reply-text");if(!bar||!label)return;label.textContent=groupReplyTo?"Membalas "+(groupReplyTo.sender_name||"Crew")+": "+String(groupReplyTo.body||"").slice(0,100):"";bar.classList.toggle("hidden",!groupReplyTo);document.getElementById("chat-input")?.focus();}
         function clearGroupReply(){groupReplyTo=null;document.getElementById("group-reply-preview")?.classList.add("hidden");}
-        async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
-        async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;saveChatCache();renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
+        async function editGroupMessage(id){const msg=chatMessages.find(m=>m.id===id);if(!msg||msg.sender_id!==activeUser.id)return;const body=prompt("Edit pesan:",msg.body||"");if(body===null||!body.trim())return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({body:body.trim().slice(0,4000),edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;renderChatMessages();}catch(e){alert("Pesan gagal diedit: "+e.message);}}
+        async function deleteGroupMessage(id){if(!confirm("Hapus pesan ini?"))return;try{const {data,error}=await supabaseClient.from("ghoustory_chat_messages").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("sender_id",activeUser.id).select().single();if(error)throw error;const i=chatMessages.findIndex(m=>m.id===id);if(i>=0)chatMessages[i]=data;renderChatMessages();}catch(e){alert("Pesan gagal dihapus: "+e.message);}}
         async function insertChatMessage({body,message_type="text",data_type=null,data_id=null,data_title=null,reply_to=null,sender_name=null,sender_avatar=null,notify=true}){
           if(!activeUser)throw new Error("Login diperlukan.");
           const {data,error}=await supabaseClient.from("ghoustory_chat_messages").insert({
@@ -6099,7 +6097,7 @@ async function ensureGroupRealtime(){
           try{
             if(!(await ensureRitualGroupAccess(true))){
               chatMessages=[];groupReads=[];chatLoadedForUser=null;
-              try{localStorage.removeItem(chatCacheKey());}catch(e){}
+              
               renderChatMessages();window.showChatInbox();
               alert("Akun ini masih aktif di Ghoustory Control Room, tetapi sudah tidak tergabung dalam MEETING CREW.");
               return;
