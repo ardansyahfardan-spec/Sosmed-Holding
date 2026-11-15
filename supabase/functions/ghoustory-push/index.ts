@@ -7,6 +7,29 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+
+async function readBoundedJson(req: Request, maxBytes = 16 * 1024) {
+  const declared = Number(req.headers.get("content-length") || 0);
+  if (declared > maxBytes) throw new Error("Payload terlalu besar.");
+  const reader = req.body?.getReader();
+  if (!reader) throw new Error("Payload kosong.");
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) { await reader.cancel(); throw new Error("Payload terlalu besar."); }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  try { return JSON.parse(new TextDecoder().decode(bytes)); }
+  catch { throw new Error("Payload JSON tidak valid."); }
+}
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
@@ -31,8 +54,12 @@ Deno.serve(async (req: Request) => {
     if (authError || !authData.user) return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const senderId = authData.user.id;
 
-    const { message_id, kind } = await req.json();
-    if (!message_id || !["dm", "group"].includes(kind)) throw new Error("Payload tidak valid.");
+    const payload = await readBoundedJson(req);
+    const message_id = payload?.message_id;
+    const kind = payload?.kind;
+    if (typeof message_id !== "string" || !UUID_RE.test(message_id) || !["dm", "group"].includes(kind)) {
+      return new Response(JSON.stringify({ error: "Payload tidak valid." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
     let message: any;
@@ -43,6 +70,10 @@ Deno.serve(async (req: Request) => {
       const { data, error } = await admin.from("ghoustory_dm_messages").select("id,conversation_id,sender_id,body").eq("id", message_id).single();
       if (error || !data || data.sender_id !== senderId) throw new Error("Pesan tidak ditemukan atau bukan milik pengirim.");
       message = data;
+      const { data: senderParticipant, error: senderParticipantError } = await admin.from("ghoustory_dm_participants")
+        .select("user_id").eq("conversation_id", data.conversation_id).eq("user_id", senderId).maybeSingle();
+      if (senderParticipantError) throw senderParticipantError;
+      if (!senderParticipant) throw new Error("Pengirim bukan peserta percakapan ini.");
       const { data: participants, error: participantError } = await admin.from("ghoustory_dm_participants").select("user_id").eq("conversation_id", data.conversation_id);
       if (participantError) throw participantError;
       recipientIds = (participants || []).map((p: any) => p.user_id).filter((id: string) => id !== senderId);
@@ -60,6 +91,7 @@ Deno.serve(async (req: Request) => {
       recipientIds = (profiles || []).map((p: any) => p.user_id);
     }
 
+    if (recipientIds.length > 500) throw new Error("Jumlah penerima melebihi batas pengiriman push.");
     if (!recipientIds.length) return new Response(JSON.stringify({ sent: 0, reason: "no_recipients" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { data: subscriptions, error: subError } = await admin.from("ghoustory_push_subscriptions").select("id,user_id,endpoint,p256dh,auth").in("user_id", recipientIds);
     if (subError) throw subError;
