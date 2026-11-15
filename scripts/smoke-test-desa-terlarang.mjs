@@ -86,6 +86,15 @@ try {
     const frameRect = window.frameElement?.getBoundingClientRect();
     const panel = window.parent.document.querySelector("#arena-play-panel");
     const arena = window.parent.document.querySelector("#page-arena");
+    const app = window.parent.document.querySelector("#main-app");
+    const styleOf = (element) => element ? {
+      display: getComputedStyle(element).display,
+      position: getComputedStyle(element).position,
+      width: getComputedStyle(element).width,
+      height: getComputedStyle(element).height,
+      rect: { width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height },
+      classes: element.className,
+    } : null;
     return {
       href: location.href,
       readyState: document.readyState,
@@ -97,8 +106,9 @@ try {
         webgl: !!canvas.getContext("webgl"),
       } : null,
       iframeRect: frameRect ? { width: frameRect.width, height: frameRect.height } : null,
-      panelRect: panel ? { width: panel.getBoundingClientRect().width, height: panel.getBoundingClientRect().height } : null,
-      arenaClasses: arena?.className || null,
+      app: styleOf(app),
+      arena: styleOf(arena),
+      panel: styleOf(panel),
     };
   });
   const canvasReady = frameDiagnostics.canvas &&
