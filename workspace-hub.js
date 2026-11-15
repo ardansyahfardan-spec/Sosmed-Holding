@@ -121,7 +121,7 @@
     currentUser = auth.user;
     const [ideas, tasks, activity] = await Promise.all([
       db.from('ghoustory_workspace_ideas').select('id,title,description,category,status,created_by,created_at').order('created_at',{ascending:false}).limit(40),
-      db.from('ghoustory_workspace_tasks').select('id,title,description,status,priority,due_at,assigned_to,created_by,created_at').order('created_at',{ascending:false}).limit(40),
+      db.from('ghoustory_workspace_tasks').select('id,title,description,status,priority,project_name,due_at,assigned_to,created_by,created_at').order('created_at',{ascending:false}).limit(40),
       db.from('ghoustory_workspace_activity').select('id,entity_type,action,created_at').order('created_at',{ascending:false}).limit(20)
     ]);
     if (ideas.error || tasks.error || activity.error) {
@@ -192,14 +192,15 @@
     const title = $('workspace-task-title')?.value.trim() || '';
     const description = $('workspace-task-description')?.value.trim() || '';
     const priority = $('workspace-task-priority')?.value || 'normal';
+    const projectName = ($('workspace-task-project')?.value.trim() || 'Umum').slice(0,80);
     const due = $('workspace-task-due')?.value || '';
     if (title.length < 3) return status('Judul tugas minimal 3 karakter.', true);
     const button = $('workspace-task-submit');
     if (button) button.disabled = true;
     try {
       const { data, error } = await db.from('ghoustory_workspace_tasks')
-        .insert({title,description,priority,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id})
-        .select('id,title,description,status,priority,due_at,assigned_to,created_by,created_at').single();
+        .insert({title,description,priority,project_name:projectName,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id})
+        .select('id,title,description,status,priority,project_name,due_at,assigned_to,created_by,created_at').single();
       if (error) return status('Tugas gagal dibuat: ' + error.message, true);
       cachedTasks = [data, ...cachedTasks].slice(0, 40);
       cachedActivity = [{id:'local-' + Date.now(),entity_type:'task',action:'created',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
