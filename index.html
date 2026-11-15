@@ -3438,7 +3438,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         function applyGhoustoryProfile(profile) {
             activeProfile = profile;
             const fallback = activeUser?.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff";
-            const avatar = profile?.avatar_url || fallback;
+            const avatar = safeImageSrc(profile?.avatar_url) || safeImageSrc(fallback) || "";
             const nickname = profile?.nickname || activeUser?.user_metadata?.full_name || activeUser?.email || "Crew";
             const role = profile?.role || "Crew";
             const headerAvatar = document.getElementById('user-avatar');
@@ -3480,7 +3480,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const selectedRoles = [...new Set(savedRoles.map(value => legacyRoleMap[value] || value))];
             document.querySelectorAll('input[name="profile-role-option"]').forEach(input => { input.checked = selectedRoles.includes(input.value); });
             syncProfileRoleSelection();
-            preview.src = activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
+            preview.src = safeImageSrc(activeProfile?.avatar_url || activeUser?.user_metadata?.avatar_url) || 'https://ui-avatars.com/api/?name=Ghoustory&background=B91C1C&color=fff';
             file.value = '';
             save.textContent = mode === 'register' ? 'Simpan & Masuk' : 'Simpan Perubahan';
             modal.classList.remove('hidden');
@@ -5981,7 +5981,7 @@ async function ensureGroupRealtime(){
             if (error) throw error;
             const rows = (data || []).map(row => {
               const nickname = row.nickname || "Crew";
-              const avatar = row.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(nickname) + "&background=172554&color=fff";
+              const avatar = safeImageSrc(row.avatar_url) || "https://ui-avatars.com/api/?name=" + encodeURIComponent(nickname) + "&background=172554&color=fff";
               const time = row.last_created_at ? new Date(row.last_created_at).toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) : "";
               return {
                 id: row.conversation_id,
