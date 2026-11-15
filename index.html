@@ -2343,7 +2343,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                             <textarea id="seg-desc" placeholder="Deskripsi Segmen..." class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white h-16"></textarea>
                             <div>
                                 <label class="text-gray-400 block mb-1">Upload Logo Segmen (File Gambar)</label>
-                                <input type="file" id="seg-logo-file" accept="image/*" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-700 file:text-white hover:file:bg-orange-600">
+                                <input type="file" id="seg-logo-file" accept="image/jpeg,image/png,image/webp" class="w-full bg-darkCard border border-gray-700 p-2 rounded text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-orange-700 file:text-white hover:file:bg-orange-600">
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="saveNewSegmentManual()" class="flex-grow bg-orange-700 hover:bg-orange-600 text-white font-bold py-2 rounded">Simpan Segmen</button>
@@ -4420,13 +4420,14 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             };
 
             if(fileInput.files && fileInput.files[0]) {
+                const logoFile=fileInput.files[0];if(!['image/jpeg','image/png','image/webp'].includes(logoFile.type)||logoFile.size>5*1024*1024){alert('Logo harus JPG, PNG, atau WebP dengan ukuran maksimal 5 MB.');return;}
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     try { finishSave(await uploadSegmentLogo(e.target.result)); }
                     catch (error) { console.error('Gagal mengunggah logo segmen:', error); alert('Logo gagal diunggah. Data segmen belum diubah. ' + (error.message || 'Periksa koneksi dan hak akses Crew.')); }
                 };
                 reader.onerror = () => alert('File logo tidak dapat dibaca.');
-                reader.readAsDataURL(fileInput.files[0]);
+                reader.readAsDataURL(logoFile);
             } else {
                 finishSave(null);
             }
@@ -4730,7 +4731,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 if (avatarWrap) {
                     avatarWrap.innerHTML = onlineUsers.map(entry => {
                         const name = entry.name || "Crew";
-                        const photo = entry.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
+                        const photo = safeImageSrc(entry.avatar_url) || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=B91C1C&color=fff";
                         return '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(name) + '" title="' + escapeHtml(name) + '" loading="lazy" decoding="async" class="w-7 h-7 rounded-full object-cover border-2 border-darkBg shadow">';
                     }).join("");
                 }
@@ -5078,6 +5079,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const btn=document.getElementById('video-analysis-youtube-run');
             const status=document.getElementById('video-analysis-status');
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
+            const parsedYoutubeUrl=safeExternalUrl(url);if(parsedYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(parsedYoutubeUrl).hostname))return alert('Gunakan tautan YouTube atau youtu.be yang valid.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             setButtonBusy(btn,true);
             let metadataError='';
@@ -5104,6 +5106,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         async function analyzeVideoYoutube() {
             const url=document.getElementById('ai-yt-link')?.value.trim();
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
+            const parsedYoutubeUrl=safeExternalUrl(url);if(parsedYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(parsedYoutubeUrl).hostname))return alert('Gunakan tautan YouTube atau youtu.be yang valid.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
             await runVideoAnalysis('youtube',url);
         }
@@ -5245,7 +5248,8 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             try {
                 let title='',raw='';
                 if(source==='youtube') {
-                    raw=await callGhoulAI('youtube-video-analysis',{url:value});
+                    const safeYoutubeUrl=safeExternalUrl(value);if(safeYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(safeYoutubeUrl).hostname))throw new Error('Tautan YouTube tidak valid.');
+                    raw=await callGhoulAI('youtube-video-analysis',{url:safeYoutubeUrl});
                     title='Analisis YouTube - '+value;
                 } else {
                     const file=value;
@@ -5691,7 +5695,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
               await navigator.share({files:[file],title:'Jadwal Shooting GHOUSTORY',text:'Informasi jadwal shooting GHOUSTORY.'});
             }else{
-              const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+              const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=String(file.name||'export.csv').replace(/[\\/:*?"<>|]+/g,'_').slice(0,120);document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
               alert('Gambar JPG berhasil dibuat dan diunduh. Silakan kirim ke narasumber melalui WhatsApp atau aplikasi pesan.');
             }
           }catch(error){if(error?.name==='AbortError')return;console.error('Gagal membagikan jadwal JPG:',error);alert('JPG belum berhasil dibuat: '+(error.message||'Terjadi kesalahan.'));}
@@ -5842,7 +5846,7 @@ function renderChatMessages(){
   const readCount=groupReads.filter(r=>r.message_id===msg.id&&r.user_id!==msg.sender_id).length;
   const readStatus=own?'<div class="text-[9px] text-blue-300 text-right mt-1">'+(readCount?'✓✓ Dibaca '+readCount:'✓ Terkirim')+'</div>':"";
   const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===msg.sender_id&&prev.message_type===msg.message_type;const tick=own?(readCount?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";const meta='<div class="gh-chat-meta">'+escapeHtml(when)+(msg.edited_at?' · diedit':"")+tick+'</div>';
-  const avatarUrl=getGhoustoryChatAvatar(msg.sender_id,msg.sender_avatar,msg.sender_name);
+  const avatarUrl=safeImageSrc(getGhoustoryChatAvatar(msg.sender_id,msg.sender_avatar,msg.sender_name))||"https://ui-avatars.com/api/?name=Crew&background=172554&color=fff";
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil '+who+'" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(isAI?'justify-center':own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+msg.id+'" data-chat-room="group" data-own="'+(own&&!msg.deleted_at?'1':'0')+'">'+(!samePrev||isAI?'<div class="gh-chat-sender">'+who+(isAI?' <span class="ml-1 text-[9px] font-semibold text-blue-300 border border-blue-800 rounded-full px-1.5 py-0.5">AI Crew</span>':"")+'</div>':"")+quote+'<div class="gh-chat-body">'+body+'</div>'+meta+'</div></div>'+(!samePrev&&!isAI&&own?avatarHtml:'')+'</div>';
  }).join("");
@@ -6017,7 +6021,7 @@ async function ensureGroupRealtime(){
           const subtitle=document.getElementById("online-crew-subtitle");if(subtitle)subtitle.textContent=count+" Crew sedang aktif";
           const list=document.getElementById("online-crew-list");if(!list)return;
           if(!count){list.innerHTML='<p class="text-xs text-gray-500 py-5 text-center">Belum ada Crew yang online.</p>';return;}
-          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=u.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
+          list.innerHTML=users.map(u=>{const name=u.name||"Crew";const photo=safeImageSrc(u.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(name)+"&background=14532d&color=fff";return '<div class="flex items-center gap-3 rounded-xl border border-gray-800 bg-black/30 p-2"><span class="relative"><img src="'+escapeHtml(photo)+'" alt="" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover"><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#10131b] bg-green-500"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(name)+(u.user_id===activeUser?.id?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(u.role||"Crew")+'</small></span><span class="text-[10px] text-green-400">Online</span></div>';}).join("");
         }
         function openOnlineCrewModal(){updateOnlineCrewIndicators();const m=document.getElementById("online-crew-modal");m?.classList.remove("hidden");m?.classList.add("flex");}
         function closeOnlineCrewModal(){const m=document.getElementById("online-crew-modal");m?.classList.add("hidden");m?.classList.remove("flex");}
@@ -6032,11 +6036,11 @@ async function ensureGroupRealtime(){
             return;
           }
           if(dmBox)dmBox.innerHTML=aiMemberRow+members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=safeImageSrc(p.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             return '<div class="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-blue-950/40"><button type="button" '+(self?'disabled':'onclick="openDirectMessage(&quot;'+p.user_id+'&quot;)"')+' class="min-w-0 flex-1 flex items-center gap-3 text-left '+(self?'opacity-70':'')+'"><span class="relative shrink-0"><img src="'+escapeHtml(avatar)+'" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover border border-gray-700" alt=""><i class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black '+(online?'bg-green-500':'bg-gray-500')+'"></i></span><span class="min-w-0 flex-1"><b class="block text-sm text-white truncate">'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small class="block text-[10px] text-gray-400">'+escapeHtml(p.role||"Crew")+'</small><small class="block text-[9px] '+(online?'text-green-400':'text-gray-500')+'">'+(online?'Online':'Offline')+'</small></span>'+(self?'':'<i class="fa-solid fa-comment-dots text-blue-300"></i>')+'</button></div>';
           }).join("");
           if(infoBox)infoBox.innerHTML=aiMemberRow+members.map(p=>{
-            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=p.avatar_url||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
+            const self=p.user_id===activeUser?.id,online=ritualOnlineIds.has(p.user_id),avatar=safeImageSrc(p.avatar_url)||"https://ui-avatars.com/api/?name="+encodeURIComponent(p.nickname||"Crew")+"&background=172554&color=fff";
             const kickButton=isGhoustoryAdmin&&!self?'<button type="button" onclick="kickRitualCrewMember(&quot;'+p.user_id+'&quot;)" class="shrink-0 rounded-lg border border-red-900/70 bg-red-950/50 px-3 py-2 text-[10px] font-semibold text-red-200 hover:bg-red-900/60" title="Keluarkan dari MEETING CREW" aria-label="Keluarkan '+escapeHtml(p.nickname||"Crew")+'"><i class="fa-solid fa-user-xmark mr-1"></i>Keluarkan</button>':'';
             return '<div class="ritual-member-card"><span class="ritual-member-avatar"><img src="'+escapeHtml(avatar)+'" alt=""><i class="'+(online?'is-online':'is-offline')+'"></i></span><span class="ritual-member-copy"><b>'+escapeHtml(p.nickname||"Crew")+(self?' (Kamu)':'')+'</b><small>'+escapeHtml(p.role||"Crew")+'</small><small class="'+(online?'is-online-text':'is-offline-text')+'">'+(online?'Online':'Offline')+'</small></span>'+kickButton+'</div>';
           }).join("");
@@ -6164,7 +6168,7 @@ async function openDirectMessage(otherId){
   const own=m.sender_id===activeUser?.id,when=m.created_at?new Date(m.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}):"",quoted=m.reply_to?dmMessages.find(x=>x.id===m.reply_to):null;
   const quote=quoted?'<div class="mb-2 pl-2 border-l-2 border-blue-500 text-[10px] text-gray-300">'+escapeHtml(quoted.deleted_at?"Pesan dihapus":(quoted.body||"").slice(0,120))+'</div>':"";
   const prev=visible[index-1],samePrev=!!prev&&prev.sender_id===m.sender_id;const read=own&&dmReads.some(x=>x.message_id===m.id&&x.user_id!==activeUser?.id);const tick=own?(read?'<span class="gh-chat-ticks is-read">✓✓</span>':'<span class="gh-chat-ticks">✓</span>'):"";
-  const avatarUrl=own?(activeProfile?.avatar_url||activeUser?.user_metadata?.avatar_url||getGhoustoryChatAvatar(activeUser?.id,"",activeProfile?.nickname||"Anda")):(activeDmMember?.avatar_url||getGhoustoryChatAvatar(m.sender_id,"",activeDmMember?.nickname||"Crew"));
+  const avatarUrl=safeImageSrc(own?(activeProfile?.avatar_url||activeUser?.user_metadata?.avatar_url||getGhoustoryChatAvatar(activeUser?.id,"",activeProfile?.nickname||"Anda")):(activeDmMember?.avatar_url||getGhoustoryChatAvatar(m.sender_id,"",activeDmMember?.nickname||"Crew")))||"https://ui-avatars.com/api/?name=Crew&background=172554&color=fff";
   const avatarHtml='<img src="'+escapeHtml(avatarUrl)+'" alt="Foto profil" loading="lazy" class="gh-chat-avatar" onerror="this.onerror=null;this.src=\'https://ui-avatars.com/api/?name=Crew&background=172554&color=fff\'">';
   return '<div class="gh-chat-row '+(own?'is-own':'is-other')+(samePrev?' same-sender':'')+'">'+(!samePrev&&!own?avatarHtml:'')+'<div class="gh-chat-stack"><div class="gh-chat-bubble '+(own?'is-own':'is-other')+'" data-message-id="'+m.id+'" data-chat-room="dm" data-own="'+(own&&!m.deleted_at?'1':'0')+'">'+quote+'<div class="gh-chat-body">'+escapeHtml(m.deleted_at?"Pesan dihapus":m.body||"")+'</div><div class="gh-chat-meta">'+escapeHtml(when)+(m.edited_at?' · diedit':"")+tick+'</div></div></div>'+(!samePrev&&own?avatarHtml:'')+'</div>';
  }).join("");
@@ -6215,7 +6219,8 @@ async function markDmMessagesRead(){
           c.innerHTML='<p class="text-xs text-gray-400">Pilih formulir data. Setelah disimpan, data masuk ke fitur terkait dan ringkasannya dikirim ke MEETING CREW.</p>'+options.map(([k,v])=>'<button type="button" onclick="showChatCreateForm(&quot;'+k+'&quot;)" class="w-full text-left p-3 rounded-lg bg-gray-900 border border-gray-800 text-sm">'+escapeHtml(v)+' <i class="fa-solid fa-chevron-right float-right text-red-400"></i></button>').join("");
         }
         function chatCreateField(id,label,placeholder,type="text",required=false){
-          return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
+          const limit=type==="number"?20:180,extra=type==="number"?' min="0" max="1000000000" step="1"':' maxlength="'+limit+'"';
+          return '<label class="block text-xs text-gray-300">'+label+'<input id="chat-create-'+id+'" type="'+type+'" '+(required?'required':'')+extra+' placeholder="'+escapeHtml(placeholder||"")+'" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>';
         }
         function showChatCreateForm(type){
           const c=document.getElementById("chat-tools-content");
@@ -6226,10 +6231,10 @@ async function markDmMessagesRead(){
           }else if(type==="kas"){
             fields='<p class="text-xs text-gray-400">Isi nominal iuran Crew dan/atau pengeluaran. Nominal yang tidak digunakan boleh dikosongkan.</p>'+["Artdan","Yhola","Tio","Bila"].map((n,i)=>chatCreateField("member-"+i,"Iuran "+n,"Nominal rupiah","number")).join("")+chatCreateField("out-desc","Keterangan pengeluaran","Contoh: Konsumsi shooting")+chatCreateField("out-amount","Nominal pengeluaran","Nominal rupiah","number");
           }else if(type==="production") fields=chatCreateField("title","Nama konten / tugas","Judul konten","text",true);
-          else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
-          else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
+          else if(type==="notulen") fields=chatCreateField("title","Judul notulen","Topik rapat","text",true)+'<label class="block text-xs text-gray-300">Isi / keputusan<textarea id="chat-create-content" rows="5" maxlength="20000" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tuliskan hasil rapat..."></textarea></label>';
+          else if(type==="scriptDrafts") fields=chatCreateField("title","Judul naskah","Judul naskah","text",true)+'<label class="block text-xs text-gray-300">Isi naskah<textarea id="chat-create-content" rows="6" maxlength="50000" required class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Tulis naskah..."></textarea></label>';
           else if(type==="mitos") fields=chatCreateField("title","Ide / topik mitos","Contoh: Rumah tua ...","text",true);
-          else if(type==="vo") fields=chatCreateField("title","Judul catatan VO","Judul VO","text",true)+'<label class="block text-xs text-gray-300">Isi / arahan VO<textarea id="chat-create-content" rows="5" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Arahan pengisi suara..."></textarea></label>';
+          else if(type==="vo") fields=chatCreateField("title","Judul catatan VO","Judul VO","text",true)+'<label class="block text-xs text-gray-300">Isi / arahan VO<textarea id="chat-create-content" rows="5" maxlength="12000" class="mt-1 w-full bg-black border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white" placeholder="Arahan pengisi suara..."></textarea></label>';
           else return;
           c.innerHTML='<button type="button" onclick="showChatCreateCategories()" class="text-xs text-blue-300 mb-1">← Kembali ke pilihan data</button><h4 class="text-sm font-bold text-white">'+titles[type]+'</h4><form id="chat-create-form" class="space-y-3" onsubmit="submitChatCreateForm(event,&quot;'+type+'&quot;)">'+fields+'<button type="submit" class="w-full bg-red-800 hover:bg-red-700 p-3 rounded-lg text-sm font-semibold text-white"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan ke Fitur & Kirim ke Chat</button></form>';
         }
@@ -6290,7 +6295,7 @@ async function markDmMessagesRead(){
         }
         function openGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.remove("hidden");m.classList.add("flex");setTimeout(()=>document.getElementById("ghoust-ai-input")?.focus(),80);}
         function closeGhoustAI(){const m=document.getElementById("ghoust-ai-modal");m.classList.add("hidden");m.classList.remove("flex");}
-        async function askGhoustAI(event){event.preventDefault();const input=document.getElementById("ghoust-ai-input"),q=input.value.trim();if(!q||ghoustAiBusy)return;input.value="";const history=document.getElementById("ghoust-ai-history");history.textContent+="\n\nKamu: "+q;try{const answer=await runGhoustAI(q,false);history.textContent+="\n\nGhoust · AI Crew: "+answer;}catch(e){history.textContent+="\n\nGhoust: "+e.message;}}
+        async function askGhoustAI(event){event.preventDefault();const input=document.getElementById("ghoust-ai-input"),q=input.value.trim();if(!q||ghoustAiBusy)return;if(q.length>2000)return alert("Pertanyaan Ghoust maksimal 2.000 karakter.");input.value="";const history=document.getElementById("ghoust-ai-history");history.textContent+="\n\nKamu: "+q;try{const answer=await runGhoustAI(q,false);history.textContent+="\n\nGhoust · AI Crew: "+answer;}catch(e){history.textContent+="\n\nGhoust: "+e.message;}}
         async function runGhoustAI(question,postToGroup){
           if(ghoustAiBusy)throw new Error("GHOUSTORY AI sedang memproses pertanyaan lain.");ghoustAiBusy=true;
           try{
