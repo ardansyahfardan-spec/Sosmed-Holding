@@ -3138,6 +3138,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         lastScheduledDbSnapshot = lastPersistedDbSnapshot;
                     }
                     console.error('Gagal menyimpan data ke database bersama:', error);
+                    if (!window.__ghoustorySyncConflict && lastScheduledDbSnapshot === snapshotText) {
+                        lastScheduledDbSnapshot = lastPersistedDbSnapshot;
+                    }
                     window.__ghoustorySyncError = error.message || String(error);
                     updateFooterStatus();
                 });
