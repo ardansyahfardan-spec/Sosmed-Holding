@@ -10,6 +10,7 @@
   let cachedActivity = [];
   let aiUsageCount = null;
   let aiUsageLoaded = false;
+  let isWorkspaceAdmin = false;
 
   function status(message, error = false) {
     const el = $('workspace-status');
@@ -49,6 +50,7 @@
           <span class="workspace-pill">${esc(item.status)}</span>
         </div>
         <div class="workspace-meta"><span>${esc(item.category)}</span><span>${dateLabel(item.created_at)}</span></div>
+        ${isWorkspaceAdmin ? '<label class="workspace-admin-status">Status ide <select data-idea-status="' + esc(item.id) + '" class="workspace-input"><option value="new" ' + (item.status === 'new' ? 'selected' : '') + '>Baru</option><option value="reviewing" ' + (item.status === 'reviewing' ? 'selected' : '') + '>Ditinjau</option><option value="accepted" ' + (item.status === 'accepted' ? 'selected' : '') + '>Diterima</option><option value="rejected" ' + (item.status === 'rejected' ? 'selected' : '') + '>Ditolak</option><option value="implemented" ' + (item.status === 'implemented' ? 'selected' : '') + '>Direalisasikan</option></select></label>' : ''}
       </article>`).join('');
   }
   function renderTasks() {
@@ -89,9 +91,11 @@
     if (!db) return;
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
+      isWorkspaceAdmin = !error && data !== null;
       aiUsageCount = error
         ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
         : (data === null ? 'Admin saja' : Number(data || 0));
+      renderIdeas();
     } catch {
       aiUsageCount = 'Gagal dimuat';
     }
@@ -126,6 +130,18 @@
     } catch (error) {
       status('Workspace gagal dimuat. Periksa koneksi lalu coba lagi.', true);
     }
+  }
+  async function updateIdeaStatus(id, nextStatus) {
+    if (!isWorkspaceAdmin) return status('Akses admin diperlukan untuk mengubah status ide.', true);
+    const allowed = ['new','reviewing','accepted','rejected','implemented'];
+    if (!allowed.includes(nextStatus)) return;
+    const db = client();
+    const { error } = await db.from('ghoustory_workspace_ideas').update({status:nextStatus}).eq('id',id).select('id').single();
+    if (error) return status('Status ide gagal diperbarui: ' + error.message, true);
+    cachedIdeas = cachedIdeas.map(item => item.id === id ? {...item,status:nextStatus} : item);
+    cachedActivity = [{id:'local-' + Date.now(),entity_type:'idea',action:'updated',created_at:new Date().toISOString()}, ...cachedActivity].slice(0,20);
+    renderIdeas(); renderMonitor();
+    status('Status ide berhasil diperbarui.');
   }
   async function submitIdea(event) {
     event.preventDefault();
@@ -204,6 +220,10 @@
       const button = event.target.closest('[data-complete-task]');
       if (button) completeTask(button.dataset.completeTask);
     });
+    $('workspace-ideas-list')?.addEventListener('change', event => {
+      const select = event.target.closest('[data-idea-status]');
+      if (select) updateIdeaStatus(select.dataset.ideaStatus, select.value);
+    });
     $('workspace-tasks-list')?.addEventListener('click', event => {
       const button = event.target.closest('[data-complete-task]');
       if (button) completeTask(button.dataset.completeTask);
@@ -235,6 +255,8 @@
       #page-workspace .workspace-item h3{font-size:13px;font-weight:700;margin:0 0 5px;overflow-wrap:anywhere}
       #page-workspace .workspace-item p{font-size:12px;color:#b9bac2;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
       #page-workspace .workspace-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin-top:9px;font-size:10px;color:#8f929d}
+      #page-workspace .workspace-admin-status{display:block;margin-top:10px;font-size:10px;color:#b7a9a4}
+      #page-workspace .workspace-admin-status .workspace-input{margin:5px 0 0;padding:8px}
       #page-workspace .workspace-pill{font-size:10px;color:#e6c7b8;background:#382b2d;border-radius:999px;padding:4px 7px;white-space:nowrap}
       #page-workspace .workspace-empty{font-size:12px;color:#858892;text-align:center;padding:18px 8px}
       #page-workspace .workspace-action{font-size:11px;color:#b9d8c0;margin-top:10px;padding:5px 0}
