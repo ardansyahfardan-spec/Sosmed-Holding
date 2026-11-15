@@ -3982,10 +3982,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 return;
             }
             list.innerHTML=items.map(item=>{
-                const cover=item.imageUrl
+                const cover=safeImageSrc(item.imageUrl)
                     ? `<img class="lore-entry-cover" src="${escapeHtml(safeImageSrc(item.imageUrl))}" alt="${escapeHtml(item.imageAlt||item.title)}" loading="lazy" onerror="this.style.display='none'">`
                     : '<span class="lore-entry-cover lore-entry-placeholder" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>';
-                return `<button type="button" onclick="openLoreEntry('${escapeHtml(item.id)}')" class="lore-entry-card w-full text-left rounded-xl border border-white/10 bg-black/20 p-2 hover:border-red-900/60 hover:bg-red-950/10 transition">${cover}<div class="lore-entry-copy min-w-0"><h4 class="text-sm font-bold text-[#eee8dd]">${escapeHtml(item.title)}</h4><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(item.region)}</p><p class="text-xs text-gray-400 mt-2 leading-relaxed">${escapeHtml(item.summary)}</p><p class="text-[9px] text-red-200/80 mt-2">${escapeHtml(item.classification)} · ${escapeHtml(item.sourceLevel)}</p></div><i class="fa-solid fa-chevron-right text-[10px] text-gray-600 shrink-0"></i></button>`;
+                return `<button type="button" onclick="openLoreEntry(${escapeHtml(JSON.stringify(String(item.id)))})" class="lore-entry-card w-full text-left rounded-xl border border-white/10 bg-black/20 p-2 hover:border-red-900/60 hover:bg-red-950/10 transition">${cover}<div class="lore-entry-copy min-w-0"><h4 class="text-sm font-bold text-[#eee8dd]">${escapeHtml(item.title)}</h4><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(item.region)}</p><p class="text-xs text-gray-400 mt-2 leading-relaxed">${escapeHtml(item.summary)}</p><p class="text-[9px] text-red-200/80 mt-2">${escapeHtml(item.classification)} · ${escapeHtml(item.sourceLevel)}</p></div><i class="fa-solid fa-chevron-right text-[10px] text-gray-600 shrink-0"></i></button>`;
             }).join('');;
         }
         function openLoreEntry(id){
@@ -5084,15 +5084,15 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             setButtonBusy(btn,true);
             let metadataError='';
             try {
-                const aiText=await callGhoulAI('metadata',{url});
-                db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+url.slice(0,45),aiText,url});
+                const aiText=await callGhoulAI('metadata',{url:parsedYoutubeUrl});
+                db.metadata.unshift({id:Date.now(),title:'Metadata YouTube - '+parsedYoutubeUrl.slice(0,45),aiText,url:parsedYoutubeUrl});
                 saveData();
                 renderMetadataList();
             } catch(error) {
                 metadataError=error?.message||String(error);
             }
             try {
-                await runVideoAnalysis('youtube',url,false);
+                await runVideoAnalysis('youtube',parsedYoutubeUrl,false);
                 const currentStatus=status?.textContent||'';
                 if(metadataError) {
                     status.textContent=currentStatus+' Metadata gagal dibuat: '+metadataError;
@@ -5108,7 +5108,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(!url)return alert('Masukkan link YouTube terlebih dahulu.');
             const parsedYoutubeUrl=safeExternalUrl(url);if(parsedYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(parsedYoutubeUrl).hostname))return alert('Gunakan tautan YouTube atau youtu.be yang valid.');
             if(!sharedSyncReady)return alert('Koneksi Supabase belum siap. Tunggu sampai aplikasi selesai dimuat.');
-            await runVideoAnalysis('youtube',url);
+            await runVideoAnalysis('youtube',parsedYoutubeUrl);
         }
         const MAX_VIDEO_ANALYSIS_MP3_BYTES = 50 * 1024 * 1024;
         async function uploadVideoAnalysisMp3(file,statusEl) {
@@ -5250,7 +5250,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 if(source==='youtube') {
                     const safeYoutubeUrl=safeExternalUrl(value);if(safeYoutubeUrl==='#'||!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(safeYoutubeUrl).hostname))throw new Error('Tautan YouTube tidak valid.');
                     raw=await callGhoulAI('youtube-video-analysis',{url:safeYoutubeUrl});
-                    title='Analisis YouTube - '+value;
+                    title='Analisis YouTube - '+safeYoutubeUrl;
                 } else {
                     const file=value;
                     title=document.getElementById('video-analysis-title').value.trim()||file.name.replace(/\.mp3$/i,'');
@@ -5258,11 +5258,11 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     raw=JSON.stringify(data);
                 }
                 const data=parseVideoAnalysisJson(raw);
-                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?String(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
+                const item={id:'video-analysis-'+Date.now(),sourceType:source,sourceUrl:source==='youtube'?safeExternalUrl(value):'',title:String(data.title||title).slice(0,180),detectedLanguage:String(data.detectedLanguage||'Tidak diketahui'),fullTranscript:String(data.fullTranscript||''),indonesianTranscript:String(data.indonesianTranscript||''),summary:Array.isArray(data.summary)?data.summary.map(x=>String(x)).slice(0,12):[],moments:normalizeVideoMoments(Array.isArray(data.moments)?data.moments:[]),subtitleSegments:[],createdAt:new Date().toISOString()};
                 if(!item.fullTranscript&&!item.indonesianTranscript)throw new Error('Transkrip tidak ditemukan pada hasil AI.');
                 if(item.indonesianTranscript&&item.indonesianTranscript.length<=30000){try{const subtitleRaw=await callGhoulAI('subtitle-srt',{translatedTranscript:item.indonesianTranscript,audioUrl:'',mimeType:'audio/mpeg'});const subtitleData=parseVideoAnalysisJson(subtitleRaw);item.subtitleSegments=Array.isArray(subtitleData.segments)?subtitleData.segments.filter(x=>x&&x.text&&x.start&&x.end).map(x=>({start:String(x.start),end:String(x.end),text:String(x.text)})):[];item.subtitleTiming=subtitleData.timing||'estimated';}catch(subtitleError){console.warn('Subtitle SRT belum berhasil dibuat:',subtitleError);item.subtitleTiming='estimated';}}else if(item.indonesianTranscript.length>30000){item.subtitleTiming='estimated';}
                 videoAnalysisDraft=item;
-                preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
+                preview.innerHTML='<div class="border border-blue-900/60 bg-blue-950/20 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-3"><b class="text-sm text-blue-200">Pratinjau hasil analisis</b><span class="text-[10px] text-gray-400">'+item.moments.length+' kandidat Shorts</span></div><h4 class="font-bold text-white mb-2">'+escapeHtml(item.title)+'</h4>'+(item.sourceUrl?'<a class="text-xs text-blue-300 underline break-all" href="'+escapeHtml(safeExternalUrl(item.sourceUrl))+'" target="_blank" rel="noopener">Buka video YouTube</a>':'')+videoAnalysisMarkup(item)+'</div>';
                 preview.classList.remove('hidden');saveBtn.classList.remove('hidden');saveBtn.disabled=false;
                 status.textContent='Analisis selesai. Periksa transkrip, terjemahan, dan timestamp sebelum menyimpan.';
             } catch(error) {
@@ -6396,7 +6396,7 @@ async function markDmMessagesRead(){
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (hadController) window.location.reload();
           }, { once: true });
-          navigator.serviceWorker.register('./sw.js?v=66', { scope: './', updateViaCache: 'none' })
+          navigator.serviceWorker.register('./sw.js?v=67', { scope: './', updateViaCache: 'none' })
             .then(registration => registration.update())
             .catch(error => console.warn('Service Worker:', error));
         }
