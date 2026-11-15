@@ -104,3 +104,10 @@ Jangan langsung memecah seluruh 16 key menjadi banyak tabel sebelum hasil migras
 - Uji browser login Crew/Admin belum berhasil dijalankan: saldo TinyFish tidak mencukupi dan situs GitHub Pages tidak dapat dibaca melalui pemeriksaan web. Tidak ada login atau perubahan data yang dilakukan.
 - Leaked Password Protection masih nonaktif. Konektor Supabase yang tersedia tidak menyediakan operasi untuk mengubah pengaturan Auth ini; perlu diaktifkan di Dashboard Supabase > Authentication > Settings > Password Security.
 - Semua migration baru tetap branch-only; tidak ada migration atau deployment baru ke produksi.
+
+## Audit Edge Function push (15 Nov 2026)
+- Audit source aktif `ghoustory-push` menemukan body JSON sebelumnya dibaca tanpa batas ukuran dan jalur DM mengambil seluruh peserta tanpa pemeriksaan eksplisit bahwa pengirim masih menjadi peserta percakapan.
+- Branch PR kini menyertakan sumber Edge Function push yang membatasi body request 16 KiB, memvalidasi UUID pesan dan jenis notifikasi, memverifikasi keanggotaan pengirim pada percakapan DM, dan menolak fan-out lebih dari 500 penerima.
+- Workflow CI diperluas untuk menjalankan `deno check` pada `ghoustory-ai`, `ghoustory-push`, dan `ghoustory-character`.
+- Perubahan push hanya ada di branch. Fungsi produksi tetap versi 6 dan belum dideploy ulang. Perlu pengujian fungsional dengan dua akun DM (anggota dan bukan anggota) serta grup sebelum rilis.
+- CORS masih wildcard pada ketiga Edge Function; akses tetap memakai JWT pada AI/push, sedangkan character sengaja memakai endpoint publik untuk pairing Roblox. Jangan mengubah origin atau `verify_jwt` sebelum alur Roblox diuji.
