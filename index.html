@@ -3086,6 +3086,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             window.__ghoustorySyncConflict = false;
             sharedSyncReady = true;
             if (purgedCompletedItems) saveData();
+            // Compress legacy segment logos once so large data URIs stop inflating app_state.
+            const optimizedSegmentLogos = await optimizeLegacySegmentLogos();
+            if (optimizedSegmentLogos) saveData();
             if (document.getElementById('script-editor')) {
                 document.getElementById('script-editor').value = db.script || '';
             }
@@ -4335,21 +4338,67 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             });
         }
 
+        // Resize segment logos before storing them in app_state. WebP keeps transparency
+        // while dramatically reducing the multi-megabyte data URIs found in older records.
+        function compressSegmentLogo(dataUri) {
+            return new Promise(resolve => {
+                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return resolve(dataUri || '');
+                const image = new Image();
+                image.onload = () => {
+                    try {
+                        const maxDimension = 512;
+                        const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+                        canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+                        const context = canvas.getContext('2d');
+                        if (!context) return resolve(dataUri);
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            if (!blob || blob.size >= dataUri.length * 0.72) return resolve(dataUri);
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result || dataUri);
+                            reader.onerror = () => resolve(dataUri);
+                            reader.readAsDataURL(blob);
+                        }, 'image/webp', 0.82);
+                    } catch (_) {
+                        resolve(dataUri);
+                    }
+                };
+                image.onerror = () => resolve(dataUri);
+                image.src = dataUri;
+            });
+        }
+
+        async function optimizeLegacySegmentLogos() {
+            let changed = false;
+            for (const segment of db.segmenList || []) {
+                if (!segment || typeof segment.logo !== 'string' ||
+                    !segment.logo.startsWith('data:image/') || segment.logo.length < 120000) continue;
+                const optimized = await compressSegmentLogo(segment.logo);
+                if (optimized && optimized !== segment.logo) {
+                    segment.logo = optimized;
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
         function saveNewSegmentManual() {
             const editIdx = parseInt(document.getElementById('seg-edit-index').value);
             const nama = document.getElementById('seg-nama').value;
             const tag = document.getElementById('seg-tagline').value;
             const desc = document.getElementById('seg-desc').value;
             const fileInput = document.getElementById('seg-logo-file');
-            
+
             if(!nama) return alert("Nama segmen wajib diisi!");
 
             const finishSave = (logoBase64) => {
-                const segObj = { 
-                    nama: nama.startsWith('#') ? nama : '#' + nama, 
-                    tagline: tag, 
-                    desc: desc, 
-                    logo: logoBase64 || (editIdx >= 0 ? db.segmenList[editIdx].logo : '') 
+                const segObj = {
+                    nama: nama.startsWith('#') ? nama : '#' + nama,
+                    tagline: tag,
+                    desc: desc,
+                    logo: logoBase64 || (editIdx >= 0 ? db.segmenList[editIdx].logo : '')
                 };
 
                 if(editIdx >= 0) {
@@ -4364,7 +4413,10 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 
             if(fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) { finishSave(e.target.result); };
+                reader.onload = async function(e) {
+                    const optimized = await compressSegmentLogo(e.target.result);
+                    finishSave(optimized);
+                };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
                 finishSave(null);
