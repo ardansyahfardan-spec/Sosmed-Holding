@@ -155,6 +155,9 @@ try {
     window.showPage("arena");
     window.openDesaTerlarang();
   });
+  await mobilePage.locator("#arena-play-panel iframe").waitFor({ state: "attached", timeout: 10000 });
+  const mobileFrameLocator = mobilePage.frameLocator("#arena-play-panel iframe");
+  await mobileFrameLocator.locator("#game").waitFor({ state: "attached", timeout: 30000 });
   const mobileFrame = mobilePage.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
   if (!mobileFrame) throw new Error("Mobile Game Hub did not load the Desa Terlarang iframe.");
   await mobileFrame.waitForFunction(() => window.THREE?.REVISION === "159", { timeout: 30000 });
