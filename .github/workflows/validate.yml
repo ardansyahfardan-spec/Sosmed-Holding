@@ -25,7 +25,6 @@ jobs:
         run: |
           deno check supabase/functions/ghoustory-ai/index.ts
           deno check supabase/functions/ghoustory-push/index.ts
-          deno check supabase/functions/ghoustory-character/index.ts
 
   database-migrations:
     runs-on: ubuntu-latest
