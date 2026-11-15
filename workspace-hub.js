@@ -78,7 +78,7 @@
   }
   function renderMonitor() {
     const aiPending = aiUsageSummary === null;
-    const aiRestricted = aiUsageSummary === 'Admin saja' || aiUsageSummary === 'Belum aktif' || aiUsageSummary === 'Gagal dimuat';
+    const aiRestricted = aiUsageSummary === 'Admin saja' || aiUsageSummary === 'Belum aktif' || aiUsageSummary === 'Gagal dimuat' || aiUsageSummary === 'Metrik perlu diperbarui';
     const aiRequests = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : Number(aiUsageSummary.requests || 0);
     const aiTokens = aiPending ? 'Buka tab untuk memuat' : aiRestricted ? aiUsageSummary : (Number(aiUsageSummary.inputTokens || 0).toLocaleString('id-ID') + ' masuk / ' + Number(aiUsageSummary.outputTokens || 0).toLocaleString('id-ID') + ' keluar');
     const values = [
@@ -102,17 +102,21 @@
     if (!db) return;
     try {
       const { data, error } = await db.rpc('ghoustory_workspace_ai_usage_count');
-      // The RPC returns null for non-admins and a JSON summary for admins.
-      // Never interpret a scalar count as the full metrics object.
-      isWorkspaceAdmin = !error && data !== null && typeof data === 'object' && !Array.isArray(data);
+      // NULL means non-admin. Keep admin permissions working during rollout
+      // even if the currently installed RPC still returns its legacy scalar count.
+      isWorkspaceAdmin = !error && data !== null;
       if (error) aiUsageLoaded = false;
       aiUsageSummary = error
         ? (error.message.includes('Could not find the function') ? 'Belum aktif' : 'Gagal dimuat')
-        : (data === null ? 'Admin saja' : {
-            requests: Math.max(0, Number(data.requests || 0)),
-            inputTokens: Math.max(0, Number(data.inputTokens || 0)),
-            outputTokens: Math.max(0, Number(data.outputTokens || 0))
-          });
+        : (data === null ? 'Admin saja' : (
+            typeof data === 'object' && !Array.isArray(data)
+              ? {
+                  requests: Math.max(0, Number(data.requests || 0)),
+                  inputTokens: Math.max(0, Number(data.inputTokens || 0)),
+                  outputTokens: Math.max(0, Number(data.outputTokens || 0))
+                }
+              : 'Metrik perlu diperbarui'
+          ));
       renderIdeas();
       renderTasks();
     } catch {
