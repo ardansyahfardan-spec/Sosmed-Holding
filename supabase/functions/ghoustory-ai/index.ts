@@ -25,7 +25,7 @@ async function recordAiUsage(
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const authorization = req.headers.get("authorization") || "";
-  const token = authorization.replace(/^Bearer\\s+/i, "");
+  const token = authorization.replace(/^Bearer\s+/i, "");
   let userId: string | null = null;
 
   // Supabase Edge Gateway verifies the JWT before this function runs.
@@ -44,7 +44,7 @@ async function recordAiUsage(
 
   if (!supabaseUrl || !serviceRoleKey || !userId) return;
   try {
-    const response = await fetch(supabaseUrl.replace(/\\/$/, "") + "/rest/v1/ghoustory_ai_usage", {
+    const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/ghoustory_ai_usage", {
       method: "POST",
       headers: {
         "apikey": serviceRoleKey,
