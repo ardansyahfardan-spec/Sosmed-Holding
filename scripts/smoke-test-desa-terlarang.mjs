@@ -49,7 +49,7 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
 
   await page.goto("http://127.0.0.1:4173/assets/games/desa-terlarang/index.html", { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => window.THREE?.REVISION === "160", { timeout: 30000 });
+  await page.waitForFunction(() => window.THREE?.REVISION === "159", { timeout: 30000 });
   await page.waitForFunction(() => {
     const canvas = document.querySelector("#game");
     if (!canvas || canvas.width < 1 || canvas.height < 1) return false;
@@ -60,7 +60,7 @@ try {
   await page.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
 
   if (errors.length) throw new Error("Standalone game runtime errors: " + errors.join(" | "));
-  console.log("Standalone game test passed: Three.js r160 loaded, WebGL canvas initialized, and create-room opens character selection.");
+  console.log("Standalone game test passed: Three.js r159 loaded, WebGL canvas initialized, and create-room opens character selection.");
 
   errors.length = 0;
   await page.goto("http://127.0.0.1:4173/index.html", { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -70,7 +70,7 @@ try {
 
   const gameFrame = page.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
   if (!gameFrame) throw new Error("Game Hub did not load the Desa Terlarang iframe.");
-  await gameFrame.waitForFunction(() => window.THREE?.REVISION === "160", { timeout: 30000 });
+  await gameFrame.waitForFunction(() => window.THREE?.REVISION === "159", { timeout: 30000 });
   await gameFrame.waitForFunction(() => {
     const canvas = document.querySelector("#game");
     return !!canvas && canvas.width > 0 && canvas.height > 0 && !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
@@ -78,7 +78,7 @@ try {
   await gameFrame.locator("#create-room").click();
   await gameFrame.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
 
-  console.log("Game Hub integration test passed: launcher opens the iframe, Three.js r160 initializes WebGL, and the in-game character selection opens.");
+  console.log("Game Hub integration test passed: launcher opens the iframe, Three.js r159 initializes WebGL, and the in-game character selection opens.");
 } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
