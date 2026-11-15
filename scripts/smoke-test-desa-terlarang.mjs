@@ -123,8 +123,11 @@ try {
   if (!canvasReady) throw new Error("Desa game iframe did not initialize WebGL: " + JSON.stringify(frameDiagnostics));
   await gameFrame.locator("#create-room").click();
   await gameFrame.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
+  await page.locator('#arena-play-panel > button[aria-label="Kembali ke Game Ghoustory"]').click();
+  await page.waitForFunction(() => document.querySelector("#arena-play-panel")?.parentElement?.id === "arena-lobby-view");
+  await page.locator("#arena-lobby-view").waitFor({ state: "visible", timeout: 10000 });
 
-  console.log("Game Hub integration test passed: launcher opens the iframe, Three.js r159 initializes WebGL, and the in-game character selection opens.");
+  console.log("Game Hub integration test passed: launcher opens the iframe outside the hidden lobby, Three.js r159 initializes WebGL, character selection opens, and Back restores the lobby.");
 } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
