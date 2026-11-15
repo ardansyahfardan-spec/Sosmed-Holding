@@ -66,7 +66,7 @@
           <div class="min-w-0"><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Tanpa deskripsi')}</p></div>
           <span class="workspace-pill">${esc(item.status.replace('_',' '))}</span>
         </div>
-        <div class="workspace-meta"><span>Prioritas: ${esc(item.priority)}</span><span>${dateLabel(item.due_at)}</span></div>
+        <div class="workspace-meta"><span>Proyek: ${esc(item.project_name || 'Umum')}</span><span>Prioritas: ${esc(item.priority)}</span><span>${dateLabel(item.due_at)}</span></div>
         ${item.status !== 'done' && item.status !== 'cancelled' && currentUser && (currentUser.id === item.created_by || isWorkspaceAdmin) ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
       </article>`).join('');
   }
