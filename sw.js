@@ -1,4 +1,16 @@
-const CACHE_NAME = 'ghoustory-control-room-v-next-3';
+const CACHE_NAME = 'ghoustory-control-room-v-next-4';
+
+function getSafeNotificationTarget(value) {
+  try {
+    const target = new URL(typeof value === 'string' ? value : './', self.registration.scope);
+    if (target.origin !== self.location.origin || !['http:', 'https:'].includes(target.protocol)) {
+      return new URL('./', self.registration.scope).href;
+    }
+    return target.href;
+  } catch (_) {
+    return new URL('./', self.registration.scope).href;
+  }
+}
 const APP_SHELL = [ './manifest.webmanifest', './image_2.png', './ghoustory-logo.png', './ghoust-ai-avatar.svg', './apple-touch-icon 2.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -58,14 +70,14 @@ self.addEventListener('push', (event) => {
   event.waitUntil((async () => {
     let style = 'vibrate';
     try { const cache = await caches.open(CACHE_NAME); const pref = await cache.match('./notification-preferences.json'); if (pref) style = (await pref.json()).style || 'vibrate'; } catch (_) {}
-    const options = { body: payload.body || 'Kamu menerima pesan baru.', icon: './icon-192.png', badge: './apple-touch-icon%202.png', tag: payload.tag || 'ghoustory-message', renotify: true, ...(style === 'vibrate' ? { vibrate: [180, 90, 180] } : {}), data: { url: payload.url || './' } };
+    const options = { body: payload.body || 'Kamu menerima pesan baru.', icon: './icon-192.png', badge: './apple-touch-icon%202.png', tag: payload.tag || 'ghoustory-message', renotify: true, ...(style === 'vibrate' ? { vibrate: [180, 90, 180] } : {}), data: { url: getSafeNotificationTarget(payload.url) } };
     await self.registration.showNotification(title, options);
   })());
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const target = new URL(event.notification.data?.url || './', self.registration.scope).href;
+  const target = getSafeNotificationTarget(event.notification.data?.url);
   event.waitUntil((async () => {
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of windows) {
