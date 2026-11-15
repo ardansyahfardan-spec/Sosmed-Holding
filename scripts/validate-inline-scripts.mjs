@@ -4,6 +4,23 @@ import vm from "node:vm";
 const html = readFileSync("index.html", "utf8");
 const serviceWorker = readFileSync("sw.js", "utf8");
 
+const gameHubChecks = [
+  ["Desa Terlarang card opens the standalone game", /data-mode="desa_terlarang"[\\s\\S]*?onclick="openDesaTerlarang\\(\\)"/.test(html)],
+  ["Malam Terlarang card opens the Malam game", /data-mode="malam_terlarang"[\\s\\S]*?onclick="openMalamTerlarang\\(\\)"/.test(html)],
+  ["Desa Terlarang launcher uses the project-relative game path", html.includes('src="./assets/games/desa-terlarang/index.html"')],
+  ["Desa Terlarang launcher provides a return action", html.includes('onclick="closeArenaGame()"') && html.includes("window.openDesaTerlarang=function()")],
+  ["Malam Terlarang opens the game panel and renders its home screen", /window\\.openMalamTerlarang=function\\(\\)[\\s\\S]*?showArenaGamePage\\(\\)[\\s\\S]*?malamHome\\(\\)/.test(html)],
+  ["closing a game restores the Game Hub", /window\\.closeArenaGame=function\\(\\)[\\s\\S]*?l\\.classList\\.remove\\('hidden'\\)/.test(html)],
+];
+
+const gameHubFailures = gameHubChecks.filter(([, passed]) => !passed).map(([name]) => name);
+if (gameHubFailures.length) {
+  console.error("Game Hub checks failed:\\n" + gameHubFailures.join("\\n"));
+  process.exitCode = 1;
+} else {
+  console.log("Passed " + gameHubChecks.length + " Game Hub navigation checks.");
+}
+
 const securityChecks = [
   ["CSP blocks object embedding", html.includes("object-src 'none'")],
   ["CSP restricts base URLs", html.includes("base-uri 'self'")],
