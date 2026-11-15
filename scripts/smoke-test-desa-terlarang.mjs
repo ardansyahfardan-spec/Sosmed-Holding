@@ -63,6 +63,15 @@ try {
   console.log("Standalone game test passed: Three.js r159 loaded, WebGL canvas initialized, and create-room opens character selection.");
 
   errors.length = 0;
+  await page.route("https://**/*", async (route) => {
+    const url = route.request().url();
+    if (url.startsWith("https://cdn.jsdelivr.net/npm/three@0.159.0/") ||
+        url.startsWith("https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/")) {
+      await route.continue();
+    } else {
+      await route.abort();
+    }
+  });
   await page.goto("http://127.0.0.1:4173/index.html", { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForFunction(() => typeof window.openDesaTerlarang === "function", { timeout: 30000 });
   await page.evaluate(() => { window.showPage("arena"); window.openDesaTerlarang(); });
