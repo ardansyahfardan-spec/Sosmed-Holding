@@ -92,7 +92,7 @@
       db.from('ghoustory_workspace_ideas').select('id,title,description,category,status,created_by,created_at').order('created_at',{ascending:false}).limit(40),
       db.from('ghoustory_workspace_tasks').select('id,title,description,status,priority,due_at,assigned_to,created_by,created_at').order('created_at',{ascending:false}).limit(40),
       db.from('ghoustory_workspace_activity').select('id,entity_type,action,created_at').order('created_at',{ascending:false}).limit(20),
-      db.from('ghoustory_ai_usage').select('id',{count:'exact',head:true})
+      Promise.resolve({data:[],error:null,count:null})
     ]);
     if (ideas.error || tasks.error || activity.error) {
       const err = ideas.error || tasks.error || activity.error;
@@ -102,7 +102,7 @@
     cachedIdeas = ideas.data || [];
     cachedTasks = tasks.data || [];
     cachedActivity = activity.data || [];
-    aiUsageCount = aiCount.error ? null : (aiCount.count ?? 0);
+    aiUsageCount = null;
     renderIdeas(); renderTasks(); renderMonitor();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
   }
