@@ -22,7 +22,10 @@ jobs:
       - name: Check inline application scripts
         run: node scripts/validate-inline-scripts.mjs
       - name: Type-check AI Edge Function
-        run: deno check supabase/functions/ghoustory-ai/index.ts
+        run: |
+          deno check supabase/functions/ghoustory-ai/index.ts
+          deno check supabase/functions/ghoustory-push/index.ts
+          deno check supabase/functions/ghoustory-character/index.ts
 
   database-migrations:
     runs-on: ubuntu-latest
