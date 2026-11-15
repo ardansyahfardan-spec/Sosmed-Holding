@@ -106,7 +106,8 @@
           });
       renderIdeas();
     } catch {
-      aiUsageCount = 'Gagal dimuat';
+      aiUsageSummary = 'Gagal dimuat';
+      aiUsageLoaded = false;
     }
     renderMonitor();
   }
