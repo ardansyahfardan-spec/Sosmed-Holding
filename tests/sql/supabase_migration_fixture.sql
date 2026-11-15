@@ -29,6 +29,7 @@ as $$
     where user_id = (select auth.uid())
   )
 $$;
+grant usage on schema private to authenticated;
 grant execute on function private.is_ghoustory_app_admin() to authenticated;
 
 create table public.ghoustory_ai_usage (
