@@ -396,7 +396,10 @@ KELUARAN HARUS DUA BAGIAN:
 ⏳ BELUM DIPUTUSKAN — hanya hal yang masih menggantung; jika tidak ada, tulis "—".
 
 Gunakan bahasa sederhana, kalimat pendek, dan ikon seperlunya. Hindari paragraf panjang, pengulangan, dan basa-basi. Jangan mengarang nama, keputusan, tanggal, PIC, atau tenggat. Bedakan usulan dari keputusan. Jika pembicara tidak dapat dikenali dengan yakin, jangan menebak identitasnya. Topik rapat: ${topic}. Pisahkan dengan heading TRANSKRIP dan NOTULEN.`;
-      if (requestParts.length) requestParts[0] = { text: prompt };
+      requestParts = [
+        { text: prompt },
+        { inline_data: { mime_type: audioMimeType, data: audioBase64 } },
+      ];
     } else if (task === "social-screenshot") {
       const imageBase64 = String(body.imageBase64 || "");
       const imageMimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
@@ -740,6 +743,20 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     await recordAiUsage(req, task, activeModel, usage, "success");
     return json({ text: text + sourceText, sources, usage });
   } catch (error) {
+    // Ensure temporary Gemini uploads are deleted even if the model request or
+    // response parsing throws before the normal cleanup path is reached.
+    if (uploadedGeminiFileName) {
+      try {
+        await fetch("https://generativelanguage.googleapis.com/v1beta/" + uploadedGeminiFileName, {
+          method: "DELETE",
+          headers: { "x-goog-api-key": Deno.env.get("GEMINI_API_KEY") || "" },
+          signal: AbortSignal.timeout(10000),
+        });
+      } catch (cleanupError) {
+        console.warn("[ghoustory-ai] temporary Gemini file cleanup failed:", cleanupError);
+      }
+      uploadedGeminiFileName = "";
+    }
     if (aiRequestStarted && usageTask) await recordAiUsage(req, usageTask, usageModel, null, "error");
     console.error("[ghoustory-ai] request_failed:", error instanceof Error ? error.message.slice(0, 400) : "Unknown error");
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
