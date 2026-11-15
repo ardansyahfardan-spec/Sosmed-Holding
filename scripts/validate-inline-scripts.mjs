@@ -17,6 +17,9 @@ const securityChecks = [
   ["segment logos have file type and size limits", html.includes("logoFile.size>5*1024*1024")],
   ["dynamic chat forms constrain field lengths", html.includes("maxlength=\"20000\"") && html.includes("maxlength=\"50000\"") && html.includes("maxlength=\"12000\"")],
   ["group and DM composers have length limits", html.includes('id="chat-input" type="text" maxlength="4000"') && html.includes('id="dm-input" maxlength="4000"')],
+  ["social ranking labels are escaped and bar colors are allowlisted", html.includes("escapeHtml(x.label)") && html.includes("const barColor=/^#[0-9a-f]{6}$/i.test(x.color||'')")],
+  ["Malam investigation names and event text are escaped", html.includes("esc(s.investigation.name)") && html.includes("esc(String(s.lastEvent||''))")],
+  ["Malam player avatars use the safe image URL helper", html.includes("safeImageSrc(p.avatar_url)") && html.includes("safeImageSrc(x.avatar_url)")],
 
 ];
 
