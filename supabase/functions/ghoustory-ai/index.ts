@@ -91,10 +91,10 @@ async function takeAiRateLimit(req: Request): Promise<boolean> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const authorization = req.headers.get("authorization") || "";
-  if (!supabaseUrl || !anonKey || !/^Bearer\\s+\\S+/i.test(authorization)) {
+  if (!supabaseUrl || !anonKey || !/^Bearer\s+\S+/i.test(authorization)) {
     throw new Error("Konfigurasi pemeriksaan batas AI belum tersedia.");
   }
-  const response = await fetch(supabaseUrl.replace(/\\/$/, "") + "/rest/v1/rpc/ghoustory_ai_take_rate_limit", {
+  const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/ghoustory_ai_take_rate_limit", {
     method: "POST",
     headers: {
       "apikey": anonKey,
