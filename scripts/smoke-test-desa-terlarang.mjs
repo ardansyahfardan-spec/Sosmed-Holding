@@ -59,8 +59,26 @@ try {
   await page.locator("#create-room").click();
   await page.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
 
-  if (errors.length) throw new Error("Browser runtime errors: " + errors.join(" | "));
-  console.log("Desa Terlarang browser smoke test passed: Three.js r160 loaded, WebGL canvas initialized, and create-room opens character selection.");
+  if (errors.length) throw new Error("Standalone game runtime errors: " + errors.join(" | "));
+  console.log("Standalone game test passed: Three.js r160 loaded, WebGL canvas initialized, and create-room opens character selection.");
+
+  errors.length = 0;
+  await page.goto("http://127.0.0.1:4173/index.html", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.waitForFunction(() => typeof window.openDesaTerlarang === "function", { timeout: 30000 });
+  await page.evaluate(() => window.openDesaTerlarang());
+  await page.locator("#arena-play-panel iframe").waitFor({ state: "attached", timeout: 10000 });
+
+  const gameFrame = page.frames().find((frame) => frame.url().includes("/assets/games/desa-terlarang/index.html"));
+  if (!gameFrame) throw new Error("Game Hub did not load the Desa Terlarang iframe.");
+  await gameFrame.waitForFunction(() => window.THREE?.REVISION === "160", { timeout: 30000 });
+  await gameFrame.waitForFunction(() => {
+    const canvas = document.querySelector("#game");
+    return !!canvas && canvas.width > 0 && canvas.height > 0 && !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  }, { timeout: 30000 });
+  await gameFrame.locator("#create-room").click();
+  await gameFrame.locator("#character-select-screen").waitFor({ state: "visible", timeout: 10000 });
+
+  console.log("Game Hub integration test passed: launcher opens the iframe, Three.js r160 initializes WebGL, and the in-game character selection opens.");
 } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
