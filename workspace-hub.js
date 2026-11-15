@@ -47,7 +47,7 @@
       <article class="workspace-item">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0"><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Tanpa deskripsi')}</p></div>
-          <span class="workspace-pill">${esc(item.status)}</span>
+          <span class="workspace-pill">${esc(({new:'Baru',reviewing:'Ditinjau',accepted:'Diterima',rejected:'Ditolak',implemented:'Direalisasikan'})[item.status] || item.status)}</span>
         </div>
         <div class="workspace-meta"><span>${esc(item.category)}</span><span>${dateLabel(item.created_at)}</span></div>
         ${isWorkspaceAdmin ? '<label class="workspace-admin-status">Status ide <select data-idea-status="' + esc(item.id) + '" class="workspace-input"><option value="new" ' + (item.status === 'new' ? 'selected' : '') + '>Baru</option><option value="reviewing" ' + (item.status === 'reviewing' ? 'selected' : '') + '>Ditinjau</option><option value="accepted" ' + (item.status === 'accepted' ? 'selected' : '') + '>Diterima</option><option value="rejected" ' + (item.status === 'rejected' ? 'selected' : '') + '>Ditolak</option><option value="implemented" ' + (item.status === 'implemented' ? 'selected' : '') + '>Direalisasikan</option></select></label>' : ''}
@@ -64,7 +64,7 @@
       <article class="workspace-item">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0"><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Tanpa deskripsi')}</p></div>
-          <span class="workspace-pill">${esc(item.status.replace('_',' '))}</span>
+          <span class="workspace-pill">${esc(({todo:'Belum dikerjakan',in_progress:'Sedang dikerjakan',done:'Selesai',cancelled:'Dibatalkan'})[item.status] || item.status)}</span>
         </div>
         <div class="workspace-meta"><span>Proyek: ${esc(item.project_name || 'Umum')}</span><span>Prioritas: ${esc(item.priority)}</span><span>${dateLabel(item.due_at)}</span></div>
         ${item.status !== 'done' && item.status !== 'cancelled' && currentUser && (currentUser.id === item.created_by || isWorkspaceAdmin) ? '<button class="workspace-action" data-complete-task="' + esc(item.id) + '">Tandai selesai</button>' : ''}
