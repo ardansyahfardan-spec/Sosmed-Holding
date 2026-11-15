@@ -11,7 +11,7 @@ const securityChecks = [
   ["image URL allowlist helper exists", html.includes("function safeImageSrc") && html.includes("url.protocol==='https:'")],
   ["external HTTPS URL helper is used for LORE references", html.includes("function safeExternalUrl") && html.includes("safeExternalUrl(source.url)")],
   ["push links are restricted to the app origin", serviceWorker.includes("target.origin !== self.location.origin")],
-  ["Supabase JS CDN is version-pinned", html.includes("@supabase/supabase-js@2.119.0")],
+  ["Supabase JS CDN is version-pinned", html.includes("@supabase/supabase-js@2.119.0") && !html.includes("@supabase/supabase-js@2/dist/")],
   ["Chart.js CDN is version-pinned", html.includes("chart.js@4.6.1")],
   ["tus client CDN is version-pinned", html.includes("tus-js-client@4.3.1")],
   ["segment logos have file type and size limits", html.includes("logoFile.size>5*1024*1024")],
