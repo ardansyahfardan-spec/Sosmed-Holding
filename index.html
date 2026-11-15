@@ -2120,6 +2120,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                     <span class="gcr-home-copy"><b>Markas Crew</b></span>
                     <i class="fa-solid fa-chevron-right gcr-home-chevron"></i>
                   </button>
+                  <button type="button" onclick="showPage('workspace')" class="gcr-home-item"><span class="gcr-home-icon"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></span><span class="gcr-home-copy"><b>Workspace Crew</b></span><i class="fa-solid fa-chevron-right gcr-home-chevron"></i></button>
                   <button type="button" onclick="showPage('arena')" class="gcr-home-item">
                     <span class="gcr-home-icon"><i class="fa-solid fa-gamepad" aria-hidden="true" title="Game Ghoustory"></i></span>
                     <span class="gcr-home-copy"><b>Game Ghoustory</b></span>
@@ -2701,7 +2702,27 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
       </div>
     </section>
 
-        </main>
+        
+<section id="page-workspace" class="page-section max-w-5xl mx-auto">
+  <button type="button" class="feature-back-button" onclick="showPage('home')" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
+  <div class="flex items-center justify-between gap-3"><div><h2 class="text-xl font-bold">Workspace Crew</h2><p class="text-xs text-gray-400 mt-1">Ide, tugas, dan aktivitas dalam satu ruang.</p></div><button id="workspace-refresh" type="button" class="workspace-button">Muat ulang</button></div>
+  <div class="workspace-tabs" role="tablist" aria-label="Workspace Crew">
+    <button type="button" class="workspace-tab is-active" data-workspace-tab="ideas" aria-pressed="true">Ide Crew</button>
+    <button type="button" class="workspace-tab" data-workspace-tab="tasks" aria-pressed="false">Tugas</button>
+    <button type="button" class="workspace-tab" data-workspace-tab="monitor" aria-pressed="false">Monitoring</button>
+  </div>
+  <div id="workspace-panel-ideas">
+    <div class="workspace-panel"><h3>Kirim ide baru</h3><form id="workspace-idea-form"><input id="workspace-idea-title" class="workspace-input" maxlength="120" minlength="3" placeholder="Judul ide" required><textarea id="workspace-idea-description" class="workspace-input" rows="3" maxlength="3000" placeholder="Ceritakan ide secara singkat"></textarea><select id="workspace-idea-category" class="workspace-input"><option>Umum</option><option>Konten</option><option>Produksi</option><option>Marketing</option><option>Fitur Control Room</option><option>Game</option></select><button id="workspace-idea-submit" class="workspace-button" type="submit">Kirim ide</button></form></div>
+    <div class="workspace-panel"><h3>Ide dari Crew</h3><div id="workspace-ideas-list"><p class="workspace-empty">Memuat ide…</p></div></div>
+  </div>
+  <div id="workspace-panel-tasks" class="hidden">
+    <div class="workspace-panel"><h3>Buat tugas</h3><form id="workspace-task-form"><input id="workspace-task-title" class="workspace-input" maxlength="140" minlength="3" placeholder="Nama tugas" required><textarea id="workspace-task-description" class="workspace-input" rows="3" maxlength="3000" placeholder="Detail tugas"></textarea><div class="grid grid-cols-2 gap-2"><select id="workspace-task-priority" class="workspace-input"><option value="normal">Prioritas normal</option><option value="low">Prioritas rendah</option><option value="high">Prioritas tinggi</option><option value="urgent">Mendesak</option></select><input id="workspace-task-due" type="datetime-local" class="workspace-input" aria-label="Tenggat tugas"></div><button id="workspace-task-submit" class="workspace-button" type="submit">Tambah tugas</button></form></div>
+    <div class="workspace-panel"><h3>Daftar tugas</h3><div id="workspace-tasks-list"><p class="workspace-empty">Memuat tugas…</p></div></div>
+  </div>
+  <div id="workspace-panel-monitor" class="hidden"><div class="workspace-panel"><h3>Ringkasan penggunaan Workspace</h3><div id="workspace-monitor-grid" class="grid grid-cols-2 gap-2"></div><p id="workspace-monitor-note" class="text-xs text-gray-500 mt-3"></p></div><div class="workspace-panel"><h3>Aktivitas terbaru</h3><div id="workspace-activity-list"></div></div></div>
+  <p id="workspace-status" class="text-xs mt-3 text-gray-400" role="status" aria-live="polite">Workspace siap dibuka.</p>
+</section>
+</main>
         <div id="bottom-navigation" class="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-[80] w-[min(94vw,430px)] rounded-full border border-white/15 bg-[#111827]/65 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,.45)] px-3 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))]">
           <div class="grid grid-cols-4 gap-1">
             <button data-bottom-nav="home" onclick="navigateBottom('home')" class="bottom-nav-item flex flex-col items-center gap-1 rounded-full py-2 text-gray-400"><span class="relative"><i class="fa-solid fa-house-crack text-lg" title="Ghouse"></i><i id="nav-dot-home" class="hidden absolute -right-1 -top-1 h-2 w-2 rounded-full bg-green-400"></i></span><span class="text-[10px]">Ghouse</span></button>
@@ -3637,7 +3658,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 history.pushState({ghoustoryApp:true,page:pageId,depth}, '');
             } else if (navOptions.fromHistory) window.ghoustoryNavCurrentPage = pageId;
             target.querySelector('.feature-back-button')?.remove();
-            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Game Ghoustory','DESA TERLARANG • MALAM TERLARANG'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
+            const pageTitles={home:['Ghouse','Markas Ghoustory'],arena:['Game Ghoustory','DESA TERLARANG • MALAM TERLARANG'],chat:['Meeting Crew','Ruang komunikasi Crew'],tim:['Markas Crew','Ruang operasional'],crewhub:['Crew Hub','Ringkasan Crew'],workspace:['Workspace Crew','Ide, tugas & aktivitas'],lore:['Lore','ARSIP MISTERI NUSANTARA'],anda:['Sosok','Identitas dan preferensi'],grimoire:['Grimoire','Naskah dan riset'],ghoustnote:['Ghoustnote','Catatan dan VO'],analisis:['Ghoust AI & Metadata','Pengolahan metadata berbantuan AI'],segmen:['Arsip Segmen','Produksi konten'],radar:['Rasi','Analitik performa']};
             const identity=pageTitles[pageId]||[pageId.charAt(0).toUpperCase()+pageId.slice(1),'Ghoustory Control Room'];
             const titleEl=document.getElementById('header-page-title'),subEl=document.getElementById('header-page-subtitle'),logoEl=document.getElementById('header-brand-logo'),backEl=document.getElementById('header-back-button');
             if(titleEl)titleEl.textContent=identity[0];if(subEl)subEl.textContent=identity[1];const appNav=document.querySelector('#main-app > nav');if(appNav)appNav.classList.toggle('lore-mobile-header',pageId==='lore');
@@ -7740,5 +7761,6 @@ window.loadArenaImages();
 })();
 </script>
 
+<script src="./workspace-hub.js" defer></script>
 </body>
 </html>
