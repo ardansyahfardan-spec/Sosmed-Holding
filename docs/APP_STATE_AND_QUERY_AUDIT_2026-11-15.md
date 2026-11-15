@@ -83,3 +83,11 @@ Jangan langsung memecah seluruh 16 key menjadi banyak tabel sebelum hasil migras
 - GitHub Actions run #76 pada commit `16225fc2f4cd1d1dc4a3c024ba46f04fae21e438` lulus: validasi JavaScript Workspace, delapan skrip inline, dan `deno check` Edge Function.
 - Pemeriksaan browser/E2E belum dilakukan. Sebelum merge/deploy, migration perlu diuji pada environment non-produksi, termasuk batas 10 request/menit, reset window, dan respons 503 saat RPC tidak tersedia.
 - Temuan konfigurasi Auth yang tidak dapat diperbaiki melalui repository (perlindungan kata sandi bocor) tetap perlu diaktifkan melalui dashboard setelah persetujuan admin. Endpoint `ghoustory-character` di project live memakai `verify_jwt=false` untuk alur pairing Roblox publik; aksi yang mengubah akun tetap memvalidasi token atau kode pairing satu kali, dan alur publik perlu diuji ulang sebelum perubahan konfigurasi.
+
+
+### Hardening hak TRUNCATE browser roles (15 Nov 2026)
+- Audit ulang privilege live menemukan grant TRUNCATE langsung pada 26 tabel untuk role `anon` dan 27 tabel untuk `authenticated` (termasuk `app_state`). TRUNCATE adalah hak tingkat tabel dan tidak dibatasi oleh RLS seperti operasi baris.
+- Ditambahkan migration `20261115051000_revoke_public_truncate_grants.sql` untuk mencabut TRUNCATE dari kedua role pada seluruh tabel schema public.
+- Migration juga mengubah default privileges untuk role pembuat tabel `postgres` dan `supabase_admin`, agar tabel public baru tidak otomatis memberikan TRUNCATE kepada anon/authenticated.
+- Migration ini branch-only dan belum dijalankan ke Supabase live. Perlu validasi pada project non-produksi sebelum dipertimbangkan untuk rilis.
+- GitHub Actions run #84 pada commit `44f2f41d024a3890eae5bf73e8e2464ebc064603` lulus: validasi JavaScript Workspace, delapan skrip inline, dan pemeriksaan tipe Edge Function Deno. CI tidak mengeksekusi SQL migration.
