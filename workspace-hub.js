@@ -87,14 +87,19 @@
     aiUsageLoaded = true;
     const db = client();
     if (!db) return;
-    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { count, error } = await db.from('ghoustory_ai_usage')
-      .select('id', { count: 'exact', head: true })
-      .gte('created_at', cutoff);
-    aiUsageCount = error ? (error.message.includes('does not exist') || error.message.includes('Could not find the table') ? 'Belum aktif' : 'Khusus admin') : (count ?? 0);
+    try {
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { count, error } = await db.from('ghoustory_ai_usage')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', cutoff);
+      aiUsageCount = error ? (error.message.includes('does not exist') || error.message.includes('Could not find the table') ? 'Belum aktif' : 'Khusus admin') : (count ?? 0);
+    } catch {
+      aiUsageCount = 'Gagal dimuat';
+    }
     renderMonitor();
   }
   async function loadWorkspace() {
+    try {
     const db = client();
     if (!db) { status('Koneksi database belum siap. Muat ulang setelah login.', true); return; }
     status('Memuat data Workspace…');
@@ -119,26 +124,36 @@
     renderIdeas(); renderTasks(); renderMonitor();
     if (activeTab === 'monitor') loadAiUsage();
     status('Workspace tersinkron. Daftar dibatasi 40 item per kategori agar query tetap ringan.');
+    } catch (error) {
+      status('Workspace gagal dimuat. Periksa koneksi lalu coba lagi.', true);
+    }
   }
   async function submitIdea(event) {
     event.preventDefault();
     const db = client();
+    if (!db || !currentUser) return status('Tunggu sampai data Crew selesai dimuat.', true);
     const title = $('workspace-idea-title')?.value.trim() || '';
     const description = $('workspace-idea-description')?.value.trim() || '';
     const category = $('workspace-idea-category')?.value || 'Umum';
     if (title.length < 3) return status('Judul ide minimal 3 karakter.', true);
     const button = $('workspace-idea-submit');
     if (button) button.disabled = true;
-    const { error } = await db.from('ghoustory_workspace_ideas').insert({title,description,category,created_by:currentUser.id});
-    if (button) button.disabled = false;
-    if (error) return status('Ide gagal dikirim: ' + error.message, true);
-    $('workspace-idea-form')?.reset();
-    status('Ide berhasil dikirim ke Crew.');
-    await loadWorkspace();
+    try {
+      const { error } = await db.from('ghoustory_workspace_ideas').insert({title,description,category,created_by:currentUser.id});
+      if (error) return status('Ide gagal dikirim: ' + error.message, true);
+      $('workspace-idea-form')?.reset();
+      status('Ide berhasil dikirim ke Crew.');
+      await loadWorkspace();
+    } catch (error) {
+      status('Ide gagal dikirim. Periksa koneksi lalu coba lagi.', true);
+    } finally {
+      if (button) button.disabled = false;
+    }
   }
   async function submitTask(event) {
     event.preventDefault();
     const db = client();
+    if (!db || !currentUser) return status('Tunggu sampai data Crew selesai dimuat.', true);
     const title = $('workspace-task-title')?.value.trim() || '';
     const description = $('workspace-task-description')?.value.trim() || '';
     const priority = $('workspace-task-priority')?.value || 'normal';
@@ -146,20 +161,29 @@
     if (title.length < 3) return status('Judul tugas minimal 3 karakter.', true);
     const button = $('workspace-task-submit');
     if (button) button.disabled = true;
-    const { error } = await db.from('ghoustory_workspace_tasks').insert({title,description,priority,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id});
-    if (button) button.disabled = false;
-    if (error) return status('Tugas gagal dibuat: ' + error.message, true);
-    $('workspace-task-form')?.reset();
-    status('Tugas berhasil ditambahkan.');
-    await loadWorkspace();
+    try {
+      const { error } = await db.from('ghoustory_workspace_tasks').insert({title,description,priority,due_at:due ? new Date(due).toISOString() : null,created_by:currentUser.id});
+      if (error) return status('Tugas gagal dibuat: ' + error.message, true);
+      $('workspace-task-form')?.reset();
+      status('Tugas berhasil ditambahkan.');
+      await loadWorkspace();
+    } catch (error) {
+      status('Tugas gagal dibuat. Periksa koneksi lalu coba lagi.', true);
+    } finally {
+      if (button) button.disabled = false;
+    }
   }
   async function completeTask(id) {
     const db = client();
     const task = cachedTasks.find(x => x.id === id);
     if (!task) return;
-    const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id);
-    if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
-    await loadWorkspace();
+    try {
+      const { error } = await db.from('ghoustory_workspace_tasks').update({status:'done'}).eq('id',id);
+      if (error) return status('Status tugas tidak dapat diubah: ' + error.message, true);
+      await loadWorkspace();
+    } catch {
+      status('Status tugas gagal diperbarui. Periksa koneksi lalu coba lagi.', true);
+    }
   }
   function bind() {
     $('workspace-idea-form')?.addEventListener('submit', submitIdea);
