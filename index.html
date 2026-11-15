@@ -4254,7 +4254,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(db.notulen.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada notulen.</div>'; return; }
             db.notulen.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
-                    <div><b class="text-red-500">${item.topic}</b><div class="text-xs text-gray-400 truncate max-w-xs">${item.raw}</div></div>
+                    <div><b class="text-red-500">${escapeHtml(item.topic)}</b><div class="text-xs text-gray-400 truncate max-w-xs">${escapeHtml(item.raw)}</div></div>
                     <div class="flex gap-1">
                         ${renderDoneControl('notulen', item)}
                         <button onclick="openModalNotulen(${i})" class="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-gray-200">Preview / Edit</button>
@@ -4296,7 +4296,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if(db.metadata.length === 0) { c.innerHTML = '<div class="text-xs text-gray-500 py-2">Belum ada metadata AI.</div>'; return; }
             db.metadata.forEach((item, i) => {
                 c.innerHTML += `<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white flex justify-between items-center">
-                    <div><b class="text-blue-400">${item.title}</b><div class="text-xs text-gray-400">${item.aiText.substring(0,40)}...</div></div>
+                    <div><b class="text-blue-400">${escapeHtml(item.title)}</b><div class="text-xs text-gray-400">${escapeHtml(String(item.aiText||'').substring(0,40))}...</div></div>
                     <div class="flex gap-1">
                         ${renderDoneControl('metadata', item)}
                         <button onclick="editMetadata(${i})" class="text-xs bg-yellow-900 px-2 py-1 rounded text-yellow-100">Edit</button>
@@ -4334,7 +4334,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             const sels = [document.getElementById('setuju-segmen'), document.getElementById('j-segmen'), document.getElementById('tayang-segment')];
             sels.forEach(sel => {
                 if(!sel) return; sel.innerHTML = '';
-                db.segmenList.forEach(sg => { const name=escapeHtml(sg.nama); const tagline=escapeHtml(sg.tagline); sel.innerHTML += `<option value="${name}">${name} - ${tagline}</option>`; });
+                db.segmenList.forEach(sg => { const name=String(sg.nama??''); const tagline=String(sg.tagline??''); const option=document.createElement('option'); option.value=name; option.textContent=name+' - '+tagline; sel.appendChild(option); });
             });
         }
 
@@ -4586,7 +4586,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 let dayHtml = `<div class="bg-black/60 p-1 rounded min-h-[45px] border border-gray-800"><span class="text-gray-500 font-bold">${day}</span>`;
                 schedules.forEach(sch => {
                     let totalHadir = 0; let kruTidakHadir = [];
-                    KRU_NAMES.forEach(k => { if(sch.absen?.[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${sch.absen?.[k]?.alasan||'tanpa alasan'})`); });
+                    KRU_NAMES.forEach(k => { if(sch.absen?.[k]?.hadir) totalHadir++; else kruTidakHadir.push(`${k} (${escapeHtml(sch.absen?.[k]?.alasan||'tanpa alasan')})`); });
 
                     dayHtml += `<div onclick="openModalAbsen(${sch.id})" class="mt-0.5 bg-red-950 text-red-300 text-[8px] p-0.5 rounded cursor-pointer truncate">🎥 ${escapeHtml(sch.title)} (${totalHadir}/5)</div><div class="flex gap-1 mt-1"><button onclick="editJadwal(${sch.id})" class="text-[8px] bg-gray-800 text-yellow-300 px-1 rounded">Edit</button><button onclick="hapusJadwal(${sch.id})" class="text-[8px] bg-red-950 text-red-200 px-1 rounded">Hapus</button></div>`;
                     
@@ -4621,13 +4621,13 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             KRU_NAMES.forEach(name => {
                 const data = sch.absen[name] || { hadir: true, alasan: '' };
                 listDiv.innerHTML += `<div class="bg-black p-2 rounded border border-gray-700 flex flex-col gap-2">
-                    <div class="flex justify-between items-center"><span class="text-white text-sm">${name}</span>
+                    <div class="flex justify-between items-center"><span class="text-white text-sm">${escapeHtml(name)}</span>
                         <div class="flex gap-1">
-                            <button onclick="setAbsenKru('${name}', true)" class="px-2 py-1 text-[10px] rounded ${data.hadir?'bg-green-700 text-white font-bold':'bg-gray-800 text-gray-500'}">HADIR</button>
-                            <button onclick="setAbsenKru('${name}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
+                            <button onclick="setAbsenKru('${escapeHtml(name)}', true)" class="px-2 py-1 text-[10px] rounded ${data.hadir?'bg-green-700 text-white font-bold':'bg-gray-800 text-gray-500'}">HADIR</button>
+                            <button onclick="setAbsenKru('${escapeHtml(name)}', false)" class="px-2 py-1 text-[10px] rounded ${!data.hadir?'bg-red-700 text-white font-bold':'bg-gray-800 text-gray-500'}">TIDAK</button>
                         </div>
                     </div>
-                    ${!data.hadir ? `<input type="text" value="${escapeHtml(data.alasan)}" onchange="saveAbsenAlasan('${name}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
+                    ${!data.hadir ? `<input type="text" value="${escapeHtml(data.alasan)}" onchange="saveAbsenAlasan('${escapeHtml(name)}', this.value)" placeholder="Alasan berhalangan..." class="w-full bg-darkCard border border-red-900 p-1.5 rounded text-[10px] text-red-300 outline-none">` : ''}
                 </div>`;
             });
             document.getElementById('modal-absen').classList.remove('hidden'); document.getElementById('modal-absen').classList.add('flex');
