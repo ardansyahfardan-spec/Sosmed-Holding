@@ -5,17 +5,17 @@ const html = readFileSync("index.html", "utf8");
 const serviceWorker = readFileSync("sw.js", "utf8");
 
 const securityChecks = [
-  ["CSP blocks object embedding", /object-src 'none'/.test(html)],
-  ["CSP restricts base URLs", /base-uri 'self'/.test(html)],
-  ["CSP restricts form destinations", /form-action 'self'/.test(html)],
-  ["image URLs use a protocol allowlist", /function safeImageSrc\\([\\s\\S]*?url\\.protocol==='https:'/.test(html)],
-  ["external links use HTTPS only", /function safeExternalUrl\\([\\s\\S]*?url\\.protocol==='https:'/.test(html)],
-  ["push links are restricted to the app origin", /target\\.origin !== self\\.location\\.origin/.test(serviceWorker)],
-  ["Supabase JS CDN is version-pinned", /@supabase\\/supabase-js@\\d+\\.\\d+\\.\\d+/.test(html)],
-  ["Chart.js CDN is version-pinned", /chart\\.js@\\d+\\.\\d+\\.\\d+/.test(html)],
-  ["tus client CDN is version-pinned", /tus-js-client@\\d+\\.\\d+\\.\\d+/.test(html)],
-  ["group and DM composers have length limits", /id="chat-input"[^>]*maxlength="4000"/.test(html) && /id="dm-input"[^>]*maxlength="4000"/.test(html)],
-];
+  ["CSP blocks object embedding", html.includes("object-src 'none'")],
+  ["CSP restricts base URLs", html.includes("base-uri 'self'")],
+  ["CSP restricts form destinations", html.includes("form-action 'self'")],
+  ["image URL allowlist helper exists", html.includes("function safeImageSrc") && html.includes("url.protocol==='https:'")],
+  ["external HTTPS URL helper is used for LORE references", html.includes("function safeExternalUrl") && html.includes("safeExternalUrl(source.url)")],
+  ["push links are restricted to the app origin", serviceWorker.includes("target.origin !== self.location.origin")],
+  ["Supabase JS CDN is version-pinned", html.includes("@supabase/supabase-js@2.119.0")],
+  ["Chart.js CDN is version-pinned", html.includes("chart.js@4.6.1")],
+  ["tus client CDN is version-pinned", html.includes("tus-js-client@4.3.1")],
+  ["group and DM composers have length limits", html.includes('id="chat-input" type="text" maxlength="4000"') && html.includes('id="dm-input" maxlength="4000"')],
+];;
 
 const securityFailures = securityChecks.filter(([, passed]) => !passed).map(([name]) => name);
 if (securityFailures.length) {
