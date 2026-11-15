@@ -14,6 +14,61 @@ const json = (body: unknown, status = 200) =>
   });
 
 
+
+async function recordAiUsage(
+  req: Request,
+  feature: string,
+  model: string,
+  usage: { promptTokens?: number; outputTokens?: number } | null,
+  status: "success" | "error",
+): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const authorization = req.headers.get("authorization") || "";
+  const token = authorization.replace(/^Bearer\\s+/i, "");
+  let userId: string | null = null;
+
+  // Supabase Edge Gateway verifies the JWT before this function runs.
+  // Decode only its verified subject; never trust a user_id from the request body.
+  try {
+    const payloadPart = token.split(".")[1];
+    if (payloadPart) {
+      const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")));
+      const subject = String(payload.sub || "");
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(subject)) userId = subject;
+    }
+  } catch {
+    userId = null;
+  }
+
+  if (!supabaseUrl || !serviceRoleKey || !userId) return;
+  try {
+    const response = await fetch(supabaseUrl.replace(/\\/$/, "") + "/rest/v1/ghoustory_ai_usage", {
+      method: "POST",
+      headers: {
+        "apikey": serviceRoleKey,
+        "Authorization": "Bearer " + serviceRoleKey,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        provider: "gemini",
+        model: model || null,
+        feature: feature.slice(0, 80),
+        input_tokens: Math.max(0, Math.floor(usage?.promptTokens || 0)),
+        output_tokens: Math.max(0, Math.floor(usage?.outputTokens || 0)),
+        status,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) console.warn("[ghoustory-ai] usage_log_failed status=" + response.status);
+  } catch (error) {
+    console.warn("[ghoustory-ai] usage_log_failed:", error instanceof Error ? error.message.slice(0, 160) : "unknown");
+  }
+}
+
 function youtubeVideoId(input: string): string {
   const u = new URL(input);
   const host = u.hostname.toLowerCase().replace(/^www\./, "");
@@ -181,9 +236,13 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   let uploadedGeminiFileName = "";
+  let usageTask = "";
+  let usageModel = "";
+  let aiRequestStarted = false;
   try {
     const body = await req.json();
     const task = String(body.task || "");
+    usageTask = task;
 
     // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
     if (task === "health") {
@@ -569,9 +628,11 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     // documented stable Flash-Lite fallback using the same Gemini API key.
     for (const model of modelCandidates) {
       activeModel = model;
+      usageModel = model;
       const attemptsForModel = model === modelCandidates[0] ? 3 : 2;
       for (let attempt = 0; attempt < attemptsForModel; attempt++) {
         const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+        aiRequestStarted = true;
         response = await fetch(geminiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -657,8 +718,10 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       .map((web: { uri?: string; title?: string }) => ({ title: web.title || web.uri, url: web.uri }));
     const sourceText = sources.length ? "\\n\\nSUMBER WEB UNTUK DIVERIFIKASI:\\n" + sources.map((source: {title:string;url:string}, index:number) => (index+1)+". "+source.title+" — "+source.url).join("\\n") : "";
     const usage = result?.usageMetadata ? { promptTokens: result.usageMetadata.promptTokenCount || 0, outputTokens: result.usageMetadata.candidatesTokenCount || 0, totalTokens: result.usageMetadata.totalTokenCount || 0 } : null;
+    await recordAiUsage(req, task, activeModel, usage, "success");
     return json({ text: text + sourceText, sources, usage });
   } catch (error) {
+    if (aiRequestStarted && usageTask) await recordAiUsage(req, usageTask, usageModel, null, "error");
     console.error("[ghoustory-ai] request_failed:", error instanceof Error ? error.message.slice(0, 400) : "Unknown error");
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
   }
