@@ -7906,11 +7906,25 @@ window.loadArenaImages();
 
 <script id="gh-desa-terlarang-launcher">
 (function(){
+  const originalCloseArenaGame=window.closeArenaGame;
+  window.closeArenaGame=function(){
+    const panel=document.getElementById("arena-play-panel");
+    const home=window.__ghoustoryArenaPanelHome;
+    if(panel&&home?.parent?.isConnected&&panel.parentNode!==home.parent){
+      home.parent.insertBefore(panel,home.nextSibling?.parentNode===home.parent?home.nextSibling:null);
+    }
+    window.__ghoustoryArenaPanelHome=null;
+    return originalCloseArenaGame?.apply(this,arguments);
+  };
   window.openDesaTerlarang=function(){
     const lobby=document.getElementById('arena-lobby-view');
     const panel=document.getElementById('arena-play-panel');
     const note=document.getElementById('arena-footer-note');
     if(!lobby||!panel)return;
+    if(panel.parentNode!==document.body){
+      window.__ghoustoryArenaPanelHome={parent:panel.parentNode,nextSibling:panel.nextSibling};
+      document.body.appendChild(panel);
+    }
     lobby.classList.add('hidden');
     lobby.style.display='none';
     if(note)note.style.display='none';
