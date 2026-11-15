@@ -15,6 +15,57 @@ const json = (body: unknown, status = 200) =>
 
 
 
+class RequestError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "RequestError";
+    this.status = status;
+  }
+}
+
+async function readJsonBody(req: Request, maxBytes = 25 * 1024 * 1024): Promise<Record<string, any>> {
+  const declaredLength = Number(req.headers.get("content-length") || 0);
+  if (declaredLength > maxBytes) throw new RequestError("Ukuran permintaan terlalu besar. Batas payload 25 MiB.", 413);
+  if (!req.body) throw new RequestError("Payload JSON tidak tersedia.", 400);
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new RequestError("Ukuran permintaan terlalu besar. Batas payload 25 MiB.", 413);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    throw new RequestError("Payload JSON tidak valid.", 400);
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new RequestError("Payload harus berupa objek JSON.", 400);
+  }
+  return parsed as Record<string, any>;
+}
+
 async function isWorkspaceMember(req: Request): Promise<boolean> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -264,19 +315,9 @@ Deno.serve(async (req) => {
   let usageModel = "";
   let aiRequestStarted = false;
   try {
-    const body = await req.json();
+    const body = await readJsonBody(req);
     const task = String(body.task || "");
     usageTask = task;
-
-    // Lightweight diagnostic: verifies the Edge Function runtime without calling Gemini.
-    if (task === "health") {
-      return json({
-        ok: true,
-        function: "ghoustory-ai",
-        message: "Edge Function runtime berjalan.",
-        geminiConfigured: Boolean(Deno.env.get("GEMINI_API_KEY")),
-      });
-    }
 
     // JWT verification proves the caller is signed in; this second check
     // ensures only invited Crew can spend the project's Gemini quota.
@@ -287,6 +328,16 @@ Deno.serve(async (req) => {
     } catch (membershipError) {
       console.error("[ghoustory-ai] membership_check_failed:", membershipError instanceof Error ? membershipError.message.slice(0, 180) : "unknown");
       return json({ error: "Akses Crew belum dapat diverifikasi. Coba lagi sebentar." }, 503);
+    }
+
+    // Health diagnostics are available only to verified Workspace members and
+    // never reveal whether provider secrets are configured.
+    if (task === "health") {
+      return json({
+        ok: true,
+        function: "ghoustory-ai",
+        message: "Edge Function runtime berjalan.",
+      });
     }
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
@@ -793,6 +844,9 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       uploadedGeminiFileName = "";
     }
     if (aiRequestStarted && usageTask) await recordAiUsage(req, usageTask, usageModel, null, "error");
+    if (error instanceof RequestError) {
+      return json({ error: error.message }, error.status);
+    }
     console.error("[ghoustory-ai] request_failed:", error instanceof Error ? error.message.slice(0, 400) : "Unknown error");
     return json({ error: error instanceof Error ? error.message : "Terjadi kesalahan pada layanan AI." }, 500);
   }
