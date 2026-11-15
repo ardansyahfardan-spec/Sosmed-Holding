@@ -42,7 +42,28 @@ button:active{transform:scale(.97);background:#273650}
 #portrait div{max-width:290px}
 #portrait strong{display:block;font-size:20px;margin-bottom:8px}
 #portrait p{font-size:13px;line-height:1.6;color:#b7c2d5}
-@media(orientation:portrait){#portrait{display:flex}}
+@media(orientation:portrait){
+#portrait{display:flex}
+body.portrait-play #portrait{display:none!important}
+body.portrait-play #hud{padding: max(10px,env(safe-area-inset-top)) 10px 150px}
+body.portrait-play #hud .top{gap:6px;align-items:flex-start}
+body.portrait-play .brand{font-size:9px;letter-spacing:.12em}
+body.portrait-play .chapter{font-size:8px;letter-spacing:.08em}
+body.portrait-play .pill{font-size:9px;padding:6px 8px}
+body.portrait-play #audio-controls{top:max(54px,calc(env(safe-area-inset-top) + 50px));right:8px}
+body.portrait-play #info-dock{top:max(104px,calc(env(safe-area-inset-top) + 96px));left:8px;gap:6px}
+body.portrait-play .info-icon{min-width:58px;height:38px;font-size:10px;padding:0 7px}
+body.portrait-play #mission,body.portrait-play #survival-hud{top:150px;right:8px;width:min(270px,calc(100vw - 82px));max-height:38vh}
+body.portrait-play #joystick{width:90px;height:90px;left:10px;bottom:max(10px,env(safe-area-inset-bottom))}
+body.portrait-play #stick{width:42px;height:42px}
+body.portrait-play #move-label{bottom:108px;width:110px;font-size:7px}
+body.portrait-play #action-controls{right:10px;bottom:max(10px,env(safe-area-inset-bottom));grid-template-columns:44px 52px;grid-template-rows:44px 44px 52px;gap:5px}
+body.portrait-play .game-control{width:42px;height:42px;font-size:7px;padding:3px}
+body.portrait-play .game-control.jump{width:50px;height:50px;font-size:8px}
+body.portrait-play #interact{bottom:118px;min-width:128px;padding:9px 10px;font-size:10px}
+body.portrait-play #hud .bottom{justify-content:center}
+body.portrait-play #hud .hint{max-width:calc(100vw - 36px);font-size:9px}
+}
 @media(orientation:landscape) and (max-height:420px){.bottom{align-items:flex-end}.hint{max-width:220px}.pill{padding:6px 9px}}
 
 #multiplayer-lobby{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at center,#17243bdc,#050912f5);backdrop-filter:blur(8px);pointer-events:auto;touch-action:pan-y}#multiplayer-card,#multiplayer-card button,#multiplayer-card input{position:relative;z-index:31;pointer-events:auto;touch-action:manipulation}#multiplayer-card button{cursor:pointer;-webkit-appearance:none;appearance:none;user-select:none;-webkit-user-select:none}
@@ -240,9 +261,9 @@ button:active{transform:scale(.97);background:#273650}
  <button class="game-control" id="flashlight-btn" type="button">SENTER</button>
  <button class="game-control jump" id="jump-btn" type="button">LOMPAT</button>
 </div>
-<div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG dimainkan dalam posisi landscape.</p></div></div>
+<div id="portrait"><div><strong>Putar perangkatmu</strong><p>GHOUSTORY: DESA TERLARANG paling nyaman dimainkan dalam posisi landscape. Kamu juga bisa lanjut langsung dalam posisi potret.</p><button id="portrait-continue" type="button">MAIN DALAM MODE POTRET</button></div></div>
 <script>
-(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status');b?.addEventListener('click',()=>{if(typeof window.__ghoustoryLaunchCreateRoom==='function'){window.__ghoustoryLaunchCreateRoom();}else{window.__ghoustoryCreateRequested=true;if(s)s.textContent='Menyiapkan dunia dan koneksi ruang...';}});})();
+(()=>{const b=document.getElementById('create-room'),s=document.getElementById('room-status'),portraitButton=document.getElementById('portrait-continue');b?.addEventListener('click',()=>{if(typeof window.__ghoustoryLaunchCreateRoom==='function'){window.__ghoustoryLaunchCreateRoom();}else{window.__ghoustoryCreateRequested=true;if(s)s.textContent='Menyiapkan dunia dan koneksi ruang...';}});portraitButton?.addEventListener('click',()=>{document.body.classList.add('portrait-play');const overlay=document.getElementById('portrait');if(overlay)overlay.style.display='none';try{if(screen.orientation?.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(_){}setTimeout(()=>window.dispatchEvent(new Event('resize')),50);});})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';"></script>
 <script>

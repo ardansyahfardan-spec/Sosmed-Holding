@@ -85,6 +85,19 @@ if (!/<meta\s+name=["']viewport["']/i.test(desaGame)) {
   console.error("Desa Terlarang is missing its viewport meta tag.");
   process.exitCode = 1;
 }
+
+const portraitChecks = [
+  ["portrait launch option is available", desaGame.includes('id="portrait-continue"') && desaGame.includes("MAIN DALAM MODE POTRET")],
+  ["portrait launch dismisses the blocking orientation overlay", desaGame.includes("document.body.classList.add('portrait-play')") && desaGame.includes("overlay.style.display='none'")],
+  ["portrait mode keeps touch controls usable", desaGame.includes("body.portrait-play #joystick") && desaGame.includes("body.portrait-play #action-controls")],
+];
+const portraitFailures = portraitChecks.filter(([, passed]) => !passed).map(([name]) => name);
+if (portraitFailures.length) {
+  console.error("Desa Terlarang portrait checks failed:\\n" + portraitFailures.join("\\n"));
+  process.exitCode = 1;
+} else {
+  console.log("Passed " + portraitChecks.length + " Desa Terlarang portrait launch checks.");
+}
 const desaScripts = [...desaGame.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
   .filter(([, attributes, body]) => !/\bsrc\s*=/.test(attributes) && body.trim());
 for (let i = 0; i < desaScripts.length; i += 1) {
