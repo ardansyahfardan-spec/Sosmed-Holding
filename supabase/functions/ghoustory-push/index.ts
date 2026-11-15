@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
 
     if (recipientIds.length > 500) throw new Error("Jumlah penerima melebihi batas pengiriman push.");
     if (!recipientIds.length) return new Response(JSON.stringify({ sent: 0, reason: "no_recipients" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    const { data: subscriptions, error: subError } = await admin.from("ghoustory_push_subscriptions").select("id,user_id,endpoint,p256dh,auth").in("user_id", recipientIds);
+    const { data: subscriptions, error: subError } = await admin.from("ghoustory_push_subscriptions").select("id,user_id,endpoint,p256dh,auth").in("user_id", recipientIds).limit(500);
     if (subError) throw subError;
     if (!subscriptions?.length) return new Response(JSON.stringify({ sent: 0, reason: "no_subscriptions" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
