@@ -126,10 +126,7 @@
     if (!db || !select) return;
     crewOptionsLoaded = true;
     try {
-      const { data, error } = await db.from('ghoustory_profiles')
-        .select('user_id,nickname,role')
-        .order('nickname', {ascending:true})
-        .limit(100);
+      const { data, error } = await db.rpc('ghoustory_workspace_crew_roster');
       if (error) {
         crewOptionsLoaded = false;
         status('Daftar Crew belum dapat dimuat; tugas tetap bisa dibuat tanpa penanggung jawab.', true);
