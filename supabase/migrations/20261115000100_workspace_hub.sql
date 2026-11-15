@@ -70,18 +70,18 @@ alter table public.ghoustory_ai_usage enable row level security;
 drop policy if exists "Workspace members read ideas" on public.ghoustory_workspace_ideas;
 create policy "Workspace members read ideas"
   on public.ghoustory_workspace_ideas for select to authenticated
-  using (private.is_ghoustory_workspace_member());
+  using (private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin());
 
 drop policy if exists "Members submit own ideas" on public.ghoustory_workspace_ideas;
 create policy "Members submit own ideas"
   on public.ghoustory_workspace_ideas for insert to authenticated
-  with check (private.is_ghoustory_workspace_member() and created_by = (select auth.uid()));
+  with check ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and created_by = (select auth.uid()));
 
 drop policy if exists "Authors and admins update ideas" on public.ghoustory_workspace_ideas;
 create policy "Authors and admins update ideas"
   on public.ghoustory_workspace_ideas for update to authenticated
-  using (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()))
-  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()));
+  using ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()))
+  with check ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()));
 
 drop policy if exists "Admins delete ideas" on public.ghoustory_workspace_ideas;
 create policy "Admins delete ideas"
@@ -101,8 +101,8 @@ create policy "Members create tasks"
 drop policy if exists "Task owners update tasks" on public.ghoustory_workspace_tasks;
 create policy "Task owners update tasks"
   on public.ghoustory_workspace_tasks for update to authenticated
-  using (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()))
-  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()));
+  using ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()))
+  with check ((private.is_ghoustory_workspace_member() or private.is_ghoustory_app_admin()) and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()));
 
 drop policy if exists "Admins delete tasks" on public.ghoustory_workspace_tasks;
 create policy "Admins delete tasks"
