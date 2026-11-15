@@ -81,7 +81,7 @@ drop policy if exists "Authors and admins update ideas" on public.ghoustory_work
 create policy "Authors and admins update ideas"
   on public.ghoustory_workspace_ideas for update to authenticated
   using (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()))
-  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or private.is_ghoustory_app_admin()));
+  with check (private.is_ghoustory_workspace_member() and (created_by = (select auth.uid()) or assigned_to = (select auth.uid()) or private.is_ghoustory_app_admin()));
 
 drop policy if exists "Admins delete ideas" on public.ghoustory_workspace_ideas;
 create policy "Admins delete ideas"
