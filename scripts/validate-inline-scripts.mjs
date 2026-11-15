@@ -81,8 +81,8 @@ if (failures.length) {
 
 // Validate the standalone Desa Terlarang game as part of the application.
 const desaGame = readFileSync("assets/games/desa-terlarang/index.html", "utf8");
-if (!desaGame.includes("three@0.149.0/build/three.min.js") || !desaGame.includes("three.js/0.149.0/three.min.js") || desaGame.includes("0.160.0")) {
-  console.error("Desa Terlarang must load the Three.js 0.149.0 global build used by the main application.");
+if (!desaGame.includes("three@0.160.0/build/three.min.js") || !desaGame.includes("three.js/0.160.0/three.min.js") || desaGame.includes("0.149.0")) {
+  console.error("Desa Terlarang must load the Three.js 0.160.0 global build required by its color-space API.");
   process.exitCode = 1;
 }
 if (!/<meta\s+name=["']viewport["']/i.test(desaGame)) {
