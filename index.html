@@ -3095,21 +3095,39 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             sharedSaveQueue = sharedSaveQueue
                 .then(async () => {
                     if (window.__ghoustorySyncConflict) throw new Error('Data berubah di perangkat lain. Muat ulang halaman sebelum menyimpan lagi.');
-                    const nextUpdatedAt = new Date().toISOString();
-                    let query = supabaseClient
-                        .from('app_state')
-                        .update({ data: snapshot, updated_by: activeUser?.id || null, updated_at: nextUpdatedAt })
-                        .eq('id', 'ghoustory');
-                    if (lastAppStateUpdatedAt) query = query.eq('updated_at', lastAppStateUpdatedAt);
-                    const { data, error } = await query.select('updated_at').maybeSingle();
+                    if (!lastAppStateUpdatedAt) throw new Error('Versi data belum siap. Muat ulang halaman sebelum menyimpan.');
+
+                    const previous = JSON.parse(lastPersistedDbSnapshot || '{}');
+                    const patch = {};
+                    const removeKeys = [];
+                    const keys = new Set([...Object.keys(previous), ...Object.keys(snapshot)]);
+                    keys.forEach(key => {
+                        if (!Object.prototype.hasOwnProperty.call(snapshot, key)) {
+                            removeKeys.push(key);
+                        } else if (JSON.stringify(previous[key]) !== JSON.stringify(snapshot[key])) {
+                            patch[key] = snapshot[key];
+                        }
+                    });
+
+                    if (!Object.keys(patch).length && !removeKeys.length) {
+                        lastPersistedDbSnapshot = snapshotText;
+                        return;
+                    }
+
+                    const { data: nextUpdatedAt, error } = await supabaseClient.rpc('ghoustory_patch_app_state', {
+                        p_patch: patch,
+                        p_remove_keys: removeKeys,
+                        p_expected_updated_at: lastAppStateUpdatedAt
+                    });
                     if (error) throw error;
-                    if (!data) {
+                    if (!nextUpdatedAt) {
                         const latest = await supabaseClient.from('app_state').select('updated_at').eq('id', 'ghoustory').maybeSingle();
                         if (!latest.error && latest.data?.updated_at) lastAppStateUpdatedAt = latest.data.updated_at;
                         window.__ghoustorySyncConflict = true;
                         throw new Error('Data baru saja diubah dari perangkat lain. Muat ulang halaman sebelum menyimpan lagi agar perubahan Crew lain tidak tertimpa.');
                     }
-                    lastAppStateUpdatedAt = data.updated_at || nextUpdatedAt;
+
+                    lastAppStateUpdatedAt = nextUpdatedAt;
                     lastPersistedDbSnapshot = snapshotText;
                     lastCloudSyncAt = new Date();
                     window.__ghoustorySyncError = null;
