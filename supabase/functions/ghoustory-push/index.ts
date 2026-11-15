@@ -121,6 +121,7 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ sent, failed: results.length - sent }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
     console.error("ghoustory-push:", error);
-    return new Response(JSON.stringify({ error: error?.message || "Push failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const errorMessage = error instanceof Error ? error.message : "Push failed";
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
