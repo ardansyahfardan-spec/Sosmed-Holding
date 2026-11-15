@@ -182,5 +182,4 @@ grant select, insert, update, delete on public.ghoustory_workspace_ideas to auth
 grant select, insert, update, delete on public.ghoustory_workspace_tasks to authenticated;
 grant select on public.ghoustory_workspace_activity to authenticated;
 grant select on public.ghoustory_ai_usage to authenticated;
-grant all on public.ghoustory_workspace_ideas, public.ghoustory_workspace_tasks, public.ghoustory_workspace_activity, public.ghoustory_ai_usage to service_role;
-grant usage, select on all sequences in schema public to service_role;
+grant insert on public.ghoustory_ai_usage to service_role;
