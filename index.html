@@ -3039,7 +3039,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         function normalizeDbData(data) {
             const normalized = { ...DEFAULT_DB, ...(data && typeof data === 'object' ? data : {}) };
             normalized.monetisasi = { ...DEFAULT_DB.monetisasi, ...(normalized.monetisasi && typeof normalized.monetisasi === 'object' ? normalized.monetisasi : {}) };
-            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'socialAnalytics', 'segmenList'].forEach(key => {
+            ['scriptDrafts', 'mitos', 'vo', 'notulen', 'metadata', 'jadwal', 'tayang', 'stok', 'production', 'kas', 'aiUsage', 'socialAnalytics', 'videoAnalyses', 'segmenList'].forEach(key => {
                 if (!Array.isArray(normalized[key])) normalized[key] = [];
             });
             normalized.jadwal.forEach(sch => {
@@ -5287,9 +5287,44 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             el.innerHTML=rows.map(item=>'<details data-analysis-id="'+String(item.id).replace(/'/g,'')+'" class="bg-black border border-gray-800 rounded-lg p-3"><summary class="cursor-pointer flex flex-wrap justify-between gap-2"><span class="text-sm font-bold text-white">'+escapeHtml(item.title||'Analisis Video')+'</span><span class="text-[10px] text-gray-500">'+escapeHtml(item.createdAt?new Date(item.createdAt).toLocaleString('id-ID'):'')+'</span></summary><div class="mt-3">'+videoAnalysisMarkup(item)+'</div><button onclick="editVideoAnalysis(this.closest(\'details\').dataset.analysisId)" class="mt-3 mr-2 bg-yellow-900 text-yellow-100 text-xs px-3 py-2 rounded"><i class="fa-solid fa-pen mr-1"></i> Edit Arsip</button><button onclick="deleteVideoAnalysis(\''+String(item.id).replace(/'/g,'')+'\')" class="mt-3 bg-red-950 text-red-200 text-xs px-3 py-2 rounded"><i class="fa-solid fa-trash mr-1"></i> Hapus Arsip</button></details>').join('');
         }
         function editVideoAnalysis(id){const item=(db.videoAnalyses||[]).find(x=>String(x.id)===String(id));if(!item)return;const title=prompt("Edit judul arsip:",item.title||"");if(title===null)return;if(!title.trim())return alert("Judul wajib diisi.");const original=prompt("Edit transkrip asli:",item.fullTranscript||"");if(original===null)return;const translated=prompt("Edit terjemahan Bahasa Indonesia:",item.indonesianTranscript||"");if(translated===null)return;item.title=title.trim();item.fullTranscript=original;item.indonesianTranscript=translated;item.updatedAt=new Date().toISOString();saveData();renderVideoAnalysisList();}
-        function deleteVideoAnalysis(id) {
-            if(!confirm('Hapus hasil analisis video ini dari Supabase?'))return;
-            db.videoAnalyses=db.videoAnalyses.filter(x=>String(x.id)!==String(id));saveData();renderVideoAnalysisList();
+        async function deleteVideoAnalysis(id) {
+            if (!sharedSyncReady) return alert('Database belum siap. Tunggu sinkronisasi selesai.');
+            if (!confirm('Hapus hasil analisis video ini dari Supabase?')) return;
+
+            const previousRows = Array.isArray(db.videoAnalyses) ? db.videoAnalyses : [];
+            const target = previousRows.find(item => String(item.id) === String(id));
+            if (!target) {
+                renderVideoAnalysisList();
+                return alert('Arsip tidak ditemukan. Muat ulang daftar arsip.');
+            }
+
+            const nextRows = previousRows.filter(item => String(item.id) !== String(id));
+            const previousDb = JSON.parse(JSON.stringify(db));
+            db.videoAnalyses = nextRows;
+            const snapshotText = JSON.stringify(db);
+            const snapshot = JSON.parse(snapshotText);
+
+            // Hapus timer debounce lama dan simpan perubahan ini langsung ke cloud.
+            clearTimeout(sharedSaveTimer);
+            sharedSaveTimer = null;
+            lastScheduledDbSnapshot = snapshotText;
+            const list = document.getElementById('video-analysis-list');
+            const status = document.getElementById('video-analysis-status');
+            if (list) list.querySelectorAll('button').forEach(button => { button.disabled = true; });
+
+            await queueSharedSave(snapshot, snapshotText);
+
+            if (lastPersistedDbSnapshot !== snapshotText) {
+                // Jangan biarkan tampilan mengklaim terhapus jika Supabase menolak penyimpanan.
+                db = previousDb;
+                renderVideoAnalysisList();
+                if (status) status.textContent = 'Gagal menghapus arsip: ' + (window.__ghoustorySyncError || 'perubahan belum tersimpan ke Supabase.');
+                alert('Arsip belum terhapus. Perubahan gagal disimpan ke Supabase. ' + (window.__ghoustorySyncError || 'Coba muat ulang halaman lalu ulangi.'));
+                return;
+            }
+
+            renderVideoAnalysisList();
+            if (status) status.textContent = 'Arsip berhasil dihapus dari Supabase.';
         }
 
         // ================= ANALISIS SOSMED (CSV -> SUPABASE) =================
