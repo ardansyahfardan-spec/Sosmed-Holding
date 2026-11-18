@@ -4340,11 +4340,17 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             });
         }
 
-        // Compress segment logos to WebP and store binary files in Supabase Storage,
-        // keeping only their public URLs in app_state.
-        function compressSegmentLogo(dataUri) {
+        // Optimize segment logos as WebP when supported; otherwise upload the original PNG/JPG.
+        // Only the public URL is stored in app_state.
+        async function compressSegmentLogo(dataUri) {
+            if (typeof dataUri !== 'string' || !/^data:image\/(?:png|jpeg|webp);base64,/i.test(dataUri)) {
+                throw new Error('Format logo tidak valid. Gunakan PNG atau JPG.');
+            }
+            const originalBlob = await (await fetch(dataUri)).blob();
+            if (!originalBlob || !['image/png', 'image/jpeg', 'image/webp'].includes(originalBlob.type)) {
+                throw new Error('File logo PNG/JPG tidak dapat dibaca.');
+            }
             return new Promise((resolve, reject) => {
-                if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return reject(new Error('Format logo tidak valid.'));
                 const image = new Image();
                 image.onload = () => {
                     try {
@@ -4354,13 +4360,16 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                         canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
                         canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
                         const context = canvas.getContext('2d');
-                        if (!context) return reject(new Error('Browser tidak dapat memproses logo.'));
+                        if (!context) return resolve(originalBlob);
                         context.drawImage(image, 0, 0, canvas.width, canvas.height);
                         canvas.toBlob(blob => {
-                            if (!blob || blob.type !== 'image/webp') return reject(new Error('Konversi logo WebP gagal.'));
-                            resolve(blob);
+                            // Some browsers (including certain iOS versions) cannot encode WebP.
+                            // Keep the original image instead of blocking the segment save.
+                            resolve(blob && blob.type === 'image/webp' ? blob : originalBlob);
                         }, 'image/webp', 0.82);
-                    } catch (error) { reject(error); }
+                    } catch (_) {
+                        resolve(originalBlob);
+                    }
                 };
                 image.onerror = () => reject(new Error('File logo tidak dapat dibaca.'));
                 image.src = dataUri;
@@ -4370,10 +4379,12 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         async function uploadSegmentLogo(dataUri) {
             if (typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return dataUri || '';
             const blob = await compressSegmentLogo(dataUri);
-            if (blob.size > 10 * 1024 * 1024) throw new Error('Ukuran logo hasil kompresi melebihi batas 10 MB.');
+            if (blob.size > 10 * 1024 * 1024) throw new Error('Ukuran logo melebihi batas 10 MB.');
+            const mime = blob.type;
+            const ext = mime === 'image/webp' ? 'webp' : mime === 'image/png' ? 'png' : 'jpg';
             const uniqueName = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
-            const filePath = 'segments/' + uniqueName + '.webp';
-            const uploaded = await supabaseClient.storage.from('arena-game-images').upload(filePath, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
+            const filePath = 'segments/' + uniqueName + '.' + ext;
+            const uploaded = await supabaseClient.storage.from('arena-game-images').upload(filePath, blob, { contentType: mime, cacheControl: '31536000', upsert: false });
             if (uploaded.error) throw uploaded.error;
             const publicData = supabaseClient.storage.from('arena-game-images').getPublicUrl(uploaded.data.path).data;
             if (!publicData || !publicData.publicUrl) throw new Error('URL logo tidak berhasil dibuat.');
