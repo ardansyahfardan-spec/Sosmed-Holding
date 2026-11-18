@@ -4049,7 +4049,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         // GRIMOIRE MITOS
         let isMitosMic = false;
         let mitosRecognition=null;function toggleMitosMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('btn-mitos-mic'),stat=document.getElementById('mitos-mic-status'),input=document.getElementById('input-mitos');if(!SR)return alert('Browser belum mendukung pengenalan suara. Coba Chrome atau Edge terbaru.');if(isMitosMic&&mitosRecognition){mitosRecognition.stop();return;}mitosRecognition=new SR();mitosRecognition.lang='id-ID';mitosRecognition.continuous=true;mitosRecognition.interimResults=true;mitosRecognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript+' ';if(t)input.value+=(input.value?' ':'')+t.trim();};mitosRecognition.onerror=e=>stat.textContent='Mic: '+e.error;mitosRecognition.onend=()=>{isMitosMic=false;btn.classList.remove('bg-red-700','text-white');stat.classList.add('hidden');};try{mitosRecognition.start();isMitosMic=true;btn.classList.add('bg-red-700','text-white');stat.textContent='🔴 Mendengarkan...';stat.classList.remove('hidden');}catch(e){alert('Mikrofon gagal dimulai: '+e.message);}}
-        async function callGhoulAI(task,payload={}){const {data,error}=await supabaseClient.functions.invoke('ghoustory-ai',{body:{task,...payload}});if(error){let detail='';try{if(error.context&&typeof error.context.json==='function'){const body=await error.context.clone().json();detail=body?.error||body?.message||'';if(body?.providerStatus)detail+=' ('+(body.provider||'AI')+' '+body.providerStatus+(body.providerReason?' / '+body.providerReason:'')+(body.retryAfter?' · coba lagi '+body.retryAfter+' detik':'')+')';}}catch(_){}throw new Error(detail||error.message||'Layanan AI gagal dipanggil.');}if(!data?.text)throw new Error(data?.error||'AI tidak mengembalikan teks.');if(data.usage){const day=new Date().toISOString().slice(0,10);let rec=db.aiUsage.find(x=>x.date===day);if(!rec){rec={date:day,calls:0,totalTokens:0};db.aiUsage.unshift(rec);}rec.calls++;rec.totalTokens+=Number(data.usage.totalTokens||0);rec.lastTask=task;saveData();const footer=document.getElementById('footer-ai');if(footer)footer.textContent=rec.calls+'x / '+rec.totalTokens.toLocaleString('id-ID')+' token';}return data.text;}
+        async function callGhoulAI(task,payload={},requestOptions={}){const {data,error}=await supabaseClient.functions.invoke('ghoustory-ai',{body:{task,...payload},...(requestOptions.signal?{signal:requestOptions.signal}:{})});if(error){let detail='';try{if(error.context&&typeof error.context.json==='function'){const body=await error.context.clone().json();detail=body?.error||body?.message||'';if(body?.providerStatus)detail+=' ('+(body.provider||'AI')+' '+body.providerStatus+(body.providerReason?' / '+body.providerReason:'')+(body.retryAfter?' · coba lagi '+body.retryAfter+' detik':'')+')';}}catch(_){}throw new Error(detail||error.message||'Layanan AI gagal dipanggil.');}if(!data?.text)throw new Error(data?.error||'AI tidak mengembalikan teks.');if(data.usage){const day=new Date().toISOString().slice(0,10);let rec=db.aiUsage.find(x=>x.date===day);if(!rec){rec={date:day,calls:0,totalTokens:0};db.aiUsage.unshift(rec);}rec.calls++;rec.totalTokens+=Number(data.usage.totalTokens||0);rec.lastTask=task;saveData();const footer=document.getElementById('footer-ai');if(footer)footer.textContent=rec.calls+'x / '+rec.totalTokens.toLocaleString('id-ID')+' token';}return data.text;}
         function setButtonBusy(btn,busy){if(!btn)return;if(busy){btn.dataset.oldHtml=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';}else{btn.disabled=false;btn.innerHTML=btn.dataset.oldHtml||btn.innerHTML;}}
         function renderMitosList(){const el=document.getElementById('list-mitos');if(!el)return;if(!db.mitos.length){el.innerHTML='<div class="text-xs text-gray-500 py-2">Belum ada catatan.</div>';return;}el.innerHTML=db.mitos.map((x,i)=>'<div class="bg-black border border-gray-800 p-3 rounded text-sm text-white"><div class="flex flex-wrap justify-between gap-2"><b>'+escapeHtml(x.text)+'</b><div class="flex gap-2">'+renderDoneControl('mitos',x)+'<button onclick="editMitos('+i+')" class="text-xs bg-yellow-900 px-2 py-1 rounded">Edit</button><button onclick="salinMitosIndex('+i+')" class="text-xs bg-gray-800 px-2 py-1 rounded">Salin</button><button onclick="kirimMitosKeEditor('+i+')" class="text-xs bg-red-900 px-2 py-1 rounded">Kirim Naskah</button><button onclick="deleteMitos('+i+')" class="text-xs bg-red-950 px-2 py-1 rounded">Hapus</button></div></div><div class="mt-2 text-xs text-orange-200 whitespace-pre-wrap">'+escapeHtml(x.research||'Menunggu riset AI...')+'</div></div>').join('');}
         function salinMitosIndex(i){if(db.mitos[i])copyTextSafe(db.mitos[i].text);}
@@ -5046,6 +5046,16 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
 
         // ================= ANALISIS VIDEO DARI MP3 =================
         let videoAnalysisDraft = null;
+        let videoAnalysisResume = null;
+        function videoAnalysisFileKey(file){return [file?.name||'',file?.size||0,file?.lastModified||0].join('|');}
+        async function callVideoAnalysisStage(task,payload,stage,statusEl,chunkLabel,timeoutMs=150000){
+            const controller=new AbortController();let timeoutId;
+            if(statusEl)statusEl.textContent=stage+' '+chunkLabel+' · menunggu respons AI (maks. '+Math.round(timeoutMs/1000)+' detik)...';
+            try{
+                const timeout=new Promise((_,reject)=>{timeoutId=setTimeout(()=>{controller.abort();reject(new Error(stage+' '+chunkLabel+' melewati batas waktu '+Math.round(timeoutMs/1000)+' detik. Bagian ini belum ditandai selesai; pilih ulang MP3 yang sama untuk melanjutkan bagian yang belum selesai.'));},timeoutMs);});
+                return await Promise.race([callGhoulAI(task,payload,{signal:controller.signal}),timeout]);
+            }finally{clearTimeout(timeoutId);}
+        }
         function parseVideoAnalysisJson(raw) {
             let text=String(raw||'').trim();
             text=text.replace(/^\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60$/,'');
@@ -5166,63 +5176,82 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             finally{if(audioContext)try{await audioContext.close();}catch(_){}}
             const sampleRate=audioBuffer.sampleRate,chunkFrames=90*sampleRate,total=Math.ceil(audioBuffer.length/chunkFrames);
             if(total>240)throw new Error('Durasi audio terlalu panjang untuk satu sesi (maksimal sekitar 4 jam).');
-            const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory',results=new Array(total);
-            let nextIndex=0,workerFailure=null,completed=0;
-            const processWorker=async()=>{
+            const base=String(title||'ghoustory').replace(/[^a-z0-9_-]+/gi,'-').slice(0,36)||'ghoustory';
+            const fileKey=videoAnalysisFileKey(file);
+            if(!videoAnalysisResume||videoAnalysisResume.fileKey!==fileKey||videoAnalysisResume.total!==total){
+                videoAnalysisResume={fileKey,total,results:new Array(total)};
+            }
+            const results=videoAnalysisResume.results;
+            let nextIndex=0,workerFailure=null,completed=results.filter(Boolean).length;
+            const workerStages=['menunggu','menunggu'];
+            const updateProgress=()=>{
+                if(!statusEl)return;
+                const active=workerStages.map((stage,i)=>stage==='menunggu'?'':('Jalur '+(i+1)+': '+stage)).filter(Boolean);
+                statusEl.textContent='Analisis '+completed+'/'+total+' bagian selesai'+(active.length?' · '+active.join(' | '):' · menyiapkan jalur AI')+'.';
+            };
+            const processWorker=async(workerId)=>{
                 while(!workerFailure){
                     const index=nextIndex++;
                     if(index>=total)return;
+                    if(results[index])continue;
                     const startFrame=index*chunkFrames,endFrame=Math.min(audioBuffer.length,startFrame+chunkFrames),offsetSeconds=Math.floor(startFrame/sampleRate);
                     let uploaded=null;
+                    const label='bagian '+(index+1)+'/'+total;
                     try{
-                        if(statusEl)statusEl.textContent='Menyiapkan bagian '+(index+1)+'/'+total+' · '+completed+'/'+total+' selesai...';
+                        workerStages[workerId]='menyiapkan '+label;updateProgress();
                         const blob=encodeVideoAudioChunk(audioBuffer,startFrame,endFrame);
                         if(!blob.size)throw new Error('Bagian audio '+(index+1)+' gagal dikonversi.');
                         const chunkFile=new File([blob],base+'-part-'+String(index+1).padStart(2,'0')+'.mp3',{type:'audio/mpeg'});
-                        if(statusEl)statusEl.textContent='Mengunggah bagian '+(index+1)+'/'+total+'...';
+                        workerStages[workerId]='mengunggah '+label;updateProgress();
                         uploaded=await uploadVideoAnalysisMp3(chunkFile,statusEl);
-                        if(statusEl)statusEl.textContent='Gemini Flash-Lite mentranskrip bagian '+(index+1)+'/'+total+'...';
-                        const transcriptionRaw=await callGhoulAI('video-audio-chunk-transcription',{audioUrl:uploaded.url,mimeType:'audio/mpeg',chunkNumber:index+1,totalChunks:total});
+                        workerStages[workerId]='transkripsi AI '+label;updateProgress();
+                        const transcriptionRaw=await callVideoAnalysisStage('video-audio-chunk-transcription',{audioUrl:uploaded.url,mimeType:'audio/mpeg',chunkNumber:index+1,totalChunks:total},'Transkripsi AI',statusEl,label);
                         const transcription=parseVideoAnalysisJson(transcriptionRaw);
                         const originalTranscript=String(transcription.fullTranscript||transcription.text||'').trim();
-                        if(!originalTranscript)throw new Error('Gemini tidak menghasilkan transkrip pada bagian '+(index+1)+'.');
-                        if(statusEl)statusEl.textContent='Gemini menerjemahkan dan menganalisis bagian '+(index+1)+'/'+total+'...';
-                        const analysisRaw=await callGhoulAI('video-audio-chunk-text-analysis',{title,transcript:originalTranscript,detectedLanguage:String(transcription.detectedLanguage||transcription.language||'tidak diketahui'),offsetSeconds,chunkNumber:index+1,totalChunks:total});
+                        if(!originalTranscript)throw new Error('Gemini tidak menghasilkan transkrip pada '+label+'.');
+                        workerStages[workerId]='terjemahan & analisis '+label;updateProgress();
+                        const analysisRaw=await callVideoAnalysisStage('video-audio-chunk-text-analysis',{title,transcript:originalTranscript,detectedLanguage:String(transcription.detectedLanguage||transcription.language||'tidak diketahui'),offsetSeconds,chunkNumber:index+1,totalChunks:total},'Terjemahan & analisis AI',statusEl,label);
                         const part=parseVideoAnalysisJson(analysisRaw);
                         const translatedTranscript=String(part.indonesianTranscript||'').trim();
-                        if(!translatedTranscript)throw new Error('Terjemahan bagian '+(index+1)+' kosong.');
+                        if(!translatedTranscript)throw new Error('Terjemahan '+label+' kosong.');
                         results[index]={offsetSeconds,detectedLanguage:String(transcription.detectedLanguage||transcription.language||part.detectedLanguage||''),fullTranscript:originalTranscript,indonesianTranscript:translatedTranscript,summary:Array.isArray(part.summary)?part.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(part.moments)?part.moments:[])};
                         completed++;
-                        if(statusEl)statusEl.textContent='Analisis '+completed+'/'+total+' bagian selesai · 2 jalur AI aktif...';
+                        workerStages[workerId]='selesai '+label;updateProgress();
                     }catch(error){
                         workerFailure=error instanceof Error?error:new Error(String(error));
+                        workerStages[workerId]='gagal '+label;updateProgress();
                         throw workerFailure;
                     }finally{
                         if(uploaded?.path){const {error}=await supabaseClient.storage.from('vo-recordings').remove([uploaded.path]);if(error)console.warn('Audio bagian sementara gagal dihapus:',error);}
+                        if(workerStages[workerId].startsWith('selesai'))workerStages[workerId]='menunggu';
                     }
                 }
             };
             const workerCount=Math.min(2,total);
-            const workerResults=await Promise.allSettled(Array.from({length:workerCount},()=>processWorker()));
+            const workerResults=await Promise.allSettled(Array.from({length:workerCount},(_,i)=>processWorker(i)));
             const failedWorker=workerResults.find(x=>x.status==='rejected');
-            if(failedWorker)throw workerFailure||failedWorker.reason||new Error('Pemrosesan salah satu bagian gagal.');
-            if(results.some(x=>!x))throw new Error('Ada bagian audio yang belum selesai diproses. Silakan lanjutkan analisis kembali.');
-            if(statusEl)statusEl.textContent='Menggabungkan ringkasan secara bertahap dari '+total+' bagian...';
+            if(failedWorker){
+                const done=results.filter(Boolean).length;
+                throw new Error((workerFailure?.message||failedWorker.reason?.message||'Salah satu bagian gagal diproses.')+' Hasil '+done+'/'+total+' bagian tersimpan sementara di tab ini. Pilih ulang file MP3 yang sama untuk melanjutkan tanpa mengulang bagian yang sudah selesai.');
+            }
+            if(results.some(x=>!x))throw new Error('Ada bagian audio yang belum selesai diproses. Pilih ulang file MP3 yang sama untuk melanjutkan.');
+            if(statusEl)statusEl.textContent='Menggabungkan ringkasan dari '+total+' bagian...';
             let synthesisInputs=results.map(x=>({offsetSeconds:x.offsetSeconds,summary:x.summary,moments:x.moments.slice(0,1)}));
             while(synthesisInputs.length>20){
                 const nextLevel=[];
                 for(let groupStart=0;groupStart<synthesisInputs.length;groupStart+=20){
                     const group=synthesisInputs.slice(groupStart,groupStart+20);
                     if(statusEl)statusEl.textContent='Menggabungkan hasil tahap '+(nextLevel.length+1)+'...';
-                    const batchRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:group});
+                    const batchRaw=await callVideoAnalysisStage('video-transcript-synthesis',{title,chunks:group},'Sintesis AI',statusEl,'kelompok '+(nextLevel.length+1),150000);
                     const batch=parseVideoAnalysisJson(batchRaw);
                     nextLevel.push({offsetSeconds:0,summary:Array.isArray(batch.summary)?batch.summary.slice(0,3):[],moments:normalizeVideoMoments(Array.isArray(batch.moments)?batch.moments:[])});
                 }
                 synthesisInputs=nextLevel;
             }
             if(statusEl)statusEl.textContent='Menyusun ringkasan akhir dan 5 momen terbaik...';
-            const synthesisRaw=await callGhoulAI('video-transcript-synthesis',{title,chunks:synthesisInputs});
+            const synthesisRaw=await callVideoAnalysisStage('video-transcript-synthesis',{title,chunks:synthesisInputs},'Sintesis akhir AI',statusEl,'hasil gabungan',150000);
             const synthesis=parseVideoAnalysisJson(synthesisRaw);
+            videoAnalysisResume=null;
             return {
                 detectedLanguage:[...new Set(results.map(x=>x.detectedLanguage).filter(Boolean))].join(' + ')||'Tidak diketahui',
                 fullTranscript:results.map(x=>'['+formatMomentTime(x.offsetSeconds)+']\\n'+x.fullTranscript).join('\\n\\n'),
