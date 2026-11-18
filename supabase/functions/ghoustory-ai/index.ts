@@ -710,7 +710,11 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
       return json({ error: "Jenis tugas AI tidak dikenal." }, 400);
     }
 
-    const modelCandidates = task === "video-audio-chunk-transcription" ? ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] : task === "video-audio-chunk-text-analysis" ? ["gemini-3.5-flash", "gemini-3.5-flash-lite"] : ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
+    const modelCandidates = task === "video-audio-chunk-transcription"
+      ? ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+      : task === "video-audio-chunk-text-analysis"
+        ? ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
+        : ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
     const retryableStatuses = [429, 500, 502, 503, 504];
     const structuredJsonTask = task === "video-audio-analysis" || task === "youtube-video-analysis" || task === "video-audio-chunk-analysis" || task === "video-audio-chunk-transcription" || task === "video-audio-chunk-text-analysis" || task === "video-audio-chunk-translation";
     const maxOutputTokens = task === "video-audio-chunk-transcription" ? 12000 : task === "video-audio-chunk-text-analysis" ? 6500 : task === "video-audio-chunk-translation" ? 9000 : structuredJsonTask ? 32000 : task === "video-transcript-synthesis" ? 7000 : task === "subtitle-srt" ? 7000 : task === "social-screenshot" ? 1800 : task === "shorts-moment-finder" ? 5000 : task === "script" ? 1800 : task === "minutes-audio" ? 3500 : 2500;
@@ -753,15 +757,18 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
     let response: Response | null = null;
     let activeModel = "";
 
-    // Try the primary model first. If it is temporarily unavailable, switch to the
-    // documented stable Flash-Lite fallback using the same Gemini API key.
-    for (const model of modelCandidates) {
+    // Keep the complete request inside Supabase's 150s idle-response window.
+    // One bounded attempt per model is safer than repeated 110s waits; a timeout
+    // on the primary model now falls through to the fallback model.
+    const geminiTimeoutMs = task === "youtube-video-analysis" ? 28_000
+      : task.startsWith("video-audio-chunk-") ? 42_000
+      : 50_000;
+    for (const [modelIndex, model] of modelCandidates.entries()) {
       activeModel = model;
       usageModel = model;
-      const attemptsForModel = model === modelCandidates[0] ? 3 : 2;
-      for (let attempt = 0; attempt < attemptsForModel; attempt++) {
-        const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
-        aiRequestStarted = true;
+      const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+      aiRequestStarted = true;
+      try {
         response = await fetch(geminiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -769,21 +776,27 @@ Timestamp harus mengacu pada posisi audio dari awal, format HH:MM:SS atau MM:SS.
             contents: [{ role: "user", parts: requestParts.length ? requestParts : [{ text: prompt }] }],
             generationConfig: { temperature: structuredJsonTask ? 0.3 : 0.75, maxOutputTokens, ...(structuredJsonTask ? { responseMimeType: "application/json", responseJsonSchema: activeResponseSchema } : {}) },
           }),
-          signal: AbortSignal.timeout(110_000),
+          signal: AbortSignal.timeout(geminiTimeoutMs),
         });
-        if (response.ok || !retryableStatuses.includes(response.status)) break;
-        if (attempt < attemptsForModel - 1) {
-          const retryAfter = Number(response.headers.get("retry-after") || 0);
-          const waitMs = retryAfter > 0 ? Math.min(retryAfter * 1000, 8000) : (attempt === 0 ? 2000 : 4000);
-          await response.body?.cancel();
-          await new Promise((resolve) => setTimeout(resolve, waitMs));
+      } catch (error) {
+        response = null;
+        const reason = error instanceof Error ? error.name + ": " + error.message : "unknown network error";
+        console.warn("[ghoustory-ai] stage=gemini_request_failed model=" + model + " reason=" + reason.slice(0, 180));
+        if (modelIndex < modelCandidates.length - 1) {
+          console.warn("[ghoustory-ai] stage=model_fallback primary=" + model + " fallback=" + modelCandidates[modelIndex + 1]);
+          continue;
         }
+        throw new Error("Gemini tidak merespons dalam batas waktu. Model cadangan juga gagal. Silakan coba lagi.");
       }
-      if (response?.ok || (response && !retryableStatuses.includes(response.status))) break;
-      if (model !== modelCandidates[modelCandidates.length - 1]) {
-        console.warn("[ghoustory-ai] stage=model_fallback primary=" + model + " fallback=" + modelCandidates[modelCandidates.indexOf(model) + 1] + " status=" + response?.status);
-        await response?.body?.cancel();
+
+      if (response.ok) break;
+      if (retryableStatuses.includes(response.status) && modelIndex < modelCandidates.length - 1) {
+        console.warn("[ghoustory-ai] stage=model_fallback primary=" + model + " fallback=" + modelCandidates[modelIndex + 1] + " status=" + response.status);
+        await response.body?.cancel();
+        response = null;
+        continue;
       }
+      break;
     }
     if (!response) {
       await recordAiUsage(req, usageTask, usageModel, null, "error");
