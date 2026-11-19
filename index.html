@@ -4346,10 +4346,19 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
             if (typeof dataUri !== 'string' || !/^data:image\/(?:png|jpeg|webp);base64,/i.test(dataUri)) {
                 throw new Error('Format logo tidak valid. Gunakan PNG atau JPG.');
             }
-            const originalBlob = await (await fetch(dataUri)).blob();
-            if (!originalBlob || !['image/png', 'image/jpeg', 'image/webp'].includes(originalBlob.type)) {
-                throw new Error('File logo PNG/JPG tidak dapat dibaca.');
-            }
+            // Decode the FileReader data URL locally; fetch(data:) can fail with
+            // a generic "Load failed" in some mobile browsers.
+            const commaIndex = dataUri.indexOf(',');
+            if (commaIndex < 0) throw new Error('Data gambar logo tidak lengkap.');
+            const mimeMatch = dataUri.slice(0, commaIndex).match(/^data:(image\/(?:png|jpeg|webp));base64$/i);
+            if (!mimeMatch) throw new Error('Format data logo tidak didukung. Gunakan PNG atau JPG.');
+            let binary;
+            try { binary = atob(dataUri.slice(commaIndex + 1)); }
+            catch (_) { throw new Error('Data gambar PNG/JPG tidak valid. Coba pilih ulang file.'); }
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const originalBlob = new Blob([bytes], { type: mimeMatch[1].toLowerCase() });
+            if (!originalBlob.size) throw new Error('File logo kosong atau tidak terbaca.');
             return new Promise((resolve, reject) => {
                 const image = new Image();
                 image.onload = () => {
