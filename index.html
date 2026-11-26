@@ -5836,7 +5836,7 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
                 '<p class="text-xs text-indigo-200">Topik: '+escapeHtml(c.title||'Belum diisi')+'</p>'+
                 '<p class="text-[10px] text-gray-400 mt-1">Segmen: '+escapeHtml(c.segment||'Belum dipilih')+'</p>'+
                 '<p class="text-[10px] text-gray-400 mt-1">Lokasi: '+escapeHtml(c.location||'Belum ditentukan')+'</p>'+
-                '<div class="grid grid-cols-2 gap-2 mt-3"><button onclick="scheduleCrewCandidate(\''+key+'\')" class="rounded-lg bg-yellow-800/80 px-3 py-2 text-xs font-semibold">Masukkan ke Almanak</button><button onclick="editCrewCandidate(\''+key+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-xs">Edit</button><button onclick="deleteCrewCandidate(\''+key+'\')" class="col-span-2 rounded-lg border border-red-900 bg-red-950/70 px-3 py-2 text-xs">Hapus Kandidat</button></div>'+
+                '<div class="grid grid-cols-2 gap-2 mt-3"><button type="button" onclick="scheduleCrewCandidate(\''+key+'\')" class="rounded-lg bg-yellow-800/80 px-3 py-2 text-xs font-semibold">Masukkan ke Almanak</button><button type="button" onclick="editCrewCandidate(\''+key+'\')" class="rounded-lg border border-gray-700 px-3 py-2 text-xs">Edit</button><button type="button" onclick="deleteCrewCandidate(\''+key+'\')" class="col-span-2 rounded-lg border border-red-900 bg-red-950/70 px-3 py-2 text-xs">Hapus Kandidat</button></div>'+
               '</div></article>';
           }).join('');
         }
