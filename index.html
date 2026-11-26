@@ -5800,8 +5800,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
         function editCrewCandidate(id){
           const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
-          document.getElementById('crew-schedule-form')?.classList.remove('hidden');document.getElementById('crew-schedule-form')?.setAttribute('aria-hidden','false');
-          resetCrewScheduleForm();document.getElementById('j-candidate-edit-id').value=c.id;document.getElementById('j-candidate-promote-id').value=c.id;
+          resetCrewScheduleForm();
+          const form=document.getElementById('crew-schedule-form');form?.classList.remove('hidden');form?.setAttribute('aria-hidden','false');
+          document.getElementById('j-candidate-edit-id').value=c.id;document.getElementById('j-candidate-promote-id').value=c.id;
           document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
           document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
           const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Edit Kandidat Narasumber';
@@ -5810,8 +5811,9 @@ body:has(#arena-play-panel.arena-game-page) #bottom-navigation{display:none!impo
         }
         function scheduleCrewCandidate(id){
           const c=crewCandidates.find(x=>String(x.id)===String(id));if(!c)return;
-          document.getElementById('crew-schedule-form')?.classList.remove('hidden');
-          resetCrewScheduleForm();document.getElementById('j-candidate-promote-id').value=c.id;
+          resetCrewScheduleForm();
+          const form=document.getElementById('crew-schedule-form');form?.classList.remove('hidden');form?.setAttribute('aria-hidden','false');
+          document.getElementById('j-candidate-promote-id').value=c.id;
           document.getElementById('j-nama').value=c.title||'';document.getElementById('j-narsum').value=c.narsum||'';
           document.getElementById('j-segmen').value=c.segment||'';document.getElementById('j-lokasi').value=c.location||'';
           const h=document.getElementById('crew-schedule-form-title');if(h)h.textContent='Jadwalkan Kandidat ke Almanak';
